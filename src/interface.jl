@@ -65,3 +65,15 @@ end
 function Base.convert(M::Type{<:Model}, m::Model)
     @error "Base.convert not implemented for turning model of type '$(typeof(m))' into $(M)"
 end
+
+function Base.read(path::AbstractString, M::Type{<:Model})
+    open(path, "r") do io
+        return read(io, M)
+    end
+end
+
+function Base.write(path::AbstractString, M::Type{<:Model})
+    open(path, "w") do io
+        return write(io, M)
+    end
+end
