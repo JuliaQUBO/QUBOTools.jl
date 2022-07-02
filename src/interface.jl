@@ -1,47 +1,13 @@
 # -*- :: Domains :: -*- #
-abstract type Domain{T <: Integer} end
+abstract type Domain end
 
 @doc raw"""
-""" struct SpinDomain{T <: Signed} <: Domain{T}
-
-    function SpinDomain{T}() where T <: Integer
-        new{T}()
-    end
-
-    function SpinDomain()
-        SpinDomain{Int}()
-    end
-end
-
+""" struct SpinDomain <: Domain end
 @doc raw"""
-""" struct BoolDomain{T <: Integer} <: Domain{T}
-
-    function BoolDomain{T}() where T <: Integer
-        new{T}()
-    end
-
-    function BoolDomain()
-        BoolDomain{Int}()
-    end
-end
+""" struct BoolDomain <: Domain end
 
 # -*- :: Models :: -*- #
-abstract type Model{D <: Domain} end
-
-@doc raw"""
-""" struct BQPJSON{D <: Domain} <: Model{D} end
-
-@doc raw"""
-""" struct Qubist{D <: SpinDomain} <: Model{D} end
-
-@doc raw"""
-""" struct QUBO{D <: BoolDomain} <: Model{D} end
-
-@doc raw"""
-""" struct MiniZinc{D <: Domain} <: Model{D} end
-
-@doc raw"""
-""" struct HFS{D <: BoolDomain} <: Model{D} end
+abstract type Model{D} end
 
 # -*- :: Functions :: -*- #
 @doc raw"""
@@ -52,6 +18,10 @@ domain(::Type{<:Model{D}}) where D <: Domain = D
 
 @doc raw"""
 """ function validate end
+
+function validate(::Model)
+    nothing
+end
 
 # -*- :: Interface :: -*- #
 function Base.read(::IO, M::Type{<:Model})

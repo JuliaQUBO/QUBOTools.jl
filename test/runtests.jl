@@ -1,15 +1,12 @@
 using Test
-using BQPIO
+import BQPIO
+
+include("samples.jl")
+include("bqpjson.jl")
 
 function main()
-    @testset "Domains" begin
-        @test BQPIO.domain(BQPIO.QUBO{BQPIO.BoolDomain{Int}}) <: BQPIO.BoolDomain
-        @test BQPIO.domain(BQPIO.QUBO{BQPIO.BoolDomain{Int}}()) <: BQPIO.BoolDomain
-        @test BQPIO.domain(BQPIO.HFS{BQPIO.BoolDomain{Int}}) <: BQPIO.BoolDomain
-        @test BQPIO.domain(BQPIO.HFS{BQPIO.BoolDomain{Int}}()) <: BQPIO.BoolDomain
-        @test BQPIO.domain(BQPIO.Qubist{BQPIO.SpinDomain{Int}}) <: BQPIO.SpinDomain
-        @test BQPIO.domain(BQPIO.Qubist{BQPIO.SpinDomain{Int}}()) <: BQPIO.SpinDomain
-    end
+    test_samples()
+    test_bqpjson()
 end
 
 main() # Here we go!
