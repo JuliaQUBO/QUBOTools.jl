@@ -1,12 +1,11 @@
 @doc raw"""
-""" mutable struct HFS{D <: BoolDomain} <: Model{D}
-    data::Dict{String, Any}
+""" struct HFS{D <: BoolDomain} <: Model{D}
 
-    function HFS{D}(data::Dict{String, Any}) where D <: BoolDomain
-        new{D}(data)
+    function HFS{D}() where D <: BoolDomain
+        new{D}()
     end
 
-    function HFS(data::Dict{String, Any})
-        HFS{BoolDomain{Int}}(data)
+    function HFS()
+        HFS{BoolDomain}()
     end
 end

@@ -44,13 +44,7 @@ end
 
 function Base.read(io::IO, M::Type{<:QUBO})
     data = Dict{String, Any}(
-        "id" => nothing,
-        "description" => nothing,
-        "scale" => nothing,
-        "offset" => nothing,
-        "metadata" => Dict{String, Any}(),
-        "linear_terms" => Dics{String, Any}[],
-        "quadratic_terms" => Dics{String, Any}[],
+        deepcopy(BQPJSON_DEFAULT_BOOL)...,
         "max_index" => nothing,
         "num_diagonals" => nothing,
         "num_elements" => nothing,
@@ -61,7 +55,7 @@ function Base.read(io::IO, M::Type{<:QUBO})
 
         if !isnothing(m)
             s = m[1]
-            m = match(r"([a-zA-Z][a-zA-Z0-9]+) : (.*)", s)
+            m = match(r"([a-zA-Z][a-zA-Z0-9_]+) : (.*)", s)
             if !isnothing(m)
                 k = m[1]
                 v = m[2]
@@ -100,7 +94,7 @@ function Base.read(io::IO, M::Type{<:QUBO})
             continue
         end
 
-        m = match(r"([0-9]+) ([0-9]+) ([0-9.]+)", line)
+        m = match(r"([0-9]+) ([0-9]+) ([+-]?([0-9]*[.])?[0-9]+)", line)
 
         if !isnothing(m)
             i = tryparse(Integer, m[1])

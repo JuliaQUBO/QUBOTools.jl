@@ -1,20 +1,47 @@
 const BQPJSON_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "bqpjson.schema.json")))
 const BQPJSON_VERSION_LATEST = v"1.0.0"
+const BQPJSON_DEFAULT_BOOL = Dict{String, Any}(
+    "id" => 0,    
+    "version" => string(BQPJSON_VERSION_LATEST),
+    "variable_ids" => Any[],
+    "variable_domain" => "boolean",
+    "scale" => 1.0,
+    "offset" => 0.0,
+    "linear_terms" => Dict{String, Any}(),
+    "quadratic_terms" => Dict{String, Any}(),
+    "metadata" => Dict{String, Any}(),
+)
+const BQPJSON_DEFAULT_SPIN = Dict{String, Any}(
+    "id" => 0,    
+    "version" => string(BQPJSON_VERSION_LATEST),
+    "variable_ids" => Any[],
+    "variable_domain" => "spin",
+    "scale" => 1.0,
+    "offset" => 0.0,
+    "linear_terms" => Dict{String, Any}(),
+    "quadratic_terms" => Dict{String, Any}(),
+    "metadata" => Dict{String, Any}(),
+)
 
 @doc raw"""
 """ struct BQPJSON{D <: Domain} <: Model{D}
     data::Dict{String, Any}
 
     function BQPJSON{D}(data::Dict{String, Any}) where D <: Domain
-        new{D}(data)
+        model = new{D}(data)
+        if isvalid(model)
+            model
+        else
+            error("Validation Error: Invalid data for BQPJSON")
+        end
     end
 
     function BQPJSON(data::Dict{String, Any})
         if haskey(data, "variable_domain")
             if data["variable_domain"] == "spin"
-                return BQPJSON{SpinDomain}(data)
+                BQPJSON{SpinDomain}(data)
             elseif data["variable_domain"] == "boolean"
-                return BQPJSON{BoolDomain}(data)
+                BQPJSON{BoolDomain}(data)
             else
                 error("'variable_domain' must be either 'spin' or 'bool'")
             end
@@ -31,11 +58,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
         model = convert(M, model)
     end
 
-    if isvalid(model)
-        model
-    else
-        nothing
-    end
+    model
 end
 
 function Base.write(io::IO, model::BQPJSON)
@@ -44,10 +67,12 @@ end
 
 function Base.isvalid(model::BQPJSON{D}) where D
     if !isnothing(JSONSchema.validate(BQPJSON_SCHEMA, model.data))
+        @error "JSON Schema mismach"
         return false
     end
 
     if VersionNumber(model.data["version"]) !== BQPJSON_VERSION_LATEST
+        @error "Invalid BQPJSON version"
         return false
     end
 
@@ -55,10 +80,12 @@ function Base.isvalid(model::BQPJSON{D}) where D
     bool_var_domain = (model.data["variable_domain"] == "boolean" && D <: BoolDomain)
 
     if !spin_var_domain && !bool_var_domain
+        @error "Variable domain inconsistency"
         return false
     end
 
     if model.data["scale"] < 0
+        @error "Negativa problem scaling"
         return false
     end
 
@@ -67,6 +94,7 @@ function Base.isvalid(model::BQPJSON{D}) where D
 
     for lt in model.data["linear_terms"]
         if lt["id"] ∉ var_ids || lt["id"] ∈ lt_vars
+            @error "Invalid or duplicate variable id"
             return false
         end
 
@@ -76,17 +104,19 @@ function Base.isvalid(model::BQPJSON{D}) where D
     qt_var_pairs = Set{Tuple{Int, Int}}()
 
     for qt in model.data["quadratic_terms"]
-        if qt["id_tail"] ∉ var_ids || qt["id_head"] ∉ var_ids || qt["id_tail"] == qt["id_head"]
+        if qt["id_head"] ∉ var_ids || qt["id_tail"] ∉ var_ids || qt["id_tail"] == qt["id_head"]
+            @error "Invalid variable id or variable pair"
             return false
         end
 
-        pair = if qt["id_head"] < qt["id_tail"]
-            (qt["id_head"], qt["id_tail"])
-        else
-            (qt["id_tail"], qt["id_head"])
+        if qt["id_head"] > qt["id_tail"]
+            qt["id_head"], qt["id_tail"] = qt["id_tail"], qt["id_head"]
         end
 
+        pair = (qt["id_head"], qt["id_tail"])
+
         if pair ∈ qt_var_pairs
+            @error "Duplicate variable pair"
             return false
         end
 
@@ -97,6 +127,7 @@ function Base.isvalid(model::BQPJSON{D}) where D
         solution_ids = Set{Int}()
         for solution in model.data["solutions"]
             if solution["id"] ∈ solution_ids
+                @error "Duplicate solution id"
                 return false
             end
 
@@ -107,21 +138,25 @@ function Base.isvalid(model::BQPJSON{D}) where D
                 var_id = assign["id"]
                 
                 if (var_id ∉ var_ids) || (var_id ∈ sol_var_ids)
+                    @error "Invalid or duplicate variable id"
                     return false
                 end
 
                 push!(sol_var_ids, var_id)
 
                 if spin_var_domain && !(assign["value"] == -1 || assign["value"] == 1)
+                    @error "Invalid assignment for spin variable"
                     return false
                 end
 
                 if bool_var_domain && !(assign["value"] == 0 || assign["value"] == 1)
+                    @error "Invalid assignment for boolean variable"
                     return false
                 end
             end
             
             if length(sol_var_ids) != length(var_ids)
+                @error "Length mismach between variable set and solution assignment"
                 return false
             end
         end
