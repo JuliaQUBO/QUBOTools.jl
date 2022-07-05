@@ -1,25 +1,25 @@
-function test_bridges()
-    @testset "BQPJSON -> Qubist" begin
+function test_bridges(; n::Int = 1)
+    @testset "~*~ BRIDGES ~*~" verbose = true begin
+    
+    @testset "BQPJSON <--> Qubist" begin
+        # for i = 0:n
+        #     qh_model = read(joinpath(@__DIR__, "data", "00$(i).s.qh"), Qubist)
+        #     js_model = read(joinpath(@__DIR__, "data", "00$(i).s.json"), BQPJSON)
 
-        let qh_model, js_model
-            qh_model = read(joinpath(@__DIR__, "data", "000.s.qh"), Qubist)
-            js_model = read(joinpath(@__DIR__, "data", "000.s.json"), BQPJSON)
-            
-            @test qh_model == convert(Qubist, js_model)
-        end
+        #     @test qh_model == convert(Qubist, js_model)
+        #     @test qh_model == convert(Qubist, convert(BQPJSON{SpinDomain}, qh_model))
+        # end
+    end
 
-        let qh_model, js_model
-            qh_model = read(joinpath(@__DIR__, "data", "001.s.qh"), Qubist)
-            js_model = read(joinpath(@__DIR__, "data", "001.s.json"), BQPJSON)
-            
-            @test qh_model == convert(Qubist, js_model)
-        end
+    @testset "BQPJSON <--> QUBO" begin
+        for i = 0:n
+            qubo_model = read(joinpath(@__DIR__, "data", "0$(i)", "bool.qubo"), QUBO)
+            bool_model = read(joinpath(@__DIR__, "data", "0$(i)", "bool.json"), BQPJSON)
 
-        let qh_model, js_model
-            qh_model = read(joinpath(@__DIR__, "data", "002.s.qh"), Qubist)
-            js_model = read(joinpath(@__DIR__, "data", "002.s.json"), BQPJSON)
-            
-            @test qh_model == convert(Qubist, js_model)
+            @test isapprox(qubo_model, convert(QUBO, bool_model))
+            @test isapprox(convert(BQPJSON{BoolDomain}, qubo_model), bool_model)
         end
+    end
+
     end
 end

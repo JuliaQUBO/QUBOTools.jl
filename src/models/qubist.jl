@@ -11,31 +11,58 @@
             linear_terms::Dict{Int, Float64},
             quadratic_terms::Dict{Tuple{Int, Int}, Float64},
         ) where D <: SpinDomain
-        new{D}(
+        model = new{D}(
             sites,
             lines,
             linear_terms,
             quadratic_terms,
         )
+
+        if isvalid(model)
+            model
+        else
+            error()
+        end
     end
 
-    function Qubist(
-            sites::Integer,    
-            lines::Integer,
-            linear_terms::Dict{Int, Float64},
-            quadratic_terms::Dict{Tuple{Int, Int}, Float64},
-        )
-        Qubist{SpinDomain}(
-            sites,    
-            lines,
-            linear_terms,
-            quadratic_terms,
-        )
+    function Qubist(args...)
+        Qubist{SpinDomain}(args...)
     end
 end
 
+function Base.isvalid(model::Qubist)
+    if model.sites < 0
+        @error "Negative number of sites"
+        return false
+    end
+
+    if model.lines < 0
+        @error "Negative number of lines"
+        return false
+    end
+
+    for (i, _) in model.linear_terms
+        if i < 0
+            @error "Invalid linear term $i with negative index"
+            return false
+        end
+    end
+
+    for ((i, j), _) in model.quadratic_terms
+        if i < 0 || j < 0
+            @error "Invalid quadratic term ($(i), $(j)) with negative index"
+            return false
+        end
+    end
+
+    return true
+end
+
 function Base.:(==)(x::Qubist, y::Qubist)
-    (x.sites == y.sites) && (x.lines == y.lines) && (x.linear_terms == y.linear_terms) && (x.quadratic_terms == y.quadratic_terms)
+    x.sites == y.sites &&
+    x.lines == y.lines &&
+    x.linear_terms == y.linear_terms &&
+    x.quadratic_terms == y.quadratic_terms
 end
 
 function Base.write(io::IO, model::Qubist)
@@ -49,7 +76,7 @@ function Base.write(io::IO, model::Qubist)
 end
 
 function Base.read(io::IO, ::Type{<:Qubist})
-    linear_terms = Dict{Int, Float64}()
+    linear_terms    = Dict{Int, Float64}()
     quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
 
     sites, lines = let m = match(r"([0-9]+) ([0-9]+)", readline(io))

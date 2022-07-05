@@ -1,7 +1,7 @@
 @doc raw"""
 
 ```math
-    s (\sum_{i < j} Q_{i, j} x_i x_j + \sum_{i} Q_{i, i} x_i) + c
+    s (\sum_{i < j} Q_{i, j} x_i x_j + \sum_{i} Q_{i, i} x_i + c)
 ```
 
 """ mutable struct BQPModel{D, V, U, T} <: Model{D, V, U, T}
