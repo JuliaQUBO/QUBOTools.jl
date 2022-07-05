@@ -1,7 +1,7 @@
 # const QUBO_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "qubo.schema.json")))
 
 @doc raw"""
-""" struct QUBO{D <: BoolDomain} <: Model{D}
+""" struct QUBO{D <: BoolDomain} <: AbstractBQPModel{D}
     id::Int
     scale::Float64
     offset::Float64

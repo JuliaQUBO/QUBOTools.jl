@@ -1,4 +1,4 @@
-function test_bridges(; n::Int = 1)
+function test_bridges(; n::Int = 2)
     @testset "~*~ BRIDGES ~*~" verbose = true begin
     
     @testset "BQPJSON <--> Qubist" begin

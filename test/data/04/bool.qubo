@@ -1,5 +1,5 @@
-c id : 0
-c description : this case tests the hfs translator.  both in recovering intger coefficents and computing an effective chimera degree.
+c id : 2
+c description : Model 2 ~ This case tests the hfs translator. Both in recovering integer coefficents and computing an effective chimera degree.
 c 
 c scale : 1.0
 c offset : 2.375

@@ -1,5 +1,5 @@
 @doc raw"""
-""" struct Qubist{D <: SpinDomain} <: Model{D}
+""" struct Qubist{D <: SpinDomain} <: AbstractBQPModel{D}
     sites::Int
     lines::Int
     linear_terms::Dict{Int, Float64}

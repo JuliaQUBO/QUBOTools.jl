@@ -2,7 +2,7 @@ const BQPJSON_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "bqpj
 const BQPJSON_VERSION_LATEST = v"1.0.0"
 
 @doc raw"""
-""" struct BQPJSON{D <: Domain} <: Model{D}
+""" struct BQPJSON{D <: VariableDomain} <: AbstractBQPModel{D}
     id::Int
     version::VersionNumber
     variable_ids::Set{Int}
@@ -24,8 +24,8 @@ const BQPJSON_VERSION_LATEST = v"1.0.0"
             terms::Dict{Tuple{Int, Int}, Float64},
             metadata::Dict{String, Any},
             description::Union{String, Nothing},
-            solutions::Union{Vector{Dict{String, Any}}, Nothing},
-        ) where D <: Domain
+            solutions::Union{Vector{<:Any}, Nothing},
+        ) where D <: VariableDomain
         model = new{D}(
             id,
             version,
@@ -41,7 +41,7 @@ const BQPJSON_VERSION_LATEST = v"1.0.0"
         if isvalid(model)
             model
         else
-            error("Invalid Model")
+            error("Invalid AbstractBQPModel")
         end
     end
 
@@ -55,7 +55,7 @@ const BQPJSON_VERSION_LATEST = v"1.0.0"
             terms::Dict{Tuple{Int, Int}, Float64},
             metadata::Dict{String, Any},
             description::Union{String, Nothing},
-            solutions::Union{Vector{Dict{String, Any}}, Nothing},
+            solutions::Union{Vector{<:Any}, Nothing},
         )
         D = if variable_domain == "boolean"
             BoolDomain
@@ -79,7 +79,7 @@ const BQPJSON_VERSION_LATEST = v"1.0.0"
         )
     end
 
-    function BQPJSON{D}(data::Dict{String, Any}) where D <: Domain
+    function BQPJSON{D}(data::Dict{String, Any}) where D <: VariableDomain
         if !isnothing(JSONSchema.validate(BQPJSON_SCHEMA, data))
             error("Invalid data")
         end
@@ -113,6 +113,11 @@ const BQPJSON_VERSION_LATEST = v"1.0.0"
             i = qt["id_head"]
             j = qt["id_tail"]
             q = qt["coeff"]
+            
+            if j < i # swap variables
+                i, j = j, i
+            end
+
             terms[(i, j)] = get(terms, (i, j), 0.0) + q
         end
 
@@ -147,7 +152,7 @@ const BQPJSON_VERSION_LATEST = v"1.0.0"
     end
 end
 
-function Base.isapprox(x::BQPJSON{D}, y::BQPJSON{D}; kw...) where D <: Domain
+function Base.isapprox(x::BQPJSON{D}, y::BQPJSON{D}; kw...) where D <: VariableDomain
     x.id           == y.id              &&
     x.version      == y.version         &&
     x.variable_ids == y.variable_ids    &&
@@ -160,7 +165,7 @@ function Base.isapprox(x::BQPJSON{D}, y::BQPJSON{D}; kw...) where D <: Domain
     x.solutions    == y.solutions
 end
 
-function Base.:(==)(x::BQPJSON{D}, y::BQPJSON{D}) where D <: Domain
+function Base.:(==)(x::BQPJSON{D}, y::BQPJSON{D}) where D <: VariableDomain
     x.id           == y.id           &&
     x.version      == y.version      &&
     x.variable_ids == y.variable_ids &&
