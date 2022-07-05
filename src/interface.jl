@@ -17,18 +17,21 @@ domain(::AbstractBQPModel{D})         where D <: VariableDomain = D
 domain(::Type{<:AbstractBQPModel{D}}) where D <: VariableDomain = D
 
 # -*- :: Interface :: -*- #
-function Base.isvalid(::AbstractBQPModel)
-    false
+
+# ~*~ Validation ~*~ #
+Base.isvalid(::AbstractBQPModel) = false
+Base.isapprox(::AbstractBQPModel, ::AbstractBQPModel; kw...) = false
+Base.:(==)(::AbstractBQPModel, ::AbstractBQPModel) = false
+
+@doc raw"""
+    isapproxbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kw...) where M <: AbstractBQPModel
+""" function isapproxbridge end
+
+function isapproxbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kw...) where M <: AbstractBQPModel
+    source == target
 end
 
-function Base.isapprox(::AbstractBQPModel, ::AbstractBQPModel; kw...)
-    false
-end
-
-function Base.:(==)(::AbstractBQPModel, ::AbstractBQPModel)
-    false
-end
-
+# ~*~ I/O ~*~ #
 function Base.read(::IO, M::Type{<:AbstractBQPModel})
     error("'Base.read' not implemented for model of type '$(M)'")
 end

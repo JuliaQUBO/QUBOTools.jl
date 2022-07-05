@@ -37,8 +37,8 @@ function Base.convert(::Type{<:BQPJSON{SpinDomain}}, model::Qubist)
     scale           = 1.0
     offset          = 0.0
     terms           = Dict{Tuple{Int, Int}, Float64}()
-    description     = nothing
     metadata        = Dict{String, Any}()
+    description     = nothing
     solutions       = nothing
 
     for (i, h) in model.linear_terms
@@ -59,8 +59,15 @@ function Base.convert(::Type{<:BQPJSON{SpinDomain}}, model::Qubist)
         scale,
         offset,
         terms,
-        description,
         metadata,
+        description,
         solutions,
     )
+end
+
+function isapproxbridge(source::BQPJSON{SpinDomain}, target::BQPJSON{SpinDomain}, ::Type{<:Qubist}; kw...)
+    # Obs:
+    # 1. id, offset, scale is lost
+    source.version == target.version &&
+    isapprox_dict(source.terms, target.terms; kw...)
 end

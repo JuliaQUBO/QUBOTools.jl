@@ -153,16 +153,9 @@ const BQPJSON_VERSION_LATEST = v"1.0.0"
 end
 
 function Base.isapprox(x::BQPJSON{D}, y::BQPJSON{D}; kw...) where D <: VariableDomain
-    x.id           == y.id              &&
-    x.version      == y.version         &&
-    x.variable_ids == y.variable_ids    &&
     isapprox(x.scale , y.scale ; kw...) &&
     isapprox(x.offset, y.offset; kw...) &&
-    keys(x.terms)  == keys(y.terms)     &&
-    all(isapprox(x.terms[k], y.terms[k]; kw...) for k in keys(x.terms)) && 
-    x.metadata     == y.metadata        &&
-    x.description  == y.description     &&
-    x.solutions    == y.solutions
+    isapprox_dict(x.terms, y.terms; kw...)
 end
 
 function Base.:(==)(x::BQPJSON{D}, y::BQPJSON{D}) where D <: VariableDomain

@@ -13,8 +13,8 @@
     linear_terms::Dict{Int, Float64}
     quadratic_terms::Dict{Tuple{Int, Int}, Float64}
 
-    description::Union{String, Nothing}
     metadata::Dict{String, Any}
+    description::Union{String, Nothing}
 
     function QUBO{D}(
         id::Int,
@@ -25,8 +25,8 @@
         num_elements::Int,
         linear_terms::Dict{Int, Float64},
         quadratic_terms::Dict{Tuple{Int, Int}, Float64},
-        description::Union{String, Nothing},
         metadata::Dict{String, Any},
+        description::Union{String, Nothing},
     ) where D <: BoolDomain
         model = new{D}(
             id,
@@ -37,8 +37,8 @@
             num_elements,
             linear_terms,
             quadratic_terms,
-            description,
             metadata,
+            description,
         )
         if isvalid(model)
             model
@@ -53,18 +53,10 @@
 end
 
 function Base.isapprox(x::QUBO, y::QUBO; kw...)
-    x.id == y.id &&
     isapprox(x.scale , y.scale ; kw...) &&
     isapprox(x.offset, y.offset; kw...) &&
-    x.max_index     == y.max_index     &&
-    x.num_diagonals == y.num_diagonals &&
-    x.num_elements  == y.num_elements  &&
-    keys(x.linear_terms)    == keys(y.linear_terms)    &&
-    all(isapprox(x.linear_terms[k]   , y.linear_terms[k]   ; kw...) for k in keys(x.linear_terms))    &&
-    keys(x.quadratic_terms) == keys(y.quadratic_terms) &&
-    all(isapprox(x.quadratic_terms[k], y.quadratic_terms[k]; kw...) for k in keys(x.quadratic_terms)) &&
-    x.description == y.description &&
-    x.metadata    == y.metadata
+    isapprox_dict(x.linear_terms   , y.linear_terms   ; kw...) &&
+    isapprox_dict(x.quadratic_terms, y.quadratic_terms; kw...)
 end
 
 function Base.:(==)(x::QUBO, y::QUBO)
@@ -76,8 +68,8 @@ function Base.:(==)(x::QUBO, y::QUBO)
     x.num_elements    == y.num_elements    &&
     x.linear_terms    == y.linear_terms    &&
     x.quadratic_terms == y.quadratic_terms &&
-    x.description     == y.description     &&
-    x.metadata        == y.metadata
+    x.metadata        == y.metadata        &&
+    x.description     == y.description     
 end
 
 function Base.isvalid(model::QUBO)
@@ -159,8 +151,8 @@ function Base.read(io::IO, ::Type{<:QUBO})
     linear_terms    = Dict{Int, Float64}()
     quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
 
-    description = nothing
     metadata    = Dict{String, Any}()
+    description = nothing
 
     for line in strip.(readlines(io))
         if isempty(line)
@@ -239,7 +231,7 @@ function Base.read(io::IO, ::Type{<:QUBO})
         num_elements,
         linear_terms,
         quadratic_terms,
-        description,
         metadata,
+        description,
     )
 end

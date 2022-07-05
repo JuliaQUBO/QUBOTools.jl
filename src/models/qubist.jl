@@ -58,10 +58,15 @@ function Base.isvalid(model::Qubist)
     return true
 end
 
+function Base.isapprox(x::Qubist, y::Qubist; kw...)
+    isapprox_dict(x.linear_terms   , y.linear_terms   ; kw...) &&
+    isapprox_dict(x.quadratic_terms, y.quadratic_terms; kw...)
+end
+
 function Base.:(==)(x::Qubist, y::Qubist)
-    x.sites == y.sites &&
-    x.lines == y.lines &&
-    x.linear_terms == y.linear_terms &&
+    x.sites           == y.sites        &&
+    x.lines           == y.lines        &&
+    x.linear_terms    == y.linear_terms &&
     x.quadratic_terms == y.quadratic_terms
 end
 

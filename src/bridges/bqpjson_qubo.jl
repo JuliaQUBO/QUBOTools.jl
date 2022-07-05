@@ -62,8 +62,8 @@ function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
     num_diagonals = length(linear_terms)
     num_elements  = length(quadratic_terms)
 
-    description = model.description
     metadata    = deepcopy(model.metadata)
+    description = model.description
 
     QUBO{BoolDomain}(
         id,
@@ -74,7 +74,19 @@ function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
         num_elements,
         linear_terms,
         quadratic_terms,
-        description,
         metadata,
+        description,
     )
+end
+
+function isapproxbridge(source::BQPJSON{BoolDomain}, target::BQPJSON{BoolDomain}, ::Type{<:QUBO{BoolDomain}}; kw...)
+    source.id              == target.id              &&
+    source.version         == target.version         &&
+    source.variable_ids    == target.variable_ids    &&
+    source.variable_domain == target.variable_domain &&
+    isapprox(source.scale , target.scale ; kw...)    &&
+    isapprox(source.offset, target.offset; kw...)    &&
+    isapprox_dict(source.terms, target.terms; kw...) &&
+    source.metadata        == target.metadata        &&
+    source.description     == target.description
 end
