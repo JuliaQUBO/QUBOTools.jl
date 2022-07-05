@@ -3,17 +3,19 @@ function Base.convert(::Type{<:Qubist}, model::BQPJSON{BoolDomain})
 end
 
 function Base.convert(::Type{<:Qubist}, model::BQPJSON{SpinDomain})
-    sites = maximum(model.data["variable_ids"]; init = 0) + min(1, length(model.data["variable_ids"]))
-    lines = length(model.data["linear_terms"]) + length(model.data["quadratic_terms"])
+    sites = isempty(model.variable_ids) ? 0 : 1 + maximum(model.variable_ids)
+    lines = length(model.terms)
 
-    linear_terms = Dict{Int, Float64}(
-        lt["id"] => lt["coeff"]
-        for lt in model.data["linear_terms"]
-    )    
-    quadratic_terms = Dict{Tuple{Int, Int}, Float64}(
-        (qt["id_head"], qt["id_tail"]) => qt["coeff"]
-        for qt in model.data["quadratic_terms"]
-    )
+    linear_terms    = Dict{Int, Float64}()
+    quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
+
+    for ((i, j), q) in model.terms
+        if i == j # linear
+            linear_terms[i] = get(linear_terms, i, 0.0) + q
+        else # quadratic
+            quadratic_terms[(i, j)] = get(quadratic_terms, (i, j), 0.0) + q
+        end
+    end
 
     Qubist{SpinDomain}(
         sites,
@@ -28,34 +30,37 @@ function Base.convert(::Type{<:BQPJSON{BoolDomain}}, model::Qubist)
 end
 
 function Base.convert(::Type{<:BQPJSON{SpinDomain}}, model::Qubist)
-    data = deepcopy(BQPJSON_DEFAULT_SPIN)
-
-    variable_ids = Set{Int}()
+    id              = 0
+    version         = BQPJSON_VERSION_LATEST
+    variable_ids    = Set{Int}()
+    variable_domain = "spin"
+    scale           = 1.0
+    offset          = 0.0
+    terms           = Dict{Tuple{Int, Int}, Float64}()
+    description     = nothing
+    metadata        = Dict{String, Any}()
+    solutions       = nothing
 
     for (i, h) in model.linear_terms
         push!(variable_ids, i)
-        push!(
-            data["linear_terms"],
-            Dict{String, Any}(
-                "id"    => i,
-                "coeff" => h,
-            )
-        )
+        terms[(i, i)] = get(terms, (i, i), 0.0) + h
     end
 
     for ((i, j), J) in model.quadratic_terms
         push!(variable_ids, i, j)
-        push!(
-            data["quadratic_terms"],
-            Dict{String, Any}(
-                "id_head" => i,
-                "id_tail" => j,
-                "coeff"   => J,
-            )
-        )
+        terms[(i, j)] = get(terms, (i, j), 0.0) + J
     end
-    
-    append!(data["variable_ids"], sort(collect(variable_ids)))
 
-    BQPJSON{SpinDomain}(data)
+    BQPJSON{SpinDomain}(
+        id,
+        version,
+        variable_ids,
+        variable_domain,
+        scale,
+        offset,
+        terms,
+        description,
+        metadata,
+        solutions,
+    )
 end
