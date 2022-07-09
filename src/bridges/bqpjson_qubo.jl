@@ -9,19 +9,19 @@ function Base.convert(::Type{BQPJSON{BoolDomain}}, model::QUBO)
     variable_domain = "boolean"
     scale           = model.scale
     offset          = model.offset
-    terms           = Dict{Tuple{Int, Int}, Float64}()
+    linear_terms    = copy(model.linear_terms)
+    quadratic_terms = copy(model.quadratic_terms)
     metadata        = deepcopy(model.metadata)
     description     = model.description
     solutions       = nothing
 
-    for (i, l) in model.linear_terms
+    for i in keys(linear_terms)
         push!(variable_ids, i)
-        terms[(i, i)] = get(terms, (i, i), 0.0) + l
     end
 
-    for ((i, j), q) in model.quadratic_terms
-        push!(variable_ids, i, j)
-        terms[(i, j)] = get(terms, (i, j), 0.0) + q
+    for (i, j) in keys(quadratic_terms)
+        push!(variable_ids, i)
+        push!(variable_ids, j)
     end
 
     BQPJSON{BoolDomain}(
@@ -31,7 +31,8 @@ function Base.convert(::Type{BQPJSON{BoolDomain}}, model::QUBO)
         variable_domain,
         scale,
         offset,
-        terms,
+        linear_terms,
+        quadratic_terms,
         metadata,
         description,
         solutions,
@@ -43,20 +44,11 @@ function Base.convert(::Type{<:QUBO}, model::BQPJSON{SpinDomain})
 end
 
 function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
-    id     = model.id
-    scale  = model.scale
-    offset = model.offset
-
-    linear_terms    = Dict{Int, Float64}()
-    quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
-
-    for ((i, j), q) in model.terms
-        if i == j # linear
-            linear_terms[i] = get(linear_terms, i, 0.0) + q
-        else # quadratic
-            quadratic_terms[(i, j)] = get(quadratic_terms, (i, j), 0.0) + q
-        end
-    end
+    id              = model.id
+    scale           = model.scale
+    offset          = model.offset
+    linear_terms    = copy(model.linear_terms)
+    quadratic_terms = copy(model.quadratic_terms)
 
     max_index     = isempty(model.variable_ids) ? 0 : 1 + maximum(model.variable_ids)
     num_diagonals = length(linear_terms)
@@ -79,14 +71,15 @@ function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
     )
 end
 
-function isapproxbridge(source::BQPJSON{BoolDomain}, target::BQPJSON{BoolDomain}, ::Type{<:QUBO{BoolDomain}}; kw...)
+function isvalidbridge(source::BQPJSON{BoolDomain}, target::BQPJSON{BoolDomain}, ::Type{<:QUBO{BoolDomain}}; kw...)
     source.id              == target.id              &&
     source.version         == target.version         &&
     source.variable_ids    == target.variable_ids    &&
     source.variable_domain == target.variable_domain &&
     isapprox(source.scale , target.scale ; kw...)    &&
     isapprox(source.offset, target.offset; kw...)    &&
-    isapprox_dict(source.terms, target.terms; kw...) &&
-    source.metadata        == target.metadata        &&
+    isapproxdict(source.linear_terms   , target.linear_terms   ; kw...) &&
+    isapproxdict(source.quadratic_terms, target.quadratic_terms; kw...) &&
+    source.metadata        == target.metadata &&
     source.description     == target.description
 end

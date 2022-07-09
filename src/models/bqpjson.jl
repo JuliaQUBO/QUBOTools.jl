@@ -1,404 +1,298 @@
 const BQPJSON_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "bqpjson.schema.json")))
 const BQPJSON_VERSION_LATEST = v"1.0.0"
 
+function BQPJSON_DEFAULT_ID end
+BQPJSON_DEFAULT_ID(id::Integer) = id
+BQPJSON_DEFAULT_ID(::Nothing) = 0
+
+function BQPJSON_DEFAULT_VERSION end
+BQPJSON_DEFAULT_VERSION(version::VersionNumber) = version
+BQPJSON_DEFAULT_VERSION(::Nothing) = BQPJSON_VERSION_LATEST
+
+function BQPJSON_VARIABLE_DOMAIN end
+BQPJSON_VARIABLE_DOMAIN(::Type{<:BoolDomain}) = "boolean"
+BQPJSON_VARIABLE_DOMAIN(::Type{<:SpinDomain}) = "spin"
+
+function BQPJSON_VALIDATE_DOMAIN end
+BQPJSON_VALIDATE_DOMAIN(x::Integer, ::Type{<:BoolDomain}) = x ==  0 || x == 1
+BQPJSON_VALIDATE_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = s == -1 || s == 1
+
+function BQPJSON_SWAP_DOMAIN end
+BQPJSON_SWAP_DOMAIN(x::Integer, ::Type{<:BoolDomain}) = (x == 1 ? 1 : -1)
+BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 :  0)
+
 @doc raw"""
+    BQPJSON{D <: VariableDomain}
+
+### References
+[1] https://bqpjson.readthedocs.io
 """ struct BQPJSON{D <: VariableDomain} <: AbstractBQPModel{D}
-    id::Int
-    version::VersionNumber
-    variable_ids::Set{Int}
-    variable_domain::String
-    scale::Float64
-    offset::Float64
-    terms::Dict{Tuple{Int, Int}, Float64}
-    metadata::Dict{String, Any}
-    description::Union{String, Nothing}
-    solutions::Union{Vector{Dict{String, Any}}, Nothing}
+    backend::StandardBQPModel{Int, Int, Float64, D}
+    solutions::Union{Dict{String, Any}, Nothing}
 
     function BQPJSON{D}(
-            id::Integer,
-            version::VersionNumber,
-            variable_ids::Set{Int},
-            variable_domain::String,
-            scale::Float64,
-            offset::Float64,
-            terms::Dict{Tuple{Int, Int}, Float64},
-            metadata::Dict{String, Any},
-            description::Union{String, Nothing},
-            solutions::Union{Vector{<:Any}, Nothing},
+            backend::StandardBQPModel{Int, Int, Float64, D},
+            solutions::Union{Dict{String, Any}, Nothing} = nothing,
         ) where D <: VariableDomain
-        model = new{D}(
-            id,
-            version,
-            variable_ids,
-            variable_domain,
-            scale,
-            offset,
-            terms,
-            metadata,
-            description,
-            solutions,
-        )
-        if isvalid(model)
-            model
-        else
-            error("Invalid AbstractBQPModel")
-        end
+        new{D}(backend, solutions)
     end
 
     function BQPJSON(
+            backend::StandardBQPModel{Int, Int, Float64, D},
+            solutions::Union{Dict{String, Any}, Nothing} = nothing,
+        ) where D <: VariableDomain
+        BQPJSON{D}(backend, solutions)
+    end
+
+    function BQPJSON{D}(
+            linear_terms::Dict{Int, Float64},
+            quadratic_terms::Dict{Tuple{Int, Int}, Float64},
+            offset::Float64,
+            scale::Float64,
+            variable_map::Dict{Int, Int},
             id::Integer,
             version::VersionNumber,
-            variable_ids::Set{Int},
-            variable_domain::String,
-            scale::Float64,
-            offset::Float64,
-            terms::Dict{Tuple{Int, Int}, Float64},
-            metadata::Dict{String, Any},
             description::Union{String, Nothing},
-            solutions::Union{Vector{<:Any}, Nothing},
-        )
-        D = if variable_domain == "boolean"
-            BoolDomain
-        elseif variable_domain == "spin"
-            SpinDomain
-        else
-            error("'variable_domain' must be either 'boolean' or 'spin'")
-        end
+            metadata::Dict{String, Any},
+            solutions::Union{Dict{String, Any}, Nothing} = nothing,
+        ) where D <: VariableDomain
 
-        BQPJSON{D}(
+        backend = StandardBQPModel{Int, Int, Float64, D}(
+            # ~*~ Required data ~*~
+            linear_terms,
+            quadratic_terms,
+            offset,
+            scale,
+            variable_map,
+            # ~*~ Metadata ~*~
             id,
             version,
-            variable_ids,
-            variable_domain,
-            scale,
-            offset,
-            terms,
-            metadata,
             description,
-            solutions,
-        )
-    end
-
-    function BQPJSON{D}(data::Dict{String, Any}) where D <: VariableDomain
-        if !isnothing(JSONSchema.validate(BQPJSON_SCHEMA, data))
-            error("Invalid data")
-        end
-
-        id              = data["id"]
-        version         = VersionNumber(data["version"])
-        variable_ids    = Set{Int}(data["variable_ids"])
-        variable_domain = data["variable_domain"]
-        scale           = data["scale"]
-        offset          = data["offset"]
-        terms           = Dict{Tuple{Int, Int}, Float64}()
-        metadata        = deepcopy(data["metadata"])
-        description     = if haskey(data, "description")
-            data["description"]
-        else
-            nothing
-        end
-        solutions       = if haskey(data, "solutions")
-            deepcopy(data["solutions"])
-        else
-            nothing
-        end
-
-        for lt in data["linear_terms"]
-            i = lt["id"]
-            l = lt["coeff"]
-            terms[(i, i)] = get(terms, (i, i), 0.0) + l
-        end
-
-        for qt in data["quadratic_terms"]
-            i = qt["id_head"]
-            j = qt["id_tail"]
-            q = qt["coeff"]
-            
-            if j < i # swap variables
-                i, j = j, i
-            end
-
-            terms[(i, j)] = get(terms, (i, j), 0.0) + q
-        end
-
-        BQPJSON{D}(
-            id,
-            version,
-            variable_ids,
-            variable_domain,
-            scale,
-            offset,
-            terms,
             metadata,
-            description,
-            solutions,
         )
+
+        BQPJSON{D}(backend, solutions)
     end
-
-    function BQPJSON(data::Dict{String, Any})
-        if !haskey(data, "variable_domain")
-            error("Invalid data")
-        end
-
-        D = if data["variable_domain"] == "boolean"
-            BoolDomain
-        elseif data["variable_domain"] == "spin"
-            SpinDomain
-        else
-            error("'variable_domain' must be either 'boolean' or 'spin'")
-        end
-
-        BQPJSON{D}(data)
-    end
-end
-
-function Base.isapprox(x::BQPJSON{D}, y::BQPJSON{D}; kw...) where D <: VariableDomain
-    isapprox(x.scale , y.scale ; kw...) &&
-    isapprox(x.offset, y.offset; kw...) &&
-    isapprox_dict(x.terms, y.terms; kw...)
-end
-
-function Base.:(==)(x::BQPJSON{D}, y::BQPJSON{D}) where D <: VariableDomain
-    x.id           == y.id           &&
-    x.version      == y.version      &&
-    x.variable_ids == y.variable_ids &&
-    x.scale        == y.scale        &&
-    x.offset       == y.offset       &&
-    x.terms        == y.terms        &&
-    x.metadata     == y.metadata     &&
-    x.description  == y.description  &&
-    x.solutions    == y.solutions
 end
 
 function Base.read(io::IO, M::Type{<:BQPJSON})
-    model = BQPJSON(JSON.parse(io))
+    data = JSON.parse(io)
 
-    if (model isa M)
-        model
-    else
-        convert(M, model)
+    let report = JSONSchema.validate(BQPJSON_SCHEMA, data)
+        if !isnothing(report)
+            error("Invalid data:\n$(report)")
+        end
     end
+
+    # ~*~ Validation ~*~
+    id = data["id"]
+
+    version = VersionNumber(data["version"])
+    
+    if version !== BQPJSON_VERSION_LATEST
+        error("Invalid data: Incorrect bqpjson version '$version'")
+    end
+
+    variable_domain = data["variable_domain"]
+
+    D = if variable_domain == "boolean"
+        BoolDomain
+    elseif variable_domain == "spin"
+        SpinDomain
+    else
+        error("Invalid data: Inconsistent variable domain '$variable_domain'")
+    end
+
+    offset = data["offset"]
+    scale  = data["scale"]
+
+    if scale < 0.0
+        error("Invalid data: Negative scale factor '$scale'")
+    end
+
+    variable_map = Dict{Int, Int}(i => k for (k, i) in enumerate(data["variable_ids"]))
+    linear_terms = Dict{Int, Float64}()
+
+    for lt in data["linear_terms"]
+        i = lt["id"]
+        l = lt["coeff"]
+        i = if !haskey(variable_map, i)
+            error("Invalid data: Unknown variable id '$i'")
+        else
+            variable_map[i]
+        end
+        linear_terms[i] = get(linear_terms, i, 0.0) + l
+    end
+
+    quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
+
+    for qt in data["quadratic_terms"]
+        i = qt["id_head"]
+        j = qt["id_tail"]
+        q = qt["coeff"]
+        i, j = if i == j
+            error("Invalid data: Twin quadratic term '$i, $j'")
+        elseif !haskey(variable_map, i)
+            error("Invalid data: Unknown variable id '$i'")
+        elseif !haskey(variable_map, j)
+            error("Invalid data: Unknown variable id '$j'")
+        elseif j < i
+            variable_map[j], variable_map[i]
+        else
+            variable_map[i], variable_map[j]
+        end
+        quadratic_terms[(i, j)] = get(quadratic_terms, (i, j), 0.0) + q
+    end
+
+    description = get(data, "description", nothing)
+    metadata    = deepcopy(data["metadata"])
+    solutions   = get(data, "solutions", nothing)
+
+    if !isnothing(solutions)
+        sol_ids = Set{Int}()
+        for solution in data["solutions"]
+            i = solution["id"]
+
+            if i ∈ sol_ids
+                error("Invalid data: Duplicate solution id '$i'")
+                push!(sol_ids, i)
+            end
+
+            var_ids = Set{Int}()
+
+            for assign in solution["assignment"]
+                j = assign["id"]
+                v = assign["value"]
+
+                if !haskey(variable_map, j)
+                    error("Invalid data: Unknown variable id '$j' in assignment")
+                elseif j ∈ var_ids
+                    error("Invalid data: Duplicate variable id '$j' in assignment")
+                elseif !BQPJSON_VALIDATE_DOMAIN(v, D)
+                    error("Invalid data: Variable assignment '$value' out of domain")
+                end
+
+                push!(var_ids, j)
+            end
+
+            if length(var_ids) != length(variable_map)
+                error("Invalid data: Length mismach between variable set and solution assignment")
+            end
+        end
+    end
+
+    model = BQPJSON{D}(
+        linear_terms,
+        quadratic_terms,
+        offset,
+        scale,
+        variable_map,
+        id,
+        version,
+        description,
+        metadata,
+        solutions,
+    )
+
+    convert(M, model)
 end
 
-function Base.write(io::IO, model::BQPJSON)
+function Base.write(io::IO, model::BQPJSON{D}) where D <: VariableDomain
+    backend         = model.backend
+    id              = BQPJSON_DEFAULT_ID(backend.id)
+    version         = BQPJSON_DEFAULT_VERSION(backend.version)
+    offset          = backend.offset
+    scale           = backend.scale
+    variable_domain = BQPJSON_VARIABLE_DOMAIN(D)
     linear_terms    = Dict{String, Any}[]
     quadratic_terms = Dict{String, Any}[]
+    metadata        = deepcopy(backend.metadata)
 
-    for ((i, j), q) in model.terms
-        if (i == j)
-            push!(
-                linear_terms,
-                Dict{String, Any}(
-                    "id"    => i,
-                    "coeff" => q,
-                )
+    for (i, l) in backend.linear_terms
+        push!(
+            linear_terms,
+            Dict{String, Any}(
+                "id"    => backend.variable_inv[i],
+                "coeff" => l,
             )
-        else
-            push!(
-                quadratic_terms,
-                Dict{String, Any}(
-                    "id_head" => i,
-                    "id_tail" => j,
-                    "coeff"   => q,
-                )
+        )
+    end
+
+    for ((i, j), q) in backend.quadratic_terms
+        push!(
+            quadratic_terms,
+            Dict{String, Any}(
+                "id_head" => backend.variable_inv[i],
+                "id_tail" => backend.variable_inv[j],
+                "coeff"   => q,
             )
-        end
+        )
     end
 
     sort!(linear_terms   ; by=(lt) -> lt["id"])
     sort!(quadratic_terms; by=(qt) -> (qt["id_head"], qt["id_tail"]))
 
+    variable_ids = sort(collect(keys(backend.variable_map)))
+
     data = Dict{String, Any}(
-        "id"              => model.id,
-        "version"         => string(model.version),
-        "variable_ids"    => sort(collect(model.variable_ids)),
-        "variable_domain" => model.variable_domain,
-        "scale"           => model.scale,
-        "offset"          => model.offset,
+        "id"              => id,
+        "version"         => version,
+        "variable_domain" => variable_domain,
         "linear_terms"    => linear_terms,
         "quadratic_terms" => quadratic_terms,
-        "metadata"        => model.metadata,
+        "variable_ids"    => variable_ids,
+        "offset"          => offset,
+        "scale"           => scale,
+        "metadata"        => metadata,
     )
 
-    if !isnothing(model.description)
-        data["description"] = model.description
+    if !isnothing(backend.description)
+        data["description"] = backend.description
     end
 
     if !isnothing(model.solutions)
-        data["solutions"] = model.solutions
+        data["solutions"] = deepcopy(model.solutions)
+    elseif !isnothing(backend.sampleset)
+        id = 0
+
+        solutions = Dict{String, Any}[]
+
+        for sample in backend.sampleset
+            assignment = Dict{String, Any}[
+                Dict{String, Any}(
+                    "id"    => i,
+                    "value" => sample.state[j]
+                ) for (i, j) in backend.variable_map
+            ]
+            for _ = 1:sample.reads
+                push!(
+                    solutions,
+                    Dict{String, Any}(
+                        "id"         => (id += 1),
+                        "assignment" => assignment,
+                        "evaluation" => sample.value,
+                    )
+                )
+            end
+        end
+
+        data["solutions"] = solutions
     end
 
     JSON.print(io, data)
 end
 
-function Base.isvalid(model::BQPJSON{D}) where D
-    if model.version !== BQPJSON_VERSION_LATEST
-        @error "Invalid BQPJSON version"
-        return false
-    end
-
-    spin_var_domain = (model.variable_domain == "spin"    && D <: SpinDomain)
-    bool_var_domain = (model.variable_domain == "boolean" && D <: BoolDomain)
-
-    if !spin_var_domain && !bool_var_domain
-        @error "Variable domain inconsistency"
-        return false
-    end
-
-    if model.scale < 0.0
-        @error "Negative problem scaling"
-        return false
-    end
-
-    for (i, j) in keys(model.terms)
-        if i == j # linear
-            if i ∉ model.variable_ids
-                @error "Invalid variable id '$i'"
-                return false
-            end
-        else # quadratic
-            if i ∉ model.variable_ids || j ∉ model.variable_ids || j < i
-                @error "Invalid variable id or variable pair '$i, $j'"
-                return false
-            end
-        end
-    end
-
-    if !isnothing(model.solutions)
-        solution_ids = Set{Int}()
-
-        for solution in model.solutions
-            if solution["id"] ∈ solution_ids
-                @error "Duplicate solution id"
-                return false
-            end
-
-            push!(solution_ids, solution["id"])
-
-            sol_var_ids = Set{Int}()
-
-            for assign in solution["assignment"]
-                var_id = assign["id"]
-                value  = assign["value"]
-
-                if var_id ∉ model.variable_ids || var_id ∈ sol_var_ids
-                    @error "Invalid or duplicate variable id"
-                    return false
-                end
-
-                if spin_var_domain && !(value == -1 || value == 1)
-                    @error "Invalid assignment for spin variable"
-                    return false
-                end
-
-                if bool_var_domain && !(value == 0  || value == 1)
-                    @error "Invalid assignment for boolean variable"
-                    return false
-                end
-
-                push!(sol_var_ids, var_id)
-            end
-
-            if length(sol_var_ids) != length(model.variable_ids)
-                @error "Length mismach between variable set and solution assignment"
-                return false
-            end
-        end
-    end
-
-    return true
-end
-
-function Base.convert(::Type{<:BQPJSON{D}}, model::BQPJSON{D}) where D
-    model
-end
-
-function Base.convert(::Type{<:BQPJSON{BoolDomain}}, model::BQPJSON{SpinDomain})
-    id           = model.id
-    version      = model.version
-    variable_ids = copy(model.variable_ids)
-    scale        = model.scale
-    offset       = model.offset
-    terms        = Dict{Tuple{Int, Int}, Float64}()
-    metadata     = deepcopy(model.metadata)
-    description  = model.description
-    solutions    = deepcopy(model.solutions)
-
-    for ((i, j), a) in model.terms
-        if i == j # linear
-            terms[(i, i)] = get(terms, (i, i), 0.0) + 2.0 * a
-            offset -= a
-        else # quadratic
-            terms[(i, j)] = get(terms, (i, j), 0.0) + 4.0 * a
-            terms[(i, i)] = get(terms, (i, i), 0.0) - 2.0 * a
-            terms[(j, j)] = get(terms, (j, j), 0.0) - 2.0 * a
-            offset += a
-        end
-    end
+function Base.convert(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A, B}
+    backend   = convert(StandardBQPModel{Int, Int, Float64, B}, model.backend)
+    solutions = deepcopy(model.solutions)
 
     if !isnothing(solutions)
         for solution in solutions
-            for assign in solution["assignment"]
-                assign["value"] = assign["value"] == 1 ? 1 : 0
+            for assign in solution
+                assign["value"] = BQPJSON_SWAP_DOMAIN(assign["value"], A)
             end
         end
     end
 
-    BQPJSON{BoolDomain}(
-        id,
-        version,
-        variable_ids,
-        "boolean",
-        scale,
-        offset,
-        terms,
-        metadata,
-        description,
-        solutions,
-    )
-end
-
-function Base.convert(::Type{<:BQPJSON{SpinDomain}}, model::BQPJSON{BoolDomain})
-    id           = model.id
-    version      = model.version
-    variable_ids = copy(model.variable_ids)
-    scale        = model.scale
-    offset       = model.offset
-    terms        = Dict{Tuple{Int, Int}, Float64}()
-    metadata     = deepcopy(model.metadata)
-    description  = model.description
-    solutions    = deepcopy(model.solutions)
-
-    for ((i, j), a) in model.terms
-        if i == j # linear
-            terms[(i, i)] = get(terms, (i, i), 0.0) + a / 2.0
-            offset += a / 2.0
-        else # quadratic
-            terms[(i, j)] = get(terms, (i, j), 0.0) + a / 4.0
-            terms[(i, i)] = get(terms, (i, i), 0.0) + a / 4.0
-            terms[(j, j)] = get(terms, (j, j), 0.0) + a / 4.0
-            offset += a / 4.0
-        end
-    end
-
-    if !isnothing(solutions)
-        for solution in solutions
-            for assign in solution["assignment"]
-                assign["value"] = assign["value"] == 1 ? 1 : -1
-            end
-        end
-    end
-
-    BQPJSON{SpinDomain}(
-        id,
-        version,
-        variable_ids,
-        "spin",
-        scale,
-        offset,
-        terms,
-        metadata,
-        description,
-        solutions,
-    )
+    BQPJSON{B}(backend, solutions)
 end

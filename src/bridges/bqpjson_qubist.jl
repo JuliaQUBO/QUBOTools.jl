@@ -4,18 +4,10 @@ end
 
 function Base.convert(::Type{<:Qubist}, model::BQPJSON{SpinDomain})
     sites = isempty(model.variable_ids) ? 0 : 1 + maximum(model.variable_ids)
-    lines = length(model.terms)
+    lines = length(model.linear_terms) + length(model.quadratic_terms)
 
-    linear_terms    = Dict{Int, Float64}()
-    quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
-
-    for ((i, j), q) in model.terms
-        if i == j # linear
-            linear_terms[i] = get(linear_terms, i, 0.0) + q
-        else # quadratic
-            quadratic_terms[(i, j)] = get(quadratic_terms, (i, j), 0.0) + q
-        end
-    end
+    linear_terms    = copy(model.linear_terms)
+    quadratic_terms = copy(model.quadratic_terms)
 
     Qubist{SpinDomain}(
         sites,
@@ -36,19 +28,19 @@ function Base.convert(::Type{<:BQPJSON{SpinDomain}}, model::Qubist)
     variable_domain = "spin"
     scale           = 1.0
     offset          = 0.0
-    terms           = Dict{Tuple{Int, Int}, Float64}()
+    linear_terms    = copy(model.linear_terms)
+    quadratic_terms = copy(model.quadratic_terms)
     metadata        = Dict{String, Any}()
     description     = nothing
     solutions       = nothing
 
-    for (i, h) in model.linear_terms
+    for i in keys(linear_terms)
         push!(variable_ids, i)
-        terms[(i, i)] = get(terms, (i, i), 0.0) + h
     end
 
-    for ((i, j), J) in model.quadratic_terms
-        push!(variable_ids, i, j)
-        terms[(i, j)] = get(terms, (i, j), 0.0) + J
+    for (i, j) in keys(quadratic_terms)
+        push!(variable_ids, i)
+        push!(variable_ids, j)
     end
 
     BQPJSON{SpinDomain}(
@@ -58,16 +50,18 @@ function Base.convert(::Type{<:BQPJSON{SpinDomain}}, model::Qubist)
         variable_domain,
         scale,
         offset,
-        terms,
+        linear_terms,
+        quadratic_terms,
         metadata,
         description,
         solutions,
     )
 end
 
-function isapproxbridge(source::BQPJSON{SpinDomain}, target::BQPJSON{SpinDomain}, ::Type{<:Qubist}; kw...)
+function isvalidbridge(source::BQPJSON{SpinDomain}, target::BQPJSON{SpinDomain}, ::Type{<:Qubist}; kw...)
     # Obs:
     # 1. id, offset, scale is lost
     source.version == target.version &&
-    isapprox_dict(source.terms, target.terms; kw...)
+    isapproxdict(source.linear_terms, target.linear_terms; kw...) &&
+    isapproxdict(source.quadratic_terms, target.quadratic_terms; kw...)
 end

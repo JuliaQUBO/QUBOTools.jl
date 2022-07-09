@@ -55,8 +55,8 @@ end
 function Base.isapprox(x::QUBO, y::QUBO; kw...)
     isapprox(x.scale , y.scale ; kw...) &&
     isapprox(x.offset, y.offset; kw...) &&
-    isapprox_dict(x.linear_terms   , y.linear_terms   ; kw...) &&
-    isapprox_dict(x.quadratic_terms, y.quadratic_terms; kw...)
+    isapproxdict(x.linear_terms   , y.linear_terms   ; kw...) &&
+    isapproxdict(x.quadratic_terms, y.quadratic_terms; kw...)
 end
 
 function Base.:(==)(x::QUBO, y::QUBO)
@@ -156,22 +156,22 @@ function Base.read(io::IO, ::Type{<:QUBO})
 
     for line in strip.(readlines(io))
         if isempty(line)
-            continue
+            continue # ~ skip
         end
 
         # -*- Comments & Metadata -*-
         m = match(r"^c(\s.*)?$", line) 
 
         if !isnothing(m)
-            if isnothing(m[1]) # Comment
-                continue
+            if isnothing(m[1])
+                continue # ~ comment
             end
 
             # -*- Metadata -*-
             m = match(r"([a-zA-Z][a-zA-Z0-9_]+)\s*:\s*(.+)$", strip(m[1]))
             if !isnothing(m)
-                key = m[1]
-                val = m[2]
+                key = string(m[1])
+                val = string(m[2])
 
                 if key == "id"
                     id = tryparse(Int, val)
@@ -180,12 +180,13 @@ function Base.read(io::IO, ::Type{<:QUBO})
                 elseif key == "offset"
                     offset = tryparse(Float64, val)
                 elseif key == "description"
-                    description = string(val)
+                    description = val
                 else
                     metadata[key] = JSON.parse(val)
                 end
             end
-            continue
+
+            continue # ~ comment
         end
 
         # -*- Problem Header -*-

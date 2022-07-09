@@ -18,6 +18,7 @@
     "variable_domain": "boolean",
     "variable_ids": [
         2,
+        4,
         6
     ],
     "version": "1.0.0"
