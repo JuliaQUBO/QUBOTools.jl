@@ -3,12 +3,12 @@ const BQPJSON_VERSION_LATEST = v"1.0.0"
 const BQPJSON_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
 
 function BQPJSON_DEFAULT_ID end
+BQPJSON_DEFAULT_ID(::Nothing)   = 0
 BQPJSON_DEFAULT_ID(id::Integer) = id
-BQPJSON_DEFAULT_ID(::Nothing) = 0
 
 function BQPJSON_DEFAULT_VERSION end
-BQPJSON_DEFAULT_VERSION(version::VersionNumber) = version
-BQPJSON_DEFAULT_VERSION(::Nothing) = BQPJSON_VERSION_LATEST
+BQPJSON_DEFAULT_VERSION(::Nothing)              = string(BQPJSON_VERSION_LATEST)
+BQPJSON_DEFAULT_VERSION(version::VersionNumber) = string(version)
 
 function BQPJSON_VARIABLE_DOMAIN end
 BQPJSON_VARIABLE_DOMAIN(::Type{<:BoolDomain}) = "boolean"
