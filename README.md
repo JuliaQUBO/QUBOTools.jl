@@ -66,3 +66,23 @@ flowchart TD;
 ```
 
 **Square nodes** represent formats with support for reading and writing, while **Round nodes** indicate write-only behaviour.
+
+## Backend
+**BQPIO.jl** also exports the 
+
+``StandardBQPModel{S, U, T, D} <: AbstractBQPModel{D}``
+
+type, designed to work as a powerful standard backend for all other models.
+Here, `S <: Any` plays the role of variable indexing type and usually defaults to `Int`.
+It is followed by `U <: Integer`, used to store sampled states of type `Vector{U}`.
+When `D <: SpinDomain`, it is necessary that `U <: Signed`.
+
+`T <: Real` is the type used to represent all coefficients.
+It is also the choice for the energy values corresponding to each solution.
+It's commonly set as `Float64`.
+
+
+### [JuMP](https://jump.dev) Integration
+
+One of the main ideas was to make JuMP / MathOptInterface integration easy and, in fact, the implemented backend does a lot of the the data crunching.
+When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say that most of the hard work is done.
