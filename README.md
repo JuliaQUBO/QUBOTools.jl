@@ -6,14 +6,14 @@
     </a>
     <br>
     <a href="/actions/workflows/ci.yml">
-        <img src="/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
+        <img src="https://github.com/pedromxavier/BQPIO.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
 </div>
 
 Binary Quadratic Program's I/O in Julia
 
 This package exports the `AbstractBQPModel{D}` abstract type where `D <: VariableDomain`.
-Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \{0, 1\}$ and $s \in \{-1, 1\}$.
+Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \\\{ 0, 1 \\\}$ and $s \in \\\{ -1, 1 \\\}$.
 
 ## Supported Formats
 It is possible to read and write files in all available formats, listed below.
