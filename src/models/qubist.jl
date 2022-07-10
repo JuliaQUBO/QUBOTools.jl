@@ -1,28 +1,37 @@
 @doc raw"""
 """ struct Qubist{D <: SpinDomain} <: AbstractBQPModel{D}
+    backend::StandardBQPModel{Int, Int, Float64, D}
     sites::Int
     lines::Int
-    linear_terms::Dict{Int, Float64}
-    quadratic_terms::Dict{Tuple{Int, Int}, Float64}
 
     function Qubist{D}(
+            backend::StandardBQPModel{Int, Int, Float64, D},
             sites::Integer,
-            lines::Integer,    
+            lines::Integer,
+        ) where D <: SpinDomain
+        new{D}(backend, sites, lines)
+    end
+
+    function Qubist{D}(
             linear_terms::Dict{Int, Float64},
             quadratic_terms::Dict{Tuple{Int, Int}, Float64},
+            sites::Integer,
+            lines::Integer,    
         ) where D <: SpinDomain
-        model = new{D}(
-            sites,
-            lines,
+        variable_map = build_varmap(linear_terms, quadratic_terms)
+        backend      = StandardBQPModel{Int, Int, Float64, D}(
             linear_terms,
             quadratic_terms,
+            0.0,
+            1.0,
+            variable_map,
+            nothing,
+            nothing,
+            nothing,
+            nothing,
+            nothing,
         )
-
-        if isvalid(model)
-            model
-        else
-            error()
-        end
+        Qubist{D}(backend, sites, lines)
     end
 
     function Qubist(args...)
@@ -30,52 +39,12 @@
     end
 end
 
-function Base.isvalid(model::Qubist)
-    if model.sites < 0
-        @error "Negative number of sites"
-        return false
-    end
-
-    if model.lines < 0
-        @error "Negative number of lines"
-        return false
-    end
-
-    for (i, _) in model.linear_terms
-        if i < 0
-            @error "Invalid linear term $i with negative index"
-            return false
-        end
-    end
-
-    for ((i, j), _) in model.quadratic_terms
-        if i < 0 || j < 0
-            @error "Invalid quadratic term ($(i), $(j)) with negative index"
-            return false
-        end
-    end
-
-    return true
-end
-
-function Base.isapprox(x::Qubist, y::Qubist; kw...)
-    isapproxdict(x.linear_terms   , y.linear_terms   ; kw...) &&
-    isapproxdict(x.quadratic_terms, y.quadratic_terms; kw...)
-end
-
-function Base.:(==)(x::Qubist, y::Qubist)
-    x.sites           == y.sites        &&
-    x.lines           == y.lines        &&
-    x.linear_terms    == y.linear_terms &&
-    x.quadratic_terms == y.quadratic_terms
-end
-
 function Base.write(io::IO, model::Qubist)
     println(io, "$(model.sites) $(model.lines)")
-    for (i, h) in model.linear_terms
+    for (i, h) in model.backend.linear_terms
         println(io, "$(i) $(i) $(h)")
     end
-    for ((i, j), J) in model.quadratic_terms
+    for ((i, j), J) in model.backend.quadratic_terms
         println(io, "$(i) $(j) $(J)")
     end
 end
@@ -120,9 +89,9 @@ function Base.read(io::IO, ::Type{<:Qubist})
     end
 
     Qubist{SpinDomain}(
-        sites,    
-        lines,
         linear_terms,
         quadratic_terms,
+        sites,    
+        lines,
     )
 end

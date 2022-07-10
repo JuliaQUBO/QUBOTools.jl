@@ -19,10 +19,10 @@ include("backend/standard.jl")
 include("models/bqpjson.jl")
 # include(joinpath("models", "hfs.jl"))
 # include(joinpath("models", "minizinc.jl"))
-# include(joinpath("models", "qubist.jl"))
+include("models/qubist.jl")
 include("models/qubo.jl")
 
-# include(joinpath("bridges", "bqpjson_qubist.jl"))
+include("bridges/bqpjson_qubist.jl")
 include("bridges/bqpjson_qubo.jl")
 
 end # module
