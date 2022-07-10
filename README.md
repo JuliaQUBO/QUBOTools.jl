@@ -18,17 +18,22 @@ Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \
 ## Supported Formats
 It is possible to read and write files in all available formats, listed below.
 
-### BQPJSON
+### [BQPJSON](/docs/models/BQPJSON.md)
 The [bqpjson](https://bqpjson.readthedocs.io) format was designed by people at LANL-ANSI to represent Binary Quadratic Programs in a platform-independet fashion.
 This is accomplished by using `.json` files validated using a well-defined [JSON Schema](/src/models/bqpjson.schema.json).
 
-### QUBO
+### [QUBO](/docs/models/QUBO.md)
+The [QUBO] specification appears as the input format in many of D-Wave's applications.
+A brief explanation about it can be found in [qbsolv](https://github.com/arcondello/qbsolv#qbsolv-qubo-input-file-format)'s repository README. 
 
-### Qubist
+### [Qubist](/docs/models/Qubist.md)
+This is the simplest of all current supported formats.
 
-### MiniZinc
+### [MiniZinc](/docs/models/MiniZinc.md)
+[MiniZinc](https://www.minizinc.org) is a constraint modelling language that can be used as input for many solvers.
 
-### HFS
+### [HFS](/docs/models/HFS.md)
+HFS is a very low-level mapping of weights to D-Wave's chimera graph.
 
 ### Conversion Flowchart
 **Bold arrows** indicate that a bijective (modulo rounding erros) conversion is available.
