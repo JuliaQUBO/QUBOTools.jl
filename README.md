@@ -1,4 +1,15 @@
 # BQPIO.jl
+
+<div align="center">
+    <a href="/docs/src/assets/">
+        <img src="/docs/src/assets/logo.svg" width=400px alt="BQPIO.jl" />
+    </a>
+    <br>
+    <a href="/actions/workflows/ci.yml">
+        <img src="/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
+    </a>
+</div>
+
 Binary Quadratic Program's I/O in Julia
 
 This package exports the `AbstractBQPModel{D}` abstract type where `D <: VariableDomain`.
