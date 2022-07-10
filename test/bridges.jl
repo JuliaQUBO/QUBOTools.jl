@@ -3,7 +3,7 @@ function test_bridges(; n::Int = 2)
     
     
 
-    @testset "BQPJSON <--> QUBO" begin
+    @testset "BQPJSON ~ QUBO" begin
         for i = 0:n
             qubo_model = read(joinpath(@__DIR__, "data", "0$(i)", "bool.qubo"), QUBO)
             bool_model = read(joinpath(@__DIR__, "data", "0$(i)", "bool.json"), BQPJSON)

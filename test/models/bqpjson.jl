@@ -5,29 +5,32 @@ BQPJSON_SPIN_PATH(path::String, i::Integer)      = joinpath(path, "data", @sprin
 BQPJSON_BOOL_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "bool.temp.json")
 BQPJSON_SPIN_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "spin.temp.json")
 
-function test_bqpjson(path::String; n::Integer=2)
+function test_bqpjson(path::String, n::Integer)
     @testset "BQPJSON" verbose = true begin
         @testset "IO" verbose = true begin
             @testset "BOOL" begin
                 for i = 0:n
                     bool_path      = BQPJSON_BOOL_PATH(path, i)
                     bool_temp_path = BQPJSON_BOOL_TEMP_PATH(path, i)
+                    try
+                        bool_model = read(bool_path, BQPJSON)
+                        @test bool_model isa BQPJSON{BoolDomain}
 
-                    bool_model = read(bool_path, BQPJSON)
-                    @test bool_model isa BQPJSON{BoolDomain}
+                        write(bool_temp_path, bool_model)
 
-                    write(bool_temp_path, bool_model)
+                        temp_model = read(bool_temp_path, BQPJSON)
+                        @test temp_model isa BQPJSON{BoolDomain}
 
-                    temp_model = read(bool_temp_path, BQPJSON)
-                    @test temp_model isa BQPJSON{BoolDomain}
-
-                    @test BQPIO.isvalidbridge(
-                        temp_model,
-                        bool_model,
-                        BQPJSON{BoolDomain},
-                    )
-
-                    rm(bool_temp_path)
+                        @test BQPIO.isvalidbridge(
+                            temp_model,
+                            bool_model,
+                            BQPJSON{BoolDomain},
+                        )
+                    catch e
+                        rethrow(e)
+                    finally
+                        rm(bool_temp_path)
+                    end
                 end
             end
 
@@ -35,28 +38,32 @@ function test_bqpjson(path::String; n::Integer=2)
                 for i = 0:n
                     spin_path      = BQPJSON_SPIN_PATH(path, i)
                     spin_temp_path = BQPJSON_SPIN_TEMP_PATH(path, i)
+                    try
+                        spin_model = read(spin_path, BQPJSON)
+                        @test spin_model isa BQPJSON{SpinDomain}
 
-                    spin_model = read(spin_path, BQPJSON)
-                    @test spin_model isa BQPJSON{SpinDomain}
+                        write(spin_temp_path, spin_model)
 
-                    write(spin_temp_path, spin_model)
+                        temp_model = read(spin_temp_path, BQPJSON)
+                        @test temp_model isa BQPJSON{SpinDomain}
 
-                    temp_model = read(spin_temp_path, BQPJSON)
-                    @test temp_model isa BQPJSON{SpinDomain}
-
-                    @test BQPIO.isvalidbridge(
-                        temp_model,
-                        spin_model,
-                        BQPJSON{BoolDomain},
-                    )
-
-                    rm(spin_temp_path)
+                        @test BQPIO.isvalidbridge(
+                            temp_model,
+                            spin_model,
+                            BQPJSON{BoolDomain};
+                            atol = 0.0,
+                        )
+                    catch e
+                        rethrow(e)
+                    finally
+                        rm(spin_temp_path; force = true)
+                    end
                 end
             end
         end
 
         @testset "Bridges" verbose = true begin
-            @testset "SPIN <--> BOOL" begin
+            @testset "SPIN ~ BOOL" begin
                 for i = 0:n
                     bool_model = read(joinpath(path, "data", "0$(i)", "bool.json"), BQPJSON{BoolDomain})
                     spin_model = read(joinpath(path, "data", "0$(i)", "spin.json"), BQPJSON{SpinDomain})

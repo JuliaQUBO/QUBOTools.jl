@@ -1,12 +1,14 @@
+const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
+
 @doc raw"""
 """ struct QUBO{D <: BoolDomain} <: AbstractBQPModel{D}
-    backend::StandardBQPModel{Int, Int, Float64, D}
+    backend::QUBO_BACKEND_TYPE{D}
     max_index::Int
     num_diagonals::Int
     num_elements::Int
 
     function QUBO{D}(
-            backend::StandardBQPModel{Int, Int, Float64, D},
+            backend::QUBO_BACKEND_TYPE{D},
             max_index::Integer,
             num_diagonals::Integer,
             num_elements::Integer,
@@ -38,7 +40,7 @@
             quadratic_terms
         )
 
-        backend = StandardBQPModel{Int, Int, Float64, D}(
+        backend = QUBO_BACKEND_TYPE{D}(
             linear_terms,
             quadratic_terms,
             offset,
@@ -183,4 +185,53 @@ function Base.read(io::IO, ::Type{<:QUBO})
         num_diagonals,
         num_elements,
     )
+end
+
+function isvalidbridge(
+        source::QUBO{D},
+        target::QUBO{D},
+        ::Type{<:QUBO{D}};
+        kws...,
+    ) where D <: BoolDomain
+    flag = true
+
+    if !isnothing(source.backend.id) && (source.backend.id != target.backend.id)
+        @error "Test Failure: ID mismatch"
+        flag = false
+    end
+
+    if !isnothing(source.backend.description) && (source.backend.description != target.backend.description)
+        @error "Test Failure: Description mismatch"
+        flag = false    
+    end
+
+    if !isempty(source.backend.metadata) && (source.backend.metadata != target.backend.metadata)
+        @error "Test Failure: Metadata mismatch"
+        flag = false    
+    end
+
+    if source.max_index != target.max_index
+        @error "Test Failure: Inconsistent maximum index"
+        flag = false
+    end
+
+    if source.num_diagonals != target.num_diagonals
+        @error "Test Failure: Inconsistent number of diagonals"
+        flag = false
+    end
+
+    if source.num_elements != target.num_elements
+        @error "Test Failure: Inconsistent number of elements"
+        flag = false
+    end
+    
+    if !isvalidbridge(
+        source.backend,
+        target.backend,
+        QUBO_BACKEND_TYPE{D},
+        )
+        flag = false
+    end
+
+    return flag
 end

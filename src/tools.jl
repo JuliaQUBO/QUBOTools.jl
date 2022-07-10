@@ -99,48 +99,59 @@ function build_varbij(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{In
 end
 
 @doc raw"""
-""" function normal_form end
+""" function map_terms end
 
-function normal_form(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{Int, Int}, T}) where T
-    normal_linear_terms    = Dict{Int, T}()
-    normal_quadratic_terms = Dict{Tuple{Int, Int}, T}()
+function map_terms(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{Int, Int}, T}) where T
+    map_linear_terms    = Dict{Int, T}()
+    map_quadratic_terms = Dict{Tuple{Int, Int}, T}()
 
-    sizehint!(normal_linear_terms, length(linear_terms))
-    sizehint!(normal_quadratic_terms, length(quadratic_terms))
+    sizehint!(map_linear_terms, length(linear_terms))
+    sizehint!(map_quadratic_terms, length(quadratic_terms))
 
     for (i, l) in linear_terms
-        l += get(normal_linear_terms, i, zero(T))
+        l += get(map_linear_terms, i, zero(T))
         if iszero(l)
-            delete!(normal_linear_terms, i)
+            delete!(map_linear_terms, i)
         else
-            normal_linear_terms[i] = l
+            map_linear_terms[i] = l
         end
     end
 
     for ((i, j), q) in quadratic_terms
         if i == j
-            q += get(normal_linear_terms, i, zero(T))
+            q += get(map_linear_terms, i, zero(T))
             if iszero(q)
-                delete!(normal_linear_terms, i)
+                delete!(map_linear_terms, i)
             else
-                normal_linear_terms[i] = q
+                map_linear_terms[i] = q
             end
         elseif i < j
-            q += get(normal_quadratic_terms, (i, j), zero(T))
+            q += get(map_quadratic_terms, (i, j), zero(T))
             if iszero(q)
-                delete!(normal_quadratic_terms, (i, j))
+                delete!(map_quadratic_terms, (i, j))
             else
-                normal_quadratic_terms[(i, j)] = q
+                map_quadratic_terms[(i, j)] = q
             end
         else # i > j
-            q += get(normal_quadratic_terms, (j, i), zero(T))
+            q += get(map_quadratic_terms, (j, i), zero(T))
             if iszero(q)
-                delete!(normal_quadratic_terms, (j, i))
+                delete!(map_quadratic_terms, (j, i))
             else
-                normal_quadratic_terms[(j, i)] = q
+                map_quadratic_terms[(j, i)] = q
             end
         end
     end
         
-    return (normal_linear_terms, normal_quadratic_terms)
+    return (map_linear_terms, map_quadratic_terms)
+end
+
+@doc raw"""
+""" function map_state end
+
+function map_state(state::Vector{U}, ::Dict{Int, S}) where {S <: Any, U <: Integer}
+    state
+end
+
+function map_state(state::Dict{S, U}, variable_inv::Dict{Int, S}) where {S <: Any, U <: Integer}
+    U[state[variable_inv[i]] for i = 1:length(variable_inv)]
 end

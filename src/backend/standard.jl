@@ -50,7 +50,7 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         sampleset::Union{SampleSet{U, T}, Nothing},
         ) where {S, U, T, D}
 
-        linear_terms, quadratic_terms = BQPIO.normal_form(
+        linear_terms, quadratic_terms = BQPIO.map_terms(
             linear_terms,
             quadratic_terms,
         )

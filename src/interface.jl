@@ -38,6 +38,17 @@ function isvalidbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kws...)
     false
 end
 
+@doc raw"""
+    energy(state::Any, model::AbstractBQPModel)
+
+This function aims to evaluate the energy of a given state under some BQP Model.
+Scale and offset factors are assumed to be taken into account.
+""" function energy end
+
+function energy(state::Any, model::AbstractBQPModel)
+    error("'BQPIO.energy' not implemented for model of type '$(typeof(model))' and state of type '$(typeof(state))'")
+end
+
 # ~*~ I/O ~*~ #
 function Base.read(::IO, M::Type{<:AbstractBQPModel})
     error("'Base.read' not implemented for model of type '$(M)'")

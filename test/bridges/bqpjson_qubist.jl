@@ -1,5 +1,5 @@
 function test_bqpjson_qubist(path::AbstractString; n::Integer = 2)
-    @testset "BQPJSON <--> Qubist" begin
+    @testset "BQPJSON ~ Qubist" begin
         for i = 0:n
             qubs_model = read(joinpath(path, @sprintf("%2d", i), "spin.qh"), Qubist)
             spin_model = read(joinpath(path, @sprintf("%2d", i), "spin.json"), BQPJSON)

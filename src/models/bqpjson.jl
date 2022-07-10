@@ -33,14 +33,14 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 :  0)
 
     function BQPJSON{D}(
             backend::BQPJSON_BACKEND_TYPE{D},
-            solutions::Union{Vector, Nothing} = nothing,
+            solutions::Union{Vector, Nothing},
         ) where D <: VariableDomain
         new{D}(backend, solutions)
     end
 
     function BQPJSON(
             backend::BQPJSON_BACKEND_TYPE{D},
-            solutions::Union{Vector, Nothing} = nothing,
+            solutions::Union{Vector, Nothing},
         ) where D <: VariableDomain
         BQPJSON{D}(backend, solutions)
     end
@@ -55,7 +55,7 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 :  0)
             version::VersionNumber,
             description::Union{String, Nothing},
             metadata::Dict{String, Any},
-            solutions::Union{Vector, Nothing} = nothing,
+            solutions::Union{Vector, Nothing},
         ) where D <: VariableDomain
 
         backend = BQPJSON_BACKEND_TYPE{D}(
@@ -316,17 +316,17 @@ function isvalidbridge(
         flag = false
     end
 
-    if source.backend.description != target.backend.description
+    if !isnothing(source.backend.description) && (source.backend.description != target.backend.description)
         @error "Test Failure: Description mismatch"
         flag = false
     end
 
-    if source.backend.metadata != source.backend.metadata
+    if !isempty(source.backend.metadata) && (source.backend.metadata != source.backend.metadata)
         @error "Test Failure: Inconsistent metadata"
         flag = false
     end
 
-    if source.solutions != source.solutions
+    if !isnothing(source.solutions) && (source.solutions != source.solutions)
         @error "Test Failure: Inconsistent solutions"
         flag = false
     end

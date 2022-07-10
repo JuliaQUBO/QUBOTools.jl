@@ -26,7 +26,7 @@ The [bqpjson](https://bqpjson.readthedocs.io) format was designed by people at L
 This is accomplished by using `.json` files validated using a well-defined [JSON Schema](/src/models/bqpjson.schema.json).
 
 ### [QUBO](/docs/models/QUBO.md)
-The [QUBO] specification appears as the input format in many of D-Wave's applications.
+The QUBO specification appears as the input format in many of D-Wave's applications.
 A brief explanation about it can be found in [qbsolv](https://github.com/arcondello/qbsolv#qbsolv-qubo-input-file-format)'s repository README. 
 
 ### [Qubist](/docs/models/Qubist.md)
