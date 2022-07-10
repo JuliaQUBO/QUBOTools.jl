@@ -26,21 +26,21 @@ function Base.isvalid(::AbstractBQPModel)
     false
 end
 
+@doc raw"""
+    isvalidbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kws...) where M <: AbstractBQPModel
+
+Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
+Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` calls.
+
+""" function isvalidbridge end
+
+function isvalidbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kws...) where M <: AbstractBQPModel
+    false
+end
+
 # ~*~ I/O ~*~ #
 function Base.read(::IO, M::Type{<:AbstractBQPModel})
     error("'Base.read' not implemented for model of type '$(M)'")
-end
-
-function Base.write(::IO, m::AbstractBQPModel)
-    error("'Base.write' not implemented for model of type '$(typeof(m))'")
-end
-
-function Base.convert(M::Type{<:AbstractBQPModel}, m::AbstractBQPModel)
-    error("'Base.convert' not implemented for turning model of type '$(typeof(m))' into $(M)")
-end
-
-function Base.convert(::Type{M}, model::M) where {M <: AbstractBQPModel}
-    model # Short-circuit! Yeah!
 end
 
 function Base.read(path::AbstractString, M::Type{<:AbstractBQPModel})
@@ -49,8 +49,20 @@ function Base.read(path::AbstractString, M::Type{<:AbstractBQPModel})
     end
 end
 
-function Base.write(path::AbstractString, M::Type{<:AbstractBQPModel})
+function Base.write(::IO, model::AbstractBQPModel)
+    error("'Base.write' not implemented for model of type '$(typeof(model))'")
+end
+
+function Base.write(path::AbstractString, model::AbstractBQPModel)
     open(path, "w") do io
-        return write(io, M)
+        return write(io, model)
     end
+end
+
+function Base.convert(M::Type{<:AbstractBQPModel}, model::AbstractBQPModel)
+    error("'Base.convert' not implemented for turning model of type '$(typeof(model))' into $(M)")
+end
+
+function Base.convert(::Type{M}, model::M) where {M <: AbstractBQPModel}
+    model # Short-circuit! Yeah!
 end

@@ -1,5 +1,6 @@
 const BQPJSON_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "bqpjson.schema.json")))
 const BQPJSON_VERSION_LATEST = v"1.0.0"
+const BQPJSON_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
 
 function BQPJSON_DEFAULT_ID end
 BQPJSON_DEFAULT_ID(id::Integer) = id
@@ -27,19 +28,19 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 :  0)
 ### References
 [1] https://bqpjson.readthedocs.io
 """ struct BQPJSON{D <: VariableDomain} <: AbstractBQPModel{D}
-    backend::StandardBQPModel{Int, Int, Float64, D}
-    solutions::Union{Dict{String, Any}, Nothing}
+    backend::BQPJSON_BACKEND_TYPE{D}
+    solutions::Union{Vector, Nothing}
 
     function BQPJSON{D}(
-            backend::StandardBQPModel{Int, Int, Float64, D},
-            solutions::Union{Dict{String, Any}, Nothing} = nothing,
+            backend::BQPJSON_BACKEND_TYPE{D},
+            solutions::Union{Vector, Nothing} = nothing,
         ) where D <: VariableDomain
         new{D}(backend, solutions)
     end
 
     function BQPJSON(
-            backend::StandardBQPModel{Int, Int, Float64, D},
-            solutions::Union{Dict{String, Any}, Nothing} = nothing,
+            backend::BQPJSON_BACKEND_TYPE{D},
+            solutions::Union{Vector, Nothing} = nothing,
         ) where D <: VariableDomain
         BQPJSON{D}(backend, solutions)
     end
@@ -54,10 +55,10 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 :  0)
             version::VersionNumber,
             description::Union{String, Nothing},
             metadata::Dict{String, Any},
-            solutions::Union{Dict{String, Any}, Nothing} = nothing,
+            solutions::Union{Vector, Nothing} = nothing,
         ) where D <: VariableDomain
 
-        backend = StandardBQPModel{Int, Int, Float64, D}(
+        backend = BQPJSON_BACKEND_TYPE{D}(
             # ~*~ Required data ~*~
             linear_terms,
             quadratic_terms,
@@ -176,7 +177,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
             end
 
             if length(var_ids) != length(variable_map)
-                error("Invalid data: Length mismach between variable set and solution assignment")
+                error("Invalid data: Length mismatch between variable set and solution assignment")
             end
         end
     end
@@ -288,11 +289,56 @@ function Base.convert(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A, B}
 
     if !isnothing(solutions)
         for solution in solutions
-            for assign in solution
+            for assign in solution["assignment"]
                 assign["value"] = BQPJSON_SWAP_DOMAIN(assign["value"], A)
             end
         end
     end
 
     BQPJSON{B}(backend, solutions)
+end
+
+function isvalidbridge(
+    source::BQPJSON{B},
+    target::BQPJSON{B},
+    ::Type{<:BQPJSON{A}};
+    kws...
+    ) where {A <: VariableDomain, B <: VariableDomain}
+    flag = true
+    
+    if source.backend.id != target.backend.id
+        @error "Test Failure: ID mismatch"
+        flag = false
+    end
+
+    if source.backend.version != target.backend.version
+        @error "Test Failure: Version mismatch"
+        flag = false
+    end
+
+    if source.backend.description != target.backend.description
+        @error "Test Failure: Description mismatch"
+        flag = false
+    end
+
+    if source.backend.metadata != source.backend.metadata
+        @error "Test Failure: Inconsistent metadata"
+        flag = false
+    end
+
+    if source.solutions != source.solutions
+        @error "Test Failure: Inconsistent solutions"
+        flag = false
+    end
+
+    if !isvalidbridge(
+        source.backend,
+        target.backend,
+        BQPJSON_BACKEND_TYPE{A};
+        kws...
+        )
+        flag = false
+    end
+
+    return flag
 end

@@ -5,6 +5,12 @@
     value::T
 end
 
+function Base.:(==)(x::Sample{U, T}, y::Sample{U, T}) where {U, T}
+    x.value == y.value &&
+    x.reads == y.reads &&
+    x.state == y.state
+end
+
 @doc raw"""
     SampleSet{U, T}(
         samples::Vector{Sample{U, T}},
@@ -17,7 +23,7 @@ It was clearly inspired by [1], with a few tweaks.
 
 ## Ideas
 1. Build Plot Recipes for this type in order to generate sampling barplots.
-2. Export to compressed JSON format.
+2. Export to compressed ASCII JSON format.
 
 ## References
 [1] https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/sampleset.html#dimod.SampleSet
@@ -66,6 +72,14 @@ function Base.copy(sampleset::SampleSet{U, T}) where {U, T}
     SampleSet{U, T}(copy(sampleset.samples))
 end
 
+function Base.length(X::SampleSet)
+    length(X.samples)
+end
+
+function Base.:(==)(X::SampleSet{U, T}, Y::SampleSet{U, T}) where {U, T}
+    length(X) == length(Y) && all(X.samples .== Y.samples)
+end
+
 # ~*~ Experimental: ASCII JSON state compression ~*~ #
 
 # ~ Compression ~
@@ -103,6 +117,17 @@ end
 
 function __compress(x::Vector{U}, ::Type{<:SpinDomain}) where U <: Integer
     (__compress(x) .+ 1) .>> 1
+end
+
+function __compress(sample::Sample)
+    __compress(sample.state) => (sample.reads, sample.value)
+end
+
+function __compress(sampleset::SampleSet)
+    Dict{String, Any}(
+        "samples"  => Dict{String, Any}(__compress(sample) for sample in sampleset.samples),
+        "metadata" => sampleset.metadata,
+    )
 end
 
 # ~ Uncompression ~
@@ -155,4 +180,14 @@ end
 
 function __uncompress(s::String, ::Type{<:SpinDomain}, U::Type{<:Integer} = Int)
     2 * __uncompress(s, U) .- 1
+end
+
+function __uncompress(data::Dict{String, Any}, D::Type{<:VariableDomain}, U::Type{<:Integer}, T::Type{<:Real})
+    SampleSet{U, T}(
+        Sample{U, T}[
+            Sample{U, T}(__uncompress(s, D, U), reads, convert(T, value))
+            for (s, (reads, value)) in data["samples"]
+        ],
+        data["metadata"],
+    )
 end

@@ -1,6 +1,20 @@
 
 
 @doc raw"""
+    StandardBQPModel{
+        S <: Any,
+        U <: Integer,
+        T <: Real,
+        D <: VariableDomain
+    } <: AbstractBQPModel{D}
+
+The `StandardBQPModel` was designed to work as a general backend for all implemented interfaces.
+It is intended to be the core engine behind the target codecs.
+
+## MathOptInterface/JuMP
+Both `S <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
+By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
+
 """ mutable struct StandardBQPModel{
         S <: Any,
         U <: Integer,
@@ -35,6 +49,11 @@
         metadata::Dict{String, Any},
         sampleset::Union{SampleSet{U, T}, Nothing},
         ) where {S, U, T, D}
+
+        linear_terms, quadratic_terms = BQPIO.normal_form(
+            linear_terms,
+            quadratic_terms,
+        )
 
         new{S, U, T, D}(
             linear_terms,
@@ -194,3 +213,34 @@ end
 
 # function Base.write(io::IO, model::BQPModel) end
 # function Base.read(io::IO, ::Type{<:BQPModel}) end
+
+function isvalidbridge(
+        source::StandardBQPModel{S, U, T, D},
+        target::StandardBQPModel{S, U, T, D},
+        ::Type{<:AbstractBQPModel};
+        kws...
+    ) where {S, U, T, D}
+    flag = true
+    
+    if !isapproxdict(source.linear_terms, target.linear_terms; kws...)
+        @error "Test Failure: Linear terms mismatch: $(source.linear_terms) ~~~ $(target.linear_terms)"
+        flag = false
+    end
+    
+    if !isapproxdict(source.quadratic_terms, target.quadratic_terms; kws...)
+        @error "Test Failure: Quadratic terms mismatch: $(source.quadratic_terms) ~~~ $(target.quadratic_terms)"
+        flag = false
+    end
+
+    if !isapprox(source.offset, target.offset; kws...)
+        @error "Test Failure: Offset mismatch"
+        flag = false
+    end
+
+    if !isapprox(source.scale, target.scale; kws...)
+        @error "Test Failure: Scale mismatch"
+        flag = false    
+    end
+
+    return flag
+end

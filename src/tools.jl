@@ -97,3 +97,50 @@ function build_varbij(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{In
 
     return (variable_map, variable_inv)
 end
+
+@doc raw"""
+""" function normal_form end
+
+function normal_form(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{Int, Int}, T}) where T
+    normal_linear_terms    = Dict{Int, T}()
+    normal_quadratic_terms = Dict{Tuple{Int, Int}, T}()
+
+    sizehint!(normal_linear_terms, length(linear_terms))
+    sizehint!(normal_quadratic_terms, length(quadratic_terms))
+
+    for (i, l) in linear_terms
+        l += get(normal_linear_terms, i, zero(T))
+        if iszero(l)
+            delete!(normal_linear_terms, i)
+        else
+            normal_linear_terms[i] = l
+        end
+    end
+
+    for ((i, j), q) in quadratic_terms
+        if i == j
+            q += get(normal_linear_terms, i, zero(T))
+            if iszero(q)
+                delete!(normal_linear_terms, i)
+            else
+                normal_linear_terms[i] = q
+            end
+        elseif i < j
+            q += get(normal_quadratic_terms, (i, j), zero(T))
+            if iszero(q)
+                delete!(normal_quadratic_terms, (i, j))
+            else
+                normal_quadratic_terms[(i, j)] = q
+            end
+        else # i > j
+            q += get(normal_quadratic_terms, (j, i), zero(T))
+            if iszero(q)
+                delete!(normal_quadratic_terms, (j, i))
+            else
+                normal_quadratic_terms[(j, i)] = q
+            end
+        end
+    end
+        
+    return (normal_linear_terms, normal_quadratic_terms)
+end
