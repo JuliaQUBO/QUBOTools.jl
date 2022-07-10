@@ -54,6 +54,7 @@
         font-family: Arial;
         font-size: 32pt;
         font-weight: bold;
+        text-anchor: middle;
     }
 
     .title {
@@ -76,20 +77,20 @@
     <rect x="0" y="0" width="1000" height="1000" stroke="black" fill="none" />
 
     <text class="data" fill="url(#grad-r)">
-        <textPath href="#path-r">
-        0 1 1 1 0 1 0 1 0 1 1 0 1 1 0 1 ↓ ↑ ↑ ↑ ↓ ↑ ↓ ↑ ↓ ↑ ↑ ↓ ↑ ↑ ↓ ↑
+        <textPath href="#path-r" startOffset="50%">
+        0 1 1 1 0 1 0 1 0 1 1 0 1 1 0 1 ↓ ↑ ↑ ↑ ↓ ↑ ↓ ↑ ↓ ↑ ↑ ↓ ↑ ↑ ↓ ↑ ↓
         </textPath>
     </text>
 
     <text class="data" fill="url(#grad-g)">
-        <textPath href="#path-g">
-        0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 ↓ ↓ ↑ ↓ ↓ ↑ ↓ ↓ ↓ ↓ ↓ ↓ ↑ ↓ ↓ ↓
+        <textPath href="#path-g" startOffset="50%">
+        0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 ↓ ↓ ↑ ↓ ↓ ↑ ↓ ↓ ↓ ↓ ↓ ↓ ↑ ↓ ↓ ↓ ↓
         </textPath>
     </text>
 
     <text class="data" fill="url(#grad-v)">
-        <textPath href="#path-v">
-        0 1 1 0 0 0 1 1 1 1 0 1 1 0 0 0 ↓ ↑ ↑ ↓ ↓ ↓ ↑ ↑ ↑ ↑ ↓ ↑ ↑ ↓ ↓ ↓
+        <textPath href="#path-v" startOffset="50%">
+        0 1 1 0 0 0 1 1 1 1 0 1 1 0 0 0 ↓ ↑ ↑ ↓ ↓ ↓ ↑ ↑ ↑ ↑ ↓ ↑ ↑ ↓ ↓ ↓ ↑
         </textPath>
     </text>
 
