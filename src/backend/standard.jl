@@ -64,7 +64,7 @@
         sampleset::Union{SampleSet{U, T}, Nothing} = nothing,
         ) where {S, U, T, D}
 
-        variable_inv = Dict{Int, S}(v => k for (k, v) in variable_map)
+        variable_inv = build_varinv(variable_map)
 
         if isnothing(metadata)
             metadata = Dict{String, Any}()
@@ -124,19 +124,7 @@
         sampleset::Union{SampleSet{Int, Float64}, Nothing} = nothing,
         ) where {D <: VariableDomain}
 
-        variables = Set{Int}()
-
-        for i in keys(linear_terms)
-            push!(variables, i)
-        end
-
-        for (i, j) in keys(quadratic_terms)
-            push!(variables, i, j)
-        end
-
-        variable_map = Dict{Int, Int}(
-            i => k for (k, i) in enumerate(sort(collect(variables)))
-        )
+        variable_map = build_varmap(linear_terms, quadratic_terms)
 
         StandardBQPModel{Int, Int, Float64, D}(
             linear_terms,

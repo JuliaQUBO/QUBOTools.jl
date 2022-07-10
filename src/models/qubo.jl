@@ -1,148 +1,96 @@
-# const QUBO_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "qubo.schema.json")))
-
 @doc raw"""
 """ struct QUBO{D <: BoolDomain} <: AbstractBQPModel{D}
-    id::Int
-    scale::Float64
-    offset::Float64
-
+    backend::StandardBQPModel{Int, Int, Float64, D}
     max_index::Int
     num_diagonals::Int
     num_elements::Int
 
-    linear_terms::Dict{Int, Float64}
-    quadratic_terms::Dict{Tuple{Int, Int}, Float64}
-
-    metadata::Dict{String, Any}
-    description::Union{String, Nothing}
-
     function QUBO{D}(
-        id::Int,
-        scale::Float64,
-        offset::Float64,
-        max_index::Int,
-        num_diagonals::Int,
-        num_elements::Int,
-        linear_terms::Dict{Int, Float64},
-        quadratic_terms::Dict{Tuple{Int, Int}, Float64},
-        metadata::Dict{String, Any},
-        description::Union{String, Nothing},
-    ) where D <: BoolDomain
-        model = new{D}(
-            id,
-            scale,
-            offset,
+            backend::StandardBQPModel{Int, Int, Float64, D},
+            max_index::Integer,
+            num_diagonals::Integer,
+            num_elements::Integer,
+        ) where {D}
+
+        new{D}(
+            backend,
             max_index,
             num_diagonals,
             num_elements,
+        )
+    end
+
+    function QUBO{D}(
+        linear_terms::Dict{Int, Float64},
+        quadratic_terms::Dict{Tuple{Int, Int}, Float64},
+        offset::Float64,
+        scale::Float64,
+        id::Int,
+        description::Union{String, Nothing},
+        metadata::Dict{String, Any},
+        max_index::Int,
+        num_diagonals::Int,
+        num_elements::Int,
+    ) where {D <: BoolDomain}
+
+        variable_map, variable_inv = build_varbij(
+            linear_terms,
+            quadratic_terms
+        )
+
+        backend = StandardBQPModel{Int, Int, Float64, D}(
             linear_terms,
             quadratic_terms,
-            metadata,
+            offset,
+            scale,
+            variable_map,
+            variable_inv,
+            id,
+            nothing,
             description,
+            metadata,
+            nothing,
         )
-        if isvalid(model)
-            model
-        else
-            error()
-        end
+
+        QUBO{D}(
+            backend,
+            max_index,
+            num_diagonals,
+            num_elements,
+        )
     end
-
-    function QUBO(args...)
-        QUBO{BoolDomain}(args...)
-    end
-end
-
-function Base.isapprox(x::QUBO, y::QUBO; kw...)
-    isapprox(x.scale , y.scale ; kw...) &&
-    isapprox(x.offset, y.offset; kw...) &&
-    isapproxdict(x.linear_terms   , y.linear_terms   ; kw...) &&
-    isapproxdict(x.quadratic_terms, y.quadratic_terms; kw...)
-end
-
-function Base.:(==)(x::QUBO, y::QUBO)
-    x.id              == y.id              &&
-    x.scale           == y.scale           &&
-    x.offset          == y.offset          &&
-    x.max_index       == y.max_index       &&
-    x.num_diagonals   == y.num_diagonals   &&
-    x.num_elements    == y.num_elements    &&
-    x.linear_terms    == y.linear_terms    &&
-    x.quadratic_terms == y.quadratic_terms &&
-    x.metadata        == y.metadata        &&
-    x.description     == y.description     
-end
-
-function Base.isvalid(model::QUBO)
-    if isnan(model.scale) || isinf(model.scale) || model.scale < 0.0
-        @error "Negative or invalid value for 'scale'"
-        return false
-    end
-
-    if isnan(model.offset) || isinf(model.offset)
-        @error "Invalid value for 'offset'"
-        return false
-    end
-
-    if model.max_index < 0
-        @error ""
-        return false
-    end
-
-    if model.num_diagonals < 0
-        @error ""
-        return false
-    end
-
-    if model.num_elements < 0
-        @error ""
-        return false
-    end
-
-    for (i, q) in model.linear_terms
-        if i < 0 || !isfinite(q)
-            @error "Invalid linear term '$(i) => $(Q)'"
-            return false
-        end
-    end
-
-    for ((i, j), Q) in model.quadratic_terms
-        if i >= j || i < 0 || j < 0 || !isfinite(Q)
-            @error "Invalid quadratic term '($(i), $(j)) => $(Q)'"
-            return false
-        end
-    end
-
-    return true
 end
 
 function Base.write(io::IO, model::QUBO)
-    println(io, "c id : $(model.id)")
-    if !isnothing(model.description)
-        println(io, "c description : $(model.description)")
+    if !isnothing(model.backend.id)
+        println(io, "c id : $(model.backend.id)")
+    end
+    if !isnothing(model.backend.description)
+        println(io, "c description : $(model.backend.description)")
         println(io, "c")
     end
-    println(io, "c scale : $(model.scale)")
-    println(io, "c offset : $(model.offset)")
-    for (k, v) in model.metadata
+    println(io, "c scale : $(model.backend.scale)")
+    println(io, "c offset : $(model.backend.offset)")
+    for (k, v) in model.backend.metadata
         print(io, "c $(k) : ")
         JSON.print(io, v)
         println(io)
     end
     println(io, "p qubo 0 $(model.max_index) $(model.num_diagonals) $(model.num_elements)")
     println(io, "c linear terms")
-    for (i, q) in model.linear_terms
+    for (i, q) in model.backend.linear_terms
         println(io, "$(i) $(i) $(q)")
     end
     println(io, "c quadratic terms")
-    for ((i, j), Q) in model.quadratic_terms
+    for ((i, j), Q) in model.backend.quadratic_terms
         println(io, "$(i) $(j) $(Q)")
     end
 end
 
 function Base.read(io::IO, ::Type{<:QUBO})
     id     = 0
-    scale  = 1.0
     offset = 0.0
+    scale  = 1.0
     
     max_index     = nothing
     num_diagonals = nothing
@@ -151,8 +99,8 @@ function Base.read(io::IO, ::Type{<:QUBO})
     linear_terms    = Dict{Int, Float64}()
     quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
 
-    metadata    = Dict{String, Any}()
     description = nothing
+    metadata    = Dict{String, Any}()
 
     for line in strip.(readlines(io))
         if isempty(line)
@@ -224,15 +172,15 @@ function Base.read(io::IO, ::Type{<:QUBO})
     end
 
     QUBO{BoolDomain}(
-        id,
-        scale,
+        linear_terms,
+        quadratic_terms,
         offset,
+        scale,
+        id,
+        description,
+        metadata,
         max_index,
         num_diagonals,
         num_elements,
-        linear_terms,
-        quadratic_terms,
-        metadata,
-        description,
     )
 end
