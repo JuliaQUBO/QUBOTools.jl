@@ -28,21 +28,22 @@
 
     .title {
         fill: #4063d8;
-        stroke: black;
-        stroke-width: 6px;
-        font-family: Arial;
-        font-size: 120pt;
+        stroke: #000;
+        stroke-width: 0px;
+        font-family: Garamond;
+        font-size: 140pt;
         text-anchor: middle;
         alignment-baseline: middle;
         font-style: italic;
         font-weight: bold;
+        text-shadow: 3px 3px 1px #000000;
     }
   	</style>
 
     <defs>
-        <path id="inpath-a" stroke-width="10px" d="M450   0 L 450  500" />
-        <path id="inpath-b" stroke-width="10px" d="M500   0 L 500  500" />
-        <path id="inpath-c" stroke-width="10px" d="M550   0 L 550  500" />
+        <path id="inpath-a"  stroke-width="10px" d="M450   0 L 450  500" />
+        <path id="inpath-b"  stroke-width="10px" d="M500   0 L 500  500" />
+        <path id="inpath-c"  stroke-width="10px" d="M550   0 L 550  500" />
         <path id="outpath-r" stroke-width="10px" d="M450 500 L 450 1000" />
         <path id="outpath-g" stroke-width="10px" d="M500 500 L 500 1000" />
         <path id="outpath-v" stroke-width="10px" d="M550 500 L 550 1000" />
