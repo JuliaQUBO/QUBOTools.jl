@@ -1,0 +1,91 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+    <style>
+    .red{
+      	fill: #cb3c33;
+		stroke-width: 3px;
+    }
+
+    .green{
+      	fill: #389826;
+		stroke-width: 5px;
+    }
+
+    .blue{
+      	fill: #4063d8;
+		stroke-width: 3px;
+    }
+
+    .violet{
+      	fill: #9558b2;
+		stroke-width: 5px;
+    }
+
+    .data {
+        font-family: Arial;
+        font-size: 32pt;
+        font-weight: bold;
+    }
+
+    .title {
+        fill: #4063d8;
+        stroke: black;
+        stroke-width: 6px;
+        font-family: Arial;
+        font-size: 120pt;
+        text-anchor: middle;
+        alignment-baseline: middle;
+        font-style: italic;
+        font-weight: bold;
+    }
+  	</style>
+
+    <defs>
+        <path id="inpath-a" stroke-width="10px" d="M450   0 L 450  500" />
+        <path id="inpath-b" stroke-width="10px" d="M500   0 L 500  500" />
+        <path id="inpath-c" stroke-width="10px" d="M550   0 L 550  500" />
+        <path id="outpath-r" stroke-width="10px" d="M450 500 L 450 1000" />
+        <path id="outpath-g" stroke-width="10px" d="M500 500 L 500 1000" />
+        <path id="outpath-v" stroke-width="10px" d="M550 500 L 550 1000" />
+    </defs>
+
+    <!-- FRAME -->
+    <rect x="0" y="0" width="1000" height="1000" stroke="black" fill="none" />
+
+    <text class="data blue">
+        <textPath href="#inpath-a">
+        0 1 1 1 0 1 0 1 0 1 1 0 1 1 0 1
+        </textPath>
+    </text>
+
+    <text class="data blue">
+        <textPath href="#inpath-b">
+        0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0
+        </textPath>
+    </text>
+
+    <text class="data blue">
+        <textPath href="#inpath-c">
+        0 1 1 0 0 0 1 1 1 1 0 1 1 0 0 0
+        </textPath>
+    </text>
+
+    <text class="data red">
+        <textPath href="#outpath-r">
+        ↓ ↑ ↑ ↑ ↓ ↑ ↓ ↑ ↓ ↑ ↑ ↓ ↑ ↑ ↓ ↑
+        </textPath>
+    </text>
+
+    <text class="data green">
+        <textPath href="#outpath-g">
+        ↓ ↓ ↑ ↓ ↓ ↑ ↓ ↓ ↓ ↓ ↓ ↓ ↑ ↓ ↓ ↓
+        </textPath>
+    </text>
+
+    <text class="data violet">
+        <textPath href="#outpath-v">
+        ↓ ↑ ↑ ↓ ↓ ↓ ↑ ↑ ↑ ↑ ↓ ↑ ↑ ↓ ↓ ↓
+        </textPath>
+    </text>
+
+    <text class="title" x="500" y="500">BQPIO.jl</text>
+</svg>
