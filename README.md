@@ -6,7 +6,7 @@
     </a>
     <br>
     <a href="/actions/workflows/ci.yml">
-        <img src="/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
+        <img src="https://github.com/pedromxavier/BQPIO.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
 </div>
 
