@@ -4,17 +4,26 @@ using BQPIO
 
 # ~*~ Include test functions ~*~
 include("models/bqpjson.jl")
+include("models/qubist.jl")
 include("models/qubo.jl")
 
-function test_data(path::String, n::Integer)
+function test_models(path::String, n::Integer)
     @testset "Models" verbose = true begin
         test_bqpjson(path, n)
+        test_qubist(path, n)
         test_qubo(path, n)
     end
 end
 
-function test_main(n::Integer = 2)
-    test_data(@__DIR__, n)
+function test_bridges(path::String, n::Integer)
+    @testset "Bridges" verbose = true begin
+        
+    end
 end
 
-test_main() # Here we go!
+function test_main(path::String, n::Integer)
+    test_models(path, n)
+    test_bridges(path, n)
+end
+
+test_main(@__DIR__, 2) # Here we go!

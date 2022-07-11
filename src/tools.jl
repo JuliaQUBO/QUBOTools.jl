@@ -1,7 +1,7 @@
 @doc raw"""
 """ function isapproxdict end
 
-function isapproxdict(x::Dict{K, T}, y::Dict{K, T}; kw...) where {K, T <: Number}
+function isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
     (length(x) == length(y)) && all(haskey(y, k) && isapprox(x[k], y[k]; kw...) for k in keys(x))
 end
 
@@ -9,16 +9,16 @@ end
 """ function swapdomain end
 
 function swapdomain(
-        ::Type{<:SpinDomain},
-        ::Type{<:BoolDomain},
-        offset::T,
-        linear_terms::Dict{Int, T},
-        quadratic_terms::Dict{Tuple{Int, Int}, T}
-    ) where T
+    ::Type{<:SpinDomain},
+    ::Type{<:BoolDomain},
+    linear_terms::Dict{Int,T},
+    quadratic_terms::Dict{Tuple{Int,Int},T},
+    offset::Union{T,Nothing},
+) where {T}
 
-    bool_offset          = offset
-    bool_linear_terms    = Dict{Int, T}()
-    bool_quadratic_terms = Dict{Tuple{Int, Int}, T}()
+    bool_offset = isnothing(offset) ? zero(T) : offset
+    bool_linear_terms = Dict{Int,T}()
+    bool_quadratic_terms = Dict{Tuple{Int,Int},T}()
 
     for (i, h) in linear_terms
         bool_linear_terms[i] = get(bool_linear_terms, i, zero(T)) + 2h
@@ -32,20 +32,24 @@ function swapdomain(
         bool_offset += Q
     end
 
-    return (bool_offset, bool_linear_terms, bool_quadratic_terms)
+    if isnothing(offset)
+        (bool_linear_terms, bool_quadratic_terms, nothing)
+    else
+        (bool_linear_terms, bool_quadratic_terms, bool_offset)
+    end
 end
 
 function swapdomain(
-        ::Type{<:BoolDomain},
-        ::Type{<:SpinDomain},
-        offset::T,
-        linear_terms::Dict{Int, T},
-        quadratic_terms::Dict{Tuple{Int, Int}, T}
-    ) where T
+    ::Type{<:BoolDomain},
+    ::Type{<:SpinDomain},
+    linear_terms::Dict{Int,T},
+    quadratic_terms::Dict{Tuple{Int,Int},T},
+    offset::Union{T,Nothing}
+) where {T}
 
-    spin_offset          = offset
-    spin_linear_terms    = Dict{Int, T}()
-    spin_quadratic_terms = Dict{Tuple{Int, Int}, T}()
+    spin_offset = isnothing(offset) ? zero(T) : offset
+    spin_linear_terms = Dict{Int,T}()
+    spin_quadratic_terms = Dict{Tuple{Int,Int},T}()
 
     for (i, q) in linear_terms
         spin_linear_terms[i] = get(spin_linear_terms, i, zero(T)) + q / 2
@@ -59,13 +63,17 @@ function swapdomain(
         spin_offset += Q / 4
     end
 
-    return (spin_offset, spin_linear_terms, spin_quadratic_terms)
+    if isnothing(offset)
+        (spin_linear_terms, spin_quadratic_terms, nothing)
+    else
+        (spin_linear_terms, spin_quadratic_terms, spin_offset)
+    end
 end
 
 @doc raw"""
 """ function build_varmap end
 
-function build_varmap(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{Int, Int}, T}) where T
+function build_varmap(linear_terms::Dict{Int,T}, quadratic_terms::Dict{Tuple{Int,Int},T}) where {T}
     variables = Set{Int}()
 
     for i in keys(linear_terms)
@@ -76,7 +84,7 @@ function build_varmap(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{In
         push!(variables, i, j)
     end
 
-    Dict{Int, Int}(
+    Dict{Int,Int}(
         i => k for (k, i) in enumerate(sort(collect(variables)))
     )
 end
@@ -84,14 +92,14 @@ end
 @doc raw"""
 """ function build_varinv end
 
-function build_varinv(variable_map::Dict{Int, Int})
-    Dict{Int, Int}(i => k for (k, i) in variable_map)
+function build_varinv(variable_map::Dict{Int,Int})
+    Dict{Int,Int}(i => k for (k, i) in variable_map)
 end
 
 @doc raw"""
 """ function build_varbij end
 
-function build_varbij(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{Int, Int}, T}) where T
+function build_varbij(linear_terms::Dict{Int,T}, quadratic_terms::Dict{Tuple{Int,Int},T}) where {T}
     variable_map = build_varmap(linear_terms, quadratic_terms)
     variable_inv = build_varinv(variable_map)
 
@@ -99,59 +107,48 @@ function build_varbij(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{In
 end
 
 @doc raw"""
-""" function map_terms end
+""" function normalize end
 
-function map_terms(linear_terms::Dict{Int, T}, quadratic_terms::Dict{Tuple{Int, Int}, T}) where T
-    map_linear_terms    = Dict{Int, T}()
-    map_quadratic_terms = Dict{Tuple{Int, Int}, T}()
+function normalize(linear_terms::Dict{Int,T}, quadratic_terms::Dict{Tuple{Int,Int},T}) where {T}
+    normal_linear_terms = Dict{Int,T}()
+    normal_quadratic_terms = Dict{Tuple{Int,Int},T}()
 
-    sizehint!(map_linear_terms, length(linear_terms))
-    sizehint!(map_quadratic_terms, length(quadratic_terms))
+    sizehint!(normal_linear_terms, length(linear_terms))
+    sizehint!(normal_quadratic_terms, length(quadratic_terms))
 
     for (i, l) in linear_terms
-        l += get(map_linear_terms, i, zero(T))
+        l += get(normal_linear_terms, i, zero(T))
         if iszero(l)
-            delete!(map_linear_terms, i)
+            delete!(normal_linear_terms, i)
         else
-            map_linear_terms[i] = l
+            normal_linear_terms[i] = l
         end
     end
 
     for ((i, j), q) in quadratic_terms
         if i == j
-            q += get(map_linear_terms, i, zero(T))
+            q += get(normal_linear_terms, i, zero(T))
             if iszero(q)
-                delete!(map_linear_terms, i)
+                delete!(normal_linear_terms, i)
             else
-                map_linear_terms[i] = q
+                normal_linear_terms[i] = q
             end
         elseif i < j
-            q += get(map_quadratic_terms, (i, j), zero(T))
+            q += get(normal_quadratic_terms, (i, j), zero(T))
             if iszero(q)
-                delete!(map_quadratic_terms, (i, j))
+                delete!(normal_quadratic_terms, (i, j))
             else
-                map_quadratic_terms[(i, j)] = q
+                normal_quadratic_terms[(i, j)] = q
             end
         else # i > j
-            q += get(map_quadratic_terms, (j, i), zero(T))
+            q += get(normal_quadratic_terms, (j, i), zero(T))
             if iszero(q)
-                delete!(map_quadratic_terms, (j, i))
+                delete!(normal_quadratic_terms, (j, i))
             else
-                map_quadratic_terms[(j, i)] = q
+                normal_quadratic_terms[(j, i)] = q
             end
         end
     end
-        
-    return (map_linear_terms, map_quadratic_terms)
-end
 
-@doc raw"""
-""" function map_state end
-
-function map_state(state::Vector{U}, ::Dict{Int, S}) where {S <: Any, U <: Integer}
-    state
-end
-
-function map_state(state::Dict{S, U}, variable_inv::Dict{Int, S}) where {S <: Any, U <: Integer}
-    U[state[variable_inv[i]] for i = 1:length(variable_inv)]
+    return (normal_linear_terms, normal_quadratic_terms)
 end

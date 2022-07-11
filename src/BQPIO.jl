@@ -18,7 +18,7 @@ include("backend/standard.jl")
 
 include("models/bqpjson.jl")
 # include(joinpath("models", "hfs.jl"))
-# include(joinpath("models", "minizinc.jl"))
+include("models/minizinc.jl")
 include("models/qubist.jl")
 include("models/qubo.jl")
 

@@ -1,75 +1,84 @@
 const BQPJSON_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "bqpjson.schema.json")))
-const BQPJSON_VERSION_LATEST = v"1.0.0"
-const BQPJSON_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
+const BQPJSON_VERSION_LIST = VersionNumber[v"1.0.0"]
+const BQPJSON_VERSION_LATEST = BQPJSON_VERSION_LIST[end]
+const BQPJSON_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
+
+function BQPJSON_DEFAULT_OFFSET end
+BQPJSON_DEFAULT_OFFSET(::Nothing) = 0.0
+BQPJSON_DEFAULT_OFFSET(offset::Float64) = offset
+
+function BQPJSON_DEFAULT_SCALE end
+BQPJSON_DEFAULT_SCALE(::Nothing) = 1.0
+BQPJSON_DEFAULT_SCALE(scale::Float64) = scale
 
 function BQPJSON_DEFAULT_ID end
-BQPJSON_DEFAULT_ID(::Nothing)   = 0
+BQPJSON_DEFAULT_ID(::Nothing) = 0
 BQPJSON_DEFAULT_ID(id::Integer) = id
 
 function BQPJSON_DEFAULT_VERSION end
-BQPJSON_DEFAULT_VERSION(::Nothing)              = string(BQPJSON_VERSION_LATEST)
+BQPJSON_DEFAULT_VERSION(::Nothing) = string(BQPJSON_VERSION_LATEST)
 BQPJSON_DEFAULT_VERSION(version::VersionNumber) = string(version)
+
+function BQPJSON_DEFAULT_METADATA end
+BQPJSON_DEFAULT_METADATA(::Nothing) = Dict{String,Any}()
+BQPJSON_DEFAULT_METADATA(metadata::Dict{String,Any}) = deepcopy(metadata)
 
 function BQPJSON_VARIABLE_DOMAIN end
 BQPJSON_VARIABLE_DOMAIN(::Type{<:BoolDomain}) = "boolean"
 BQPJSON_VARIABLE_DOMAIN(::Type{<:SpinDomain}) = "spin"
 
 function BQPJSON_VALIDATE_DOMAIN end
-BQPJSON_VALIDATE_DOMAIN(x::Integer, ::Type{<:BoolDomain}) = x ==  0 || x == 1
+BQPJSON_VALIDATE_DOMAIN(x::Integer, ::Type{<:BoolDomain}) = x == 0 || x == 1
 BQPJSON_VALIDATE_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = s == -1 || s == 1
 
 function BQPJSON_SWAP_DOMAIN end
 BQPJSON_SWAP_DOMAIN(x::Integer, ::Type{<:BoolDomain}) = (x == 1 ? 1 : -1)
-BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 :  0)
+BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
 
 @doc raw"""
-    BQPJSON{D <: VariableDomain}
+    BQPJSON{D}(
+        backend::BQPJSON_BACKEND_TYPE{D},
+        solutions::Union{Vector,Nothing},
+    ) where {D<:VariableDomain}
 
 ### References
 [1] https://bqpjson.readthedocs.io
-""" struct BQPJSON{D <: VariableDomain} <: AbstractBQPModel{D}
+""" struct BQPJSON{D<:VariableDomain} <: AbstractBQPModel{D}
     backend::BQPJSON_BACKEND_TYPE{D}
-    solutions::Union{Vector, Nothing}
+    solutions::Union{Vector,Nothing}
 
     function BQPJSON{D}(
-            backend::BQPJSON_BACKEND_TYPE{D},
-            solutions::Union{Vector, Nothing},
-        ) where D <: VariableDomain
+        backend::BQPJSON_BACKEND_TYPE{D},
+        solutions::Union{Vector,Nothing},
+    ) where {D<:VariableDomain}
         new{D}(backend, solutions)
     end
 
-    function BQPJSON(
-            backend::BQPJSON_BACKEND_TYPE{D},
-            solutions::Union{Vector, Nothing},
-        ) where D <: VariableDomain
-        BQPJSON{D}(backend, solutions)
-    end
-
     function BQPJSON{D}(
-            linear_terms::Dict{Int, Float64},
-            quadratic_terms::Dict{Tuple{Int, Int}, Float64},
-            offset::Float64,
-            scale::Float64,
-            variable_map::Dict{Int, Int},
-            id::Integer,
-            version::VersionNumber,
-            description::Union{String, Nothing},
-            metadata::Dict{String, Any},
-            solutions::Union{Vector, Nothing},
-        ) where D <: VariableDomain
-
+        linear_terms::Dict{Int,Float64},
+        quadratic_terms::Dict{Tuple{Int,Int},Float64},
+        variable_map::Dict{Int,Int},
+        offset::Float64,
+        scale::Float64,
+        id::Integer,
+        version::VersionNumber,
+        description::Union{String,Nothing},
+        metadata::Dict{String,Any},
+        solutions::Union{Vector,Nothing},
+    ) where {D<:VariableDomain}
         backend = BQPJSON_BACKEND_TYPE{D}(
             # ~*~ Required data ~*~
             linear_terms,
             quadratic_terms,
-            offset,
-            scale,
-            variable_map,
+            variable_map;
+            # ~*~ Factors ~*~
+            offset=offset,
+            scale=scale,
             # ~*~ Metadata ~*~
-            id,
-            version,
-            description,
-            metadata,
+            id=id,
+            version=version,
+            description=description,
+            metadata=metadata
         )
 
         BQPJSON{D}(backend, solutions)
@@ -89,7 +98,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     id = data["id"]
 
     version = VersionNumber(data["version"])
-    
+
     if version !== BQPJSON_VERSION_LATEST
         error("Invalid data: Incorrect bqpjson version '$version'")
     end
@@ -105,14 +114,14 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     end
 
     offset = data["offset"]
-    scale  = data["scale"]
+    scale = data["scale"]
 
     if scale < 0.0
         error("Invalid data: Negative scale factor '$scale'")
     end
 
-    variable_map = Dict{Int, Int}(i => k for (k, i) in enumerate(data["variable_ids"]))
-    linear_terms = Dict{Int, Float64}()
+    variable_map = Dict{Int,Int}(i => k for (k, i) in enumerate(data["variable_ids"]))
+    linear_terms = Dict{Int,Float64}()
 
     for lt in data["linear_terms"]
         i = lt["id"]
@@ -125,7 +134,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
         linear_terms[i] = get(linear_terms, i, 0.0) + l
     end
 
-    quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
+    quadratic_terms = Dict{Tuple{Int,Int},Float64}()
 
     for qt in data["quadratic_terms"]
         i = qt["id_head"]
@@ -146,8 +155,8 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     end
 
     description = get(data, "description", nothing)
-    metadata    = deepcopy(data["metadata"])
-    solutions   = get(data, "solutions", nothing)
+    metadata = deepcopy(data["metadata"])
+    solutions = get(data, "solutions", nothing)
 
     if !isnothing(solutions)
         sol_ids = Set{Int}()
@@ -185,9 +194,9 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     model = BQPJSON{D}(
         linear_terms,
         quadratic_terms,
+        variable_map,
         offset,
         scale,
-        variable_map,
         id,
         version,
         description,
@@ -198,22 +207,22 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     convert(M, model)
 end
 
-function Base.write(io::IO, model::BQPJSON{D}) where D <: VariableDomain
-    backend         = model.backend
-    id              = BQPJSON_DEFAULT_ID(backend.id)
-    version         = BQPJSON_DEFAULT_VERSION(backend.version)
-    offset          = backend.offset
-    scale           = backend.scale
+function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
+    backend = model.backend
+    linear_terms = Dict{String,Any}[]
+    quadratic_terms = Dict{String,Any}[]
+    offset = BQPJSON_DEFAULT_OFFSET(backend.offset)
+    scale = BQPJSON_DEFAULT_SCALE(backend.scale)
+    id = BQPJSON_DEFAULT_ID(backend.id)
+    version = BQPJSON_DEFAULT_VERSION(backend.version)
     variable_domain = BQPJSON_VARIABLE_DOMAIN(D)
-    linear_terms    = Dict{String, Any}[]
-    quadratic_terms = Dict{String, Any}[]
-    metadata        = deepcopy(backend.metadata)
+    metadata = BQPJSON_DEFAULT_METADATA(backend.metadata)
 
     for (i, l) in backend.linear_terms
         push!(
             linear_terms,
-            Dict{String, Any}(
-                "id"    => backend.variable_inv[i],
+            Dict{String,Any}(
+                "id" => backend.variable_inv[i],
                 "coeff" => l,
             )
         )
@@ -222,29 +231,29 @@ function Base.write(io::IO, model::BQPJSON{D}) where D <: VariableDomain
     for ((i, j), q) in backend.quadratic_terms
         push!(
             quadratic_terms,
-            Dict{String, Any}(
+            Dict{String,Any}(
                 "id_head" => backend.variable_inv[i],
                 "id_tail" => backend.variable_inv[j],
-                "coeff"   => q,
+                "coeff" => q,
             )
         )
     end
 
-    sort!(linear_terms   ; by=(lt) -> lt["id"])
+    sort!(linear_terms; by=(lt) -> lt["id"])
     sort!(quadratic_terms; by=(qt) -> (qt["id_head"], qt["id_tail"]))
 
     variable_ids = sort(collect(keys(backend.variable_map)))
 
-    data = Dict{String, Any}(
-        "id"              => id,
-        "version"         => version,
+    data = Dict{String,Any}(
+        "id" => id,
+        "version" => version,
         "variable_domain" => variable_domain,
-        "linear_terms"    => linear_terms,
+        "linear_terms" => linear_terms,
         "quadratic_terms" => quadratic_terms,
-        "variable_ids"    => variable_ids,
-        "offset"          => offset,
-        "scale"           => scale,
-        "metadata"        => metadata,
+        "variable_ids" => variable_ids,
+        "offset" => offset,
+        "scale" => scale,
+        "metadata" => metadata,
     )
 
     if !isnothing(backend.description)
@@ -256,20 +265,20 @@ function Base.write(io::IO, model::BQPJSON{D}) where D <: VariableDomain
     elseif !isnothing(backend.sampleset)
         id = 0
 
-        solutions = Dict{String, Any}[]
+        solutions = Dict{String,Any}[]
 
         for sample in backend.sampleset
-            assignment = Dict{String, Any}[
-                Dict{String, Any}(
-                    "id"    => i,
+            assignment = Dict{String,Any}[
+                Dict{String,Any}(
+                    "id" => i,
                     "value" => sample.state[j]
                 ) for (i, j) in backend.variable_map
             ]
             for _ = 1:sample.reads
                 push!(
                     solutions,
-                    Dict{String, Any}(
-                        "id"         => (id += 1),
+                    Dict{String,Any}(
+                        "id" => (id += 1),
                         "assignment" => assignment,
                         "evaluation" => sample.value,
                     )
@@ -283,8 +292,8 @@ function Base.write(io::IO, model::BQPJSON{D}) where D <: VariableDomain
     JSON.print(io, data)
 end
 
-function Base.convert(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A, B}
-    backend   = convert(StandardBQPModel{Int, Int, Float64, B}, model.backend)
+function Base.convert(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A,B}
+    backend = convert(BQPJSON_BACKEND_TYPE{B}, model.backend)
     solutions = deepcopy(model.solutions)
 
     if !isnothing(solutions)
@@ -303,9 +312,9 @@ function isvalidbridge(
     target::BQPJSON{B},
     ::Type{<:BQPJSON{A}};
     kws...
-    ) where {A <: VariableDomain, B <: VariableDomain}
+) where {A,B}
     flag = true
-    
+
     if source.backend.id != target.backend.id
         @error "Test Failure: ID mismatch"
         flag = false
@@ -336,7 +345,7 @@ function isvalidbridge(
         target.backend,
         BQPJSON_BACKEND_TYPE{A};
         kws...
-        )
+    )
         flag = false
     end
 

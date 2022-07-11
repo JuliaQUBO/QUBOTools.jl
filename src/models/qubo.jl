@@ -1,18 +1,18 @@
-const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
+const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
 
 @doc raw"""
-""" struct QUBO{D <: BoolDomain} <: AbstractBQPModel{D}
+""" struct QUBO{D<:BoolDomain} <: AbstractBQPModel{D}
     backend::QUBO_BACKEND_TYPE{D}
     max_index::Int
     num_diagonals::Int
     num_elements::Int
 
     function QUBO{D}(
-            backend::QUBO_BACKEND_TYPE{D},
-            max_index::Integer,
-            num_diagonals::Integer,
-            num_elements::Integer,
-        ) where {D}
+        backend::QUBO_BACKEND_TYPE{D},
+        max_index::Integer,
+        num_diagonals::Integer,
+        num_elements::Integer,
+    ) where {D}
 
         new{D}(
             backend,
@@ -23,18 +23,17 @@ const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
     end
 
     function QUBO{D}(
-        linear_terms::Dict{Int, Float64},
-        quadratic_terms::Dict{Tuple{Int, Int}, Float64},
-        offset::Float64,
-        scale::Float64,
-        id::Int,
-        description::Union{String, Nothing},
-        metadata::Dict{String, Any},
-        max_index::Int,
-        num_diagonals::Int,
-        num_elements::Int,
-    ) where {D <: BoolDomain}
-
+        linear_terms::Dict{Int,Float64},
+        quadratic_terms::Dict{Tuple{Int,Int},Float64},
+        offset::Union{Float64,Nothing},
+        scale::Union{Float64,Nothing},
+        id::Union{Integer,Nothing},
+        description::Union{String,Nothing},
+        metadata::Union{Dict{String,Any},Nothing},
+        max_index::Integer,
+        num_diagonals::Integer,
+        num_elements::Integer,
+    ) where {D<:BoolDomain}
         variable_map, variable_inv = build_varbij(
             linear_terms,
             quadratic_terms
@@ -43,15 +42,13 @@ const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
         backend = QUBO_BACKEND_TYPE{D}(
             linear_terms,
             quadratic_terms,
-            offset,
-            scale,
             variable_map,
-            variable_inv,
-            id,
-            nothing,
-            description,
-            metadata,
-            nothing,
+            variable_inv;
+            offset=offset,
+            scale=scale,
+            id=id,
+            description=description,
+            metadata=metadata
         )
 
         QUBO{D}(
@@ -64,19 +61,25 @@ const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
 end
 
 function Base.write(io::IO, model::QUBO)
+    println(io, "c ~*~ Generated with BQPIO.jl ~*~")
     if !isnothing(model.backend.id)
         println(io, "c id : $(model.backend.id)")
     end
     if !isnothing(model.backend.description)
         println(io, "c description : $(model.backend.description)")
-        println(io, "c")
     end
-    println(io, "c scale : $(model.backend.scale)")
-    println(io, "c offset : $(model.backend.offset)")
-    for (k, v) in model.backend.metadata
-        print(io, "c $(k) : ")
-        JSON.print(io, v)
-        println(io)
+    if !isnothing(model.backend.offset)
+        println(io, "c offset : $(model.backend.offset)")
+    end
+    if !isnothing(model.backend.scale)
+        println(io, "c scale : $(model.backend.scale)")
+    end
+    if !isnothing(model.backend.metadata)
+        for (k, v) in model.backend.metadata
+            print(io, "c $(k) : ")
+            JSON.print(io, v)
+            println(io)
+        end
     end
     println(io, "p qubo 0 $(model.max_index) $(model.num_diagonals) $(model.num_elements)")
     println(io, "c linear terms")
@@ -90,19 +93,19 @@ function Base.write(io::IO, model::QUBO)
 end
 
 function Base.read(io::IO, ::Type{<:QUBO})
-    id     = 0
-    offset = 0.0
-    scale  = 1.0
-    
-    max_index     = nothing
-    num_diagonals = nothing
-    num_elements  = nothing
+    linear_terms = Dict{Int,Float64}()
+    quadratic_terms = Dict{Tuple{Int,Int},Float64}()
 
-    linear_terms    = Dict{Int, Float64}()
-    quadratic_terms = Dict{Tuple{Int, Int}, Float64}()
+    offset = nothing
+    scale = nothing
 
+    id = nothing
     description = nothing
-    metadata    = Dict{String, Any}()
+    metadata = Dict{String,Any}()
+
+    max_index = nothing
+    num_diagonals = nothing
+    num_elements = nothing
 
     for line in strip.(readlines(io))
         if isempty(line)
@@ -110,7 +113,7 @@ function Base.read(io::IO, ::Type{<:QUBO})
         end
 
         # -*- Comments & Metadata -*-
-        m = match(r"^c(\s.*)?$", line) 
+        m = match(r"^c(\s.*)?$", line)
 
         if !isnothing(m)
             if isnothing(m[1])
@@ -143,9 +146,9 @@ function Base.read(io::IO, ::Type{<:QUBO})
         m = match(r"^p\s+qubo\s+([+-]?[0-9]+)\s+([+-]?[0-9]+)\s+([+-]?[0-9]+)\s+([+-]?[0-9]+)$", line)
 
         if !isnothing(m)
-            max_index     = tryparse(Int, m[2])
+            max_index = tryparse(Int, m[2])
             num_diagonals = tryparse(Int, m[3])
-            num_elements  = tryparse(Int, m[4])
+            num_elements = tryparse(Int, m[4])
             continue
         end
 
@@ -173,6 +176,10 @@ function Base.read(io::IO, ::Type{<:QUBO})
         error("Error: $line")
     end
 
+    if isnothing(max_index) || isnothing(num_diagonals) || isnothing(num_elements)
+        error("Error: Invalid problem header")
+    end
+
     QUBO{BoolDomain}(
         linear_terms,
         quadratic_terms,
@@ -188,27 +195,12 @@ function Base.read(io::IO, ::Type{<:QUBO})
 end
 
 function isvalidbridge(
-        source::QUBO{D},
-        target::QUBO{D},
-        ::Type{<:QUBO{D}};
-        kws...,
-    ) where D <: BoolDomain
+    source::QUBO{D},
+    target::QUBO{D},
+    ::Type{<:QUBO{D}};
+    kws...
+) where {D<:BoolDomain}
     flag = true
-
-    if !isnothing(source.backend.id) && (source.backend.id != target.backend.id)
-        @error "Test Failure: ID mismatch"
-        flag = false
-    end
-
-    if !isnothing(source.backend.description) && (source.backend.description != target.backend.description)
-        @error "Test Failure: Description mismatch"
-        flag = false    
-    end
-
-    if !isempty(source.backend.metadata) && (source.backend.metadata != target.backend.metadata)
-        @error "Test Failure: Metadata mismatch"
-        flag = false    
-    end
 
     if source.max_index != target.max_index
         @error "Test Failure: Inconsistent maximum index"
@@ -224,12 +216,13 @@ function isvalidbridge(
         @error "Test Failure: Inconsistent number of elements"
         flag = false
     end
-    
+
     if !isvalidbridge(
         source.backend,
         target.backend,
-        QUBO_BACKEND_TYPE{D},
-        )
+        QUBO_BACKEND_TYPE{D};
+        kws...
+    )
         flag = false
     end
 
