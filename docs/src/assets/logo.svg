@@ -69,12 +69,7 @@
         font-weight: bold;
         text-shadow: 3px 3px 1px #000000;
     }
-
-
   	</style>
-
-    <!-- FRAME -->
-    <rect x="0" y="0" width="1000" height="1000" stroke="black" fill="none" />
 
     <text class="data" fill="url(#grad-r)">
         <textPath href="#path-r" startOffset="50%">
