@@ -49,23 +49,23 @@ flowchart TD;
     BQPJSON-SPIN["BQPJSON (Spin)"];
     QUBO["QUBO"];
     QUBIST["Qubist"];
-    MINIZINC-BOOL["MiniZinc (Bool)"];
-    MINIZINC-SPIN["MiniZinc (Spin)"];
-    HFS(("HFS"));
+    MINIZINC-BOOL(["MiniZinc (Bool)"]);
+    MINIZINC-SPIN(["MiniZinc (Spin)"]);
+    HFS(["HFS"]);
 
     BQPJSON-BOOL  <==> BQPJSON-SPIN;
     MINIZINC-BOOL <==> MINIZINC-SPIN;
 
-    BQPJSON-BOOL <--> MINIZINC-BOOL;
-    BQPJSON-BOOL <----> QUBO;
-    BQPJSON-BOOL ----->  HFS;
+    BQPJSON-BOOL <---> MINIZINC-BOOL;
+    BQPJSON-BOOL <---> QUBO;
+    BQPJSON-BOOL ---->  HFS;
 
-    BQPJSON-SPIN <----> MINIZINC-SPIN;
-    BQPJSON-SPIN ---->  QUBIST;
+    BQPJSON-SPIN <---> MINIZINC-SPIN;
+    BQPJSON-SPIN  --->  QUBIST;
     QUBIST       -..->  BQPJSON-SPIN;
 ```
 
-**Square nodes** represent formats with support for reading and writing, while **Round nodes** indicate write-only behaviour.
+**Rectangular nodes** represent formats with support for reading and writing, while **Rounded nodes** indicate write-only behaviour.
 
 ## Backend
 **BQPIO.jl** also exports the 
