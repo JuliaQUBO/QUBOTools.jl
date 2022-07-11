@@ -86,3 +86,16 @@ It's commonly set as `Float64`.
 
 One of the main ideas was to make JuMP / MathOptInterface integration easy and, in fact, the implemented backend does a lot of the the data crunching.
 When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say that most of the hard work is done.
+
+<div align="center">
+    <h2>PSR Quantum Optimization Toolchain</h2>
+    <a href="https://github.com/psrenergy/ToQUBO.jl">
+        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/ToQUBO.jl/master/docs/src/assets/logo.svg" alt="ToQUBO.jl" />
+    </a>
+    <a href="https://github.com/psrenergy/Anneal.jl">
+        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/Anneal.jl/master/docs/src/assets/logo.svg" alt="Anneal.jl" />
+    </a>
+    <a href="https://github.com/psrenergy/BQPIO.jl">
+        <img width="200px" src="/docs/src/assets/logo.svg" alt="BQPIO.jl" />
+    </a>
+</div>
