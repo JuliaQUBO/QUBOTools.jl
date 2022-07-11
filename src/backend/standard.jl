@@ -135,6 +135,22 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     end
 end
 
+function Base.empty!(model::StandardBQPModel)
+    empty!(model.linear_terms)
+    empty!(model.quadratic_terms)
+    empty!(model.variable_map)
+    empty!(model.variable_inv)
+    model.offset = nothing
+    model.scale = nothing
+    model.id = nothing
+    model.version = nothing
+    model.description = nothing
+    model.metadata = nothing
+    model.sampleset = nothing
+
+    return model
+end
+
 function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
     StandardBQPModel{S,U,T,D}(
         copy(model.linear_terms),
