@@ -21,21 +21,21 @@ $$ s = 2x - 1 $$
 ## Supported Formats
 It is possible to read and write files in all available formats, listed below.
 
-### [BQPJSON](/docs/models/BQPJSON.md)
+### [BQPJSON](/docs/models/BQPJSON.md) `rw`
 The [bqpjson](https://bqpjson.readthedocs.io) format was designed by people at LANL-ANSI to represent Binary Quadratic Programs in a platform-independet fashion.
 This is accomplished by using `.json` files validated using a well-defined [JSON Schema](/src/models/bqpjson.schema.json).
 
-### [QUBO](/docs/models/QUBO.md)
+### [QUBO](/docs/models/QUBO.md) `rw`
 The QUBO specification appears as the input format in many of D-Wave's applications.
 A brief explanation about it can be found in [qbsolv](https://github.com/arcondello/qbsolv#qbsolv-qubo-input-file-format)'s repository README. 
 
-### [Qubist](/docs/models/Qubist.md)
+### [Qubist](/docs/models/Qubist.md) `rw`
 This is the simplest of all current supported formats.
 
-### [MiniZinc](/docs/models/MiniZinc.md)
+### [MiniZinc](/docs/models/MiniZinc.md) `w`
 [MiniZinc](https://www.minizinc.org) is a constraint modelling language that can be used as input for many solvers.
 
-### [HFS](/docs/models/HFS.md)
+### [HFS](/docs/models/HFS.md) `w`
 HFS is a very low-level mapping of weights to D-Wave's chimera graph.
 
 ### Conversion Flowchart
@@ -45,19 +45,19 @@ HFS is a very low-level mapping of weights to D-Wave's chimera graph.
 
 ```mermaid
 flowchart TD;
-    BQPJSON-BOOL["BQPJSON (Bool)"];
-    BQPJSON-SPIN["BQPJSON (Spin)"];
-    QUBO["QUBO"];
-    QUBIST["Qubist"];
-    MINIZINC-BOOL(["MiniZinc (Bool)"]);
-    MINIZINC-SPIN(["MiniZinc (Spin)"]);
-    HFS(["HFS"]);
+    BQPJSON-BOOL["BQPJSON<br><code>Bool</code>"];
+    BQPJSON-SPIN["BQPJSON<br><code>Spin</code>"];
+    QUBO["QUBO<br><code>Bool</code>"];
+    QUBIST["Qubist<br><code>Spin</code>"];
+    MINIZINC-BOOL(["MiniZinc<br><code>Bool</code>"]);
+    MINIZINC-SPIN(["MiniZinc<br><code>Spin</code>"]);
+    HFS(["HFS<br><code>Bool</code>"]);
 
     BQPJSON-BOOL  <==> BQPJSON-SPIN;
     MINIZINC-BOOL <==> MINIZINC-SPIN;
 
     BQPJSON-BOOL <---> MINIZINC-BOOL;
-    BQPJSON-BOOL <---> QUBO;
+    BQPJSON-BOOL <----> QUBO;
     BQPJSON-BOOL ---->  HFS;
 
     BQPJSON-SPIN <---> MINIZINC-SPIN;
@@ -68,11 +68,7 @@ flowchart TD;
 **Rectangular nodes** represent formats with support for reading and writing, while **Rounded nodes** indicate write-only behaviour.
 
 ## Backend
-**BQPIO.jl** also exports the 
-
-``StandardBQPModel{S, U, T, D} <: AbstractBQPModel{D}``
-
-type, designed to work as a powerful standard backend for all other models.
+**BQPIO.jl** also exports the ``StandardBQPModel{S, U, T, D} <: AbstractBQPModel{D}`` type, designed to work as a powerful standard backend for all other models.
 Here, `S <: Any` plays the role of variable indexing type and usually defaults to `Int`.
 It is followed by `U <: Integer`, used to store sampled states of type `Vector{U}`.
 When `D <: SpinDomain`, it is necessary that `U <: Signed`.
