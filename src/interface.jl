@@ -27,6 +27,13 @@ function Base.isvalid(::AbstractBQPModel)
 end
 
 @doc raw"""
+    backend(::Any)
+
+""" function backend end
+
+backend(::Any) = nothing
+
+@doc raw"""
     isvalidbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kws...) where M <: AbstractBQPModel
 
 Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
@@ -45,8 +52,12 @@ This function aims to evaluate the energy of a given state under some BQP Model.
 Scale and offset factors are assumed to be taken into account.
 """ function energy end
 
-function energy(state::Any, model::AbstractBQPModel)
-    error("'BQPIO.energy' not implemented for model of type '$(typeof(model))' and state of type '$(typeof(state))'")
+function energy(state, model::AbstractBQPModel)
+    backend = BQPIO.backend(model)
+
+    @assert !isnothing(backend)
+    
+    energy(state, backend)
 end
 
 # ~*~ I/O ~*~ #

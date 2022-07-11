@@ -68,19 +68,14 @@ It was clearly inspired by [1], with a few tweaks.
     end
 
     function SampleSet{U, T}(
-            data::Vector,
+            data::Vector{U},
             model::AbstractBQPModel,
             metadata::Union{Dict{String, Any}, Nothing} = nothing,
         ) where {U, T}
-        samples = Sample{U, T}[]
-
-        for item in data
-            state, reads, value = BQPIO.sample(item, model)
-
-            push!(samples, Sample{U, T}(state, reads, value))
-        end
-
-        SampleSet{U, T}(samples, metadata)
+        SampleSet{U, T}(
+            Sample{U, T}[Sample{U, T}(state, 1, BQPIO.energy(state, model)) for state in data],
+            metadata
+        )
     end
 end
 
@@ -94,11 +89,4 @@ end
 
 function Base.:(==)(X::SampleSet{U, T}, Y::SampleSet{U, T}) where {U, T}
     length(X) == length(Y) && all(X.samples .== Y.samples)
-end
-
-@doc raw"""
-""" function sample end
-
-function sample(::A, ::M) where {A, M <: AbstractBQPModel}
-    error("'BQPIO.sample' is not implemented for intepreting samples of type '$A' via '$M' models")
 end

@@ -8,18 +8,19 @@
     <a href="/actions/workflows/ci.yml">
         <img src="https://github.com/pedromxavier/BQPIO.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
+    <br>
+    <i>Binary Quadratic Program I/O in Julia</i>
 </div>
 
-Binary Quadratic Program's I/O in Julia
-
+## Introduction
 This package exports the `AbstractBQPModel{D}` abstract type where `D <: VariableDomain`.
-Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \\\{ 0, 1 \\\}$ and $s \in \\\{ -1, 1 \\\}$.
+Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \{ 0, 1 \}$ and $s \in \{ -1, 1 \}$.
 
 Conversion between domains follows the identity
 $$ s = 2x - 1 $$
 
 ## Supported Formats
-It is possible to read and write files in all available formats, listed below.
+It is possible to read file formats marked with `r` and write in those stamped with a `w`.
 
 ### [BQPJSON](/docs/models/BQPJSON.md) `rw`
 The [bqpjson](https://bqpjson.readthedocs.io) format was designed by people at LANL-ANSI to represent Binary Quadratic Programs in a platform-independet fashion.
@@ -72,11 +73,15 @@ flowchart TD;
 Here, `S <: Any` plays the role of variable indexing type and usually defaults to `Int`.
 It is followed by `U <: Integer`, used to store sampled states of type `Vector{U}`.
 When `D <: SpinDomain`, it is necessary that `U <: Signed`.
-
 `T <: Real` is the type used to represent all coefficients.
 It is also the choice for the energy values corresponding to each solution.
 It's commonly set as `Float64`.
 
+This package follows **bqpjson**'s mathematical formulation, given by
+
+$$ f(\vec{x}) = s \left({ c + \sum_{i} l_{i}\,x_{i} + \sum_{i < j} q_{i, j}\,x_{i}\,x_{j} }\right) $$
+
+where $s$ is a scaling factor, $c$ a constant offset, $l_{i}\,x_{i}$ are the linear terms and $q_{i, j}\,x_{i}\,x_{j}$ the quadratic ones.
 
 ### [JuMP](https://jump.dev) Integration
 

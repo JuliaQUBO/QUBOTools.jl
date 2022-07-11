@@ -175,7 +175,7 @@ function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPMod
         version=model.version,
         description=model.description,
         metadata=deepcopy(model.metadata),
-        sampleset=model.sampleset,
+        sampleset=model.sampleset
     )
 end
 
