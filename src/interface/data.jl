@@ -1,12 +1,25 @@
 """ /src/interface/data.jl @ BQPIO.jl
 
     This files contains methods for data access within BQPIO's format system.
+    
+    It also contains a few methods for query execution on models.
 """
 
 @doc raw"""
     backend
 
 """ function backend end
+
+@doc raw"""
+""" function model_name end
+
+model_name(model::AbstractBQPModel) = "BQP"
+
+@doc raw"""
+""" function domain_name end
+
+domain_name(model::AbstractBQPModel{<:BoolDomain}) = "Bool"
+domain_name(model::AbstractBQPModel{<:SpinDomain}) = "Spin"
 
 abstract type BQPAttribute end
 
@@ -124,6 +137,10 @@ f(\vec{x}) = \alpha \left[{ \vec{x}'\,Q\,\vec{x} + \beta }\right]
 
 """ function qubo end
 
+function qubo(model::AbstractBQPModel)
+    BQPIO.qubo(Dict, model)
+end
+
 function qubo(::Type{<:Dict}, model::AbstractBQPModel{D}) where {D<:BoolDomain}
     x = BQPIO.variable_map(model)
     Q = merge(
@@ -136,7 +153,7 @@ function qubo(::Type{<:Dict}, model::AbstractBQPModel{D}) where {D<:BoolDomain}
     return (x, Q, α, β)
 end
 
-function qubo(::Type{<:Dict}, model::AbstractBQPModel{D}) where {D<:BoolDomain}
+function qubo(::Type{<:Array}, model::AbstractBQPModel{D}) where {D<:BoolDomain}
     x = BQPIO.variable_map(model)
     n = length(x)
     Q = zeros(x, n, n)
@@ -164,6 +181,10 @@ H(\vec{s}) = \alpha \left[{ \vec{s}'\,J\,\vec{s} + \vec{h}\,\vec{s} + \beta }\ri
 ```
 
 """ function ising end
+
+function ising(model::AbstractBQPModel)
+    BQPIO.ising(Dict, model)
+end
 
 function ising(::Type{<:Dict}, model::AbstractBQPModel{D}) where {D<:SpinDomain}
     s = BQPIO.variable_map(model)

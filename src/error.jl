@@ -13,3 +13,7 @@ function Base.showerror(io::IO, e::BQPCodecError)
         print(io, "BQP Codec Error: $(e.msg)")
     end
 end
+
+function bqpcodec_error(msg::Union{String, Nothing} = nothing)
+    throw(BQPCodecError(msg))
+end

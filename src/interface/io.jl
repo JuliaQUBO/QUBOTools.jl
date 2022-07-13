@@ -1,6 +1,6 @@
 # ~*~ I/O ~*~ #
 function Base.read(::IO, M::Type{<:AbstractBQPModel})
-    throw(BQPCodecError("'Base.read' not implemented for model of type '$(M)'"))
+    bqpcodec_error("'Base.read' not implemented for model of type '$(M)'")
 end
 
 function Base.read(path::AbstractString, M::Type{<:AbstractBQPModel})
@@ -10,7 +10,7 @@ function Base.read(path::AbstractString, M::Type{<:AbstractBQPModel})
 end
 
 function Base.write(::IO, model::AbstractBQPModel)
-    throw(BQPCodecError("'Base.write' not implemented for model of type '$(typeof(model))'"))
+    bqpcodec_error("'Base.write' not implemented for model of type '$(typeof(model))'")
 end
 
 function Base.write(path::AbstractString, model::AbstractBQPModel)
@@ -20,9 +20,24 @@ function Base.write(path::AbstractString, model::AbstractBQPModel)
 end
 
 function Base.convert(M::Type{<:AbstractBQPModel}, model::AbstractBQPModel)
-    throw(BQPCodecError("'Base.convert' not implemented for turning model of type '$(typeof(model))' into $(M)"))
+    bqpcodec_error("'Base.convert' not implemented for turning model of type '$(typeof(model))' into $(M)")
 end
 
 function Base.convert(::Type{M}, model::M) where {M <: AbstractBQPModel}
     model # Short-circuit! Yeah!
+end
+
+function Base.show(io::IO, model::AbstractBQPModel)
+    print(
+        io,
+        """
+        $(BQPIO.model_name(model)) Model:
+        $(BQPIO.domain_size(model)) variables [$(BQPIO.domain_name(model))]
+
+        Density:
+        linear    ~ $(@sprintf("%0.2f", 100.0 * BQPIO.linear_density(model)))%
+        quadratic ~ $(@sprintf("%0.2f", 100.0 * BQPIO.quadratic_density(model)))%
+        total     ~ $(@sprintf("%0.2f", 100.0 * BQPIO.density(model)))%
+        """
+    )
 end
