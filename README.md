@@ -12,12 +12,29 @@
     <i>Binary Quadratic Program I/O in Julia</i>
 </div>
 
-## Introduction
-This package exports the `AbstractBQPModel{D}` abstract type where `D <: VariableDomain`.
-Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \{ 0, 1 \}$ and $s \in \{ -1, 1 \}$.
+## Getting Started
 
-Conversion between domains follows the identity
-$$ s = 2x - 1 $$
+### Installation
+```julia
+pkg> add BQPIO
+
+julia> using BQPIO
+```
+
+### Basic Usage
+```julia
+julia> model = read("problem.json", BQPJSON)
+
+julia> model = convert(QUBO, model)
+
+julia> write("problem.qubo", model)
+```
+
+## Introduction
+This package provides the `AbstractBQPModel{D}` abstract type where `D <: VariableDomain`.
+Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \lbrace 0, 1 \rbrace$ and $s \in \lbrace -1, 1 \rbrace$.
+
+Conversion between domains follows the identity $$s = 2x - 1$$
 
 ## Supported Formats
 It is possible to read file formats marked with `r` and write in those stamped with a `w`.
@@ -65,8 +82,6 @@ flowchart TD;
     BQPJSON-SPIN  --->  QUBIST;
     QUBIST       -..->  BQPJSON-SPIN;
 ```
-
-**Rectangular nodes** represent formats with support for reading and writing, while **Rounded nodes** indicate write-only behaviour.
 
 ## Backend
 **BQPIO.jl** also exports the ``StandardBQPModel{S, U, T, D} <: AbstractBQPModel{D}`` type, designed to work as a powerful standard backend for all other models.
