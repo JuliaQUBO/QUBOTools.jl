@@ -1,6 +1,6 @@
 # ~*~ I/O ~*~ #
 function Base.read(::IO, M::Type{<:AbstractBQPModel})
-    error("'Base.read' not implemented for model of type '$(M)'")
+    throw(BQPCodecError("'Base.read' not implemented for model of type '$(M)'"))
 end
 
 function Base.read(path::AbstractString, M::Type{<:AbstractBQPModel})
@@ -10,7 +10,7 @@ function Base.read(path::AbstractString, M::Type{<:AbstractBQPModel})
 end
 
 function Base.write(::IO, model::AbstractBQPModel)
-    error("'Base.write' not implemented for model of type '$(typeof(model))'")
+    throw(BQPCodecError("'Base.write' not implemented for model of type '$(typeof(model))'"))
 end
 
 function Base.write(path::AbstractString, model::AbstractBQPModel)
@@ -20,7 +20,7 @@ function Base.write(path::AbstractString, model::AbstractBQPModel)
 end
 
 function Base.convert(M::Type{<:AbstractBQPModel}, model::AbstractBQPModel)
-    error("'Base.convert' not implemented for turning model of type '$(typeof(model))' into $(M)")
+    throw(BQPCodecError("'Base.convert' not implemented for turning model of type '$(typeof(model))' into $(M)"))
 end
 
 function Base.convert(::Type{M}, model::M) where {M <: AbstractBQPModel}

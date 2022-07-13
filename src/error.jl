@@ -1,15 +1,15 @@
-struct SyntaxError <: Exception
+struct BQPCodecError <: Exception
     msg::Union{String, Nothing}
 
-    function SyntaxError(msg::Union{String, Nothing} = nothing)
+    function BQPCodecError(msg::Union{String, Nothing} = nothing)
         new(msg)
     end
 end
 
-function Base.showerror(io::IO, e::SyntaxError)
+function Base.showerror(io::IO, e::BQPCodecError)
     if isnothing(e.msg)
-        print(io, "Syntax Error")
+        print(io, "BQP Codec Error")
     else
-        print(io, "Syntax Error: $(e.msg)")
+        print(io, "BQP Codec Error: $(e.msg)")
     end
 end

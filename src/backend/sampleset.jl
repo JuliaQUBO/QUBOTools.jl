@@ -1,14 +1,14 @@
 @doc raw"""
-""" struct Sample{U<:Integer, T<:Real}
+""" struct Sample{U<:Integer,T<:Real}
     state::Vector{U}
     reads::Int
     value::T
 end
 
-function Base.:(==)(x::Sample{U, T}, y::Sample{U, T}) where {U, T}
+function Base.:(==)(x::Sample{U,T}, y::Sample{U,T}) where {U,T}
     x.value == y.value &&
-    x.reads == y.reads &&
-    x.state == y.state
+        x.reads == y.reads &&
+        x.state == y.state
 end
 
 @doc raw"""
@@ -27,18 +27,22 @@ It was clearly inspired by [1], with a few tweaks.
 
 ## References
 [1] https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/sampleset.html#dimod.SampleSet
-""" struct SampleSet{U<:Integer, T<:Real}
-    samples::Vector{Sample{U, T}}
-    metadata::Dict{String, Any}
+""" struct SampleSet{U<:Integer,T<:Real}
+    samples::Vector{Sample{U,T}}
+    metadata::Dict{String,Any}
 
-    function SampleSet{U, T}(
-            data::Vector{Sample{U, T}},
-            metadata::Union{Dict{String, Any}, Nothing} = nothing,
-            ) where {U, T}
+    function SampleSet{U,T}() where {U, T}
+        new{U,T}(Sample{U,T}[], Dict{String,Any}())
+    end
+
+    function SampleSet{U,T}(
+        data::Vector{Sample{U,T}},
+        metadata::Union{Dict{String,Any},Nothing}=nothing,
+    ) where {U,T}
         # ~*~ Compress samples ~*~
-        mapping = Dict{Vector{U}, Sample{U, T}}()
+        mapping = Dict{Vector{U},Sample{U,T}}()
 
-        for sample::Sample{U, T} in data
+        for sample::Sample{U,T} in data
             cached = get(mapping, sample.state, nothing)
 
             if isnothing(cached)
@@ -46,8 +50,8 @@ It was clearly inspired by [1], with a few tweaks.
             else
                 @assert cached.state == sample.state
                 @assert cached.value == sample.value
-            
-                mapping[sample.state] = Sample{U, T}(
+
+                mapping[sample.state] = Sample{U,T}(
                     sample.state,
                     sample.reads + cached.reads,
                     sample.value,
@@ -57,36 +61,44 @@ It was clearly inspired by [1], with a few tweaks.
 
         samples = sort(
             collect(values(mapping));
-            by=(sample)->(sample.value, -sample.reads),
+            by=(sample) -> (sample.value, -sample.reads)
         )
 
         if isnothing(metadata)
-            metadata = Dict{String, Any}()
+            metadata = Dict{String,Any}()
         end
 
-        new{U, T}(samples, metadata)
+        new{U,T}(samples, metadata)
     end
 
-    function SampleSet{U, T}(
-            data::Vector{U},
-            model::AbstractBQPModel,
-            metadata::Union{Dict{String, Any}, Nothing} = nothing,
-        ) where {U, T}
-        SampleSet{U, T}(
-            Sample{U, T}[Sample{U, T}(state, 1, BQPIO.energy(state, model)) for state in data],
+    function SampleSet{U,T}(
+        data::Vector{U},
+        model::AbstractBQPModel,
+        metadata::Union{Dict{String,Any},Nothing}=nothing,
+    ) where {U,T}
+        SampleSet{U,T}(
+            Sample{U,T}[Sample{U,T}(state, 1, BQPIO.energy(state, model)) for state in data],
             metadata
         )
     end
 end
 
-function Base.copy(sampleset::SampleSet{U, T}) where {U, T}
-    SampleSet{U, T}(copy(sampleset.samples))
+function Base.copy(sampleset::SampleSet{U,T}) where {U,T}
+    SampleSet{U,T}(copy(sampleset.samples))
 end
 
 function Base.length(X::SampleSet)
     length(X.samples)
 end
 
-function Base.:(==)(X::SampleSet{U, T}, Y::SampleSet{U, T}) where {U, T}
+function Base.:(==)(X::SampleSet{U,T}, Y::SampleSet{U,T}) where {U,T}
     length(X) == length(Y) && all(X.samples .== Y.samples)
+end
+
+function Base.iterate(X::SampleSet)
+    iterate(X.samples)
+end
+
+function Base.iterate(X::SampleSet, i::Int)
+    iterate(X.samples, i)
 end

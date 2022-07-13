@@ -1,4 +1,6 @@
-raw"""
+const HFS_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
+
+@doc raw"""
 Format description from [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
 The format of the instance-description file starts with a line giving the size of the Chimera graph.
 (Two numbers are given to specify an m x n rectangle, but currently only a square, m=n, is accepted.)
@@ -8,45 +10,43 @@ The subsequent lines are of the form
 ```
 where `<Chimera vertex>` is specified by four numbers using the format,
 Chimera graph, C_N:
-    Vertices are (x,y,o,i)  0<=x,y<N, 0<=o<2, 0<=i<4
-    Edge from (x,y,o,i) to (x",y",o",i") if
-    (x,y)=(x",y"), o!=o", OR
-    |x-x"|=1, y=y", o=o"=0, i=i", OR
-    |y-y"|=1, x=x", o=o"=1, i=i"
-        
-    x,y are the horizontal,vertical co-ords of the K4,4
-    o=0..1 is the "orientation" (0=horizontally connected, 1=vertically connected)
-    i=0..3 is the index within the "semi-K4,4"="bigvertex"
-    There is an involution given by {x<->y o<->1-o}
-"""
+    
+Vertices are ``v = (x,y,o,i)`` where
+    - ``x, y \in [0, N - 1]`` are the horizontal, vertical coordinates of the ``K_{4, 4}``
+    - ``o \in [0, 1]`` is the **orientation**: (0 = horizontally connected, 1 = vertically connected)
+    - ``i \in [0, 3]`` is the index within the "semi-``K_{4,4}" or "bigvertex"
+    - There is an involution given by ``x \iff y``, ``o \iff 1 - o``
 
-const HFS_DEFAULT_CHIMERA_CELL_SIZE = 8
-const HFS_DEFAULT_PRECISION = 5
+There is an edge from ``v_p`` to ``v_q`` if
+
+```math
+ (x_p, y_p) = (x_q, y_q) \wedge o_p \neq o_q \vee
+ |x_p-x_q| = 1 \wedge y_p = y_q \wedge o_p = o_q = 0 \wedge i_p = i_q \vee
+ x_p = x_q \wedge |y_p-y_q| = 1 \wedge o_p = o_q = 1 \wedge i_p = i_q
+```
+
+    
+""" struct Chimera
+    cell_size::Union{Int, Nothing}
+    degree::Int
+    effective_degree::Int
+    coordinates::Dict{Int, Tuple{Int, Int, Int, Int}}
+    factor::Float64
+    precision::Union{Int, Nothing}
+    linear_terms::Dict{Int, Int}
+    quadratic_terms::Dict{Tuple{Int, Int}, Int}
+end
 
 @doc raw"""
 """ struct HFS{D <: BoolDomain} <: AbstractBQPModel{D}
-    normal_factor::Float64
-    normal_scale::Float64
-    normal_offset::Float64
-
-    variable_ids::Set{Int}
-    linear_terms::Dict{Int, Float64}
-    quadratic_terms::Dict{Tuple{Int, Int}, Float64}
-    int_linear_terms::Dict{Int, Int}
-    int_quadratic_terms::Dict{Tuple{Int, Int}, Int}
-
-    # ~*~ Metadata ~*~ #
-    precision::Int
-    chimera_cell_size::Int
-    chimera_degree::Int
-    chimera_effective_degree::Int
-    chimera_coordinate::Dict{Int, Tuple{Int, Int, Int, Int}}
+    backend::HFS_BACKEND_TYPE{D}
+    chimera::Chimera
     
     function HFS{D}(
         scale::Float64,
         offset::Float64,
-        linear_terms::Dict{Int, Float64}
-        quadratic_terms::Dict{Tuple{Int, Int}, Float64}
+        linear_terms::Dict{Int, Float64},
+        quadratic_terms::Dict{Tuple{Int, Int}, Float64},
         chimera_cell_size::Union{Integer, Nothing} = nothing,
         chimera_degree::Union{Integer, Nothing} = nothing,
         precision::Union{Integer, Nothing} = nothing,

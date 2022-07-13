@@ -1,5 +1,6 @@
 module BQPIO
 
+using Printf
 using JSON
 using JSONSchema
 
@@ -24,7 +25,9 @@ include("backend/model/io.jl")
 include("models/bqpjson/model.jl")
 include("models/bqpjson/data.jl")
 include("models/bqpjson/io.jl")
-# include(joinpath("models", "hfs.jl"))
+include("models/hfs/model.jl")
+include("models/hfs/data.jl")
+include("models/hfs/io.jl")
 include("models/minizinc/model.jl")
 include("models/minizinc/data.jl")
 include("models/minizinc/io.jl")

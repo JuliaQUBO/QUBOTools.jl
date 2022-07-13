@@ -8,41 +8,68 @@
 
 """ function backend end
 
-function offset(model::AbstractBQPModel)
-    _getdefault(BQPIO.offset(BQPIO.backend(model)), BQPIO._default_offset(model))
+abstract type BQPAttribute end
+
+function getattr(model::AbstractBQPModel, attr::BQPAttribute)
+    BQPIO.getattr(BQPIO.backend(model), attr)
 end
 
-_default_offset(::AbstractBQPModel) = nothing
+function getdefaultattr(model::AbstractBQPModel, attr::BQPAttribute)
+    value = BQPIO.getattr(BQPIO.backend(model), attr)
+    
+    if isnothing(value)
+        BQPIO._defaultattr(BQPIO.backend(model), attr)
+    else
+        value
+    end
+end
+
+_defaultattr(::AbstractBQPModel, ::BQPAttribute) = nothing
+
+struct ATTR_OFFSET <: BQPAttribute end
+
+function offset(model::AbstractBQPModel)
+    getdefaultattr(model, ATTR_OFFSET())
+end
+
+struct ATTR_SCALE <: BQPAttribute end
 
 function scale(model::AbstractBQPModel)
-    _getdefault(BQPIO.scale(BQPIO.backend(model)), BQPIO._default_scale(model))
+    getdefaultattr(model, ATTR_SCALE())
 end
 
-_default_scale(::AbstractBQPModel) = nothing
+struct ATTR_ID <: BQPAttribute end
 
 function id(model::AbstractBQPModel)
-    _getdefault(BQPIO.id(BQPIO.backend(model)), BQPIO._default_id(model))
+    getdefaultattr(model, ATTR_ID())
 end
 
-_default_id(::AbstractBQPModel) = nothing
+struct ATTR_VERSION <: BQPAttribute end
 
 function version(model::AbstractBQPModel)
-    _getdefault(BQPIO.version(BQPIO.backend(model)), BQPIO._default_version(model))
+    getdefaultattr(model, ATTR_VERSION())
 end
 
-_default_version(::AbstractBQPModel) = nothing
+struct ATTR_DESCRIPTION <: BQPAttribute end
 
 function description(model::AbstractBQPModel)
-    _getdefault(BQPIO.description(BQPIO.backend(model)), BQPIO._default_description(model))
+    getdefaultattr(model, ATTR_DESCRIPTION())
 end
 
-_default_description(::AbstractBQPModel) = nothing
+struct ATTR_METADATA <: BQPAttribute end
 
 function metadata(model::AbstractBQPModel)
-    _getdefault(BQPIO.metadata(BQPIO.backend(model)), BQPIO._default_metadata(model))
+    getdefaultattr(model, ATTR_METADATA())
 end
 
-_default_metadata(::AbstractBQPModel) = nothing
+struct ATTR_SAMPLESET <: BQPAttribute end
+
+@doc raw"""
+""" function sampleset end
+
+function sampleset(model::AbstractBQPModel)
+    getdefaultattr(model, ATTR_SAMPLESET())
+end
 
 @doc raw"""
 """ function linear_terms end
@@ -85,13 +112,6 @@ end
 
 function variable_inv(model::AbstractBQPModel, i::Integer)
     BQPIO.variable_inv(BQPIO.backend(model), i)
-end
-
-@doc raw"""
-""" function sampleset end
-
-function sampleset(model::AbstractBQPModel)
-    BQPIO.sampleset(BQPIO.backend(model))
 end
 
 @doc raw"""
