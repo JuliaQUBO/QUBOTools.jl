@@ -1,0 +1,1 @@
+BQPIO.backend(model::QUBO) = model.backend

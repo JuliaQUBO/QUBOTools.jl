@@ -151,6 +151,20 @@ function Base.empty!(model::StandardBQPModel)
     return model
 end
 
+function Base.isempty(model::StandardBQPModel)
+    isempty(model.linear_terms) &&
+    isempty(model.quadratic_terms) &&
+    isempty(model.variable_map) &&
+    isempty(model.variable_inv) &&
+    isnothing(model.offset) &&
+    isnothing(model.scale) &&
+    isnothing(model.id) &&
+    isnothing(model.version) &&
+    isnothing(model.description) &&
+    isnothing(model.metadata) &&
+    isnothing(model.sampleset)
+end
+
 function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
     StandardBQPModel{S,U,T,D}(
         copy(model.linear_terms),
@@ -167,38 +181,7 @@ function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
     )
 end
 
-function Base.convert(::Type{<:StandardBQPModel{S,U,T,D}}, model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
-    model # Short-circuit! Yeah!
-end
-
-function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPModel{S,U,T,A}) where {S,U,T,A,B}
-    linear_terms, quadratic_terms, offset = swapdomain(
-        A,
-        B,
-        model.linear_terms,
-        model.quadratic_terms,
-        model.offset,
-    )
-
-    StandardBQPModel{S,U,T,B}(
-        linear_terms,
-        quadratic_terms,
-        copy(model.variable_map),
-        copy(model.variable_inv);
-        offset=offset,
-        scale=model.scale,
-        id=model.id,
-        version=model.version,
-        description=model.description,
-        metadata=deepcopy(model.metadata),
-        sampleset=model.sampleset
-    )
-end
-
-# function Base.write(io::IO, model::BQPModel) end
-# function Base.read(io::IO, ::Type{<:BQPModel}) end
-
-function isvalidbridge(
+function BQPIO.isvalidbridge(
     source::StandardBQPModel{S,U,T,D},
     target::StandardBQPModel{S,U,T,D},
     ::Type{<:AbstractBQPModel};

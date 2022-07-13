@@ -1,3 +1,25 @@
+raw"""
+Format description from [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
+The format of the instance-description file starts with a line giving the size of the Chimera graph.
+(Two numbers are given to specify an m x n rectangle, but currently only a square, m=n, is accepted.)
+The subsequent lines are of the form
+```
+    <Chimera vertex> <Chimera vertex> weight
+```
+where `<Chimera vertex>` is specified by four numbers using the format,
+Chimera graph, C_N:
+    Vertices are (x,y,o,i)  0<=x,y<N, 0<=o<2, 0<=i<4
+    Edge from (x,y,o,i) to (x",y",o",i") if
+    (x,y)=(x",y"), o!=o", OR
+    |x-x"|=1, y=y", o=o"=0, i=i", OR
+    |y-y"|=1, x=x", o=o"=1, i=i"
+        
+    x,y are the horizontal,vertical co-ords of the K4,4
+    o=0..1 is the "orientation" (0=horizontally connected, 1=vertically connected)
+    i=0..3 is the index within the "semi-K4,4"="bigvertex"
+    There is an involution given by {x<->y o<->1-o}
+"""
+
 const HFS_DEFAULT_CHIMERA_CELL_SIZE = 8
 const HFS_DEFAULT_PRECISION = 5
 
@@ -130,56 +152,5 @@ const HFS_DEFAULT_PRECISION = 5
             chimera_effective_degree,
             chimera_coordinate,
         )
-    end
-end
-
-raw"""
-Format description from [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
-The format of the instance-description file starts with a line giving the size of the Chimera graph.
-(Two numbers are given to specify an m x n rectangle, but currently only a square, m=n, is accepted.)
-The subsequent lines are of the form
-```
-    <Chimera vertex> <Chimera vertex> weight
-```
-where `<Chimera vertex>` is specified by four numbers using the format,
-Chimera graph, C_N:
-    Vertices are (x,y,o,i)  0<=x,y<N, 0<=o<2, 0<=i<4
-    Edge from (x,y,o,i) to (x",y",o",i") if
-    (x,y)=(x",y"), o!=o", OR
-    |x-x"|=1, y=y", o=o"=0, i=i", OR
-    |y-y"|=1, x=x", o=o"=1, i=i"
-        
-    x,y are the horizontal,vertical co-ords of the K4,4
-    o=0..1 is the "orientation" (0=horizontally connected, 1=vertically connected)
-    i=0..3 is the index within the "semi-K4,4"="bigvertex"
-    There is an involution given by {x<->y o<->1-o}
-"""
-function Base.write(io::IO, model::HFS)
-    if isempty(model.variable_ids)
-        @warn "Empty HFS file produced"
-        println(io, "0 0")
-        return
-    end    
-
-    # Output the hfs data file
-    # it is a header followed by linear terms and then quadratic terms
-    println(io, "$(model.chimera_effective_degree) $(model.chimera_effective_degree)")
-
-    for (i, q) in model.int_linear_terms
-        args = [
-            collect(model.chimera_coordinate[i]);
-            collect(model.chimera_coordinate[i]);
-            q
-        ]
-        println(io, Printf.@sprintf("%2d %2d %2d %2d    %2d %2d %2d %2d    %8d", args...))
-    end
-
-    for ((i, j), Q) in model.int_quadratic_terms
-        args = [
-            collect(model.chimera_coordinate[i]);
-            collect(model.chimera_coordinate[j]);
-            Q
-        ]
-        println(io, Printf.@sprintf("%2d %2d %2d %2d    %2d %2d %2d %2d    %8d", args...))
     end
 end

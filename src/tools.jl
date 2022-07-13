@@ -1,4 +1,11 @@
 @doc raw"""
+""" function _getdefault end
+
+function _getdefault(value::Any, default::Any)
+    isnothing(value) ? default : value
+end
+
+@doc raw"""
 """ function isapproxdict end
 
 function isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
@@ -110,45 +117,45 @@ end
 """ function normalize end
 
 function normalize(linear_terms::Dict{Int,T}, quadratic_terms::Dict{Tuple{Int,Int},T}) where {T}
-    normal_linear_terms = Dict{Int,T}()
-    normal_quadratic_terms = Dict{Tuple{Int,Int},T}()
+    L = Dict{Int,T}()
+    Q = Dict{Tuple{Int,Int},T}()
 
-    sizehint!(normal_linear_terms, length(linear_terms))
-    sizehint!(normal_quadratic_terms, length(quadratic_terms))
+    sizehint!(L, length(linear_terms))
+    sizehint!(Q, length(quadratic_terms))
 
     for (i, l) in linear_terms
-        l += get(normal_linear_terms, i, zero(T))
+        l += get(L, i, zero(T))
         if iszero(l)
-            delete!(normal_linear_terms, i)
+            delete!(L, i)
         else
-            normal_linear_terms[i] = l
+            L[i] = l
         end
     end
 
     for ((i, j), q) in quadratic_terms
         if i == j
-            q += get(normal_linear_terms, i, zero(T))
+            q += get(L, i, zero(T))
             if iszero(q)
-                delete!(normal_linear_terms, i)
+                delete!(L, i)
             else
-                normal_linear_terms[i] = q
+                L[i] = q
             end
         elseif i < j
-            q += get(normal_quadratic_terms, (i, j), zero(T))
+            q += get(Q, (i, j), zero(T))
             if iszero(q)
-                delete!(normal_quadratic_terms, (i, j))
+                delete!(Q, (i, j))
             else
-                normal_quadratic_terms[(i, j)] = q
+                Q[(i, j)] = q
             end
         else # i > j
-            q += get(normal_quadratic_terms, (j, i), zero(T))
+            q += get(Q, (j, i), zero(T))
             if iszero(q)
-                delete!(normal_quadratic_terms, (j, i))
+                delete!(Q, (j, i))
             else
-                normal_quadratic_terms[(j, i)] = q
+                Q[(j, i)] = q
             end
         end
     end
 
-    return (normal_linear_terms, normal_quadratic_terms)
+    return (L, Q)
 end
