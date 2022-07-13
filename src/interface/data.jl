@@ -130,8 +130,8 @@ function qubo(::Type{<:Dict}, model::AbstractBQPModel{D}) where {D<:BoolDomain}
         Dict{Tuple{Int,Int},Float64}((i, i) => l for (i, l) in BQPIO.linear_terms(model)),
         BQPIO.quadratic_terms(model),
     )
-    α = BQPIO.scale(model, 0.0)
-    β = BQPIO.offset(model, 0.0)
+    α = BQPIO.scale(model)
+    β = BQPIO.offset(model)
 
     return (x, Q, α, β)
 end
@@ -203,4 +203,68 @@ Scale and offset factors **are assumed** to be taken into account.
 
 function energy(state, model::AbstractBQPModel)
     energy(state, BQPIO.backend(model))
+end
+
+# ~*~ Sizes & Dimensions ~*~ #
+@doc raw"""
+""" function domain_size end
+
+function domain_size(model::AbstractBQPModel)
+    length(BQPIO.variable_map(model))
+end
+
+@doc raw"""
+""" function linear_size end
+
+function linear_size(model::AbstractBQPModel)
+    length(BQPIO.linear_terms(model))
+end
+
+@doc raw"""
+""" function quadratic_size end
+
+function quadratic_size(model::AbstractBQPModel)
+    length(BQPIO.quadratic_terms(model))
+end
+
+@doc raw"""
+""" function density end
+
+function density(model::AbstractBQPModel)
+    n = BQPIO.domain_size(model)
+    if n == 0
+        return 0.0
+    else
+        l = BQPIO.linear_size(model)
+        q = BQPIO.quadratic_size(model)
+        return (2 * q + l) / (n * n)
+    end
+end
+
+@doc raw"""
+""" function linear_density end
+
+function linear_density(model::AbstractBQPModel)
+    n = BQPIO.domain_size(model)
+    
+    if n == 0
+        return 0.0
+    else
+        l = BQPIO.linear_size(model)
+        return l / n
+    end
+end
+
+@doc raw"""
+""" function quadratic_density end
+
+function quadratic_density(model::AbstractBQPModel)
+    n = BQPIO.domain_size(model)
+    
+    if n <= 1
+        return 0.0
+    else
+        q = BQPIO.quadratic_size(model)
+        return (2 * q) / (n * (n - 1))
+    end
 end
