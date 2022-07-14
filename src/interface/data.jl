@@ -128,6 +128,9 @@ function variable_inv(model::AbstractBQPModel, i::Integer)
 end
 
 @doc raw"""
+    qubo(model::AbstractBQPModel{<:BoolDomain})
+    qubo(::Type{<:Dict}, T::Type, model::AbstractBQPModel{<:BoolDomain})
+    qubo(::Type{<:Array}, T::Type, model::AbstractBQPModel{<:BoolDomain})
 
 # QUBO Normal Form
 
@@ -135,30 +138,22 @@ end
 f(\vec{x}) = \alpha \left[{ \vec{x}'\,Q\,\vec{x} + \beta }\right]
 ```
 
+Returns a quadruple ``(x, Q, \alpha, \beta)`` where:
+ * `x::Dict{S, Int}` maps each of the model's variables to an integer index, to be used when interacting with `Q`.
+ * `Q::Dict{Tuple{Int, Int}, T}` is a sparse representation of the QUBO Matrix.
+ * `α::T` is the scaling factor.
+ * `β::T` is the offset constant.
 """ function qubo end
 
-function qubo(model::AbstractBQPModel)
-    BQPIO.qubo(Dict, model)
+function qubo(model::AbstractBQPModel{<:BoolDomain})
+    BQPIO.qubo(Dict, Float64, model)
 end
 
-function qubo(::Type{<:Dict}, model::AbstractBQPModel{D}) where {D<:BoolDomain}
+function qubo(::Type{<:Dict}, T::Type, model::AbstractBQPModel{<:BoolDomain})
     x = BQPIO.variable_map(model)
-    Q = merge(
-        Dict{Tuple{Int,Int},Float64}((i, i) => l for (i, l) in BQPIO.linear_terms(model)),
-        BQPIO.quadratic_terms(model),
-    )
-    α = BQPIO.scale(model)
-    β = BQPIO.offset(model)
-
-    return (x, Q, α, β)
-end
-
-function qubo(::Type{<:Array}, model::AbstractBQPModel{D}) where {D<:BoolDomain}
-    x = BQPIO.variable_map(model)
-    n = length(x)
-    Q = zeros(x, n, n)
-    α = BQPIO.scale(model)
-    β = BQPIO.offset(model)
+    Q = Dict{Tuple{Int,Int},T}()
+    α::T = BQPIO.scale(model)
+    β::T = BQPIO.offset(model)
 
     for (i, qᵢ) in BQPIO.linear_terms(model)
         Q[i, i] = qᵢ
@@ -171,8 +166,28 @@ function qubo(::Type{<:Array}, model::AbstractBQPModel{D}) where {D<:BoolDomain}
     return (x, Q, α, β)
 end
 
+function qubo(::Type{<:Array}, T::Type, model::AbstractBQPModel{<:BoolDomain})
+    x = BQPIO.variable_map(model)
+    n = length(x)
+    Q = zeros(T, n, n)
+    α::T = BQPIO.scale(model)
+    β::T = BQPIO.offset(model)
+
+    for (i, qᵢ) in BQPIO.linear_terms(model)
+        Q[i, i] = qᵢ
+    end
+
+    for ((i, j), qᵢⱼ) in BQPIO.quadratic_terms(model)
+        Q[i, j] = qᵢⱼ
+    end
+
+    return (x, Q, α, β)
+end
 
 @doc raw"""
+    ising(model::AbstractBQPModel{<:SpinDomain})
+    ising(::Type{<:Dict}, model::AbstractBQPModel{<:SpinDomain})
+    ising(::Type{<:Array}, model::AbstractBQPModel{<:SpinDomain})
 
 # Ising Normal Form
 
@@ -180,13 +195,19 @@ end
 H(\vec{s}) = \alpha \left[{ \vec{s}'\,J\,\vec{s} + \vec{h}\,\vec{s} + \beta }\right]
 ```
 
+Returns a quintuple ``(s, h, J, \alpha, \beta)`` where:
+* `s::Dict{S, Int}` maps each of the model's variables to an integer index, to be used when interacting with ``h`` and ``J``.
+* `h::Dict{Int, T}` is a sparse vector for the linear terms of the Ising Model.
+* `J::Dict{Tuple{Int, Int}, T}` is a sparse representation of the quadratic magnetic interactions.
+* `α::T` is the scaling factor.
+* `β::T` is the offset constant.
 """ function ising end
 
-function ising(model::AbstractBQPModel)
+function ising(model::AbstractBQPModel{<:SpinDomain})
     BQPIO.ising(Dict, model)
 end
 
-function ising(::Type{<:Dict}, model::AbstractBQPModel{D}) where {D<:SpinDomain}
+function ising(::Type{<:Dict}, model::AbstractBQPModel{<:SpinDomain})
     s = BQPIO.variable_map(model)
     h = BQPIO.linear_terms(model)
     J = BQPIO.quadratic_terms(model)
@@ -196,7 +217,7 @@ function ising(::Type{<:Dict}, model::AbstractBQPModel{D}) where {D<:SpinDomain}
     return (s, h, J, α, β)
 end
 
-function ising(::Type{<:Array}, model::AbstractBQPModel{D}) where {D<:SpinDomain}
+function ising(::Type{<:Array}, model::AbstractBQPModel{<:SpinDomain})
     s = BQPIO.variable_map(model)
     n = length(s)
     h = zeros(Float64, n)
