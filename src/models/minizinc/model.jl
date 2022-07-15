@@ -15,7 +15,7 @@ MINIZINC_DEFAULT_SCALE(::Nothing) = 1.0
 MINIZINC_DEFAULT_SCALE(scale::Float64) = scale
 
 @doc raw"""
-""" struct MiniZinc{D<:VariableDomain} <: AbstractBQPModel{D}
+""" mutable struct MiniZinc{D<:VariableDomain} <: AbstractBQPModel{D}
     backend::MINIZINC_BACKEND_TYPE{D}
 
     function MiniZinc{D}(backend::MINIZINC_BACKEND_TYPE{D}) where {D<:VariableDomain}

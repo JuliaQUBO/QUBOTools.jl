@@ -1,7 +1,7 @@
 const QUBIST_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
 
 @doc raw"""
-""" struct Qubist{D<:SpinDomain} <: AbstractBQPModel{D}
+""" mutable struct Qubist{D<:SpinDomain} <: AbstractBQPModel{D}
     backend::QUBIST_BACKEND_TYPE{D}
     sites::Int
     lines::Int

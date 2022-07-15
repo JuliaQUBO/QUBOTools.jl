@@ -1,7 +1,7 @@
 const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
 
 @doc raw"""
-""" struct QUBO{D<:BoolDomain} <: AbstractBQPModel{D}
+""" mutable struct QUBO{D<:BoolDomain} <: AbstractBQPModel{D}
     backend::QUBO_BACKEND_TYPE{D}
     max_index::Int
     num_diagonals::Int

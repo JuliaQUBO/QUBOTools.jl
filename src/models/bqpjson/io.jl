@@ -224,3 +224,14 @@ function Base.convert(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A,B}
 
     BQPJSON{B}(backend, solutions)
 end
+
+function Base.copy!(
+    target::BQPJSON{D},
+    source::BQPJSON{D},
+) where {D<:VariableDomain}
+    copy!(BQPIO.backend(target), BQPIO.backend(source))
+
+    target.solutions = deepcopy(source.solutions)
+
+    target
+end

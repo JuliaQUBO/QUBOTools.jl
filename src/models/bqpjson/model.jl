@@ -23,7 +23,7 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
 
 ### References
 [1] https://bqpjson.readthedocs.io
-""" struct BQPJSON{D<:VariableDomain} <: AbstractBQPModel{D}
+""" mutable struct BQPJSON{D<:VariableDomain} <: AbstractBQPModel{D}
     backend::BQPJSON_BACKEND_TYPE{D}
     solutions::Union{Vector,Nothing}
 

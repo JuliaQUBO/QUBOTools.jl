@@ -38,7 +38,7 @@ There is an edge from ``v_p`` to ``v_q`` if
 end
 
 @doc raw"""
-""" struct HFS{D <: BoolDomain} <: AbstractBQPModel{D}
+""" mutable struct HFS{D <: BoolDomain} <: AbstractBQPModel{D}
     backend::HFS_BACKEND_TYPE{D}
     chimera::Chimera
     

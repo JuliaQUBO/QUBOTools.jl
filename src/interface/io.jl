@@ -23,7 +23,7 @@ function Base.convert(M::Type{<:AbstractBQPModel}, model::AbstractBQPModel)
     bqpcodec_error("'Base.convert' not implemented for turning model of type '$(typeof(model))' into $(M)")
 end
 
-function Base.convert(::Type{M}, model::M) where {M <: AbstractBQPModel}
+function Base.convert(::Type{M}, model::M) where {M<:AbstractBQPModel}
     model # Short-circuit! Yeah!
 end
 
@@ -40,4 +40,15 @@ function Base.show(io::IO, model::AbstractBQPModel)
         total     ~ $(@sprintf("%0.2f", 100.0 * BQPIO.density(model)))%
         """
     )
+end
+
+function Base.copy!(::M, ::M) where {M<:AbstractBQPModel}
+    bqpcodec_error("'Base.copy!' not implemented for copying '$M' in-place")
+end
+
+function Base.copy!(
+    target::X,
+    source::Y,
+) where {X<:AbstractBQPModel,Y<:AbstractBQPModel}
+    copy!(target, convert(typeof(target), source))
 end
