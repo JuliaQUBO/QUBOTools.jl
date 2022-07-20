@@ -31,7 +31,7 @@ It was clearly inspired by [1], with a few tweaks.
     samples::Vector{Sample{U,T}}
     metadata::Dict{String,Any}
 
-    function SampleSet{U,T}() where {U, T}
+    function SampleSet{U,T}() where {U,T}
         new{U,T}(Sample{U,T}[], Dict{String,Any}())
     end
 
@@ -42,10 +42,19 @@ It was clearly inspired by [1], with a few tweaks.
         # ~*~ Compress samples ~*~
         mapping = Dict{Vector{U},Sample{U,T}}()
 
+        bits = nothing
+
         for sample::Sample{U,T} in data
             cached = get(mapping, sample.state, nothing)
 
             if isnothing(cached)
+                # ~ Verify if all states are the same length
+                if isnothing(bits)
+                    bits = length(sample.state)
+                elseif bits != length(sample.state)
+                    sample_error("All samples must have states of equal length")
+                end
+
                 mapping[sample.state] = sample
             else
                 @assert cached.state == sample.state
@@ -99,6 +108,24 @@ function Base.iterate(X::SampleSet)
     iterate(X.samples)
 end
 
-function Base.iterate(X::SampleSet, i::Int)
+function Base.iterate(X::SampleSet, i::Integer)
     iterate(X.samples, i)
+end
+
+function Base.getindex(X::SampleSet, i::Integer)
+    X.samples[i]
+end
+
+function Base.getindex(X::SampleSet, i::Integer, j::Integer)
+    X.samples[i].state[j]
+end
+
+function Base.size(X::SampleSet)
+    if isempty(X)
+        (0, 0)
+    elseif isempty(X.samples[begin])
+        (1, 0)
+    else
+        (length(X.samples), length(X.samples[begin]))
+    end
 end

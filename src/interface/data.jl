@@ -23,11 +23,11 @@ domain_name(model::AbstractBQPModel{<:SpinDomain}) = "Spin"
 
 abstract type BQPAttribute end
 
-function getattr(model::AbstractBQPModel, attr::BQPAttribute)
+function getattr(model::Any, attr::BQPAttribute)
     BQPIO.getattr(BQPIO.backend(model), attr)
 end
 
-function getdefaultattr(model::AbstractBQPModel, attr::BQPAttribute)
+function getdefaultattr(model::Any, attr::BQPAttribute)
     value = BQPIO.getattr(BQPIO.backend(model), attr)
     
     if isnothing(value)
@@ -37,41 +37,41 @@ function getdefaultattr(model::AbstractBQPModel, attr::BQPAttribute)
     end
 end
 
-_defaultattr(::AbstractBQPModel, ::BQPAttribute) = nothing
+_defaultattr(::Any, ::BQPAttribute) = nothing
 
 struct ATTR_OFFSET <: BQPAttribute end
 
-function offset(model::AbstractBQPModel)
+function offset(model::Any)
     getdefaultattr(model, ATTR_OFFSET())
 end
 
 struct ATTR_SCALE <: BQPAttribute end
 
-function scale(model::AbstractBQPModel)
+function scale(model::Any)
     getdefaultattr(model, ATTR_SCALE())
 end
 
 struct ATTR_ID <: BQPAttribute end
 
-function id(model::AbstractBQPModel)
+function id(model::Any)
     getdefaultattr(model, ATTR_ID())
 end
 
 struct ATTR_VERSION <: BQPAttribute end
 
-function version(model::AbstractBQPModel)
+function version(model::Any)
     getdefaultattr(model, ATTR_VERSION())
 end
 
 struct ATTR_DESCRIPTION <: BQPAttribute end
 
-function description(model::AbstractBQPModel)
+function description(model::Any)
     getdefaultattr(model, ATTR_DESCRIPTION())
 end
 
 struct ATTR_METADATA <: BQPAttribute end
 
-function metadata(model::AbstractBQPModel)
+function metadata(model::Any)
     getdefaultattr(model, ATTR_METADATA())
 end
 
@@ -80,50 +80,50 @@ struct ATTR_SAMPLESET <: BQPAttribute end
 @doc raw"""
 """ function sampleset end
 
-function sampleset(model::AbstractBQPModel)
+function sampleset(model::Any)
     getdefaultattr(model, ATTR_SAMPLESET())
 end
 
 @doc raw"""
 """ function linear_terms end
 
-function linear_terms(model::AbstractBQPModel)
+function linear_terms(model::Any)
     BQPIO.linear_terms(BQPIO.backend(model))
 end
 
 @doc raw"""
 """ function quadratic_terms end
 
-function quadratic_terms(model::AbstractBQPModel)
+function quadratic_terms(model::Any)
     BQPIO.quadratic_terms(BQPIO.backend(model))
 end
 
 @doc raw"""
 """ function variables end
 
-function variables(model::AbstractBQPModel)
+function variables(model::Any)
     sort(collect(keys(BQPIO.variable_map(model))))
 end
 
 @doc raw"""
 """ function variable_map end
 
-function variable_map(model::AbstractBQPModel)
+function variable_map(model::Any)
     BQPIO.variable_map(BQPIO.backend(model))
 end
 
-function variable_map(model::AbstractBQPModel, i::Any)
+function variable_map(model::Any, i::Any)
     BQPIO.variable_map(BQPIO.backend(model), i)
 end
 
 @doc raw"""
 """ function variable_inv end
 
-function variable_inv(model::AbstractBQPModel)
+function variable_inv(model::Any)
     BQPIO.variable_inv(BQPIO.backend(model))
 end
 
-function variable_inv(model::AbstractBQPModel, i::Integer)
+function variable_inv(model::Any, i::Integer)
     BQPIO.variable_inv(BQPIO.backend(model), i)
 end
 
@@ -144,6 +144,10 @@ Returns a quadruple ``(x, Q, \alpha, \beta)`` where:
  * `α::T` is the scaling factor.
  * `β::T` is the offset constant.
 """ function qubo end
+
+function qubo(model::Any)
+    BQPIO.qubo(BQPIO.backend(model))
+end
 
 function qubo(model::AbstractBQPModel{<:BoolDomain})
     BQPIO.qubo(Dict, Float64, model)
@@ -203,6 +207,10 @@ Returns a quintuple ``(s, h, J, \alpha, \beta)`` where:
 * `β::T` is the offset constant.
 """ function ising end
 
+function ising(model::Any)
+    BQPIO.ising(BQPIO.backend(model))
+end
+
 function ising(model::AbstractBQPModel{<:SpinDomain})
     BQPIO.ising(Dict, model)
 end
@@ -243,7 +251,7 @@ This function aims to evaluate the energy of a given state under some BQP Model.
 Scale and offset factors **are assumed** to be taken into account.
 """ function energy end
 
-function energy(state, model::AbstractBQPModel)
+function energy(state, model::Any)
     energy(state, BQPIO.backend(model))
 end
 
@@ -251,28 +259,28 @@ end
 @doc raw"""
 """ function domain_size end
 
-function domain_size(model::AbstractBQPModel)
+function domain_size(model::Any)
     length(BQPIO.variable_map(model))
 end
 
 @doc raw"""
 """ function linear_size end
 
-function linear_size(model::AbstractBQPModel)
+function linear_size(model::Any)
     length(BQPIO.linear_terms(model))
 end
 
 @doc raw"""
 """ function quadratic_size end
 
-function quadratic_size(model::AbstractBQPModel)
+function quadratic_size(model::Any)
     length(BQPIO.quadratic_terms(model))
 end
 
 @doc raw"""
 """ function density end
 
-function density(model::AbstractBQPModel)
+function density(model::Any)
     n = BQPIO.domain_size(model)
     if n == 0
         return 0.0
@@ -286,7 +294,7 @@ end
 @doc raw"""
 """ function linear_density end
 
-function linear_density(model::AbstractBQPModel)
+function linear_density(model::Any)
     n = BQPIO.domain_size(model)
     
     if n == 0
@@ -300,7 +308,7 @@ end
 @doc raw"""
 """ function quadratic_density end
 
-function quadratic_density(model::AbstractBQPModel)
+function quadratic_density(model::Any)
     n = BQPIO.domain_size(model)
     
     if n <= 1

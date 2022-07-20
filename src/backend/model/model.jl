@@ -107,6 +107,14 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
+    function StandardBQPModel{S,U,T,D}() where {S, U, T, D}
+        StandardBQPModel(
+            Dict{Int, T}(),
+            Dict{Tuple{Int, Int}, T}(),
+            Dict{S, Int}();
+        )
+    end
+
     function StandardBQPModel{D}(
         linear_terms::Dict{Int,Float64},
         quadratic_terms::Dict{Tuple{Int,Int},Float64};
