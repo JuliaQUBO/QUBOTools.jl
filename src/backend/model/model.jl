@@ -107,11 +107,11 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
-    function StandardBQPModel{S,U,T,D}() where {S, U, T, D}
-        StandardBQPModel(
-            Dict{Int, T}(),
-            Dict{Tuple{Int, Int}, T}(),
-            Dict{S, Int}();
+    function StandardBQPModel{S,U,T,D}() where {S,U,T,D}
+        StandardBQPModel{S,U,T,D}(
+            Dict{Int,T}(),
+            Dict{Tuple{Int,Int},T}(),
+            Dict{S,Int}();
         )
     end
 
@@ -161,16 +161,16 @@ end
 
 function Base.isempty(model::StandardBQPModel)
     isempty(model.linear_terms) &&
-    isempty(model.quadratic_terms) &&
-    isempty(model.variable_map) &&
-    isempty(model.variable_inv) &&
-    isnothing(model.offset) &&
-    isnothing(model.scale) &&
-    isnothing(model.id) &&
-    isnothing(model.version) &&
-    isnothing(model.description) &&
-    isnothing(model.metadata) &&
-    isnothing(model.sampleset)
+        isempty(model.quadratic_terms) &&
+        isempty(model.variable_map) &&
+        isempty(model.variable_inv) &&
+        isnothing(model.offset) &&
+        isnothing(model.scale) &&
+        isnothing(model.id) &&
+        isnothing(model.version) &&
+        isnothing(model.description) &&
+        isnothing(model.metadata) &&
+        isnothing(model.sampleset)
 end
 
 function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
