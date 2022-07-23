@@ -82,7 +82,7 @@ It was clearly inspired by [1], with a few tweaks.
 
     function SampleSet{U,T}(
         model,
-        data::Vector{U},
+        data::Vector{Vector{U}},
         metadata::Union{Dict{String,Any},Nothing}=nothing,
     ) where {U,T}
 
