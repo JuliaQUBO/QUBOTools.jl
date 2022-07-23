@@ -251,7 +251,7 @@ This function aims to evaluate the energy of a given state under some BQP Model.
 Scale and offset factors **are assumed** to be taken into account.
 """ function energy end
 
-function energy(state, model::Any)
+function energy(state, model)
     energy(state, BQPIO.backend(model))
 end
 

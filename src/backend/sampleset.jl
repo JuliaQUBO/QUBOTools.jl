@@ -81,10 +81,11 @@ It was clearly inspired by [1], with a few tweaks.
     end
 
     function SampleSet{U,T}(
+        model,
         data::Vector{U},
-        model::AbstractBQPModel,
         metadata::Union{Dict{String,Any},Nothing}=nothing,
     ) where {U,T}
+
         SampleSet{U,T}(
             Sample{U,T}[Sample{U,T}(state, 1, BQPIO.energy(state, model)) for state in data],
             metadata
