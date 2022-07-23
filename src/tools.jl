@@ -80,7 +80,7 @@ end
 @doc raw"""
 """ function build_varmap end 
 
-function build_varmap(linear_terms::Dict{Int,S}, quadratic_terms::Dict{Tuple{Int,Int},S}) where {S}
+function build_varmap(linear_terms::Dict{S,T}, quadratic_terms::Dict{Tuple{S,S},T}) where {S, T}
     variables = Set{S}()
 
     for i in keys(linear_terms)
@@ -91,8 +91,8 @@ function build_varmap(linear_terms::Dict{Int,S}, quadratic_terms::Dict{Tuple{Int
         push!(variables, i, j)
     end
 
-    Dict{Int,S}(
-        i => k for (k, i) in enumerate(sort(collect(variables)))
+    Dict{S,Int}(
+        v => k for (k, v) in enumerate(sort(collect(variables)))
     )
 end
 
@@ -100,13 +100,13 @@ end
 """ function build_varinv end
 
 function build_varinv(variable_map::Dict{S,Int}) where {S}
-    Dict{Int,S}(i => k for (k, i) in variable_map)
+    Dict{Int,S}(v => k for (k, v) in variable_map)
 end
 
 @doc raw"""
 """ function build_varbij end
 
-function build_varbij(linear_terms::Dict{Int,T}, quadratic_terms::Dict{Tuple{Int,Int},T}) where {T}
+function build_varbij(linear_terms::Dict{S,T}, quadratic_terms::Dict{Tuple{S,S},T}) where {S, T}
     variable_map = build_varmap(linear_terms, quadratic_terms)
     variable_inv = build_varinv(variable_map)
 
