@@ -53,3 +53,5 @@ function Base.read(io::IO, ::Type{<:Qubist})
         lines,
     )
 end
+
+BQPIO.infer_model_type(::Val{:qh}) = Qubist

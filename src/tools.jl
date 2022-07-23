@@ -78,9 +78,9 @@ function swapdomain(
 end
 
 @doc raw"""
-""" function build_varmap end 
+""" function build_varmap end
 
-function build_varmap(linear_terms::Dict{S,T}, quadratic_terms::Dict{Tuple{S,S},T}) where {S, T}
+function build_varmap(linear_terms::Dict{S,T}, quadratic_terms::Dict{Tuple{S,S},T}) where {S,T}
     variables = Set{S}()
 
     for i in keys(linear_terms)
@@ -106,7 +106,7 @@ end
 @doc raw"""
 """ function build_varbij end
 
-function build_varbij(linear_terms::Dict{S,T}, quadratic_terms::Dict{Tuple{S,S},T}) where {S, T}
+function build_varbij(linear_terms::Dict{S,T}, quadratic_terms::Dict{Tuple{S,S},T}) where {S,T}
     variable_map = build_varmap(linear_terms, quadratic_terms)
     variable_inv = build_varinv(variable_map)
 
@@ -158,4 +158,21 @@ function normalize(linear_terms::Dict{Int,T}, quadratic_terms::Dict{Tuple{Int,In
     end
 
     return (L, Q)
+end
+
+@doc raw"""
+""" function infer_model_type end
+
+function infer_model_type(path::String)
+    _, ext = splitext(path)
+
+    if !isempty(ext)
+        return infer_model_type(ext[2:end] |> Symbol |> Val)
+    else
+        error("Inference Error: Unable to infer model type without file extension")
+    end
+end
+
+function infer_model_type(::Val{X}) where {X}
+    error("Inference Error: Unable to infer model type from extension '$X'")
 end

@@ -197,3 +197,5 @@ end
 function Base.convert(::Type{<:MiniZinc{B}}, model::MiniZinc{A}) where {A,B}
     MiniZinc{B}(convert(MINIZINC_BACKEND_TYPE{B}, model.backend))
 end
+
+BQPIO.infer_model_type(::Val{:mzn}) = MiniZinc

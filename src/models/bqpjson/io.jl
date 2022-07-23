@@ -235,3 +235,5 @@ function Base.copy!(
 
     target
 end
+
+BQPIO.infer_model_type(::Val{:json}) = BQPJSON

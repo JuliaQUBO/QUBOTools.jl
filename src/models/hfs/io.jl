@@ -27,3 +27,5 @@ function Base.write(io::IO, model::HFS)
         println(io, Printf.@sprintf("%2d %2d %2d %2d    %2d %2d %2d %2d    %8d", args...))
     end
 end
+
+BQPIO.infer_model_type(::Val{:hfs}) = HFS

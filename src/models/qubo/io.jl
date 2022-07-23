@@ -137,3 +137,5 @@ function Base.read(io::IO, ::Type{<:QUBO})
         num_elements,
     )
 end
+
+BQPIO.infer_model_type(::Val{:qubo}) = QUBO
