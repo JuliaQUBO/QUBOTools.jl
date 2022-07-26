@@ -16,7 +16,7 @@
 
 ### Installation
 ```julia
-pkg> add BQPIO
+julia> import Pkg; Pkg.add("BQPIO")
 
 julia> using BQPIO
 ```
