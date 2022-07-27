@@ -69,7 +69,6 @@ flowchart TD;
     QUBIST["Qubist<br><code>Spin</code>"];
     MINIZINC-BOOL(["MiniZinc<br><code>Bool</code>"]);
     MINIZINC-SPIN(["MiniZinc<br><code>Spin</code>"]);
-    AMPL(["AMPL<br><code>Bool</code>"]);
     HFS(["HFS<br><code>Bool</code>"]);
 
     BQPJSON-BOOL  <==> BQPJSON-SPIN;
@@ -78,7 +77,6 @@ flowchart TD;
     BQPJSON-BOOL <---> MINIZINC-BOOL;
     BQPJSON-BOOL <----> QUBO;
     BQPJSON-BOOL ---->  HFS;
-    BQPJSON-BOOL ----> AMPL;
 
     BQPJSON-SPIN <---> MINIZINC-SPIN;
     BQPJSON-SPIN  --->  QUBIST;
@@ -117,3 +115,5 @@ When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say
         <img width="200px" src="/docs/src/assets/logo.svg" alt="BQPIO.jl" />
     </a>
 </div>
+
+*This wrapper has no official connection with the AMPL modeling language or AMPL Optimization Inc.*
