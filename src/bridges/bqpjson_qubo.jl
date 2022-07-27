@@ -9,6 +9,19 @@ function Base.convert(::Type{BQPJSON{BoolDomain}}, model::QUBO)
     BQPJSON{BoolDomain}(backend, solutions)
 end
 
+function BQPIO.isvalidbridge(
+    source::BQPJSON{BoolDomain},
+    target::BQPJSON{BoolDomain},
+    ::Type{<:QUBO{BoolDomain}};
+    kws...
+)
+    BQPIO.isvalidbridge(
+        BQPIO.backend(source),
+        BQPIO.backend(target);
+        kws...
+    )
+end
+
 function Base.convert(::Type{<:QUBO}, model::BQPJSON{SpinDomain})
     convert(QUBO{BoolDomain}, convert(BQPJSON{BoolDomain}, model))
 end
@@ -24,5 +37,18 @@ function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
         max_index,
         num_diagonals,
         num_elements,
+    )
+end
+
+function BQPIO.isvalidbridge(
+    source::QUBO{BoolDomain},
+    target::QUBO{BoolDomain},
+    ::Type{<:BQPJSON{BoolDomain}};
+    kws...
+)
+    BQPIO.isvalidbridge(
+        BQPIO.backend(source),
+        BQPIO.backend(target);
+        kws...
     )
 end

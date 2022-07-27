@@ -83,10 +83,9 @@ function isvalidbridge(
         flag = false
     end
 
-    if !isvalidbridge(
+    if !BQPIO.isvalidbridge(
         BQPIO.backend(source),
-        BQPIO.backend(target),
-        QUBO_BACKEND_TYPE{D};
+        BQPIO.backend(target);
         kws...
     )
         flag = false

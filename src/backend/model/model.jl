@@ -191,8 +191,7 @@ end
 
 function BQPIO.isvalidbridge(
     source::StandardBQPModel{S,U,T,D},
-    target::StandardBQPModel{S,U,T,D},
-    ::Type{<:AbstractBQPModel};
+    target::StandardBQPModel{S,U,T,D};
     kws...
 ) where {S,U,T,D}
     flag = true

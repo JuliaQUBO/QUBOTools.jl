@@ -98,10 +98,9 @@ function isvalidbridge(
         flag = false
     end
 
-    if !isvalidbridge(
+    if !BQPIO.isvalidbridge(
         source.backend,
-        target.backend,
-        BQPJSON_BACKEND_TYPE{A};
+        target.backend;
         kws...
     )
         flag = false

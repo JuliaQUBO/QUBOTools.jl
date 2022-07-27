@@ -53,11 +53,9 @@ function isvalidbridge(
     ::Type{<:MiniZinc{D}};
     kws...
 ) where {D<:VariableDomain}
-
-    isvalidbridge(
-        source.backend,
-        target.backend,
-        MINIZINC_BACKEND_TYPE{D};
+    BQPIO.isvalidbridge(
+        BQPIO.backend(source),
+        BQPIO.backend(target);
         kws...
     )
 end

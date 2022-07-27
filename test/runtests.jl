@@ -7,6 +7,10 @@ include("models/bqpjson.jl")
 include("models/qubist.jl")
 include("models/qubo.jl")
 
+include("bridges/bqpjson_minizinc.jl")
+include("bridges/bqpjson_qubist.jl")
+include("bridges/bqpjson_qubo.jl")
+
 function test_models(path::String, n::Integer)
     @testset "Models" verbose = true begin
         test_bqpjson(path, n)
@@ -17,7 +21,9 @@ end
 
 function test_bridges(path::String, n::Integer)
     @testset "Bridges" verbose = true begin
-        
+        test_bqpjson_minizinc(path, n)
+        test_bqpjson_qubist(path, n)
+        test_bqpjson_qubo(path, n)
     end
 end
 
