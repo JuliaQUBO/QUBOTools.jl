@@ -69,6 +69,7 @@ flowchart TD;
     QUBIST["Qubist<br><code>Spin</code>"];
     MINIZINC-BOOL(["MiniZinc<br><code>Bool</code>"]);
     MINIZINC-SPIN(["MiniZinc<br><code>Spin</code>"]);
+    AMPL(["AMPL<br><code>Bool</code>"]);
     HFS(["HFS<br><code>Bool</code>"]);
 
     BQPJSON-BOOL  <==> BQPJSON-SPIN;
@@ -77,6 +78,7 @@ flowchart TD;
     BQPJSON-BOOL <---> MINIZINC-BOOL;
     BQPJSON-BOOL <----> QUBO;
     BQPJSON-BOOL ---->  HFS;
+    BQPJSON-BOOL ----> AMPL;
 
     BQPJSON-SPIN <---> MINIZINC-SPIN;
     BQPJSON-SPIN  --->  QUBIST;
