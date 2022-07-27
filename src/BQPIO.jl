@@ -38,6 +38,7 @@ include("models/qubo/model.jl")
 include("models/qubo/data.jl")
 include("models/qubo/io.jl")
 
+include("bridges/bqpjson_minizinc.jl")
 include("bridges/bqpjson_qubist.jl")
 include("bridges/bqpjson_qubo.jl")
 

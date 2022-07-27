@@ -115,3 +115,5 @@ When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say
         <img width="200px" src="/docs/src/assets/logo.svg" alt="BQPIO.jl" />
     </a>
 </div>
+
+*This wrapper has no official connection with the AMPL modeling language or AMPL Optimization Inc.*
