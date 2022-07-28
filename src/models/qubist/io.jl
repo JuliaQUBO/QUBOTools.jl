@@ -1,10 +1,10 @@
 function Base.write(io::IO, model::Qubist)
     println(io, "$(model.sites) $(model.lines)")
     for (i, h) in BQPIO.linear_terms(model)
-        println(io, "$(i) $(i) $(h)")
+        println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, i)) $(h)")
     end
     for ((i, j), J) in BQPIO.quadratic_terms(model)
-        println(io, "$(i) $(j) $(J)")
+        println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, j)) $(J)")
     end
 end
 

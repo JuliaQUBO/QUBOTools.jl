@@ -3,7 +3,7 @@ function Base.convert(::Type{<:StandardBQPModel{S,U,T,D}}, model::StandardBQPMod
 end
 
 function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPModel{S,U,T,A}) where {S,U,T,A,B}
-    linear_terms, quadratic_terms, offset = swapdomain(
+    linear_terms, quadratic_terms, offset = _swapdomain(
         A,
         B,
         model.linear_terms,

@@ -91,6 +91,23 @@ function linear_terms(model::Any)
     BQPIO.linear_terms(BQPIO.backend(model))
 end
 
+function linear_terms(model::Any; explicit::Bool = false)
+    _linear_terms = BQPIO.linear_terms(model)
+
+    if explicit
+        return BQPIO.linear_terms(_linear_terms, BQPIO.variable_map(model))
+    else
+        return _linear_terms
+    end
+end
+
+function linear_terms(_linear_terms::Dict{S, T}, _variable_map::Dict{S, Int}) where {S, T}
+    merge(
+        _linear_terms,
+        Dict{S, T}(i => zero(T) for i in keys(_variable_map))
+    )
+end
+
 @doc raw"""
 """ function quadratic_terms end
 
@@ -103,6 +120,13 @@ end
 
 function variables(model::Any)
     sort(collect(keys(BQPIO.variable_map(model))))
+end
+
+@doc raw"""
+""" function variable_set end
+
+function variable_set(model::Any)
+    Set(keys(BQPIO.variable_map(model)))
 end
 
 @doc raw"""

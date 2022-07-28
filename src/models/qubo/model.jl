@@ -34,9 +34,15 @@ const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
         num_diagonals::Integer,
         num_elements::Integer,
     ) where {D<:BoolDomain}
-        variable_map, variable_inv = build_varbij(
+        variable_map, variable_inv = BQPIO._build_varbij(
             linear_terms,
             quadratic_terms
+        )
+
+        linear_terms, quadratic_terms = BQPIO._remap_terms(
+            linear_terms,
+            quadratic_terms,
+            variable_map,
         )
 
         backend = QUBO_BACKEND_TYPE{D}(

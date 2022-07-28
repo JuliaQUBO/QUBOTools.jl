@@ -17,7 +17,7 @@ x \in \{0, 1\}
 """ struct BoolDomain <: VariableDomain end
 
 # -*- :: Models :: -*- #
-abstract type AbstractBQPModel{D <: VariableDomain} end
+abstract type AbstractBQPModel{D<:VariableDomain} end
 
 # ~*~ Validation ~*~ #
 function Base.isvalid(::AbstractBQPModel)
@@ -32,6 +32,9 @@ Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` c
 
 """ function isvalidbridge end
 
-function BQPIO.isvalidbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kws...) where M <: AbstractBQPModel
-    false
-end
+BQPIO.isvalidbridge(
+    source::M,
+    target::M,
+    ::Type{<:AbstractBQPModel};
+    kws...
+) where {M<:AbstractBQPModel} = false

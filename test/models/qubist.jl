@@ -1,4 +1,4 @@
-QUBIST_PATH(path::String, i::Integer)      = joinpath(path, "data", @sprintf("%02d", i), "spin.qh")
+QUBIST_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "spin.qh")
 QUBIST_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "spin.temp.qh")
 
 function test_qubist(path::String, n::Integer)
@@ -7,7 +7,7 @@ function test_qubist(path::String, n::Integer)
             for i = 0:n
                 qbst_path = QUBIST_PATH(path, i)
                 temp_path = QUBIST_TEMP_PATH(path, i)
-                try            
+                try
                     qbst_model = read(qbst_path, Qubist)
                     @test qbst_model isa Qubist{SpinDomain}
 
@@ -20,12 +20,12 @@ function test_qubist(path::String, n::Integer)
                         temp_model,
                         qbst_model,
                         Qubist{SpinDomain};
-                        atol = 0.0,
+                        atol=0.0
                     )
                 catch e
                     rethrow(e)
                 finally
-                    rm(temp_path; force = true)
+                    rm(temp_path; force=true)
                 end
             end
         end

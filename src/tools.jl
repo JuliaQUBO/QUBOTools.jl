@@ -13,9 +13,9 @@ function isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
 end
 
 @doc raw"""
-""" function swapdomain end
+""" function _swapdomain end
 
-function swapdomain(
+function _swapdomain(
     ::Type{<:SpinDomain},
     ::Type{<:BoolDomain},
     linear_terms::Dict{Int,T},
@@ -46,7 +46,7 @@ function swapdomain(
     end
 end
 
-function swapdomain(
+function _swapdomain(
     ::Type{<:BoolDomain},
     ::Type{<:SpinDomain},
     linear_terms::Dict{Int,T},
@@ -77,87 +77,94 @@ function swapdomain(
     end
 end
 
-@doc raw"""
-""" function build_varmap end
-
-function build_varmap(linear_terms::Dict{S,T}, quadratic_terms::Dict{Tuple{S,S},T}) where {S,T}
-    variables = Set{S}()
-
-    for i in keys(linear_terms)
-        push!(variables, i)
-    end
-
-    for (i, j) in keys(quadratic_terms)
-        push!(variables, i, j)
-    end
-
-    Dict{S,Int}(
-        v => k for (k, v) in enumerate(sort(collect(variables)))
+function _map_terms(_linear_terms::Dict{S,T}, _quadratic_terms::Dict{Tuple{S,S},T}, variable_map::Dict{S,Int}) where {S,T}
+    linear_terms = Dict{Int,T}(
+        variable_map[i] => l
+        for (i, l) in _linear_terms
     )
+    quadratic_terms = Dict{Tuple{Int,Int},T}(
+        (variable_map[i], variable_map[j]) => q
+        for ((i, j), q) in _quadratic_terms
+    )
+
+    return (linear_terms, quadratic_terms)
 end
 
-@doc raw"""
-""" function build_varinv end
+function _inv_terms(_linear_terms::Dict{Int,T}, _quadratic_terms::Dict{Tuple{Int,Int},T}, variable_inv::Dict{Int,S}) where {S,T}
+    linear_terms = Dict{S,T}(
+        variable_inv[i] => l
+        for (i, l) in _linear_terms
+    )
+    quadratic_terms = Dict{Tuple{S,S},T}(
+        (variable_inv[i], variable_inv[j]) => q
+        for ((i, j), q) in _quadratic_terms
+    )
 
-function build_varinv(variable_map::Dict{S,Int}) where {S}
-    Dict{Int,S}(v => k for (k, v) in variable_map)
+    return (linear_terms, quadratic_terms)
 end
 
-@doc raw"""
-""" function build_varbij end
+function _build_normal_form(_linear_terms::Dict{S,T}, _quadratic_terms::Dict{Tuple{S,S},T}) where {S,T}
+    variable_set = Set{S}()
+    variable_map = Dict{S,Int}()
+    variable_inv = Dict{Int,S}()
+    linear_terms = Dict{S,T}()
+    quadratic_terms = Dict{Tuple{S,S},T}()
 
-function build_varbij(linear_terms::Dict{S,T}, quadratic_terms::Dict{Tuple{S,S},T}) where {S,T}
-    variable_map = build_varmap(linear_terms, quadratic_terms)
-    variable_inv = build_varinv(variable_map)
+    sizehint!(linear_terms, length(_linear_terms))
+    sizehint!(quadratic_terms, length(_quadratic_terms))
 
-    return (variable_map, variable_inv)
-end
+    for (i, l) in _linear_terms
+        push!(variable_set, i)
 
-@doc raw"""
-""" function normalize end
+        l += get(linear_terms, i, zero(T))
 
-function normalize(linear_terms::Dict{Int,T}, quadratic_terms::Dict{Tuple{Int,Int},T}) where {T}
-    L = Dict{Int,T}()
-    Q = Dict{Tuple{Int,Int},T}()
-
-    sizehint!(L, length(linear_terms))
-    sizehint!(Q, length(quadratic_terms))
-
-    for (i, l) in linear_terms
-        l += get(L, i, zero(T))
         if iszero(l)
-            delete!(L, i)
+            delete!(linear_terms, i)
         else
-            L[i] = l
+            linear_terms[i] = l
         end
     end
 
-    for ((i, j), q) in quadratic_terms
+    for ((i, j), q) in _quadratic_terms
+
+        push!(variable_set, i, j)
+
         if i == j
-            q += get(L, i, zero(T))
+            q += get(linear_terms, i, zero(T))
             if iszero(q)
-                delete!(L, i)
+                delete!(linear_terms, i)
             else
-                L[i] = q
+                linear_terms[i] = q
             end
         elseif i < j
-            q += get(Q, (i, j), zero(T))
+            q += get(quadratic_terms, (i, j), zero(T))
             if iszero(q)
-                delete!(Q, (i, j))
+                delete!(quadratic_terms, (i, j))
             else
-                Q[(i, j)] = q
+                quadratic_terms[(i, j)] = q
             end
         else # i > j
-            q += get(Q, (j, i), zero(T))
+            q += get(quadratic_terms, (j, i), zero(T))
             if iszero(q)
-                delete!(Q, (j, i))
+                delete!(quadratic_terms, (j, i))
             else
-                Q[(j, i)] = q
+                quadratic_terms[(j, i)] = q
             end
         end
     end
 
-    return (L, Q)
+    variable_map = Dict{S,Int}(
+        v => k for (k, v) in enumerate(sort(collect(variable_set)))
+    )
+    variable_inv = Dict{Int,S}(v => k for (k, v) in variable_map)
+
+    linear_terms, quadratic_terms = BQPIO._map_terms(
+        linear_terms,
+        quadratic_terms,
+        variable_map
+    )
+
+    return (linear_terms, quadratic_terms, variable_map, variable_inv)
 end
 
 @doc raw"""
@@ -167,7 +174,7 @@ function infer_model_type(path::String)
     _, ext = splitext(path)
 
     if !isempty(ext)
-        return infer_model_type(ext[2:end] |> Symbol |> Val)
+        return infer_model_type(Val(Symbol(ext[2:end])))
     else
         error("Inference Error: Unable to infer model type without file extension")
     end

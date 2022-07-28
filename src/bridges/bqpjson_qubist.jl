@@ -17,7 +17,7 @@ end
 function BQPIO.isvalidbridge(
     source::BQPJSON{SpinDomain},
     target::BQPJSON{SpinDomain},
-    ::Type{<:Qubist{SpinDomain}};
+    ::Type{<:Qubist};
     kws...
 )
     BQPIO.isvalidbridge(

@@ -20,12 +20,23 @@ const QUBIST_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
         sites::Integer,
         lines::Integer,
     ) where {D<:SpinDomain}
-        variable_map = build_varmap(linear_terms, quadratic_terms)
+        variable_map = BQPIO._build_varmap(
+            linear_terms,
+            quadratic_terms
+        )
+
+        linear_terms, quadratic_terms = BQPIO._remap_terms(
+            linear_terms,
+            quadratic_terms,
+            variable_map,
+        )
+
         backend = QUBIST_BACKEND_TYPE{D}(
             linear_terms,
             quadratic_terms,
             variable_map;
         )
+        
         Qubist{D}(backend, sites, lines)
     end
 
