@@ -1,6 +1,6 @@
 name = "BQPIO"
 uuid = "13350102-d519-4c12-b840-d575afc922a8"
-authors = ["pedromxavier <pedromxavier@poli.ufrj.br>"]
+authors = ["pedromxavier <pedroxavier@psr-inc.com>"]
 version = "0.1.0"
 
 [deps]
