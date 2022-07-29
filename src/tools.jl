@@ -103,12 +103,10 @@ function _inv_terms(_linear_terms::Dict{Int,T}, _quadratic_terms::Dict{Tuple{Int
     return (linear_terms, quadratic_terms)
 end
 
-function _build_normal_form(_linear_terms::Dict{S,T}, _quadratic_terms::Dict{Tuple{S,S},T}) where {S,T}
-    variable_set = Set{S}()
-    variable_map = Dict{S,Int}()
-    variable_inv = Dict{Int,S}()
-    linear_terms = Dict{S,T}()
-    quadratic_terms = Dict{Tuple{S,S},T}()
+function _normal_form(_linear_terms::Dict{V,T}, _quadratic_terms::Dict{Tuple{V,V},T}) where {V,T}
+    linear_terms = Dict{V,T}()
+    quadratic_terms = Dict{Tuple{V,V},T}()
+    variable_set = Set{V}()
 
     sizehint!(linear_terms, length(_linear_terms))
     sizehint!(quadratic_terms, length(_quadratic_terms))
@@ -153,18 +151,16 @@ function _build_normal_form(_linear_terms::Dict{S,T}, _quadratic_terms::Dict{Tup
         end
     end
 
-    variable_map = Dict{S,Int}(
+    return (linear_terms, quadratic_terms, variable_set)
+end
+
+function _build_mapping(variable_set::Set{V}) where {V}
+    variable_map = Dict{V,Int}(
         v => k for (k, v) in enumerate(sort(collect(variable_set)))
     )
-    variable_inv = Dict{Int,S}(v => k for (k, v) in variable_map)
+    variable_inv = Dict{Int,V}(v => k for (k, v) in variable_map)
 
-    linear_terms, quadratic_terms = BQPIO._map_terms(
-        linear_terms,
-        quadratic_terms,
-        variable_map
-    )
-
-    return (linear_terms, quadratic_terms, variable_map, variable_inv)
+    return (variable_map, variable_inv)
 end
 
 @doc raw"""

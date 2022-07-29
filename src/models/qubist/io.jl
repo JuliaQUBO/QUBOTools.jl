@@ -1,6 +1,6 @@
 function Base.write(io::IO, model::Qubist)
     println(io, "$(model.sites) $(model.lines)")
-    for (i, h) in BQPIO.linear_terms(model)
+    for (i, h) in BQPIO.linear_terms(model; explicit=true)
         println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, i)) $(h)")
     end
     for ((i, j), J) in BQPIO.quadratic_terms(model)
@@ -48,9 +48,9 @@ function Base.read(io::IO, ::Type{<:Qubist})
 
     Qubist{SpinDomain}(
         linear_terms,
-        quadratic_terms,
-        sites,
-        lines,
+        quadratic_terms;
+        sites=sites,
+        lines=lines
     )
 end
 

@@ -8,7 +8,7 @@ const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
     num_elements::Int
 
     function QUBO{D}(
-        backend::QUBO_BACKEND_TYPE{D},
+        backend::QUBO_BACKEND_TYPE{D};
         max_index::Integer,
         num_diagonals::Integer,
         num_elements::Integer,
@@ -24,49 +24,24 @@ const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
 
     function QUBO{D}(
         linear_terms::Dict{Int,Float64},
-        quadratic_terms::Dict{Tuple{Int,Int},Float64},
-        offset::Union{Float64,Nothing},
-        scale::Union{Float64,Nothing},
-        id::Union{Integer,Nothing},
-        description::Union{String,Nothing},
-        metadata::Union{Dict{String,Any},Nothing},
+        quadratic_terms::Dict{Tuple{Int,Int},Float64};
         max_index::Integer,
         num_diagonals::Integer,
         num_elements::Integer,
+        kws...
     ) where {D<:BoolDomain}
-        variable_map, variable_inv = BQPIO._build_varbij(
-            linear_terms,
-            quadratic_terms
-        )
-
-        linear_terms, quadratic_terms = BQPIO._remap_terms(
-            linear_terms,
-            quadratic_terms,
-            variable_map,
-        )
-
-        backend = QUBO_BACKEND_TYPE{D}(
-            linear_terms,
-            quadratic_terms,
-            variable_map,
-            variable_inv;
-            offset=offset,
-            scale=scale,
-            id=id,
-            description=description,
-            metadata=metadata
-        )
+        backend = QUBO_BACKEND_TYPE{D}(linear_terms, quadratic_terms; kws...)
 
         QUBO{D}(
             backend,
-            max_index,
-            num_diagonals,
-            num_elements,
+            max_index=max_index,
+            num_diagonals=num_diagonals,
+            num_elements=num_elements,
         )
     end
 end
 
-function isvalidbridge(
+function __isvalidbridge(
     source::QUBO{D},
     target::QUBO{D},
     ::Type{<:QUBO{D}};
@@ -89,7 +64,7 @@ function isvalidbridge(
         flag = false
     end
 
-    if !BQPIO.isvalidbridge(
+    if !BQPIO.__isvalidbridge(
         BQPIO.backend(source),
         BQPIO.backend(target);
         kws...

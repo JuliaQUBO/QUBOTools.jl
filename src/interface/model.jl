@@ -25,14 +25,14 @@ function Base.isvalid(::AbstractBQPModel)
 end
 
 @doc raw"""
-    isvalidbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kws...) where M <: AbstractBQPModel
+    __isvalidbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kws...) where M <: AbstractBQPModel
 
 Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
 Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` calls.
 
-""" function isvalidbridge end
+""" function __isvalidbridge end
 
-BQPIO.isvalidbridge(
+BQPIO.__isvalidbridge(
     source::M,
     target::M,
     ::Type{<:AbstractBQPModel};

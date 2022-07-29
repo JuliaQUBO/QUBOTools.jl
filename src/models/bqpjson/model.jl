@@ -36,10 +36,9 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
 
     function BQPJSON{D}(
         linear_terms::Dict{Int,Float64},
-        quadratic_terms::Dict{Tuple{Int,Int},Float64},
-        variable_map::Dict{Int,Int},
-        offset::Float64,
+        quadratic_terms::Dict{Tuple{Int,Int},Float64};
         scale::Float64,
+        offset::Float64,
         id::Integer,
         version::VersionNumber,
         description::Union{String,Nothing},
@@ -49,11 +48,10 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
         backend = BQPJSON_BACKEND_TYPE{D}(
             # ~*~ Required data ~*~
             linear_terms,
-            quadratic_terms,
-            variable_map;
+            quadratic_terms;
             # ~*~ Factors ~*~
-            offset=offset,
             scale=scale,
+            offset=offset,
             # ~*~ Metadata ~*~
             id=id,
             version=version,
@@ -65,7 +63,7 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
     end
 end
 
-function isvalidbridge(
+function __isvalidbridge(
     source::BQPJSON{B},
     target::BQPJSON{B},
     ::Type{<:BQPJSON{A}};
@@ -98,9 +96,9 @@ function isvalidbridge(
         flag = false
     end
 
-    if !BQPIO.isvalidbridge(
-        source.backend,
-        target.backend;
+    if !BQPIO.__isvalidbridge(
+        BQPIO.backend(source),
+        BQPIO.backend(target);
         kws...
     )
         flag = false

@@ -9,13 +9,13 @@ function Base.convert(::Type{BQPJSON{BoolDomain}}, model::QUBO)
     BQPJSON{BoolDomain}(backend, solutions)
 end
 
-function BQPIO.isvalidbridge(
+function BQPIO.__isvalidbridge(
     source::BQPJSON{BoolDomain},
     target::BQPJSON{BoolDomain},
     ::Type{<:QUBO{BoolDomain}};
     kws...
 )
-    BQPIO.isvalidbridge(
+    BQPIO.__isvalidbridge(
         BQPIO.backend(source),
         BQPIO.backend(target);
         kws...
@@ -40,13 +40,13 @@ function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
     )
 end
 
-function BQPIO.isvalidbridge(
+function BQPIO.__isvalidbridge(
     source::QUBO{BoolDomain},
     target::QUBO{BoolDomain},
     ::Type{<:BQPJSON{BoolDomain}};
     kws...
 )
-    BQPIO.isvalidbridge(
+    BQPIO.__isvalidbridge(
         BQPIO.backend(source),
         BQPIO.backend(target);
         kws...

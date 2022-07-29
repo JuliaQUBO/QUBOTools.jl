@@ -1,6 +1,4 @@
-function BQPIO.backend(model::StandardBQPModel)
-    model
-end
+BQPIO.backend(model::StandardBQPModel) = model
 
 BQPIO.getattr(model::StandardBQPModel, ::ATTR_OFFSET) = model.offset
 BQPIO._defaultattr(::StandardBQPModel{<:Any,<:Any,T,<:Any}, ::ATTR_OFFSET) where {T} = zero(T)
@@ -20,7 +18,7 @@ BQPIO._defaultattr(::StandardBQPModel{<:Any,U,T,<:Any}, ::ATTR_SAMPLESET) where 
 BQPIO.linear_terms(model::StandardBQPModel) = model.linear_terms
 BQPIO.quadratic_terms(model::StandardBQPModel) = model.quadratic_terms
 BQPIO.variable_map(model::StandardBQPModel) = model.variable_map
-BQPIO.variable_map(model::StandardBQPModel{S,<:Any,<:Any,<:Any}, v::S) where {S} = model.variable_map[v]
+BQPIO.variable_map(model::StandardBQPModel{V,<:Any,<:Any,<:Any}, v::V) where {V} = model.variable_map[v]
 BQPIO.variable_inv(model::StandardBQPModel) = model.variable_inv
 BQPIO.variable_inv(model::StandardBQPModel, i::Integer) = model.variable_inv[i]
 

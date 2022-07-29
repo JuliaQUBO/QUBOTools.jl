@@ -47,13 +47,13 @@ MINIZINC_DEFAULT_SCALE(scale::Float64) = scale
     end
 end
 
-function isvalidbridge(
+function __isvalidbridge(
     source::MiniZinc{D},
     target::MiniZinc{D},
     ::Type{<:MiniZinc{D}};
     kws...
 ) where {D<:VariableDomain}
-    BQPIO.isvalidbridge(
+    BQPIO.__isvalidbridge(
         BQPIO.backend(source),
         BQPIO.backend(target);
         kws...

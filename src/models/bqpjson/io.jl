@@ -3,7 +3,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
 
     let report = JSONSchema.validate(BQPJSON_SCHEMA, data)
         if !isnothing(report)
-            error("Invalid data:\n$(report)")
+            bqpcodec_error("Schema violation:\n$(report)")
         end
     end
 
@@ -13,7 +13,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     version = VersionNumber(data["version"])
 
     if version !== BQPJSON_VERSION_LATEST
-        error("Invalid data: Incorrect bqpjson version '$version'")
+        bqpcodec_error("Outdated bqpjson version '$version'")
     end
 
     variable_domain = data["variable_domain"]
@@ -23,27 +23,29 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     elseif variable_domain == "spin"
         SpinDomain
     else
-        error("Invalid data: Inconsistent variable domain '$variable_domain'")
+        bqpcodec_error("Inconsistent variable domain '$variable_domain'")
     end
 
-    offset = data["offset"]
     scale = data["scale"]
+    offset = data["offset"]
 
     if scale < 0.0
-        error("Invalid data: Negative scale factor '$scale'")
+        bqpcodec_error("Negative scale factor '$scale'")
     end
 
-    variable_map = Dict{Int,Int}(i => k for (k, i) in enumerate(data["variable_ids"]))
-    linear_terms = Dict{Int,Float64}()
+    variable_set = Set{Int}(data["variable_ids"])
+    linear_terms = Dict{Int,Float64}(
+        i => 0.0 for i in variable_set
+    )
 
     for lt in data["linear_terms"]
         i = lt["id"]
         l = lt["coeff"]
-        i = if !haskey(variable_map, i)
-            error("Invalid data: Unknown variable id '$i'")
-        else
-            variable_map[i]
+
+        if i ∉ variable_set
+            bqpcodec_error("Unknown variable id '$i'")
         end
+
         linear_terms[i] = get(linear_terms, i, 0.0) + l
     end
 
@@ -53,17 +55,17 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
         i = qt["id_head"]
         j = qt["id_tail"]
         q = qt["coeff"]
-        i, j = if i == j
-            error("Invalid data: Twin quadratic term '$i, $j'")
-        elseif !haskey(variable_map, i)
-            error("Invalid data: Unknown variable id '$i'")
-        elseif !haskey(variable_map, j)
-            error("Invalid data: Unknown variable id '$j'")
+
+        if i == j
+            bqpcodec_error("Twin quadratic term '$i, $j'")
+        elseif i ∉ variable_set
+            bqpcodec_error("Unknown variable id '$i'")
+        elseif j ∉ variable_set
+            bqpcodec_error("Unknown variable id '$j'")
         elseif j < i
-            variable_map[j], variable_map[i]
-        else
-            variable_map[i], variable_map[j]
+            i, j = j, i
         end
+
         quadratic_terms[(i, j)] = get(quadratic_terms, (i, j), 0.0) + q
     end
 
@@ -87,7 +89,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
                 j = assign["id"]
                 v = assign["value"]
 
-                if !haskey(variable_map, j)
+                if j ∉ variable_set
                     error("Invalid data: Unknown variable id '$j' in assignment")
                 elseif j ∈ var_ids
                     error("Invalid data: Duplicate variable id '$j' in assignment")
@@ -98,7 +100,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
                 push!(var_ids, j)
             end
 
-            if length(var_ids) != length(variable_map)
+            if length(var_ids) != length(variable_set)
                 error("Invalid data: Length mismatch between variable set and solution assignment")
             end
         end
@@ -106,15 +108,14 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
 
     model = BQPJSON{D}(
         linear_terms,
-        quadratic_terms,
-        variable_map,
-        offset,
-        scale,
-        id,
-        version,
-        description,
-        metadata,
-        solutions,
+        quadratic_terms;
+        scale=scale,
+        offset=offset,
+        id=id,
+        version=version,
+        description=description,
+        metadata=metadata,
+        solutions=solutions
     )
 
     convert(M, model)

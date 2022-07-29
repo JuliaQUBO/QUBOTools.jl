@@ -17,9 +17,17 @@ function test_tools()
             (:w, :z) => -2.0,
         )
 
-        linear_terms, quadratic_terms, variable_map, variable_inv = BQPIO._build_normal_form(
+        _linear_terms, _quadratic_terms, variable_set = BQPIO._normal_form(
             _linear_terms,
             _quadratic_terms
+        )
+
+        variable_map, variable_inv = BQPIO._build_mapping(variable_set)
+
+        linear_terms, quadratic_terms = BQPIO._map_terms(
+            _linear_terms,
+            _quadratic_terms,
+            variable_map,
         )
 
         @test variable_map == Dict{Symbol,Int}(

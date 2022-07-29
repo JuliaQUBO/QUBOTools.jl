@@ -24,6 +24,8 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     quadratic_terms::Dict{Tuple{Int,Int},T}
     variable_map::Dict{S,Int}
     variable_inv::Dict{Int,S}
+    # ~*~ Sense ~*~
+    sense::Symbol
     # ~*~ Factors ~*~
     offset::Union{T,Nothing}
     scale::Union{T,Nothing}
@@ -41,6 +43,8 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         quadratic_terms::Dict{Tuple{Int,Int},T},
         variable_map::Dict{S,Int},
         variable_inv::Dict{Int,S};
+        # ~*~ Sense ~*~
+        sense::Symbol=:min,
         # ~*~ Factors ~*~
         offset::Union{T,Nothing}=nothing,
         scale::Union{T,Nothing}=nothing,
@@ -52,11 +56,14 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         # ~*~ Solutions ~*~
         sampleset::Union{SampleSet{U,T},Nothing}=nothing
     ) where {S,U,T,D}
+        @assert sense == :min || sense == :max
+
         new{S,U,T,D}(
             linear_terms,
             quadratic_terms,
             variable_map,
             variable_inv,
+            sense,
             offset,
             scale,
             id,
@@ -79,9 +86,17 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         #   king "quadratic" terms with i == j  into linear ones. Also,
         #   zeros are removed, improving sparsity in this last step.
         # ~ New objects are created not to disturb the original ones.
-        linear_terms, quadratic_terms, variable_map, variable_inv = BQPIO._build_normal_form(
+        _linear_terms, _quadratic_terms, variable_set = BQPIO._normal_form(
             _linear_terms,
             _quadratic_terms,
+        )
+
+        variable_map, variable_inv = BQPIO._build_mapping(variable_set)
+
+        linear_terms, quadratic_terms = BQPIO._map_terms(
+            _linear_terms,
+            _quadratic_terms,
+            variable_map,
         )
 
         StandardBQPModel{S,U,T,D}(
@@ -161,7 +176,7 @@ function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
     )
 end
 
-function BQPIO.isvalidbridge(
+function BQPIO.__isvalidbridge(
     source::StandardBQPModel{S,U,T,D},
     target::StandardBQPModel{S,U,T,D};
     kws...

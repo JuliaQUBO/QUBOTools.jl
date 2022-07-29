@@ -14,13 +14,13 @@ function Base.convert(::Type{<:Qubist}, model::BQPJSON{SpinDomain})
     )
 end
 
-function BQPIO.isvalidbridge(
+function BQPIO.__isvalidbridge(
     source::BQPJSON{SpinDomain},
     target::BQPJSON{SpinDomain},
     ::Type{<:Qubist};
     kws...
 )
-    BQPIO.isvalidbridge(
+    BQPIO.__isvalidbridge(
         BQPIO.backend(source),
         BQPIO.backend(target);
         kws...
@@ -38,13 +38,13 @@ function Base.convert(::Type{<:BQPJSON{SpinDomain}}, model::Qubist)
     BQPJSON{SpinDomain}(backend, solutions)
 end
 
-function BQPIO.isvalidbridge(
+function BQPIO.__isvalidbridge(
     source::Qubist{SpinDomain},
     target::Qubist{SpinDomain},
     ::Type{<:BQPJSON{SpinDomain}};
     kws...
 )
-    BQPIO.isvalidbridge(
+    BQPIO.__isvalidbridge(
         BQPIO.backend(source),
         BQPIO.backend(target);
         kws...
