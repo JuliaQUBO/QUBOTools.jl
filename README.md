@@ -13,7 +13,7 @@
 </div>
 
 ## Introduction
-The `BQPIO.jl` package implements codecs for BQP (*Binary Quadratic Programs*) instances.
+The `BQPIO.jl` package implements codecs for BQP (*Binary Quadratic Program*) instances.
 Its purpose is to provide fast and reliable conversion between common formats used to represent such problems.
 This allows for rapid leverage of many emergent computing architectures whose job is to solve this kind of optimization problem.
 
