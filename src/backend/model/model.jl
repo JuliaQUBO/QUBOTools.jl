@@ -220,7 +220,7 @@ function BQPIO.__isvalidbridge(
         flag = false
     end
 
-    if !isnothing(source.offset) && isnothing(target.offset) && !isapprox(source.offset, target.offset; kws...)
+    if !isnothing(source.offset) && !isnothing(target.offset) && !isapprox(source.offset, target.offset; kws...)
         @error """
         Test Failure: Offset mismatch:
         $(source.offset) ≂̸ $(target.offset)
@@ -228,7 +228,7 @@ function BQPIO.__isvalidbridge(
         flag = false
     end
 
-    if !isnothing(source.scale) && isnothing(target.scale) && !isapprox(source.scale, target.scale; kws...)
+    if !isnothing(source.scale) && !isnothing(target.scale) && !isapprox(source.scale, target.scale; kws...)
         @error """
         Test Failure: Scale mismatch:
         $(source.scale) ≠ $(target.scale)

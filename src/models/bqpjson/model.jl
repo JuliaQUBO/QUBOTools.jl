@@ -28,8 +28,8 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
     solutions::Union{Vector,Nothing}
 
     function BQPJSON{D}(
-        backend::BQPJSON_BACKEND_TYPE{D},
-        solutions::Union{Vector,Nothing},
+        backend::BQPJSON_BACKEND_TYPE{D};
+        solutions::Union{Vector,Nothing}=nothing
     ) where {D<:VariableDomain}
         new{D}(backend, solutions)
     end
@@ -37,29 +37,16 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
     function BQPJSON{D}(
         linear_terms::Dict{Int,Float64},
         quadratic_terms::Dict{Tuple{Int,Int},Float64};
-        scale::Float64,
-        offset::Float64,
-        id::Integer,
-        version::VersionNumber,
-        description::Union{String,Nothing},
-        metadata::Dict{String,Any},
-        solutions::Union{Vector,Nothing},
+        solutions::Union{Vector,Nothing}=nothing,
+        kws...
     ) where {D<:VariableDomain}
         backend = BQPJSON_BACKEND_TYPE{D}(
-            # ~*~ Required data ~*~
             linear_terms,
             quadratic_terms;
-            # ~*~ Factors ~*~
-            scale=scale,
-            offset=offset,
-            # ~*~ Metadata ~*~
-            id=id,
-            version=version,
-            description=description,
-            metadata=metadata
+            kws...
         )
 
-        BQPJSON{D}(backend, solutions)
+        BQPJSON{D}(backend; solutions=solutions)
     end
 end
 
@@ -81,12 +68,12 @@ function __isvalidbridge(
         flag = false
     end
 
-    if !isnothing(source.backend.description) && (source.backend.description != target.backend.description)
+    if !isnothing(BQPIO.description(source)) && (BQPIO.description(source) != BQPIO.description(target))
         @error "Test Failure: Description mismatch"
         flag = false
     end
 
-    if !isempty(source.backend.metadata) && (source.backend.metadata != source.backend.metadata)
+    if !isempty(BQPIO.metadata(source)) && (BQPIO.metadata(source) != BQPIO.metadata(target))
         @error "Test Failure: Inconsistent metadata"
         flag = false
     end

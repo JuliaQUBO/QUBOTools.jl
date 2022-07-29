@@ -223,7 +223,7 @@ function Base.convert(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A,B}
         end
     end
 
-    BQPJSON{B}(backend, solutions)
+    BQPJSON{B}(backend; solutions=solutions)
 end
 
 function Base.copy!(

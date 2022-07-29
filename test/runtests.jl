@@ -11,7 +11,7 @@ function test_main(path::String, n::Integer)
     @testset ":: ~*~ BQPIO.jl ~*~ ::" verbose = true begin
         test_tools()
         test_models(path, n)
-        # test_bridges(path, n)
+        test_bridges(path, n)
     end
 end
 
