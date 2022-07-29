@@ -12,6 +12,11 @@
     <i>Binary Quadratic Program I/O in Julia</i>
 </div>
 
+## Introduction
+The `BQPIO.jl` package implements codecs for BQP (*Binary Quadratic Program*) instances.
+Its purpose is to provide fast and reliable conversion between common formats used to represent such problems.
+This allows for rapid leverage of many emergent computing architectures whose job is to solve this kind of optimization problem.
+
 ## Getting Started
 
 ### Installation
@@ -29,12 +34,6 @@ julia> model = convert(QUBO, model)
 
 julia> write("problem.qubo", model)
 ```
-
-## Introduction
-This package provides the `AbstractBQPModel{D}` abstract type where `D <: VariableDomain`.
-Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \lbrace 0, 1 \rbrace$ and $s \in \lbrace -1, 1 \rbrace$.
-
-Conversion between domains follows the identity $$s = 2x - 1$$
 
 ## Supported Formats
 It is possible to read file formats marked with `r` and write in those stamped with a `w`.
@@ -84,9 +83,14 @@ flowchart TD;
 ```
 
 ## Backend
+The `AbstractBQPModel{D}` abstract type is defined, where `D <: VariableDomain`.
+Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \lbrace 0, 1 \rbrace$ and $s \in \lbrace -1, 1 \rbrace$.
+Conversion between domains follows the identity $$s = 2x - 1$$
+
 **BQPIO.jl** also exports the ``StandardBQPModel{S, U, T, D} <: AbstractBQPModel{D}`` type, designed to work as a powerful standard backend for all other models.
 Here, `S <: Any` plays the role of variable indexing type and usually defaults to `Int`.
 It is followed by `U <: Integer`, used to store sampled states of type `Vector{U}`.
+
 When `D <: SpinDomain`, it is necessary that `U <: Signed`.
 `T <: Real` is the type used to represent all coefficients.
 It is also the choice for the energy values corresponding to each solution.
@@ -115,5 +119,3 @@ When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say
         <img width="200px" src="/docs/src/assets/logo.svg" alt="BQPIO.jl" />
     </a>
 </div>
-
-*This wrapper has no official connection with the AMPL modeling language or AMPL Optimization Inc.*

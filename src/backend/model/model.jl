@@ -24,6 +24,8 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     quadratic_terms::Dict{Tuple{Int,Int},T}
     variable_map::Dict{S,Int}
     variable_inv::Dict{Int,S}
+    # ~*~ Sense ~*~
+    sense::Symbol
     # ~*~ Factors ~*~
     offset::Union{T,Nothing}
     scale::Union{T,Nothing}
@@ -41,6 +43,8 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         quadratic_terms::Dict{Tuple{Int,Int},T},
         variable_map::Dict{S,Int},
         variable_inv::Dict{Int,S};
+        # ~*~ Sense ~*~
+        sense::Symbol=:min,
         # ~*~ Factors ~*~
         offset::Union{T,Nothing}=nothing,
         scale::Union{T,Nothing}=nothing,
@@ -52,22 +56,14 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         # ~*~ Solutions ~*~
         sampleset::Union{SampleSet{U,T},Nothing}=nothing
     ) where {S,U,T,D}
-        # ~ What is happening now: There were many layers of validation
-        #   before we got here. This call to `normalize` removes any re-
-        #   dundancy by aggregating (i, j) and (j, i) terms and also ma-
-        #   king "quadratic" terms with i == j  into linear ones. Also,
-        #   zeros are removed, improving sparsity in this last step.
-        # ~ New objects are created not to disturb the original ones.
-        linear_terms, quadratic_terms = BQPIO.normalize(
-            linear_terms,
-            quadratic_terms,
-        )
+        @assert sense == :min || sense == :max
 
         new{S,U,T,D}(
             linear_terms,
             quadratic_terms,
             variable_map,
             variable_inv,
+            sense,
             offset,
             scale,
             id,
@@ -79,67 +75,58 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     end
 
     function StandardBQPModel{S,U,T,D}(
-        linear_terms::Dict{Int,T},
-        quadratic_terms::Dict{Tuple{Int,Int},T},
-        variable_map::Dict{S,Int};
-        offset::Union{T,Nothing}=nothing,
-        scale::Union{T,Nothing}=nothing,
-        id::Union{Integer,Nothing}=nothing,
-        version::Union{VersionNumber,Nothing}=nothing,
-        description::Union{String,Nothing}=nothing,
-        metadata::Union{Dict{String,Any},Nothing}=nothing,
-        sampleset::Union{SampleSet{U,T},Nothing}=nothing
+        # ~*~ Required data ~*~
+        _linear_terms::Dict{S,T},
+        _quadratic_terms::Dict{Tuple{S,S},T};
+        kws...
     ) where {S,U,T,D}
-        variable_inv = build_varinv(variable_map)
+        # ~ What is happening now: There were many layers of validation
+        #   before we got here. This call to `_normal_form` removes any re-
+        #   dundancy by aggregating (i, j) and (j, i) terms and also ma-
+        #   king "quadratic" terms with i == j  into linear ones. Also,
+        #   zeros are removed, improving sparsity in this last step.
+        # ~ New objects are created not to disturb the original ones.
+        _linear_terms, _quadratic_terms, variable_set = BQPIO._normal_form(
+            _linear_terms,
+            _quadratic_terms,
+        )
+
+        variable_map, variable_inv = BQPIO._build_mapping(variable_set)
+
+        linear_terms, quadratic_terms = BQPIO._map_terms(
+            _linear_terms,
+            _quadratic_terms,
+            variable_map,
+        )
 
         StandardBQPModel{S,U,T,D}(
             linear_terms,
             quadratic_terms,
             variable_map,
             variable_inv;
-            offset=offset,
-            scale=scale,
-            id=id,
-            version=version,
-            description=description,
-            metadata=metadata,
-            sampleset=sampleset
+            kws...
         )
     end
 
-    function StandardBQPModel{S,U,T,D}() where {S,U,T,D}
+    function StandardBQPModel{S,U,T,D}(; kws...) where {S,U,T,D}
         StandardBQPModel{S,U,T,D}(
-            Dict{Int,T}(),
-            Dict{Tuple{Int,Int},T}(),
-            Dict{S,Int}();
+            Dict{S,T}(),
+            Dict{Tuple{S,S},T}();
+            kws...
         )
     end
 
-    function StandardBQPModel{D}(
-        linear_terms::Dict{Int,Float64},
-        quadratic_terms::Dict{Tuple{Int,Int},Float64};
-        offset::Union{Float64,Nothing}=nothing,
-        scale::Union{Float64,Nothing}=nothing,
-        id::Union{Integer,Nothing}=nothing,
-        version::Union{VersionNumber,Nothing}=nothing,
-        description::Union{String,Nothing}=nothing,
-        metadata::Union{Dict{String,Any},Nothing}=nothing,
-        sampleset::Union{SampleSet{Int,Float64},Nothing}=nothing
-    ) where {D<:VariableDomain}
-        variable_map = build_varmap(linear_terms, quadratic_terms)
+    # ~ aliasing ~
+    function StandardBQPModel{S,T,D}(args...; kws...) where {S,T,D}
+        StandardBQPModel{S,Int,T,D}(args...; kws...)
+    end
 
-        StandardBQPModel{Int,Int,Float64,D}(
-            linear_terms,
-            quadratic_terms,
-            variable_map;
-            offset=offset,
-            scale=scale,
-            id=id,
-            version=version,
-            description=description,
-            metadata=metadata,
-            sampleset=sampleset
-        )
+    function StandardBQPModel{S,D}(args...; kws...) where {S,D}
+        StandardBQPModel{S,Int,Float64,D}(args...; kws...)
+    end
+
+    function StandardBQPModel{D}(args...; kws...) where {D}
+        StandardBQPModel{Int,Int,Float64,D}(args...; kws...)
     end
 end
 
@@ -160,17 +147,17 @@ function Base.empty!(model::StandardBQPModel)
 end
 
 function Base.isempty(model::StandardBQPModel)
-    isempty(model.linear_terms) &&
-        isempty(model.quadratic_terms) &&
-        isempty(model.variable_map) &&
-        isempty(model.variable_inv) &&
-        isnothing(model.offset) &&
-        isnothing(model.scale) &&
-        isnothing(model.id) &&
-        isnothing(model.version) &&
-        isnothing(model.description) &&
-        isnothing(model.metadata) &&
-        isnothing(model.sampleset)
+    return isempty(model.linear_terms) &&
+           isempty(model.quadratic_terms) &&
+           isempty(model.variable_map) &&
+           isempty(model.variable_inv) &&
+           isnothing(model.offset) &&
+           isnothing(model.scale) &&
+           isnothing(model.id) &&
+           isnothing(model.version) &&
+           isnothing(model.description) &&
+           isnothing(model.metadata) &&
+           isnothing(model.sampleset)
 end
 
 function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
@@ -189,25 +176,30 @@ function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
     )
 end
 
-function BQPIO.isvalidbridge(
+function BQPIO.__isvalidbridge(
     source::StandardBQPModel{S,U,T,D},
-    target::StandardBQPModel{S,U,T,D},
-    ::Type{<:AbstractBQPModel};
+    target::StandardBQPModel{S,U,T,D};
     kws...
 ) where {S,U,T,D}
     flag = true
 
-    if !isnothing(source.id) && (source.id != target.id)
-        @error "Test Failure: ID mismatch"
+    if !isnothing(source.id) && !isnothing(target.id) && (source.id != target.id)
+        @error """
+        Test Failure: ID mismatch:
+        $(source.id) ≂̸ $(target.id)
+        """
         flag = false
     end
 
-    if !isnothing(source.description) && (source.description != target.description)
-        @error "Test Failure: Description mismatch"
+    if !isnothing(source.description) && !isnothing(target.description) && (source.description != target.description)
+        @error """
+        Test Failure: Description mismatch:
+        $(source.description) ≂̸ $(target.description)
+        """
         flag = false
     end
 
-    if !isnothing(source.metadata) && (source.metadata != target.metadata)
+    if !isnothing(source.metadata) && !isnothing(target.metadata) && (source.metadata != target.metadata)
         @error "Test Failure: Metadata mismatch"
         flag = false
     end
@@ -228,13 +220,19 @@ function BQPIO.isvalidbridge(
         flag = false
     end
 
-    if !isnothing(source.offset) && (isnothing(target.offset) || !isapprox(source.offset, target.offset; kws...))
-        @error "Test Failure: Offset mismatch"
+    if !isnothing(source.offset) && !isnothing(target.offset) && !isapprox(source.offset, target.offset; kws...)
+        @error """
+        Test Failure: Offset mismatch:
+        $(source.offset) ≂̸ $(target.offset)
+        """
         flag = false
     end
 
-    if !isnothing(source.scale) && (isnothing(target.scale) || !isapprox(source.scale, target.scale; kws...))
-        @error "Test Failure: Scale mismatch"
+    if !isnothing(source.scale) && !isnothing(target.scale) && !isapprox(source.scale, target.scale; kws...)
+        @error """
+        Test Failure: Scale mismatch:
+        $(source.scale) ≠ $(target.scale)
+        """
         flag = false
     end
 

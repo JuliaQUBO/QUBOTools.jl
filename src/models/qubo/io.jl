@@ -1,23 +1,26 @@
 function Base.write(io::IO, model::QUBO)
+    scale = BQPIO.scale(model)
+    offset = BQPIO.offset(model)
     id = BQPIO.id(model)
     description = BQPIO.description(model)
-    offset = BQPIO.offset(model)
-    scale = BQPIO.scale(model)
     metadata = BQPIO.metadata(model)
 
-    println(io, "c ~*~ Generated with BQPIO.jl ~*~")
-    if !isnothing(id)
-        println(io, "c id : $(id)")
-    end
-    if !isnothing(description)
-        println(io, "c description : $(description)")
-    end
-    if !isnothing(offset)
-        println(io, "c offset : $(offset)")
-    end
     if !isnothing(scale)
         println(io, "c scale : $(scale)")
     end
+
+    if !isnothing(offset)
+        println(io, "c offset : $(offset)")
+    end
+
+    if !isnothing(id)
+        println(io, "c id : $(id)")
+    end
+
+    if !isnothing(description)
+        println(io, "c description : $(description)")
+    end
+
     if !isnothing(metadata)
         for (k, v) in metadata
             print(io, "c $(k) : ")
@@ -25,14 +28,17 @@ function Base.write(io::IO, model::QUBO)
             println(io)
         end
     end
+
     println(io, "p qubo 0 $(model.max_index) $(model.num_diagonals) $(model.num_elements)")
+
     println(io, "c linear terms")
-    for (i, q) in BQPIO.linear_terms(model)
-        println(io, "$(i) $(i) $(q)")
+    for (i, q) in BQPIO.linear_terms(model; explicit=true)
+        println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, i)) $(q)")
     end
+
     println(io, "c quadratic terms")
     for ((i, j), Q) in BQPIO.quadratic_terms(model)
-        println(io, "$(i) $(j) $(Q)")
+        println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, j)) $(Q)")
     end
 end
 
@@ -40,8 +46,8 @@ function Base.read(io::IO, ::Type{<:QUBO})
     linear_terms = Dict{Int,Float64}()
     quadratic_terms = Dict{Tuple{Int,Int},Float64}()
 
-    offset = nothing
     scale = nothing
+    offset = nothing
 
     id = nothing
     description = nothing
@@ -117,24 +123,24 @@ function Base.read(io::IO, ::Type{<:QUBO})
             continue
         end
 
-        error("Error: $line")
+        error("Error: '$line'")
     end
 
     if isnothing(max_index) || isnothing(num_diagonals) || isnothing(num_elements)
-        error("Error: Invalid problem header")
+        bqpcodec_error("Invalid problem header")
     end
 
     QUBO{BoolDomain}(
         linear_terms,
-        quadratic_terms,
-        offset,
-        scale,
-        id,
-        description,
-        metadata,
-        max_index,
-        num_diagonals,
-        num_elements,
+        quadratic_terms;
+        scale=scale,
+        offset=offset,
+        id=id,
+        description=description,
+        metadata=metadata,
+        max_index=max_index,
+        num_diagonals=num_diagonals,
+        num_elements=num_elements,
     )
 end
 

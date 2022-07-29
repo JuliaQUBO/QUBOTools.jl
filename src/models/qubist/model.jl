@@ -7,7 +7,7 @@ const QUBIST_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
     lines::Int
 
     function Qubist{D}(
-        backend::QUBIST_BACKEND_TYPE{D},
+        backend::QUBIST_BACKEND_TYPE{D};
         sites::Integer,
         lines::Integer,
     ) where {D<:SpinDomain}
@@ -16,17 +16,14 @@ const QUBIST_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
 
     function Qubist{D}(
         linear_terms::Dict{Int,Float64},
-        quadratic_terms::Dict{Tuple{Int,Int},Float64},
+        quadratic_terms::Dict{Tuple{Int,Int},Float64};
         sites::Integer,
         lines::Integer,
+        kws...
     ) where {D<:SpinDomain}
-        variable_map = build_varmap(linear_terms, quadratic_terms)
-        backend = QUBIST_BACKEND_TYPE{D}(
-            linear_terms,
-            quadratic_terms,
-            variable_map;
-        )
-        Qubist{D}(backend, sites, lines)
+        backend = QUBIST_BACKEND_TYPE{D}(linear_terms, quadratic_terms; kws...)
+        
+        Qubist{D}(backend, sites=sites, lines=lines)
     end
 
     function Qubist(args...)
@@ -34,7 +31,7 @@ const QUBIST_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
     end
 end
 
-function BQPIO.isvalidbridge(
+function BQPIO.__isvalidbridge(
     source::Qubist{D},
     target::Qubist{D},
     ::Type{<:Qubist{D}};
@@ -52,10 +49,9 @@ function BQPIO.isvalidbridge(
         flag = false
     end
 
-    if !isvalidbridge(
-        source.backend,
-        target.backend,
-        QUBIST_BACKEND_TYPE{D};
+    if !BQPIO.__isvalidbridge(
+        BQPIO.backend(source),
+        BQPIO.backend(target);
         kws...
     )
         flag = false

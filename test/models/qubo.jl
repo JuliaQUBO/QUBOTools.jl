@@ -1,4 +1,4 @@
-QUBO_PATH(path::String, i::Integer)      = joinpath(path, "data", @sprintf("%02d", i), "bool.qubo")
+QUBO_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "bool.qubo")
 QUBO_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "bool.temp.qubo")
 
 function test_qubo(path::String, n::Integer)
@@ -7,7 +7,7 @@ function test_qubo(path::String, n::Integer)
             for i = 0:n
                 qubo_path = QUBO_PATH(path, i)
                 temp_path = QUBO_TEMP_PATH(path, i)
-                try            
+                try
                     qubo_model = read(qubo_path, QUBO)
                     @test qubo_model isa QUBO{BoolDomain}
 
@@ -16,16 +16,16 @@ function test_qubo(path::String, n::Integer)
                     temp_model = read(temp_path, QUBO)
                     @test temp_model isa QUBO{BoolDomain}
 
-                    @test BQPIO.isvalidbridge(
+                    @test BQPIO.__isvalidbridge(
                         temp_model,
                         qubo_model,
                         QUBO{BoolDomain};
-                        atol = 0.0,
+                        atol=0.0
                     )
                 catch e
                     rethrow(e)
                 finally
-                    rm(temp_path; force = true)
+                    rm(temp_path; force=true)
                 end
             end
         end

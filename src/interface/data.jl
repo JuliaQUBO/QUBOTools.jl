@@ -29,7 +29,7 @@ end
 
 function getdefaultattr(model::Any, attr::BQPAttribute)
     value = BQPIO.getattr(BQPIO.backend(model), attr)
-    
+
     if isnothing(value)
         BQPIO._defaultattr(BQPIO.backend(model), attr)
     else
@@ -85,10 +85,36 @@ function sampleset(model::Any)
 end
 
 @doc raw"""
+    linear_terms(model::Any)
+    linear_terms(model::Any; explicit::Bool)
+
+Retrieves the linear terms of a model as a dict.
+
+The `explicit` keyword determines wether all variables should be included, breaking sparsity.
+
 """ function linear_terms end
 
-function linear_terms(model::Any)
-    BQPIO.linear_terms(BQPIO.backend(model))
+function linear_terms(model::Any; explicit::Bool=false)
+    linear_terms = BQPIO.linear_terms(BQPIO.backend(model))
+
+    if explicit
+        return BQPIO._explicit_linear_terms(
+            linear_terms,
+            BQPIO.variable_inv(model)
+        )
+    else
+        return linear_terms
+    end
+end
+
+function _explicit_linear_terms(
+    linear_terms::Dict{Int,T},
+    variable_inv::Dict{Int,<:Any},
+) where {T}
+    merge(
+        Dict{Int,T}(i => zero(T) for i in keys(variable_inv)),
+        linear_terms,
+    )
 end
 
 @doc raw"""
@@ -103,6 +129,13 @@ end
 
 function variables(model::Any)
     sort(collect(keys(BQPIO.variable_map(model))))
+end
+
+@doc raw"""
+""" function variable_set end
+
+function variable_set(model::Any)
+    Set(keys(BQPIO.variable_map(model)))
 end
 
 @doc raw"""
@@ -296,7 +329,7 @@ end
 
 function linear_density(model::Any)
     n = BQPIO.domain_size(model)
-    
+
     if n == 0
         return 0.0
     else
@@ -310,7 +343,7 @@ end
 
 function quadratic_density(model::Any)
     n = BQPIO.domain_size(model)
-    
+
     if n <= 1
         return 0.0
     else

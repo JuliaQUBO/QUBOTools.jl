@@ -3,7 +3,7 @@ function Base.convert(::Type{<:StandardBQPModel{S,U,T,D}}, model::StandardBQPMod
 end
 
 function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPModel{S,U,T,A}) where {S,U,T,A,B}
-    linear_terms, quadratic_terms, offset = swapdomain(
+    _linear_terms, _quadratic_terms, offset = _swapdomain(
         A,
         B,
         model.linear_terms,
@@ -11,13 +11,19 @@ function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPMod
         model.offset,
     )
 
+    linear_terms, quadratic_terms, _ = BQPIO._normal_form(
+        _linear_terms,
+        _quadratic_terms,
+    )
+
     StandardBQPModel{S,U,T,B}(
         linear_terms,
         quadratic_terms,
         copy(model.variable_map),
         copy(model.variable_inv);
-        offset=offset,
+        sense=model.sense,
         scale=model.scale,
+        offset=offset,
         id=model.id,
         version=model.version,
         description=model.description,
@@ -37,8 +43,9 @@ function Base.copy!(
     target.quadratic_terms = copy(source.quadratic_terms)
     target.variable_map = copy(source.variable_map)
     target.variable_inv = copy(source.variable_inv)
-    target.offset = source.offset
+    target.sense = source.sense
     target.scale = source.scale
+    target.offset = source.offset
     target.id = source.id
     target.version = source.version
     target.description = source.description

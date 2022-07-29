@@ -28,44 +28,29 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
     solutions::Union{Vector,Nothing}
 
     function BQPJSON{D}(
-        backend::BQPJSON_BACKEND_TYPE{D},
-        solutions::Union{Vector,Nothing},
+        backend::BQPJSON_BACKEND_TYPE{D};
+        solutions::Union{Vector,Nothing}=nothing
     ) where {D<:VariableDomain}
         new{D}(backend, solutions)
     end
 
     function BQPJSON{D}(
         linear_terms::Dict{Int,Float64},
-        quadratic_terms::Dict{Tuple{Int,Int},Float64},
-        variable_map::Dict{Int,Int},
-        offset::Float64,
-        scale::Float64,
-        id::Integer,
-        version::VersionNumber,
-        description::Union{String,Nothing},
-        metadata::Dict{String,Any},
-        solutions::Union{Vector,Nothing},
+        quadratic_terms::Dict{Tuple{Int,Int},Float64};
+        solutions::Union{Vector,Nothing}=nothing,
+        kws...
     ) where {D<:VariableDomain}
         backend = BQPJSON_BACKEND_TYPE{D}(
-            # ~*~ Required data ~*~
             linear_terms,
-            quadratic_terms,
-            variable_map;
-            # ~*~ Factors ~*~
-            offset=offset,
-            scale=scale,
-            # ~*~ Metadata ~*~
-            id=id,
-            version=version,
-            description=description,
-            metadata=metadata
+            quadratic_terms;
+            kws...
         )
 
-        BQPJSON{D}(backend, solutions)
+        BQPJSON{D}(backend; solutions=solutions)
     end
 end
 
-function isvalidbridge(
+function __isvalidbridge(
     source::BQPJSON{B},
     target::BQPJSON{B},
     ::Type{<:BQPJSON{A}};
@@ -83,12 +68,12 @@ function isvalidbridge(
         flag = false
     end
 
-    if !isnothing(source.backend.description) && (source.backend.description != target.backend.description)
+    if !isnothing(BQPIO.description(source)) && (BQPIO.description(source) != BQPIO.description(target))
         @error "Test Failure: Description mismatch"
         flag = false
     end
 
-    if !isempty(source.backend.metadata) && (source.backend.metadata != source.backend.metadata)
+    if !isempty(BQPIO.metadata(source)) && (BQPIO.metadata(source) != BQPIO.metadata(target))
         @error "Test Failure: Inconsistent metadata"
         flag = false
     end
@@ -98,10 +83,9 @@ function isvalidbridge(
         flag = false
     end
 
-    if !isvalidbridge(
-        source.backend,
-        target.backend,
-        BQPJSON_BACKEND_TYPE{A};
+    if !BQPIO.__isvalidbridge(
+        BQPIO.backend(source),
+        BQPIO.backend(target);
         kws...
     )
         flag = false
