@@ -39,7 +39,7 @@ julia> write("problem.qubo", model)
 It is possible to read file formats marked with `r` and write in those stamped with a `w`.
 
 ### [BQPJSON](/docs/models/BQPJSON.md) `rw`
-The [bqpjson](https://bqpjson.readthedocs.io) format was designed by people at LANL-ANSI to represent Binary Quadratic Programs in a platform-independet fashion.
+The [bqpjson](https://bqpjson.readthedocs.io) format was designed at [LANL-ANSI](https://github.com/lanl-ansi) to represent Binary Quadratic Programs in a platform-independet fashion.
 This is accomplished by using `.json` files validated using a well-defined [JSON Schema](/src/models/bqpjson.schema.json).
 
 ### [QUBO](/docs/models/QUBO.md) `rw`
