@@ -2,6 +2,8 @@
 
 Tests codecs under emptyness.
 
+$$f \equiv 0$$
+
 ## Status Table
 | Format   | Domain | Status |
 | :------- | :----: | :----: |
