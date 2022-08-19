@@ -1,6 +1,3 @@
-# -*- :: Models :: -*- #
-abstract type AbstractQUBOModel{D<:VariableDomain} end
-
 # ~*~ Validation ~*~ #
 Base.isvalid(::AbstractQUBOModel) = false
 

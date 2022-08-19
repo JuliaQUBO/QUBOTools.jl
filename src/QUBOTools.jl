@@ -14,9 +14,9 @@ export MiniZinc
 include("library/error.jl")
 include("library/types.jl")
 include("library/tools.jl")
-# include("interface/model.jl")
-# include("interface/data.jl")
+include("interface/data.jl")
 # include("interface/io.jl")
+# include("interface/model.jl")
 
 # include("backend/sampleset.jl")
 # include("backend/model/model.jl")
