@@ -8,8 +8,8 @@ $$f(s_1, s_3, s_5) = 2.7 \left( 1.23 + 1.3 s_1 - 0.7 s_3 - 0.2 s_1 s_2 + 1.5 s_1
 ## Status Table
 | Format   | Domain | Status |
 | :------- | :----: | :----: |
-| bqpjson  |  Bool  |   ✔️    |
-| bqpjson  |  Spin  |   ✔️    |
+| BQPJSON  |  Bool  |   ✔️    |
+| BQPJSON  |  Spin  |   ✔️    |
 | MiniZinc |  Bool  |   ❌    |
 | MiniZinc |  Spin  |   ❌    |
 | QUBO     |  Bool  |   ✔️    |

@@ -1,8 +1,8 @@
-function Base.convert(::Type{<:StandardBQPModel{S,U,T,D}}, model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
+function Base.convert(::Type{<:StandardQUBOModel{S,U,T,D}}, model::StandardQUBOModel{S,U,T,D}) where {S,U,T,D}
     model # Short-circuit! Yeah!
 end
 
-function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPModel{S,U,T,A}) where {S,U,T,A,B}
+function Base.convert(::Type{<:StandardQUBOModel{S,U,T,B}}, model::StandardQUBOModel{S,U,T,A}) where {S,U,T,A,B}
     _linear_terms, _quadratic_terms, offset = _swapdomain(
         A,
         B,
@@ -11,12 +11,12 @@ function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPMod
         model.offset,
     )
 
-    linear_terms, quadratic_terms, _ = BQPIO._normal_form(
+    linear_terms, quadratic_terms, _ = QUBOTools._normal_form(
         _linear_terms,
         _quadratic_terms,
     )
 
-    StandardBQPModel{S,U,T,B}(
+    StandardQUBOModel{S,U,T,B}(
         linear_terms,
         quadratic_terms,
         copy(model.variable_map),
@@ -36,8 +36,8 @@ end
 # function Base.write end
 
 function Base.copy!(
-    target::StandardBQPModel{S,U,T,D},
-    source::StandardBQPModel{S,U,T,D},
+    target::StandardQUBOModel{S,U,T,D},
+    source::StandardQUBOModel{S,U,T,D},
 ) where {S,U,T,D<:VariableDomain}
     target.linear_terms = copy(source.linear_terms)
     target.quadratic_terms = copy(source.quadratic_terms)
@@ -56,8 +56,8 @@ function Base.copy!(
 end
 
 function Base.copy!(
-    target::StandardBQPModel{S,U,T,B},
-    source::StandardBQPModel{S,U,T,A},
+    target::StandardQUBOModel{S,U,T,B},
+    source::StandardQUBOModel{S,U,T,A},
 ) where {S,U,T,A<:VariableDomain,B<:VariableDomain}
-    copy!(target, convert(StandardBQPModel{S,U,T,B}, source))
+    copy!(target, convert(StandardQUBOModel{S,U,T,B}, source))
 end

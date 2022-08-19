@@ -1,4 +1,4 @@
-const HFS_BACKEND_TYPE{D} = StandardBQPModel{Int, Int, Float64, D}
+const HFS_BACKEND_TYPE{D} = StandardQUBOModel{Int, Int, Float64, D}
 
 @doc raw"""
 Format description from [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
@@ -38,7 +38,7 @@ There is an edge from ``v_p`` to ``v_q`` if
 end
 
 @doc raw"""
-""" mutable struct HFS{D <: BoolDomain} <: AbstractBQPModel{D}
+""" mutable struct HFS{D <: BoolDomain} <: AbstractQUBOModel{D}
     backend::HFS_BACKEND_TYPE{D}
     chimera::Chimera
     

@@ -1,7 +1,7 @@
-const QUBIST_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
+const QUBIST_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 @doc raw"""
-""" mutable struct Qubist{D<:SpinDomain} <: AbstractBQPModel{D}
+""" mutable struct Qubist{D<:SpinDomain} <: AbstractQUBOModel{D}
     backend::QUBIST_BACKEND_TYPE{D}
     sites::Int
     lines::Int
@@ -31,7 +31,7 @@ const QUBIST_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
     end
 end
 
-function BQPIO.__isvalidbridge(
+function QUBOTools.__isvalidbridge(
     source::Qubist{D},
     target::Qubist{D},
     ::Type{<:Qubist{D}};
@@ -49,9 +49,9 @@ function BQPIO.__isvalidbridge(
         flag = false
     end
 
-    if !BQPIO.__isvalidbridge(
-        BQPIO.backend(source),
-        BQPIO.backend(target);
+    if !QUBOTools.__isvalidbridge(
+        QUBOTools.backend(source),
+        QUBOTools.backend(target);
         kws...
     )
         flag = false

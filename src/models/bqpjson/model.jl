@@ -1,7 +1,7 @@
-const BQPJSON_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "bqpjson.schema.json")))
+const BQPJSON_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "BQPJSON.schema.json")))
 const BQPJSON_VERSION_LIST = VersionNumber[v"1.0.0"]
 const BQPJSON_VERSION_LATEST = BQPJSON_VERSION_LIST[end]
-const BQPJSON_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
+const BQPJSON_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 function BQPJSON_VARIABLE_DOMAIN end
 BQPJSON_VARIABLE_DOMAIN(::Type{<:BoolDomain}) = "boolean"
@@ -22,8 +22,8 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
     ) where {D<:VariableDomain}
 
 ### References
-[1] https://bqpjson.readthedocs.io
-""" mutable struct BQPJSON{D<:VariableDomain} <: AbstractBQPModel{D}
+[1] https://BQPJSON.readthedocs.io
+""" mutable struct BQPJSON{D<:VariableDomain} <: AbstractQUBOModel{D}
     backend::BQPJSON_BACKEND_TYPE{D}
     solutions::Union{Vector,Nothing}
 
@@ -58,22 +58,22 @@ function __isvalidbridge(
 ) where {A,B}
     flag = true
 
-    if BQPIO.id(source) != BQPIO.id(target)
+    if QUBOTools.id(source) != QUBOTools.id(target)
         @error "Test Failure: ID mismatch"
         flag = false
     end
 
-    if BQPIO.version(source) != BQPIO.version(target)
+    if QUBOTools.version(source) != QUBOTools.version(target)
         @error "Test Failure: Version mismatch"
         flag = false
     end
 
-    if !isnothing(BQPIO.description(source)) && (BQPIO.description(source) != BQPIO.description(target))
+    if !isnothing(QUBOTools.description(source)) && (QUBOTools.description(source) != QUBOTools.description(target))
         @error "Test Failure: Description mismatch"
         flag = false
     end
 
-    if !isempty(BQPIO.metadata(source)) && (BQPIO.metadata(source) != BQPIO.metadata(target))
+    if !isempty(QUBOTools.metadata(source)) && (QUBOTools.metadata(source) != QUBOTools.metadata(target))
         @error "Test Failure: Inconsistent metadata"
         flag = false
     end
@@ -83,9 +83,9 @@ function __isvalidbridge(
         flag = false
     end
 
-    if !BQPIO.__isvalidbridge(
-        BQPIO.backend(source),
-        BQPIO.backend(target);
+    if !QUBOTools.__isvalidbridge(
+        QUBOTools.backend(source),
+        QUBOTools.backend(target);
         kws...
     )
         flag = false

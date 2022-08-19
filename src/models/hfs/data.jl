@@ -1,7 +1,7 @@
-struct CHIMERA_CELL_SIZE <: BQPAttribute end
+struct CHIMERA_CELL_SIZE <: QUBOAttribute end
 
-BQPIO._defaultattr(::HFS, ::CHIMERA_CELL_SIZE) = 8
+QUBOTools._defaultattr(::HFS, ::CHIMERA_CELL_SIZE) = 8
 
-struct CHIMERA_PRECISION <: BQPAttribute end
+struct CHIMERA_PRECISION <: QUBOAttribute end
 
-BQPIO._defaultattr(::HFS, ::CHIMERA_PRECISION) = 5
+QUBOTools._defaultattr(::HFS, ::CHIMERA_PRECISION) = 5

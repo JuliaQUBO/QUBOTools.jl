@@ -17,14 +17,14 @@ function test_tools()
             (:w, :z) => -2.0,
         )
 
-        _linear_terms, _quadratic_terms, variable_set = BQPIO._normal_form(
+        _linear_terms, _quadratic_terms, variable_set = QUBOTools._normal_form(
             _linear_terms,
             _quadratic_terms
         )
 
-        variable_map, variable_inv = BQPIO._build_mapping(variable_set)
+        variable_map, variable_inv = QUBOTools._build_mapping(variable_set)
 
-        linear_terms, quadratic_terms = BQPIO._map_terms(
+        linear_terms, quadratic_terms = QUBOTools._map_terms(
             _linear_terms,
             _quadratic_terms,
             variable_map,
@@ -47,7 +47,7 @@ function test_tools()
             (1, 4) => -2.0,
         )
 
-        __linear_terms, __quadratic_terms = BQPIO._inv_terms(
+        __linear_terms, __quadratic_terms = QUBOTools._inv_terms(
             linear_terms,
             quadratic_terms,
             variable_inv,

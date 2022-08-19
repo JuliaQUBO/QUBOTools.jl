@@ -2,7 +2,7 @@ include("backend.jl")
 include("bqpjson.jl")
 include("minizinc.jl")
 include("qubist.jl")
-include("qubo.jl")
+include("QUBOTools.jl")
 
 function test_models(path::String, n::Integer)
     @testset "-*- Models -*-" verbose = true begin

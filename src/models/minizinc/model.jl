@@ -1,4 +1,4 @@
-const MINIZINC_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
+const MINIZINC_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 const MINIZINC_VAR_SYMBOL = "x"
 const MINIZINC_RE_COMMENT = r"^%(\s*.*)?$"
 const MINIZINC_RE_METADATA = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.+)$"
@@ -15,7 +15,7 @@ MINIZINC_DEFAULT_SCALE(::Nothing) = 1.0
 MINIZINC_DEFAULT_SCALE(scale::Float64) = scale
 
 @doc raw"""
-""" mutable struct MiniZinc{D<:VariableDomain} <: AbstractBQPModel{D}
+""" mutable struct MiniZinc{D<:VariableDomain} <: AbstractQUBOModel{D}
     backend::MINIZINC_BACKEND_TYPE{D}
 
     function MiniZinc{D}(backend::MINIZINC_BACKEND_TYPE{D}) where {D<:VariableDomain}
@@ -53,9 +53,9 @@ function __isvalidbridge(
     ::Type{<:MiniZinc{D}};
     kws...
 ) where {D<:VariableDomain}
-    BQPIO.__isvalidbridge(
-        BQPIO.backend(source),
-        BQPIO.backend(target);
+    QUBOTools.__isvalidbridge(
+        QUBOTools.backend(source),
+        QUBOTools.backend(target);
         kws...
     )
 end

@@ -28,4 +28,4 @@ function Base.write(io::IO, model::HFS)
     end
 end
 
-BQPIO.infer_model_type(::Val{:hfs}) = HFS
+QUBOTools.infer_model_type(::Val{:hfs}) = HFS

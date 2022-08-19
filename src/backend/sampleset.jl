@@ -87,7 +87,7 @@ It was clearly inspired by [1], with a few tweaks.
     ) where {U,T}
 
         SampleSet{U,T}(
-            Sample{U,T}[Sample{U,T}(state, 1, BQPIO.energy(state, model)) for state in data],
+            Sample{U,T}[Sample{U,T}(state, 1, QUBOTools.energy(state, model)) for state in data],
             metadata
         )
     end

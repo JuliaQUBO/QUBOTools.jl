@@ -1,13 +1,13 @@
 using Documenter
-using BQPIO
+using QUBO
 
 # Set up to run docstrings with jldoctest
 DocMeta.setdocmeta!(
-    BQPIO, :DocTestSetup, :(using BQPIO); recursive=true
+    QUBO, :DocTestSetup, :(using QUBO); recursive=true
 )
 
 makedocs(;
-    modules=[BQPIO],
+    modules=[QUBO],
     doctest=true,
     clean=true,
     format=Documenter.HTML(
@@ -15,7 +15,7 @@ makedocs(;
         mathengine=Documenter.MathJax2(),
         sidebar_sitename=false,
     ), 
-    sitename="BQPIO.jl",
+    sitename="QUBOTools.jl",
     authors="Pedro Xavier and Tiago Andrade and Joaquim Garcia and David Bernal",
     pages=[
         "Home" => "index.md",
@@ -26,6 +26,6 @@ makedocs(;
 )
 
 # deploydocs(
-#     repo=raw"github.com/psrenergy/BQPIO.jl.git",
+#     repo=raw"github.com/psrenergy/QUBOTools.jl.git",
 #     push_preview = true
 # )

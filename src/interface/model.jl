@@ -17,24 +17,24 @@ x \in \{0, 1\}
 """ struct BoolDomain <: VariableDomain end
 
 # -*- :: Models :: -*- #
-abstract type AbstractBQPModel{D<:VariableDomain} end
+abstract type AbstractQUBOModel{D<:VariableDomain} end
 
 # ~*~ Validation ~*~ #
-function Base.isvalid(::AbstractBQPModel)
+function Base.isvalid(::AbstractQUBOModel)
     false
 end
 
 @doc raw"""
-    __isvalidbridge(source::M, target::M, ::Type{<:AbstractBQPModel}; kws...) where M <: AbstractBQPModel
+    __isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
 
 Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
 Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` calls.
 
 """ function __isvalidbridge end
 
-BQPIO.__isvalidbridge(
+QUBOTools.__isvalidbridge(
     source::M,
     target::M,
-    ::Type{<:AbstractBQPModel};
+    ::Type{<:AbstractQUBOModel};
     kws...
-) where {M<:AbstractBQPModel} = false
+) where {M<:AbstractQUBOModel} = false

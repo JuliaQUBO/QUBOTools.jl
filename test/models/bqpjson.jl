@@ -5,7 +5,7 @@ BQPJSON_SPIN_PATH(path::String, i::Integer)      = joinpath(path, "data", @sprin
 BQPJSON_BOOL_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "bool.temp.json")
 BQPJSON_SPIN_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "spin.temp.json")
 
-function test_bqpjson(path::String, n::Integer)
+function test_BQPJSON(path::String, n::Integer)
     @testset "BQPJSON" verbose = true begin
         @testset "IO" verbose = true begin
             @testset "BOOL" begin
@@ -21,7 +21,7 @@ function test_bqpjson(path::String, n::Integer)
                         temp_model = read(bool_temp_path, BQPJSON)
                         @test temp_model isa BQPJSON{BoolDomain}
 
-                        @test BQPIO.__isvalidbridge(
+                        @test QUBOTools.__isvalidbridge(
                             temp_model,
                             bool_model,
                             BQPJSON{BoolDomain},
@@ -47,7 +47,7 @@ function test_bqpjson(path::String, n::Integer)
                         temp_model = read(spin_temp_path, BQPJSON)
                         @test temp_model isa BQPJSON{SpinDomain}
 
-                        @test BQPIO.__isvalidbridge(
+                        @test QUBOTools.__isvalidbridge(
                             temp_model,
                             spin_model,
                             BQPJSON{BoolDomain};
@@ -68,14 +68,14 @@ function test_bqpjson(path::String, n::Integer)
                     bool_model = read(joinpath(path, "data", "0$(i)", "bool.json"), BQPJSON{BoolDomain})
                     spin_model = read(joinpath(path, "data", "0$(i)", "spin.json"), BQPJSON{SpinDomain})
 
-                    @test BQPIO.__isvalidbridge(
+                    @test QUBOTools.__isvalidbridge(
                         convert(BQPJSON{BoolDomain}, spin_model),
                         bool_model,
                         BQPJSON{SpinDomain};
                         atol=BQPJSON_ATOL
                     )
 
-                    @test BQPIO.__isvalidbridge(
+                    @test QUBOTools.__isvalidbridge(
                         convert(BQPJSON{SpinDomain}, bool_model),
                         spin_model,
                         BQPJSON{BoolDomain};

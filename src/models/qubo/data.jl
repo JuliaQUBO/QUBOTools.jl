@@ -1,2 +1,2 @@
-BQPIO.backend(model::QUBO) = model.backend
-BQPIO.model_name(model::AbstractBQPModel{<:BoolDomain}) = "QUBO"
+QUBOTools.backend(model::QUBO) = model.backend
+QUBOTools.model_name(model::AbstractQUBOModel{<:BoolDomain}) = "QUBO"

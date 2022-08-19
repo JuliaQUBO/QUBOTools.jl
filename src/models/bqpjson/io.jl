@@ -3,7 +3,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
 
     let report = JSONSchema.validate(BQPJSON_SCHEMA, data)
         if !isnothing(report)
-            bqpcodec_error("Schema violation:\n$(report)")
+            QUBOcodec_error("Schema violation:\n$(report)")
         end
     end
 
@@ -13,7 +13,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     version = VersionNumber(data["version"])
 
     if version !== BQPJSON_VERSION_LATEST
-        bqpcodec_error("Outdated bqpjson version '$version'")
+        QUBOcodec_error("Outdated BQPJSON version '$version'")
     end
 
     variable_domain = data["variable_domain"]
@@ -23,14 +23,14 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
     elseif variable_domain == "spin"
         SpinDomain
     else
-        bqpcodec_error("Inconsistent variable domain '$variable_domain'")
+        QUBOcodec_error("Inconsistent variable domain '$variable_domain'")
     end
 
     scale = data["scale"]
     offset = data["offset"]
 
     if scale < 0.0
-        bqpcodec_error("Negative scale factor '$scale'")
+        QUBOcodec_error("Negative scale factor '$scale'")
     end
 
     variable_set = Set{Int}(data["variable_ids"])
@@ -43,7 +43,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
         l = lt["coeff"]
 
         if i ∉ variable_set
-            bqpcodec_error("Unknown variable id '$i'")
+            QUBOcodec_error("Unknown variable id '$i'")
         end
 
         linear_terms[i] = get(linear_terms, i, 0.0) + l
@@ -57,11 +57,11 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
         q = qt["coeff"]
 
         if i == j
-            bqpcodec_error("Twin quadratic term '$i, $j'")
+            QUBOcodec_error("Twin quadratic term '$i, $j'")
         elseif i ∉ variable_set
-            bqpcodec_error("Unknown variable id '$i'")
+            QUBOcodec_error("Unknown variable id '$i'")
         elseif j ∉ variable_set
-            bqpcodec_error("Unknown variable id '$j'")
+            QUBOcodec_error("Unknown variable id '$j'")
         elseif j < i
             i, j = j, i
         end
@@ -124,29 +124,29 @@ end
 function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
     linear_terms = Dict{String,Any}[]
     quadratic_terms = Dict{String,Any}[]
-    offset = BQPIO.offset(model)
-    scale = BQPIO.scale(model)
-    id = BQPIO.id(model)
-    version = BQPIO.version(model)
+    offset = QUBOTools.offset(model)
+    scale = QUBOTools.scale(model)
+    id = QUBOTools.id(model)
+    version = QUBOTools.version(model)
     variable_domain = BQPJSON_VARIABLE_DOMAIN(D)
-    metadata = BQPIO.metadata(model)
+    metadata = QUBOTools.metadata(model)
 
-    for (i, l) in BQPIO.linear_terms(model)
+    for (i, l) in QUBOTools.linear_terms(model)
         push!(
             linear_terms,
             Dict{String,Any}(
-                "id" => BQPIO.variable_inv(model, i),
+                "id" => QUBOTools.variable_inv(model, i),
                 "coeff" => l,
             )
         )
     end
 
-    for ((i, j), q) in BQPIO.quadratic_terms(model)
+    for ((i, j), q) in QUBOTools.quadratic_terms(model)
         push!(
             quadratic_terms,
             Dict{String,Any}(
-                "id_head" => BQPIO.variable_inv(model, i),
-                "id_tail" => BQPIO.variable_inv(model, j),
+                "id_head" => QUBOTools.variable_inv(model, i),
+                "id_tail" => QUBOTools.variable_inv(model, j),
                 "coeff" => q,
             )
         )
@@ -155,7 +155,7 @@ function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
     sort!(linear_terms; by=(lt) -> lt["id"])
     sort!(quadratic_terms; by=(qt) -> (qt["id_head"], qt["id_tail"]))
 
-    variable_ids = BQPIO.variables(model)
+    variable_ids = QUBOTools.variables(model)
 
     data = Dict{String,Any}(
         "id" => id,
@@ -169,7 +169,7 @@ function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
         "metadata" => metadata,
     )
 
-    description = BQPIO.description(model)
+    description = QUBOTools.description(model)
 
     if !isnothing(description)
         data["description"] = description
@@ -178,7 +178,7 @@ function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
     if !isnothing(model.solutions)
         data["solutions"] = deepcopy(model.solutions)
     else
-        sampleset = BQPIO.sampleset(model)
+        sampleset = QUBOTools.sampleset(model)
 
         if !isnothing(sampleset)
             id = 0
@@ -190,7 +190,7 @@ function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
                     Dict{String,Any}(
                         "id" => i,
                         "value" => sample.state[j]
-                    ) for (i, j) in BQPIO.variable_map(model)
+                    ) for (i, j) in QUBOTools.variable_map(model)
                 ]
                 for _ = 1:sample.reads
                     push!(
@@ -230,11 +230,11 @@ function Base.copy!(
     target::BQPJSON{D},
     source::BQPJSON{D},
 ) where {D<:VariableDomain}
-    copy!(BQPIO.backend(target), BQPIO.backend(source))
+    copy!(QUBOTools.backend(target), QUBOTools.backend(source))
 
     target.solutions = deepcopy(source.solutions)
 
     target
 end
 
-BQPIO.infer_model_type(::Val{:json}) = BQPJSON
+QUBOTools.infer_model_type(::Val{:json}) = BQPJSON

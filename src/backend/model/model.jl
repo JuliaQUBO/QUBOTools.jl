@@ -1,24 +1,24 @@
 @doc raw"""
-    StandardBQPModel{
+    StandardQUBOModel{
         S <: Any,
         U <: Integer,
         T <: Real,
         D <: VariableDomain
-    } <: AbstractBQPModel{D}
+    } <: AbstractQUBOModel{D}
 
-The `StandardBQPModel` was designed to work as a general for all implemented interfaces.
+The `StandardQUBOModel` was designed to work as a general for all implemented interfaces.
 It is intended to be the core engine behind the target codecs.
 
 ## MathOptInterface/JuMP
 Both `S <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
 By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
-""" mutable struct StandardBQPModel{
+""" mutable struct StandardQUBOModel{
     S<:Any,
     U<:Integer,
     T<:Real,
     D<:VariableDomain
-} <: AbstractBQPModel{D}
+} <: AbstractQUBOModel{D}
     # ~*~ Required data ~*~
     linear_terms::Dict{Int,T}
     quadratic_terms::Dict{Tuple{Int,Int},T}
@@ -37,7 +37,7 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     # ~*~ Solutions ~*~
     sampleset::Union{SampleSet{U,T},Nothing}
 
-    function StandardBQPModel{S,U,T,D}(
+    function StandardQUBOModel{S,U,T,D}(
         # ~*~ Required data ~*~
         linear_terms::Dict{Int,T},
         quadratic_terms::Dict{Tuple{Int,Int},T},
@@ -74,7 +74,7 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
-    function StandardBQPModel{S,U,T,D}(
+    function StandardQUBOModel{S,U,T,D}(
         # ~*~ Required data ~*~
         _linear_terms::Dict{S,T},
         _quadratic_terms::Dict{Tuple{S,S},T};
@@ -86,20 +86,20 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         #   king "quadratic" terms with i == j  into linear ones. Also,
         #   zeros are removed, improving sparsity in this last step.
         # ~ New objects are created not to disturb the original ones.
-        _linear_terms, _quadratic_terms, variable_set = BQPIO._normal_form(
+        _linear_terms, _quadratic_terms, variable_set = QUBOTools._normal_form(
             _linear_terms,
             _quadratic_terms,
         )
 
-        variable_map, variable_inv = BQPIO._build_mapping(variable_set)
+        variable_map, variable_inv = QUBOTools._build_mapping(variable_set)
 
-        linear_terms, quadratic_terms = BQPIO._map_terms(
+        linear_terms, quadratic_terms = QUBOTools._map_terms(
             _linear_terms,
             _quadratic_terms,
             variable_map,
         )
 
-        StandardBQPModel{S,U,T,D}(
+        StandardQUBOModel{S,U,T,D}(
             linear_terms,
             quadratic_terms,
             variable_map,
@@ -108,8 +108,8 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
-    function StandardBQPModel{S,U,T,D}(; kws...) where {S,U,T,D}
-        StandardBQPModel{S,U,T,D}(
+    function StandardQUBOModel{S,U,T,D}(; kws...) where {S,U,T,D}
+        StandardQUBOModel{S,U,T,D}(
             Dict{S,T}(),
             Dict{Tuple{S,S},T}();
             kws...
@@ -117,20 +117,20 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     end
 
     # ~ aliasing ~
-    function StandardBQPModel{S,T,D}(args...; kws...) where {S,T,D}
-        StandardBQPModel{S,Int,T,D}(args...; kws...)
+    function StandardQUBOModel{S,T,D}(args...; kws...) where {S,T,D}
+        StandardQUBOModel{S,Int,T,D}(args...; kws...)
     end
 
-    function StandardBQPModel{S,D}(args...; kws...) where {S,D}
-        StandardBQPModel{S,Int,Float64,D}(args...; kws...)
+    function StandardQUBOModel{S,D}(args...; kws...) where {S,D}
+        StandardQUBOModel{S,Int,Float64,D}(args...; kws...)
     end
 
-    function StandardBQPModel{D}(args...; kws...) where {D}
-        StandardBQPModel{Int,Int,Float64,D}(args...; kws...)
+    function StandardQUBOModel{D}(args...; kws...) where {D}
+        StandardQUBOModel{Int,Int,Float64,D}(args...; kws...)
     end
 end
 
-function Base.empty!(model::StandardBQPModel)
+function Base.empty!(model::StandardQUBOModel)
     empty!(model.linear_terms)
     empty!(model.quadratic_terms)
     empty!(model.variable_map)
@@ -146,7 +146,7 @@ function Base.empty!(model::StandardBQPModel)
     return model
 end
 
-function Base.isempty(model::StandardBQPModel)
+function Base.isempty(model::StandardQUBOModel)
     return isempty(model.linear_terms) &&
            isempty(model.quadratic_terms) &&
            isempty(model.variable_map) &&
@@ -160,8 +160,8 @@ function Base.isempty(model::StandardBQPModel)
            isnothing(model.sampleset)
 end
 
-function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
-    StandardBQPModel{S,U,T,D}(
+function Base.copy(model::StandardQUBOModel{S,U,T,D}) where {S,U,T,D}
+    StandardQUBOModel{S,U,T,D}(
         copy(model.linear_terms),
         copy(model.quadratic_terms),
         copy(model.variable_map),
@@ -176,9 +176,9 @@ function Base.copy(model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
     )
 end
 
-function BQPIO.__isvalidbridge(
-    source::StandardBQPModel{S,U,T,D},
-    target::StandardBQPModel{S,U,T,D};
+function QUBOTools.__isvalidbridge(
+    source::StandardQUBOModel{S,U,T,D},
+    target::StandardQUBOModel{S,U,T,D};
     kws...
 ) where {S,U,T,D}
     flag = true

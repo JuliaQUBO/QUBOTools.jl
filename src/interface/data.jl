@@ -1,6 +1,6 @@
-""" /src/interface/data.jl @ BQPIO.jl
+""" /src/interface/data.jl @ QUBOTools.jl
 
-    This files contains methods for data access within BQPIO's format system.
+    This files contains methods for data access within QUBO's format system.
     
     It also contains a few methods for query execution on models.
 """
@@ -13,69 +13,69 @@
 @doc raw"""
 """ function model_name end
 
-model_name(model::AbstractBQPModel) = "BQP"
+model_name(model::AbstractQUBOModel) = "QUBO"
 
 @doc raw"""
 """ function domain_name end
 
-domain_name(model::AbstractBQPModel{<:BoolDomain}) = "Bool"
-domain_name(model::AbstractBQPModel{<:SpinDomain}) = "Spin"
+domain_name(model::AbstractQUBOModel{<:BoolDomain}) = "Bool"
+domain_name(model::AbstractQUBOModel{<:SpinDomain}) = "Spin"
 
-abstract type BQPAttribute end
+abstract type QUBOAttribute end
 
-function getattr(model::Any, attr::BQPAttribute)
-    BQPIO.getattr(BQPIO.backend(model), attr)
+function getattr(model::Any, attr::QUBOAttribute)
+    QUBOTools.getattr(QUBOTools.backend(model), attr)
 end
 
-function getdefaultattr(model::Any, attr::BQPAttribute)
-    value = BQPIO.getattr(BQPIO.backend(model), attr)
+function getdefaultattr(model::Any, attr::QUBOAttribute)
+    value = QUBOTools.getattr(QUBOTools.backend(model), attr)
 
     if isnothing(value)
-        BQPIO._defaultattr(BQPIO.backend(model), attr)
+        QUBOTools._defaultattr(QUBOTools.backend(model), attr)
     else
         value
     end
 end
 
-_defaultattr(::Any, ::BQPAttribute) = nothing
+_defaultattr(::Any, ::QUBOAttribute) = nothing
 
-struct ATTR_OFFSET <: BQPAttribute end
+struct ATTR_OFFSET <: QUBOAttribute end
 
 function offset(model::Any)
     getdefaultattr(model, ATTR_OFFSET())
 end
 
-struct ATTR_SCALE <: BQPAttribute end
+struct ATTR_SCALE <: QUBOAttribute end
 
 function scale(model::Any)
     getdefaultattr(model, ATTR_SCALE())
 end
 
-struct ATTR_ID <: BQPAttribute end
+struct ATTR_ID <: QUBOAttribute end
 
 function id(model::Any)
     getdefaultattr(model, ATTR_ID())
 end
 
-struct ATTR_VERSION <: BQPAttribute end
+struct ATTR_VERSION <: QUBOAttribute end
 
 function version(model::Any)
     getdefaultattr(model, ATTR_VERSION())
 end
 
-struct ATTR_DESCRIPTION <: BQPAttribute end
+struct ATTR_DESCRIPTION <: QUBOAttribute end
 
 function description(model::Any)
     getdefaultattr(model, ATTR_DESCRIPTION())
 end
 
-struct ATTR_METADATA <: BQPAttribute end
+struct ATTR_METADATA <: QUBOAttribute end
 
 function metadata(model::Any)
     getdefaultattr(model, ATTR_METADATA())
 end
 
-struct ATTR_SAMPLESET <: BQPAttribute end
+struct ATTR_SAMPLESET <: QUBOAttribute end
 
 @doc raw"""
 """ function sampleset end
@@ -95,12 +95,12 @@ The `explicit` keyword determines wether all variables should be included, break
 """ function linear_terms end
 
 function linear_terms(model::Any; explicit::Bool=false)
-    linear_terms = BQPIO.linear_terms(BQPIO.backend(model))
+    linear_terms = QUBOTools.linear_terms(QUBOTools.backend(model))
 
     if explicit
-        return BQPIO._explicit_linear_terms(
+        return QUBOTools._explicit_linear_terms(
             linear_terms,
-            BQPIO.variable_inv(model)
+            QUBOTools.variable_inv(model)
         )
     else
         return linear_terms
@@ -121,49 +121,49 @@ end
 """ function quadratic_terms end
 
 function quadratic_terms(model::Any)
-    BQPIO.quadratic_terms(BQPIO.backend(model))
+    QUBOTools.quadratic_terms(QUBOTools.backend(model))
 end
 
 @doc raw"""
 """ function variables end
 
 function variables(model::Any)
-    sort(collect(keys(BQPIO.variable_map(model))))
+    sort(collect(keys(QUBOTools.variable_map(model))))
 end
 
 @doc raw"""
 """ function variable_set end
 
 function variable_set(model::Any)
-    Set(keys(BQPIO.variable_map(model)))
+    Set(keys(QUBOTools.variable_map(model)))
 end
 
 @doc raw"""
 """ function variable_map end
 
 function variable_map(model::Any)
-    BQPIO.variable_map(BQPIO.backend(model))
+    QUBOTools.variable_map(QUBOTools.backend(model))
 end
 
 function variable_map(model::Any, i::Any)
-    BQPIO.variable_map(BQPIO.backend(model), i)
+    QUBOTools.variable_map(QUBOTools.backend(model), i)
 end
 
 @doc raw"""
 """ function variable_inv end
 
 function variable_inv(model::Any)
-    BQPIO.variable_inv(BQPIO.backend(model))
+    QUBOTools.variable_inv(QUBOTools.backend(model))
 end
 
 function variable_inv(model::Any, i::Integer)
-    BQPIO.variable_inv(BQPIO.backend(model), i)
+    QUBOTools.variable_inv(QUBOTools.backend(model), i)
 end
 
 @doc raw"""
-    qubo(model::AbstractBQPModel{<:BoolDomain})
-    qubo(::Type{<:Dict}, T::Type, model::AbstractBQPModel{<:BoolDomain})
-    qubo(::Type{<:Array}, T::Type, model::AbstractBQPModel{<:BoolDomain})
+    qubo(model::AbstractQUBOModel{<:BoolDomain})
+    qubo(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
+    qubo(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
 
 # QUBO Normal Form
 
@@ -179,42 +179,42 @@ Returns a quadruple ``(x, Q, \alpha, \beta)`` where:
 """ function qubo end
 
 function qubo(model::Any)
-    BQPIO.qubo(BQPIO.backend(model))
+    QUBOTools.qubo(QUBOTools.backend(model))
 end
 
-function qubo(model::AbstractBQPModel{<:BoolDomain})
-    BQPIO.qubo(Dict, Float64, model)
+function qubo(model::AbstractQUBOModel{<:BoolDomain})
+    QUBOTools.qubo(Dict, Float64, model)
 end
 
-function qubo(::Type{<:Dict}, T::Type, model::AbstractBQPModel{<:BoolDomain})
-    x = BQPIO.variable_map(model)
+function qubo(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
+    x = QUBOTools.variable_map(model)
     Q = Dict{Tuple{Int,Int},T}()
-    α::T = BQPIO.scale(model)
-    β::T = BQPIO.offset(model)
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
 
-    for (i, qᵢ) in BQPIO.linear_terms(model)
+    for (i, qᵢ) in QUBOTools.linear_terms(model)
         Q[i, i] = qᵢ
     end
 
-    for ((i, j), qᵢⱼ) in BQPIO.quadratic_terms(model)
+    for ((i, j), qᵢⱼ) in QUBOTools.quadratic_terms(model)
         Q[i, j] = qᵢⱼ
     end
 
     return (x, Q, α, β)
 end
 
-function qubo(::Type{<:Array}, T::Type, model::AbstractBQPModel{<:BoolDomain})
-    x = BQPIO.variable_map(model)
+function qubo(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
+    x = QUBOTools.variable_map(model)
     n = length(x)
     Q = zeros(T, n, n)
-    α::T = BQPIO.scale(model)
-    β::T = BQPIO.offset(model)
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
 
-    for (i, qᵢ) in BQPIO.linear_terms(model)
+    for (i, qᵢ) in QUBOTools.linear_terms(model)
         Q[i, i] = qᵢ
     end
 
-    for ((i, j), qᵢⱼ) in BQPIO.quadratic_terms(model)
+    for ((i, j), qᵢⱼ) in QUBOTools.quadratic_terms(model)
         Q[i, j] = qᵢⱼ
     end
 
@@ -222,9 +222,9 @@ function qubo(::Type{<:Array}, T::Type, model::AbstractBQPModel{<:BoolDomain})
 end
 
 @doc raw"""
-    ising(model::AbstractBQPModel{<:SpinDomain})
-    ising(::Type{<:Dict}, model::AbstractBQPModel{<:SpinDomain})
-    ising(::Type{<:Array}, model::AbstractBQPModel{<:SpinDomain})
+    ising(model::AbstractQUBOModel{<:SpinDomain})
+    ising(::Type{<:Dict}, model::AbstractQUBOModel{<:SpinDomain})
+    ising(::Type{<:Array}, model::AbstractQUBOModel{<:SpinDomain})
 
 # Ising Normal Form
 
@@ -241,36 +241,36 @@ Returns a quintuple ``(s, h, J, \alpha, \beta)`` where:
 """ function ising end
 
 function ising(model::Any)
-    BQPIO.ising(BQPIO.backend(model))
+    QUBOTools.ising(QUBOTools.backend(model))
 end
 
-function ising(model::AbstractBQPModel{<:SpinDomain})
-    BQPIO.ising(Dict, model)
+function ising(model::AbstractQUBOModel{<:SpinDomain})
+    QUBOTools.ising(Dict, model)
 end
 
-function ising(::Type{<:Dict}, model::AbstractBQPModel{<:SpinDomain})
-    s = BQPIO.variable_map(model)
-    h = BQPIO.linear_terms(model)
-    J = BQPIO.quadratic_terms(model)
-    α = BQPIO.scale(model)
-    β = BQPIO.offset(model)
+function ising(::Type{<:Dict}, model::AbstractQUBOModel{<:SpinDomain})
+    s = QUBOTools.variable_map(model)
+    h = QUBOTools.linear_terms(model)
+    J = QUBOTools.quadratic_terms(model)
+    α = QUBOTools.scale(model)
+    β = QUBOTools.offset(model)
 
     return (s, h, J, α, β)
 end
 
-function ising(::Type{<:Array}, model::AbstractBQPModel{<:SpinDomain})
-    s = BQPIO.variable_map(model)
+function ising(::Type{<:Array}, model::AbstractQUBOModel{<:SpinDomain})
+    s = QUBOTools.variable_map(model)
     n = length(s)
     h = zeros(Float64, n)
     J = zeros(Float64, n, n)
-    α = BQPIO.scale(model)
-    β = BQPIO.offset(model)
+    α = QUBOTools.scale(model)
+    β = QUBOTools.offset(model)
 
-    for (i, hᵢ) in BQPIO.linear_terms(model)
+    for (i, hᵢ) in QUBOTools.linear_terms(model)
         h[i] = hᵢ
     end
 
-    for ((i, j), Jᵢⱼ) in BQPIO.quadratic_terms(model)
+    for ((i, j), Jᵢⱼ) in QUBOTools.quadratic_terms(model)
         J[i, j] = Jᵢⱼ
     end
 
@@ -278,14 +278,14 @@ function ising(::Type{<:Array}, model::AbstractBQPModel{<:SpinDomain})
 end
 
 @doc raw"""
-    energy(state::Any, model::AbstractBQPModel)
+    energy(state::Any, model::AbstractQUBOModel)
 
-This function aims to evaluate the energy of a given state under some BQP Model.
+This function aims to evaluate the energy of a given state under some QUBO Model.
 Scale and offset factors **are assumed** to be taken into account.
 """ function energy end
 
 function energy(state, model)
-    energy(state, BQPIO.backend(model))
+    energy(state, QUBOTools.backend(model))
 end
 
 # ~*~ Sizes & Dimensions ~*~ #
@@ -293,33 +293,33 @@ end
 """ function domain_size end
 
 function domain_size(model::Any)
-    length(BQPIO.variable_map(model))
+    length(QUBOTools.variable_map(model))
 end
 
 @doc raw"""
 """ function linear_size end
 
 function linear_size(model::Any)
-    length(BQPIO.linear_terms(model))
+    length(QUBOTools.linear_terms(model))
 end
 
 @doc raw"""
 """ function quadratic_size end
 
 function quadratic_size(model::Any)
-    length(BQPIO.quadratic_terms(model))
+    length(QUBOTools.quadratic_terms(model))
 end
 
 @doc raw"""
 """ function density end
 
 function density(model::Any)
-    n = BQPIO.domain_size(model)
+    n = QUBOTools.domain_size(model)
     if n == 0
         return 0.0
     else
-        l = BQPIO.linear_size(model)
-        q = BQPIO.quadratic_size(model)
+        l = QUBOTools.linear_size(model)
+        q = QUBOTools.quadratic_size(model)
         return (2 * q + l) / (n * n)
     end
 end
@@ -328,12 +328,12 @@ end
 """ function linear_density end
 
 function linear_density(model::Any)
-    n = BQPIO.domain_size(model)
+    n = QUBOTools.domain_size(model)
 
     if n == 0
         return 0.0
     else
-        l = BQPIO.linear_size(model)
+        l = QUBOTools.linear_size(model)
         return l / n
     end
 end
@@ -342,12 +342,12 @@ end
 """ function quadratic_density end
 
 function quadratic_density(model::Any)
-    n = BQPIO.domain_size(model)
+    n = QUBOTools.domain_size(model)
 
     if n <= 1
         return 0.0
     else
-        q = BQPIO.quadratic_size(model)
+        q = QUBOTools.quadratic_size(model)
         return (2 * q) / (n * (n - 1))
     end
 end

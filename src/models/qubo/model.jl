@@ -1,7 +1,7 @@
-const QUBO_BACKEND_TYPE{D} = StandardBQPModel{Int,Int,Float64,D}
+const QUBO_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 @doc raw"""
-""" mutable struct QUBO{D<:BoolDomain} <: AbstractBQPModel{D}
+""" mutable struct QUBO{D<:BoolDomain} <: AbstractQUBOModel{D}
     backend::QUBO_BACKEND_TYPE{D}
     max_index::Int
     num_diagonals::Int
@@ -64,9 +64,9 @@ function __isvalidbridge(
         flag = false
     end
 
-    if !BQPIO.__isvalidbridge(
-        BQPIO.backend(source),
-        BQPIO.backend(target);
+    if !QUBOTools.__isvalidbridge(
+        QUBOTools.backend(source),
+        QUBOTools.backend(target);
         kws...
     )
         flag = false
