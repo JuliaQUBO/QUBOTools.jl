@@ -50,7 +50,7 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
     end
 end
 
-function __isvalidbridge(
+function QUBOTools.__isvalidbridge(
     source::BQPJSON{B},
     target::BQPJSON{B},
     ::Type{<:BQPJSON{A}};
@@ -93,3 +93,6 @@ function __isvalidbridge(
 
     return flag
 end
+
+include("data.jl")
+include("io.jl")

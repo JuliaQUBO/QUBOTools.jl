@@ -5,7 +5,7 @@ BQPJSON_SPIN_PATH(path::String, i::Integer)      = joinpath(path, "data", @sprin
 BQPJSON_BOOL_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "bool.temp.json")
 BQPJSON_SPIN_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "spin.temp.json")
 
-function test_BQPJSON(path::String, n::Integer)
+function test_bqpjson(path::String, n::Integer)
     @testset "BQPJSON" verbose = true begin
         @testset "IO" verbose = true begin
             @testset "BOOL" begin

@@ -1,2 +1,11 @@
 QUBOTools.backend(model::BQPJSON) = model.backend
-QUBOTools._defaultattr(::BQPJSON, ::ATTR_VERSION) = BQPJSON_VERSION_LATEST
+
+function QUBOTools.version(model::BQPJSON)
+    version = QUBOTools.version(QUBOTools.backend(model))
+
+    if !isnothing(version)
+        return version
+    else
+        return BQPJSON_VERSION_LATEST
+    end
+end

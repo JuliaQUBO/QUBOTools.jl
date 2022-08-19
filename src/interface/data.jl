@@ -64,9 +64,16 @@ The `explicit` keyword includes all variables, breaking sparsity.
 """ function quadratic_terms end
 
 @doc raw"""
+    variables(model)
+
+Returns an ordered vector containing the model's variables.
+If order doesn't matter, use `variable_set(model)` instead.
 """ function variables end
 
 @doc raw"""
+    variable_set(model)
+
+Returns the set of variables of a given model.
 """ function variable_set end
 
 @doc raw"""
@@ -124,7 +131,6 @@ This function aims to evaluate the energy of a given state under some QUBO Model
 **Note:** Scale and offset factors are taken into account.
 """ function energy end
 
-# ~*~ Sizes & Dimensions ~*~ #
 @doc raw"""
 """ function domain_size end
 

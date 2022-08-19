@@ -1,6 +1,6 @@
 @doc raw"""
     StandardQUBOModel{
-        S <: Any,
+        V <: Any,
         U <: Integer,
         T <: Real,
         D <: VariableDomain
@@ -10,11 +10,11 @@ The `StandardQUBOModel` was designed to work as a general for all implemented in
 It is intended to be the core engine behind the target codecs.
 
 ## MathOptInterface/JuMP
-Both `S <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
-By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
+Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
+By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
 """ mutable struct StandardQUBOModel{
-    S<:Any,
+    V<:Any,
     U<:Integer,
     T<:Real,
     D<:VariableDomain
@@ -22,8 +22,8 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     # ~*~ Required data ~*~
     linear_terms::Dict{Int,T}
     quadratic_terms::Dict{Tuple{Int,Int},T}
-    variable_map::Dict{S,Int}
-    variable_inv::Dict{Int,S}
+    variable_map::Dict{V,Int}
+    variable_inv::Dict{Int,V}
     # ~*~ Sense ~*~
     sense::Symbol
     # ~*~ Factors ~*~
@@ -37,12 +37,12 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     # ~*~ Solutions ~*~
     sampleset::Union{SampleSet{U,T},Nothing}
 
-    function StandardQUBOModel{S,U,T,D}(
+    function StandardQUBOModel{V,U,T,D}(
         # ~*~ Required data ~*~
         linear_terms::Dict{Int,T},
         quadratic_terms::Dict{Tuple{Int,Int},T},
-        variable_map::Dict{S,Int},
-        variable_inv::Dict{Int,S};
+        variable_map::Dict{V,Int},
+        variable_inv::Dict{Int,V};
         # ~*~ Sense ~*~
         sense::Symbol=:min,
         # ~*~ Factors ~*~
@@ -55,10 +55,10 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         metadata::Union{Dict{String,Any},Nothing}=nothing,
         # ~*~ Solutions ~*~
         sampleset::Union{SampleSet{U,T},Nothing}=nothing
-    ) where {S,U,T,D}
-        @assert sense == :min || sense == :max
+    ) where {V,U,T,D}
+        @assert sense === :min || sense === :max
 
-        new{S,U,T,D}(
+        new{V,U,T,D}(
             linear_terms,
             quadratic_terms,
             variable_map,
@@ -74,12 +74,12 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
-    function StandardQUBOModel{S,U,T,D}(
+    function StandardQUBOModel{V,U,T,D}(
         # ~*~ Required data ~*~
-        _linear_terms::Dict{S,T},
-        _quadratic_terms::Dict{Tuple{S,S},T};
+        _linear_terms::Dict{V,T},
+        _quadratic_terms::Dict{Tuple{V,V},T};
         kws...
-    ) where {S,U,T,D}
+    ) where {V,U,T,D}
         # ~ What is happening now: There were many layers of validation
         #   before we got here. This call to `_normal_form` removes any re-
         #   dundancy by aggregating (i, j) and (j, i) terms and also ma-
@@ -99,7 +99,7 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
             variable_map,
         )
 
-        StandardQUBOModel{S,U,T,D}(
+        StandardQUBOModel{V,U,T,D}(
             linear_terms,
             quadratic_terms,
             variable_map,
@@ -108,21 +108,21 @@ By choosing `S = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
-    function StandardQUBOModel{S,U,T,D}(; kws...) where {S,U,T,D}
-        StandardQUBOModel{S,U,T,D}(
-            Dict{S,T}(),
-            Dict{Tuple{S,S},T}();
+    function StandardQUBOModel{V,U,T,D}(; kws...) where {V,U,T,D}
+        StandardQUBOModel{V,U,T,D}(
+            Dict{V,T}(),
+            Dict{Tuple{V,V},T}();
             kws...
         )
     end
 
     # ~ aliasing ~
-    function StandardQUBOModel{S,T,D}(args...; kws...) where {S,T,D}
-        StandardQUBOModel{S,Int,T,D}(args...; kws...)
+    function StandardQUBOModel{V,T,D}(args...; kws...) where {V,T,D}
+        StandardQUBOModel{V,Int,T,D}(args...; kws...)
     end
 
-    function StandardQUBOModel{S,D}(args...; kws...) where {S,D}
-        StandardQUBOModel{S,Int,Float64,D}(args...; kws...)
+    function StandardQUBOModel{V,D}(args...; kws...) where {V,D}
+        StandardQUBOModel{V,Int,Float64,D}(args...; kws...)
     end
 
     function StandardQUBOModel{D}(args...; kws...) where {D}
@@ -160,8 +160,8 @@ function Base.isempty(model::StandardQUBOModel)
            isnothing(model.sampleset)
 end
 
-function Base.copy(model::StandardQUBOModel{S,U,T,D}) where {S,U,T,D}
-    StandardQUBOModel{S,U,T,D}(
+function Base.copy(model::StandardQUBOModel{V,U,T,D}) where {V,U,T,D}
+    StandardQUBOModel{V,U,T,D}(
         copy(model.linear_terms),
         copy(model.quadratic_terms),
         copy(model.variable_map),
@@ -177,10 +177,10 @@ function Base.copy(model::StandardQUBOModel{S,U,T,D}) where {S,U,T,D}
 end
 
 function QUBOTools.__isvalidbridge(
-    source::StandardQUBOModel{S,U,T,D},
-    target::StandardQUBOModel{S,U,T,D};
+    source::StandardQUBOModel{V,U,T,D},
+    target::StandardQUBOModel{V,U,T,D};
     kws...
-) where {S,U,T,D}
+) where {V,U,T,D}
     flag = true
 
     if !isnothing(source.id) && !isnothing(target.id) && (source.id != target.id)

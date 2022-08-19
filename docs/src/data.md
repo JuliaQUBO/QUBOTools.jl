@@ -4,6 +4,6 @@
 | :---------------- | :----------------------: | ----------- | :------: |
 | `linear_terms`    |      `Dict{Int, T}`      |             |   YES    |
 | `quadratic_terms` | `Dict{Tuple{Int,Int} T}` |             |   YES    |
-| `offset`          |           `T`            |             |   YES    |
-| `scale`           |           `T`            |             |   YES    |
+| `offset`          |           `T`            |             |    NO    |
+| `scale`           |           `T`            |             |    NO    |
 | `id`              |          `Int`           |             |    NO    |

@@ -123,10 +123,10 @@ end
 
 function Base.size(X::SampleSet)
     if isempty(X)
-        (0, 0)
-    elseif isempty(X.samples[begin])
-        (1, 0)
+        return (0, 0)
+    elseif isempty(X.samples)
+        return (1, 0)
     else
-        (length(X.samples), length(X.samples[begin]))
+        return (length(X.samples), length(X.samples[begin]))
     end
 end
