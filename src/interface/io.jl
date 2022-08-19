@@ -43,7 +43,7 @@ function Base.show(io::IO, model::AbstractQUBOModel)
 end
 
 function Base.copy!(::M, ::M) where {M<:AbstractQUBOModel}
-    QUBOcodec_error("'Base.copy!' not implemented for copying '$M' in-place")
+    QUBOcodec_error("'Base.copy!' not implemented for copying '$M' models in-place")
 end
 
 function Base.copy!(

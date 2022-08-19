@@ -164,6 +164,8 @@ function _build_mapping(variable_set::Set{V}) where {V}
 end
 
 @doc raw"""
+    infer_model_type(path::String)
+    infer_model_type(ext::Symbol)
 """ function infer_model_type end
 
 function infer_model_type(path::String)
