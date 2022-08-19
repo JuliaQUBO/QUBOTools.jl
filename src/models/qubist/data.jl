@@ -1,1 +1,1 @@
-BQPIO.backend(model::Qubist) = model.backend
+QUBOTools.backend(model::Qubist) = model.backend

@@ -1,4 +1,4 @@
-function test_bqpjson_qubist(path::String, n::Integer)
+function test_BQPJSON_qubist(path::String, n::Integer)
     @testset "BQPJSON ~ Qubist" begin
         for i = 0:n
             qubs_path = QUBIST_PATH(path, i)
@@ -10,12 +10,12 @@ function test_bqpjson_qubist(path::String, n::Integer)
             @test qubs_model isa Qubist{SpinDomain}
             @test spin_model isa BQPJSON{SpinDomain}
 
-            @test BQPIO.__isvalidbridge(
+            @test QUBOTools.__isvalidbridge(
                 convert(Qubist{SpinDomain}, spin_model),
                 qubs_model,
                 BQPJSON{SpinDomain},
             )
-            @test BQPIO.__isvalidbridge(
+            @test QUBOTools.__isvalidbridge(
                 convert(BQPJSON{SpinDomain}, qubs_model),
                 spin_model,
                 Qubist{SpinDomain},

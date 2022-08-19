@@ -16,7 +16,7 @@ function test_qubist(path::String, n::Integer)
                     temp_model = read(temp_path, Qubist)
                     @test temp_model isa Qubist{SpinDomain}
 
-                    @test BQPIO.__isvalidbridge(
+                    @test QUBOTools.__isvalidbridge(
                         temp_model,
                         qbst_model,
                         Qubist{SpinDomain};

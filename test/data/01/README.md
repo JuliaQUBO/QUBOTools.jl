@@ -7,8 +7,8 @@ $$f(s_2, s_4, s_6) = 0.65 s_2 - 0.35 s_6$$
 ## Status Table
 | Format   | Domain | Status |
 | :------- | :----: | :----: |
-| bqpjson  |  Bool  |   ✔️    |
-| bqpjson  |  Spin  |   ✔️    |
+| BQPJSON  |  Bool  |   ✔️    |
+| BQPJSON  |  Spin  |   ✔️    |
 | MiniZinc |  Bool  |   ✔️    |
 | MiniZinc |  Spin  |   ✔️    |
 | QUBO     |  Bool  |   ✔️    |

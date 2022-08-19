@@ -164,17 +164,24 @@ function _build_mapping(variable_set::Set{V}) where {V}
 end
 
 @doc raw"""
+    infer_model_type(path::String)
+    infer_model_type(ext::Symbol)
 """ function infer_model_type end
 
 function infer_model_type(path::String)
     _, ext = splitext(path)
 
     if !isempty(ext)
-        return infer_model_type(Val(Symbol(ext[2:end])))
+        # Remove '.' from beginning
+        extsym = Symbol(ext[2:end])
+
+        return infer_model_type(extsym)
     else
         error("Inference Error: Unable to infer model type without file extension")
     end
 end
+
+infer_model_type(ext::Symbol) = QUBOTools.infer_model_type(Val(ext))
 
 function infer_model_type(::Val{X}) where {X}
     error("Inference Error: Unable to infer model type from extension '$X'")

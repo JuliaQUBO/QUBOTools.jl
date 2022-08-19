@@ -1,9 +1,9 @@
 function Base.write(io::IO, model::QUBO)
-    scale = BQPIO.scale(model)
-    offset = BQPIO.offset(model)
-    id = BQPIO.id(model)
-    description = BQPIO.description(model)
-    metadata = BQPIO.metadata(model)
+    scale = QUBOTools.scale(model)
+    offset = QUBOTools.offset(model)
+    id = QUBOTools.id(model)
+    description = QUBOTools.description(model)
+    metadata = QUBOTools.metadata(model)
 
     if !isnothing(scale)
         println(io, "c scale : $(scale)")
@@ -32,13 +32,13 @@ function Base.write(io::IO, model::QUBO)
     println(io, "p qubo 0 $(model.max_index) $(model.num_diagonals) $(model.num_elements)")
 
     println(io, "c linear terms")
-    for (i, q) in BQPIO.linear_terms(model; explicit=true)
-        println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, i)) $(q)")
+    for (i, q) in QUBOTools.linear_terms(model; explicit=true)
+        println(io, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, i)) $(q)")
     end
 
     println(io, "c quadratic terms")
-    for ((i, j), Q) in BQPIO.quadratic_terms(model)
-        println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, j)) $(Q)")
+    for ((i, j), Q) in QUBOTools.quadratic_terms(model)
+        println(io, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, j)) $(Q)")
     end
 end
 
@@ -127,7 +127,7 @@ function Base.read(io::IO, ::Type{<:QUBO})
     end
 
     if isnothing(max_index) || isnothing(num_diagonals) || isnothing(num_elements)
-        bqpcodec_error("Invalid problem header")
+        QUBOcodec_error("Invalid problem header")
     end
 
     QUBO{BoolDomain}(
@@ -144,4 +144,4 @@ function Base.read(io::IO, ::Type{<:QUBO})
     )
 end
 
-BQPIO.infer_model_type(::Val{:qubo}) = QUBO
+QUBOTools.infer_model_type(::Val{:qubo}) = QUBO

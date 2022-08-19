@@ -9,15 +9,15 @@ function Base.convert(::Type{BQPJSON{BoolDomain}}, model::QUBO)
     BQPJSON{BoolDomain}(backend; solutions=solutions)
 end
 
-function BQPIO.__isvalidbridge(
+function QUBOTools.__isvalidbridge(
     source::BQPJSON{BoolDomain},
     target::BQPJSON{BoolDomain},
     ::Type{<:QUBO{BoolDomain}};
     kws...
 )
-    BQPIO.__isvalidbridge(
-        BQPIO.backend(source),
-        BQPIO.backend(target);
+    QUBOTools.__isvalidbridge(
+        QUBOTools.backend(source),
+        QUBOTools.backend(target);
         kws...
     )
 end
@@ -28,13 +28,13 @@ end
 
 function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
     backend = copy(model.backend)
-    max_index = if isempty(BQPIO.variable_map(backend))
+    max_index = if isempty(QUBOTools.variable_map(backend))
         0
     else
-        1 + maximum(keys(BQPIO.variable_map(backend)))
+        1 + maximum(keys(QUBOTools.variable_map(backend)))
     end
-    num_diagonals = length(BQPIO.linear_terms(backend))
-    num_elements = length(BQPIO.quadratic_terms(backend))
+    num_diagonals = length(QUBOTools.linear_terms(backend))
+    num_elements = length(QUBOTools.quadratic_terms(backend))
 
     QUBO{BoolDomain}(
         backend;
@@ -44,15 +44,15 @@ function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
     )
 end
 
-function BQPIO.__isvalidbridge(
+function QUBOTools.__isvalidbridge(
     source::QUBO{BoolDomain},
     target::QUBO{BoolDomain},
     ::Type{<:BQPJSON{BoolDomain}};
     kws...
 )
-    BQPIO.__isvalidbridge(
-        BQPIO.backend(source),
-        BQPIO.backend(target);
+    QUBOTools.__isvalidbridge(
+        QUBOTools.backend(source),
+        QUBOTools.backend(target);
         kws...
     )
 end

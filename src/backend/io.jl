@@ -1,9 +1,13 @@
-function Base.convert(::Type{<:StandardBQPModel{S,U,T,D}}, model::StandardBQPModel{S,U,T,D}) where {S,U,T,D}
-    model # Short-circuit! Yeah!
-end
+Base.convert(
+    ::Type{<:StandardQUBOModel{V,U,T,D}},
+    model::StandardQUBOModel{V,U,T,D}
+) where {V,U,T,D} = model # Short-circuit! Yeah!
 
-function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPModel{S,U,T,A}) where {S,U,T,A,B}
-    _linear_terms, _quadratic_terms, offset = _swapdomain(
+function Base.convert(
+    ::Type{<:StandardQUBOModel{V,U,T,B}},
+    model::StandardQUBOModel{V,U,T,A}
+) where {V,U,T,A,B}
+    _linear_terms, _quadratic_terms, offset = QUBOTools._swapdomain(
         A,
         B,
         model.linear_terms,
@@ -11,12 +15,12 @@ function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPMod
         model.offset,
     )
 
-    linear_terms, quadratic_terms, _ = BQPIO._normal_form(
+    linear_terms, quadratic_terms, _ = QUBOTools._normal_form(
         _linear_terms,
         _quadratic_terms,
     )
 
-    StandardBQPModel{S,U,T,B}(
+    StandardQUBOModel{V,U,T,B}(
         linear_terms,
         quadratic_terms,
         copy(model.variable_map),
@@ -32,13 +36,10 @@ function Base.convert(::Type{<:StandardBQPModel{S,U,T,B}}, model::StandardBQPMod
     )
 end
 
-# function Base.read end
-# function Base.write end
-
 function Base.copy!(
-    target::StandardBQPModel{S,U,T,D},
-    source::StandardBQPModel{S,U,T,D},
-) where {S,U,T,D<:VariableDomain}
+    target::StandardQUBOModel{V,U,T,D},
+    source::StandardQUBOModel{V,U,T,D},
+) where {V,U,T,D}
     target.linear_terms = copy(source.linear_terms)
     target.quadratic_terms = copy(source.quadratic_terms)
     target.variable_map = copy(source.variable_map)
@@ -56,8 +57,8 @@ function Base.copy!(
 end
 
 function Base.copy!(
-    target::StandardBQPModel{S,U,T,B},
-    source::StandardBQPModel{S,U,T,A},
-) where {S,U,T,A<:VariableDomain,B<:VariableDomain}
-    copy!(target, convert(StandardBQPModel{S,U,T,B}, source))
+    target::StandardQUBOModel{V,U,T,B},
+    source::StandardQUBOModel{V,U,T,A},
+) where {V,U,T,A,B}
+    copy!(target, convert(StandardQUBOModel{V,U,T,B}, source))
 end

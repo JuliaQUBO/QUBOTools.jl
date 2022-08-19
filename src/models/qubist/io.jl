@@ -1,10 +1,10 @@
 function Base.write(io::IO, model::Qubist)
     println(io, "$(model.sites) $(model.lines)")
-    for (i, h) in BQPIO.linear_terms(model; explicit=true)
-        println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, i)) $(h)")
+    for (i, h) in QUBOTools.linear_terms(model; explicit=true)
+        println(io, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, i)) $(h)")
     end
-    for ((i, j), J) in BQPIO.quadratic_terms(model)
-        println(io, "$(BQPIO.variable_inv(model, i)) $(BQPIO.variable_inv(model, j)) $(J)")
+    for ((i, j), J) in QUBOTools.quadratic_terms(model)
+        println(io, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, j)) $(J)")
     end
 end
 
@@ -21,11 +21,11 @@ function Base.read(io::IO, ::Type{<:Qubist})
         sites = tryparse(Int, m[1])
         lines = tryparse(Int, m[2])
     else
-        bqpcodec_error("Invalid file header")
+        QUBOcodec_error("Invalid file header")
     end
 
     if isnothing(sites) || isnothing(lines)
-        bqpcodec_error("Invalid file header")
+        QUBOcodec_error("Invalid file header")
     end
 
     for line in strip.(readlines(io))
@@ -35,14 +35,14 @@ function Base.read(io::IO, ::Type{<:Qubist})
             j = tryparse(Int, m[2])
             q = tryparse(Float64, m[3])
             if isnothing(i) || isnothing(j) || isnothing(q)
-                bqpcodec_error("Invalid input '$line'")
+                QUBOcodec_error("Invalid input '$line'")
             elseif i == j
                 linear_terms[i] = get(linear_terms, i, 0.0) + q
             else
                 quadratic_terms[(i, j)] = get(quadratic_terms, (i, j), 0.0) + q
             end
         else
-            bqpcodec_error("Invalid input '$line'")
+            QUBOcodec_error("Invalid input '$line'")
         end
     end
 
@@ -54,4 +54,4 @@ function Base.read(io::IO, ::Type{<:Qubist})
     )
 end
 
-BQPIO.infer_model_type(::Val{:qh}) = Qubist
+QUBOTools.infer_model_type(::Val{:qh}) = Qubist

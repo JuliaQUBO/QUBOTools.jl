@@ -7,8 +7,8 @@ $$f \equiv 0$$
 ## Status Table
 | Format   | Domain | Status |
 | :------- | :----: | :----: |
-| bqpjson  |  Bool  |   ✔️    |
-| bqpjson  |  Spin  |   ✔️    |
+| BQPJSON  |  Bool  |   ✔️    |
+| BQPJSON  |  Spin  |   ✔️    |
 | MiniZinc |  Bool  |   ✔️    |
 | MiniZinc |  Spin  |   ✔️    |
 | QUBO     |  Bool  |   ✔️    |

@@ -3,13 +3,13 @@ function Base.convert(::Type{<:Qubist}, model::BQPJSON{BoolDomain})
 end
 
 function Base.convert(::Type{<:Qubist}, model::BQPJSON{SpinDomain})
-    backend = copy(BQPIO.backend(model))
-    sites = if isempty(BQPIO.variable_map(backend))
+    backend = copy(QUBOTools.backend(model))
+    sites = if isempty(QUBOTools.variable_map(backend))
         0
     else
-        1 + maximum(keys(BQPIO.variable_map(backend)))
+        1 + maximum(keys(QUBOTools.variable_map(backend)))
     end
-    lines = length(BQPIO.linear_terms(backend)) + length(BQPIO.quadratic_terms(backend))
+    lines = length(QUBOTools.linear_terms(backend)) + length(QUBOTools.quadratic_terms(backend))
 
     Qubist{SpinDomain}(
         backend;
@@ -18,15 +18,15 @@ function Base.convert(::Type{<:Qubist}, model::BQPJSON{SpinDomain})
     )
 end
 
-function BQPIO.__isvalidbridge(
+function QUBOTools.__isvalidbridge(
     source::BQPJSON{SpinDomain},
     target::BQPJSON{SpinDomain},
     ::Type{<:Qubist};
     kws...
 )
-    BQPIO.__isvalidbridge(
-        BQPIO.backend(source),
-        BQPIO.backend(target);
+    QUBOTools.__isvalidbridge(
+        QUBOTools.backend(source),
+        QUBOTools.backend(target);
         kws...
     )
 end
@@ -36,21 +36,21 @@ function Base.convert(::Type{<:BQPJSON{BoolDomain}}, model::Qubist)
 end
 
 function Base.convert(::Type{<:BQPJSON{SpinDomain}}, model::Qubist)
-    backend = copy(BQPIO.backend(model))
+    backend = copy(QUBOTools.backend(model))
     solutions = nothing
 
     BQPJSON{SpinDomain}(backend; solutions=solutions)
 end
 
-function BQPIO.__isvalidbridge(
+function QUBOTools.__isvalidbridge(
     source::Qubist{SpinDomain},
     target::Qubist{SpinDomain},
     ::Type{<:BQPJSON{SpinDomain}};
     kws...
 )
-    BQPIO.__isvalidbridge(
-        BQPIO.backend(source),
-        BQPIO.backend(target);
+    QUBOTools.__isvalidbridge(
+        QUBOTools.backend(source),
+        QUBOTools.backend(target);
         kws...
     )
 end

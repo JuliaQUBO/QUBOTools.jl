@@ -87,7 +87,7 @@ It was clearly inspired by [1], with a few tweaks.
     ) where {U,T}
 
         SampleSet{U,T}(
-            Sample{U,T}[Sample{U,T}(state, 1, BQPIO.energy(state, model)) for state in data],
+            Sample{U,T}[Sample{U,T}(state, 1, QUBOTools.energy(state, model)) for state in data],
             metadata
         )
     end
@@ -123,10 +123,10 @@ end
 
 function Base.size(X::SampleSet)
     if isempty(X)
-        (0, 0)
-    elseif isempty(X.samples[begin])
-        (1, 0)
+        return (0, 0)
+    elseif isempty(X.samples)
+        return (1, 0)
     else
-        (length(X.samples), length(X.samples[begin]))
+        return (length(X.samples), length(X.samples[begin]))
     end
 end

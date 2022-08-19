@@ -1,5 +1,5 @@
 function test_tools()
-    @testset "-*- Tools -*-" begin
+    @testset "-*- Tools" begin
         _linear_terms = Dict{Symbol,Float64}(
             :x => 0.5,
             :y => 1.0,
@@ -17,14 +17,14 @@ function test_tools()
             (:w, :z) => -2.0,
         )
 
-        _linear_terms, _quadratic_terms, variable_set = BQPIO._normal_form(
+        _linear_terms, _quadratic_terms, variable_set = QUBOTools._normal_form(
             _linear_terms,
             _quadratic_terms
         )
 
-        variable_map, variable_inv = BQPIO._build_mapping(variable_set)
+        variable_map, variable_inv = QUBOTools._build_mapping(variable_set)
 
-        linear_terms, quadratic_terms = BQPIO._map_terms(
+        linear_terms, quadratic_terms = QUBOTools._map_terms(
             _linear_terms,
             _quadratic_terms,
             variable_map,
@@ -33,12 +33,15 @@ function test_tools()
         @test variable_map == Dict{Symbol,Int}(
             :w => 1, :x => 2, :y => 3, :z => 4, :ξ => 5,
         )
+
         @test variable_inv == Dict{Int,Symbol}(
             1 => :w, 2 => :x, 3 => :y, 4 => :z, 5 => :ξ,
         )
+
         @test linear_terms == Dict{Int,Float64}(
             1 => -0.25, 2 => 1.0, 3 => 1.0, 4 => 2.0,
         )
+
         @test quadratic_terms == Dict{Tuple{Int,Int},Float64}(
             (2, 3) => 1.0,
             (2, 4) => 2.0,
@@ -47,7 +50,7 @@ function test_tools()
             (1, 4) => -2.0,
         )
 
-        __linear_terms, __quadratic_terms = BQPIO._inv_terms(
+        __linear_terms, __quadratic_terms = QUBOTools._inv_terms(
             linear_terms,
             quadratic_terms,
             variable_inv,
@@ -59,6 +62,7 @@ function test_tools()
             :z => 2.0,
             :w => -0.25,
         )
+
         @test __quadratic_terms == Dict{Tuple{Symbol,Symbol},Float64}(
             (:x, :y) => 1.0,
             (:x, :z) => 2.0,
