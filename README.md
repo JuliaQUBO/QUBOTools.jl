@@ -128,7 +128,7 @@ When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say
 <div align="center">
     <h2>PSR Quantum Optimization Toolchain</h2>
     <a href="https://github.com/psrenergy/ToQUBO.jl">
-        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/ToQUBOTools.jl/master/docs/src/assets/logo.svg" alt="ToQUBOTools.jl" />
+        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/ToQUBO.jl/master/docs/src/assets/logo.svg" alt="ToQUBO.jl" />
     </a>
     <a href="https://github.com/psrenergy/Anneal.jl">
         <img width="200px" src="https://raw.githubusercontent.com/psrenergy/Anneal.jl/master/docs/src/assets/logo.svg" alt="Anneal.jl" />
