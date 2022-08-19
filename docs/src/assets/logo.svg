@@ -64,7 +64,7 @@
         alignment-baseline: middle;
         font-style: italic;
         font-weight: bold;
-        text-shadow: 7px 7px 1px #000000;
+        text-shadow: 5px 5px 1px #000000;
     }
   	</style>
 
