@@ -1,3 +1,16 @@
+Base.isvalid(::AbstractQUBOModel) = false
+Base.isempty(model::AbstractQUBOModel) = (QUBOTools.domain_size(model) == 0)
+
+QUBOTools.__isvalidbridge(
+    source::M,
+    target::M,
+    ::Type{<:AbstractQUBOModel};
+    kws...
+) where {M<:AbstractQUBOModel} = false
+
+QUBOTools.domain_name(model::AbstractQUBOModel{<:BoolDomain}) = "Bool"
+QUBOTools.domain_name(model::AbstractQUBOModel{<:SpinDomain}) = "Spin"
+
 QUBOTools.domain_size(model::AbstractQUBOModel) = length(QUBOTools.variable_map(model))
 QUBOTools.linear_size(model::AbstractQUBOModel) = length(QUBOTools.linear_terms(model))
 QUBOTools.quadratic_size(model::AbstractQUBOModel) = length(QUBOTools.quadratic_terms(model))

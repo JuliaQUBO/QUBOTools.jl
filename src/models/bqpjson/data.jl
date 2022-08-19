@@ -1,4 +1,5 @@
 QUBOTools.backend(model::BQPJSON) = model.backend
+QUBOTools.model_name(::BQPJSON) = "BQPJSON"
 
 function QUBOTools.version(model::BQPJSON)
     version = QUBOTools.version(QUBOTools.backend(model))

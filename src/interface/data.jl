@@ -148,3 +148,11 @@ This function aims to evaluate the energy of a given state under some QUBO Model
 
 @doc raw"""
 """ function quadratic_density end
+
+@doc raw"""
+    __isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
+
+Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
+Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` calls.
+
+""" function __isvalidbridge end

@@ -62,6 +62,40 @@ QUBOTools.energy(model) = QUBOTools.energy(QUBOTools.backend(model))
 QUBOTools.domain_size(model) = QUBOTools.domain_size(QUBOTools.backend(model))
 QUBOTools.linear_size(model) = QUBOTools.linear_size(QUBOTools.backend(model))
 QUBOTools.quadratic_size(model) = QUBOTools.quadratic_size(QUBOTools.backend(model))
-QUBOTools.density(model) = QUBOTools.density(QUBOTools.backend(model))
-QUBOTools.linear_density(model) = QUBOTools.linear_density(QUBOTools.backend(model))
-QUBOTools.quadratic_density(model) = QUBOTools.quadratic_density(QUBOTools.backend(model))
+
+function QUBOTools.density(model)
+    n = QUBOTools.domain_size(model)
+
+    if n == 0
+        return 0.0
+    else
+        l = QUBOTools.linear_size(model)
+        q = QUBOTools.quadratic_size(model)
+
+        return (2 * q + l) / (n * n)
+    end
+end
+
+function QUBOTools.linear_density(model)
+    n = QUBOTools.domain_size(model)
+
+    if n == 0
+        return 0.0
+    else
+        l = QUBOTools.linear_size(model)
+
+        return l / n
+    end
+end
+
+function QUBOTools.quadratic_density(model)
+    n = QUBOTools.domain_size(model)
+
+    if n <= 1
+        return 0.0
+    else
+        q = QUBOTools.quadratic_size(model)
+
+        return (2 * q) / (n * (n - 1))
+    end
+end
