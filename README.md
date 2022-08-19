@@ -20,14 +20,14 @@ This allows for rapid leverage of many emergent computing architectures whose jo
 The term QUBO is widely used when referring to *boolean* problems of the form
 
 $$\begin{array}{rl}
-       \min & \vec{x}'\, Q\, \vec{x} \\
+       \min & \vec{x}'\ Q\ \vec{x} \\
 \text{s.t.} & \vec{x} \in \mathbb{B}^{n}
 \end{array}$$
 
 with symmetric $Q \in \mathbb{R}^{n \times n}$. Nevertheless, this package also fully supports *Ising Models*, given by
 
 $$\begin{array}{rl}
-       \min & \vec{s}'\, J\, \vec{s} + \vec{h}'\, \vec{s} \\
+       \min & \vec{s}'\ J\ \vec{s} + \vec{h}'\ \vec{s} \\
 \text{s.t.} & \vec{s} \in \left\lbrace-1, 1\right\rbrace^{n}
 \end{array}$$
 
