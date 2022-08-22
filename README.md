@@ -6,7 +6,7 @@
     </a>
     <br>
     <a href="/actions/workflows/ci.yml">
-        <img src="https://github.com/pedromxavier/QUBOTools.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
+        <img src="https://github.com/psrenergy/QUBOTools.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
     <br>
     <i>Tools for Quadratic Unconstrained Binary Optimization models in Julia</i>
