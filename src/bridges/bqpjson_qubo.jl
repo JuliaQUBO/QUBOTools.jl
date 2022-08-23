@@ -6,7 +6,7 @@ function Base.convert(::Type{BQPJSON{BoolDomain}}, model::QUBO)
     backend = copy(model.backend)
     solutions = nothing
 
-    BQPJSON{BoolDomain}(backend; solutions=solutions)
+    return BQPJSON{BoolDomain}(backend; solutions=solutions)
 end
 
 function QUBOTools.__isvalidbridge(
@@ -15,7 +15,7 @@ function QUBOTools.__isvalidbridge(
     ::Type{<:QUBO{BoolDomain}};
     kws...
 )
-    QUBOTools.__isvalidbridge(
+    return QUBOTools.__isvalidbridge(
         QUBOTools.backend(source),
         QUBOTools.backend(target);
         kws...
@@ -36,7 +36,7 @@ function Base.convert(::Type{<:QUBO}, model::BQPJSON{BoolDomain})
     num_diagonals = length(QUBOTools.linear_terms(backend))
     num_elements = length(QUBOTools.quadratic_terms(backend))
 
-    QUBO{BoolDomain}(
+    return QUBO{BoolDomain}(
         backend;
         max_index=max_index,
         num_diagonals=num_diagonals,
@@ -50,7 +50,7 @@ function QUBOTools.__isvalidbridge(
     ::Type{<:BQPJSON{BoolDomain}};
     kws...
 )
-    QUBOTools.__isvalidbridge(
+    return QUBOTools.__isvalidbridge(
         QUBOTools.backend(source),
         QUBOTools.backend(target);
         kws...

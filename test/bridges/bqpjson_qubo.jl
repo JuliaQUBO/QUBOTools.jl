@@ -1,4 +1,4 @@
-function test_BQPJSON_qubo(path::String, n::Integer)
+function test_bqpjson_qubo(path::String, n::Integer)
     @testset "BQPJSON ~ QUBO" begin
         for i = 0:n
             qubo_path = QUBO_PATH(path, i)
