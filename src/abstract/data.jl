@@ -17,6 +17,14 @@ QUBOTools.quadratic_size(model::AbstractQUBOModel) = length(QUBOTools.quadratic_
 
 QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}) = QUBOTools.qubo(Dict, Float64, model)
 
+function QUBOTools.qubo(::AbstractQUBOModel{<:SpinDomain})
+    QUBOTools.codec_error(
+        """
+        Can't generate normal qubo form from ising model.
+        Consider converting your model with `convert`"""
+    )
+end
+
 function QUBOTools.qubo(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
     x = QUBOTools.variable_map(model)
     Q = Dict{Tuple{Int,Int},T}()
@@ -53,6 +61,14 @@ function QUBOTools.qubo(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:Boo
 end
 
 QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}) = QUBOTools.ising(Dict, model)
+
+function QUBOTools.ising(::AbstractQUBOModel{<:BoolDomain})
+    QUBOTools.codec_error(
+        """
+        Can't generate normal ising form from boolean model.
+        Consider converting your model with `convert`"""
+    )
+end
 
 function QUBOTools.ising(::Type{<:Dict}, model::AbstractQUBOModel{<:SpinDomain})
     s = QUBOTools.variable_map(model)

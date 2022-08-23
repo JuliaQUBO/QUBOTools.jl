@@ -1,12 +1,27 @@
 QUBOTools.backend(model::StandardQUBOModel) = model
 
-QUBOTools.offset(model::StandardQUBOModel) = model.offset
-QUBOTools.scale(model::StandardQUBOModel) = model.scale
+function QUBOTools.offset(model::StandardQUBOModel{<:Any, <:Any, T, <:Any}) where {T}
+    if isnothing(model.offset)
+        return zero(T)
+    else
+        return model.offset
+    end
+end
+
+function QUBOTools.scale(model::StandardQUBOModel{<:Any, <:Any, T, <:Any}) where {T}
+    if isnothing(model.scale)
+        return one(T)
+    else
+        return model.scale
+    end
+end
+
 QUBOTools.id(model::StandardQUBOModel) = model.id
 QUBOTools.version(model::StandardQUBOModel) = model.version
 QUBOTools.description(model::StandardQUBOModel) = model.description
 QUBOTools.metadata(model::StandardQUBOModel) = model.metadata
 QUBOTools.sampleset(model::StandardQUBOModel) = model.sampleset
+
 QUBOTools.linear_terms(model::StandardQUBOModel) = model.linear_terms
 QUBOTools.quadratic_terms(model::StandardQUBOModel) = model.quadratic_terms
 
