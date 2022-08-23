@@ -1,3 +1,5 @@
+const HFS_DEFAULT_CHIMERA_CELL_SIZE = 8
+const HFS_DEFAULT_CHIMERA_PRECISION = 5
 const HFS_BACKEND_TYPE{D} = StandardQUBOModel{Int, Int, Float64, D}
 
 @doc raw"""
@@ -76,8 +78,8 @@ end
         end
 
         if isnothing(precision)
-            @warn "Assuming 'precision' = $(HFS_DEFAULT_PRECISION)"
-            precision = HFS_DEFAULT_PRECISION
+            @warn "Assuming 'precision' = $(HFS_DEFAULT_CHIMERA_PRECISION)"
+            precision = HFS_DEFAULT_CHIMERA_PRECISION
         end
 
         chimera_cell_row_size = chimera_cell_size ÷ 2
@@ -154,3 +156,6 @@ end
         )
     end
 end
+
+include("data.jl")
+include("io.jl")

@@ -1,7 +1,9 @@
-struct CHIMERA_CELL_SIZE <: QUBOAttribute end
+@doc raw"""
+""" function chimera_cell_size end
 
-QUBOTools._defaultattr(::HFS, ::CHIMERA_CELL_SIZE) = 8
+QUBOTools.chimera_cell_size(model::HFS) = model.chimera.cell_size
 
-struct CHIMERA_PRECISION <: QUBOAttribute end
+@doc raw"""
+""" function chimera_precision end
 
-QUBOTools._defaultattr(::HFS, ::CHIMERA_PRECISION) = 5
+QUBOTools.chimera_precision(model::HFS) = model.chimera.precision
