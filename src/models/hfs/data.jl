@@ -1,3 +1,6 @@
+QUBOTools.backend(model::HFS) = model.backend
+QUBOTools.model_name(::HFS) = "HFS"
+
 @doc raw"""
 """ function chimera_cell_size end
 
