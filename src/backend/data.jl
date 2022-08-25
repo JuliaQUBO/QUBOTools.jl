@@ -1,5 +1,7 @@
 QUBOTools.backend(model::StandardQUBOModel) = model
 
+Base.isvalid(::StandardQUBOModel) = true
+
 function QUBOTools.offset(model::StandardQUBOModel{<:Any, <:Any, T, <:Any}) where {T}
     if isnothing(model.offset)
         return zero(T)

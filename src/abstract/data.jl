@@ -8,6 +8,8 @@ QUBOTools.__isvalidbridge(
     kws...
 ) where {M<:AbstractQUBOModel} = false
 
+QUBOTools.model_name(::X) where {X <: AbstractQUBOModel} = string(X)
+
 QUBOTools.domain_name(model::AbstractQUBOModel{<:BoolDomain}) = "Bool"
 QUBOTools.domain_name(model::AbstractQUBOModel{<:SpinDomain}) = "Spin"
 
