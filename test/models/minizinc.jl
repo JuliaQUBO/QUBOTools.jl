@@ -1,3 +1,5 @@
 function test_minizinc(path::String, n::Integer)
-    @test true # CI's best friend
+    @testset "MiniZinc" verbose = true begin
+        @test true # CI's best friend
+    end
 end

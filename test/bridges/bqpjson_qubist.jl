@@ -1,4 +1,4 @@
-function test_BQPJSON_qubist(path::String, n::Integer)
+function test_bqpjson_qubist(path::String, n::Integer)
     @testset "BQPJSON ~ Qubist" begin
         for i = 0:n
             qubs_path = QUBIST_PATH(path, i)
