@@ -17,10 +17,15 @@ function test_interface()
         @test QUBOTools.backend(model) isa StandardQUBOModel
         @test isempty(model)
         @test isvalid(model)
-        
+
         @testset "Data access" begin
             @test QUBOTools.scale(model) == one(T)
             @test QUBOTools.offset(model) == zero(T)
+        end
+
+        @testset "Queries" begin
+            @test QUBOTools.linear_size(model) == 0
+            @test QUBOTools.quadratic_size(model) == 0
         end
     end
 end
