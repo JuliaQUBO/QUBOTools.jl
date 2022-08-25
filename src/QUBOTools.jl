@@ -7,9 +7,10 @@ using JSONSchema
 export BoolDomain, SpinDomain
 export StandardQUBOModel
 export BQPJSON
+export HFS
+export MiniZinc
 export Qubist
 export QUBO
-export MiniZinc
 
 # ~*~ Package internal library ~*~ $
 include("library/error.jl")

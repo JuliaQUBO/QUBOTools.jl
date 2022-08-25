@@ -1,6 +1,6 @@
 const HFS_DEFAULT_CHIMERA_CELL_SIZE = 8
 const HFS_DEFAULT_CHIMERA_PRECISION = 5
-const HFS_BACKEND_TYPE{D} = StandardQUBOModel{Int, Int, Float64, D}
+const HFS_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 @doc raw"""
 Format description from [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
@@ -27,59 +27,83 @@ There is an edge from ``v_p`` to ``v_q`` if
  x_p = x_q \wedge |y_p-y_q| = 1 \wedge o_p = o_q = 1 \wedge i_p = i_q
 ```
 
-    
 """ struct Chimera
-    cell_size::Union{Int, Nothing}
+    linear_terms::Dict{Int,Int}
+    quadratic_terms::Dict{Tuple{Int,Int},Int}
+    cell_size::Int
+    precision::Int
+    scale::Float64
+    offset::Float64
+    factor::Float64
     degree::Int
     effective_degree::Int
-    coordinates::Dict{Int, Tuple{Int, Int, Int, Int}}
-    factor::Float64
-    precision::Union{Int, Nothing}
-    linear_terms::Dict{Int, Int}
-    quadratic_terms::Dict{Tuple{Int, Int}, Int}
-end
+    coordinates::Dict{Int,Tuple{Int,Int,Int,Int}}
 
-@doc raw"""
-""" mutable struct HFS{D <: BoolDomain} <: AbstractQUBOModel{D}
-    backend::HFS_BACKEND_TYPE{D}
-    chimera::Chimera
-    
-    function HFS{D}(
+    function Chimera(
+        linear_terms::Dict{Int,Int},
+        quadratic_terms::Dict{Tuple{Int,Int},Int},
+        cell_size::Integer,
+        precision::Integer,
         scale::Float64,
         offset::Float64,
-        linear_terms::Dict{Int, Float64},
-        quadratic_terms::Dict{Tuple{Int, Int}, Float64},
-        chimera_cell_size::Union{Integer, Nothing} = nothing,
-        chimera_degree::Union{Integer, Nothing} = nothing,
-        precision::Union{Integer, Nothing} = nothing,
-    ) where D <: BoolDomain
-        variable_ids = Set{Int}()
-        max_variable_id = maximum(variable_ids)
+        factor::Float64,
+        degree::Integer,
+        effective_degree::Integer,
+        coordinates::Dict{Int,Tuple{Int,Int,Int,Int}},
+    )
+
+        return new(
+            linear_terms,
+            quadratic_terms,
+            cell_size,
+            precision,
+            scale,
+            offset,
+            factor,
+            degree,
+            effective_degree,
+            coordinates,
+        )
+    end
+
+    function Chimera(
+        model::AbstractQUBOModel,
+        chimera_cell_size::Union{Integer,Nothing}=nothing,
+        chimera_degree::Union{Integer,Nothing}=nothing,
+        chimera_precision::Union{Integer,Nothing}=nothing
+    )
+        variable_set = QUBOTools.variable_set(model)
+        linear_terms = QUBOTools.linear_terms(model)
+        quadratic_terms = QUBOTools.quadratic_terms(model)
+        max_variable_id = maximum(variable_set)
 
         if isnothing(chimera_cell_size)
-            @warn "Assuming 'chimera_cell_size' = $(HFS_DEFAULT_CHIMERA_CELL_SIZE)"
             chimera_cell_size = HFS_DEFAULT_CHIMERA_CELL_SIZE
+
+            @warn "Assuming 'chimera_cell_size' = $(chimera_cell_size)"
         end
 
         min_chimera_degree = ceil(Int, sqrt(max_variable_id / chimera_cell_size))
 
         if isnothing(chimera_degree)
-            @warn "Assuming 'chimera_degree' = $(min_chimera_degree)"
             chimera_degree = min_chimera_degree
+
+            @warn "Assuming 'chimera_degree' = $(chimera_degree)"
         end
 
         if chimera_degree < min_chimera_degree
             error(
-            """
-            Error: chimera_degree of $(chimera_degree) was specified.
-            However, the minimum chimera_degree required for a problem with a variable index of '$(max_variable_id)' is '$(min_chimera_degree)'.
-            """
+                """
+                Error: 'chimera_degree' of '$(chimera_degree)' was specified.
+                However, the minimum 'chimera_degree' required for a problem with a variable index as great as '$(max_variable_id)' is '$(min_chimera_degree)'.
+                """
             )
         end
 
-        if isnothing(precision)
-            @warn "Assuming 'precision' = $(HFS_DEFAULT_CHIMERA_PRECISION)"
-            precision = HFS_DEFAULT_CHIMERA_PRECISION
+        if isnothing(chimera_precision)
+            chimera_precision = HFS_DEFAULT_CHIMERA_PRECISION
+
+            @warn "Assuming 'chimera_precision' = $(chimera_precision)"
         end
 
         chimera_cell_row_size = chimera_cell_size ÷ 2
@@ -91,69 +115,100 @@ end
         # o - chimera_cell_column - indicates the first or the second row of a chimera cell
         # i - chimera_cell_column_id - indicates ids within a chimera cell
         # Note that knowing the size of source chimera graph is essential to doing this mapping correctly 
-    
-        chimera_cell_column = Dict{Int, Int}(
-            i => (i % chimera_cell_size) ÷ chimera_cell_row_size for i in variable_ids
+
+        chimera_cell_column = Dict{Int,Int}(
+            i => (i % chimera_cell_size) ÷ chimera_cell_row_size for i in variable_set
         )
-        chimera_cell_column_id = Dict{Int, Int}(
-            i => (i % chimera_cell_row_size) for i in variable_ids
+        chimera_cell_column_id = Dict{Int,Int}(
+            i => (i % chimera_cell_row_size) for i in variable_set
         )
-        chimera_cell = Dict{Int, Int}(
-            i => (i ÷ chimera_cell_size) for i in variable_ids
+        chimera_cell = Dict{Int,Int}(
+            i => (i ÷ chimera_cell_size) for i in variable_set
         )
-        chimera_row = Dict{Int, Int}(
+        chimera_row = Dict{Int,Int}(
             i => (j ÷ chimera_degree) for (i, j) in chimera_cell
         )
-        chimera_column = Dict{Int, Int}(
+        chimera_column = Dict{Int,Int}(
             i => (j % chimera_degree) for (i, j) in chimera_cell
         )
-        chimera_coordinate = Dict{Int, Tuple{Int, Int, Int, Int}}(
+        chimera_coordinates = Dict{Int,Tuple{Int,Int,Int,Int}}(
             i => (
                 chimera_row[i],
                 chimera_column[i],
                 chimera_cell_column[i],
                 chimera_cell_column_id[i],
             )
-            for i in variable_ids
+            for i in variable_set
         )
+
         chimera_effective_degree = 1 + max(maximum(values(chimera_row)), maximum(values(chimera_column)))
-    
+
         if chimera_effective_degree > chimera_degree
-            error()
+            error(
+                """
+                The value for 'chimera_effective_degree' is greater than 'chimera_degree', which is infeasible
+                """
+            )
         end
 
-        max_abs_coeff = maximum(abs.([values(linear_terms);values(quadratic_terms)]))
-        normal_factor = 10 ^ precision / max_abs_coeff
+        max_abs_coeff = maximum(abs.([collect(values(linear_terms)); collect(values(quadratic_terms))]))
+        chimera_factor = 10^chimera_precision / max_abs_coeff
 
-        int_linear_terms    = Dict{Int, Int}()
-        int_quadratic_terms = Dict{Int, Int}()
+        chimera_linear_terms = Dict{Int,Int}()
+        chimera_quadratic_terms = Dict{Tuple{Int,Int},Int}()
 
         for (i, q) in linear_terms
-            int_linear_terms[i] = round(Int, normal_factor * q)
+            chimera_linear_terms[i] = round(Int, chimera_factor * q)
         end
 
         for ((i, j), Q) in quadratic_terms
-            int_quadratic_terms[(i, j)] = round(Int, normal_factor * Q)
+            chimera_quadratic_terms[(i, j)] = round(Int, chimera_factor * Q)
         end
 
-        normal_scale  = scale / normal_factor
-        normal_offset = offset * normal_factor
+        chimera_scale = QUBOTools.scale(model) / chimera_factor
+        chimera_offset = QUBOTools.offset(model) * chimera_factor
 
-        new{D}(
-            normal_factor,
-            normal_scale,
-            normal_offset,
-            variable_ids,
-            linear_terms,
-            quadratic_terms,
-            int_linear_terms,
-            int_quadratic_terms,
-            precision,
+        return Chimera(
+            chimera_linear_terms,
+            chimera_quadratic_terms,
             chimera_cell_size,
+            chimera_precision,
+            chimera_scale,
+            chimera_offset,
+            chimera_factor,
             chimera_degree,
             chimera_effective_degree,
-            chimera_coordinate,
+            chimera_coordinates,
         )
+    end
+end
+
+@doc raw"""
+""" mutable struct HFS{D<:BoolDomain} <: AbstractQUBOModel{D}
+    backend::HFS_BACKEND_TYPE{D}
+    chimera::Chimera
+
+    function HFS{D}(backend::HFS_BACKEND_TYPE{D}, chimera::Chimera) where {D}
+        new{D}(backend, chimera)
+    end
+
+    function HFS{D}(
+        linear_terms::Dict{Int,Float64},
+        quadratic_terms::Dict{Tuple{Int,Int},Float64};
+        chimera_cell_size::Union{Integer,Nothing}=nothing,
+        chimera_degree::Union{Integer,Nothing}=nothing,
+        chimera_precision::Union{Integer,Nothing}=nothing,
+        kws...
+    ) where {D}
+        backend = HFS_BACKEND_TYPE{D}(linear_terms, quadratic_terms; kws...)
+        chimera = Chimera(
+            backend;
+            chimera_cell_size=chimera_cell_size,
+            chimera_precision=chimera_precision,
+            chimera_degree=chimera_degree
+        )
+
+        return HFS{D}(backend, chimera)
     end
 end
 
