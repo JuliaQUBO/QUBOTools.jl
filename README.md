@@ -5,6 +5,9 @@
         <img src="/docs/src/assets/logo.svg" width=400px alt="QUBOTools.jl" />
     </a>
     <br>
+    <a href="https://codecov.io/gh/psrenergy/QUBOTools.jl" > 
+        <img src="https://codecov.io/gh/psrenergy/QUBOTools.jl/branch/main/graph/badge.svg?token=W7QJWS5HI4"/> 
+    </a>
     <a href="/actions/workflows/ci.yml">
         <img src="https://github.com/psrenergy/QUBOTools.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
