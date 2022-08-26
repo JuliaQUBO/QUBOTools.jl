@@ -103,3 +103,20 @@ function QUBOTools.quadratic_density(model)
         return (2 * q) / (n * (n - 1))
     end
 end
+
+function QUBOTools.energy(state::Vector, model)
+    @assert length(state) == QUBOTools.domain_size(model)
+
+    α = QUBOTools.scale(model)
+    s = QUBOTools.offset(model)
+
+    for (i, l) in QUBOTools.linear_terms(model)
+        s += state[i] * l
+    end
+
+    for ((i, j), q) in QUBOTools.quadratic_terms(model)
+        s += state[i] * state[j] * q
+    end
+
+    return α * s
+end

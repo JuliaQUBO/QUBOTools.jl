@@ -117,20 +117,3 @@ function QUBOTools.ising(::Type{<:Array}, model::AbstractQUBOModel{<:SpinDomain}
 
     return (h, J, α, β)
 end
-
-function QUBOTools.energy(state::Vector, model::AbstractQUBOModel)
-    @assert length(state) == QUBOTools.domain_size(model)
-
-    α = QUBOTools.scale(model)
-    s = QUBOTools.offset(model)
-
-    for (i, l) in QUBOTools.linear_terms(model)
-        s += state[i] * l
-    end
-
-    for ((i, j), q) in QUBOTools.quadratic_terms(model)
-        s += state[i] * state[j] * q
-    end
-
-    return α * s
-end
