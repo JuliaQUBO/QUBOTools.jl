@@ -43,7 +43,7 @@ QUBOTools.quadratic_terms(model) = QUBOTools.quadratic_terms(QUBOTools.backend(m
 function QUBOTools.variables(model)
     variable_map = QUBOTools.variable_map(QUBOTools.backend(model))
 
-    return sort(collect(keys(variable_map)))
+    return sort(collect(keys(variable_map)); lt=varcmp)
 end
 
 function QUBOTools.variable_set(model)
@@ -58,7 +58,7 @@ QUBOTools.variable_inv(model) = QUBOTools.variable_inv(QUBOTools.backend(model))
 QUBOTools.variable_inv(model, i) = QUBOTools.variable_inv(QUBOTools.backend(model), i)
 QUBOTools.qubo(model) = QUBOTools.qubo(QUBOTools.backend(model))
 QUBOTools.ising(model) = QUBOTools.ising(QUBOTools.backend(model))
-QUBOTools.energy(model) = QUBOTools.energy(QUBOTools.backend(model))
+QUBOTools.energy(state, model) = QUBOTools.energy(state, QUBOTools.backend(model))
 QUBOTools.domain_size(model) = QUBOTools.domain_size(QUBOTools.backend(model))
 QUBOTools.linear_size(model) = QUBOTools.linear_size(QUBOTools.backend(model))
 QUBOTools.quadratic_size(model) = QUBOTools.quadratic_size(QUBOTools.backend(model))

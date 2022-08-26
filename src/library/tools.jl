@@ -149,7 +149,7 @@ end
 
 function _build_mapping(variable_set::Set{V}) where {V}
     variable_map = Dict{V,Int}(
-        v => k for (k, v) in enumerate(sort(collect(variable_set); lt=≺))
+        v => k for (k, v) in enumerate(sort(collect(variable_set); lt=varcmp))
     )
     variable_inv = Dict{Int,V}(v => k for (k, v) in variable_map)
 
