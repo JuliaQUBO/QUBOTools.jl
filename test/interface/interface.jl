@@ -12,9 +12,9 @@ function test_interface()
     D = BoolDomain
 
     @testset "-*- Interface" verbose = true begin
-        model = Model{D}(StandardQUBOModel{V,U,T,D}())
+        model = Model{D}(QUBOTools.StandardQUBOModel{V,U,T,D}())
 
-        @test QUBOTools.backend(model) isa StandardQUBOModel
+        @test QUBOTools.backend(model) isa QUBOTools.StandardQUBOModel
         @test isempty(model)
         @test isvalid(model)
 
