@@ -134,7 +134,7 @@ function _normal_form(_linear_terms::Dict{V,T}, _quadratic_terms::Dict{Tuple{V,V
             else
                 linear_terms[i] = q
             end
-        elseif i < j
+        elseif i ≺ j
             q += get(quadratic_terms, (i, j), zero(T))
             if iszero(q)
                 delete!(quadratic_terms, (i, j))
