@@ -62,7 +62,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
             QUBOcodec_error("Unknown variable id '$i'")
         elseif j ∉ variable_set
             QUBOcodec_error("Unknown variable id '$j'")
-        elseif j < i
+        elseif j ≺ i
             i, j = j, i
         end
 
