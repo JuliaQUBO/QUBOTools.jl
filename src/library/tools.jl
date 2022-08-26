@@ -1,11 +1,4 @@
 @doc raw"""
-""" function _getdefault end
-
-function _getdefault(value::Any, default::Any)
-    isnothing(value) ? default : value
-end
-
-@doc raw"""
 """ function isapproxdict end
 
 function isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
@@ -156,7 +149,7 @@ end
 
 function _build_mapping(variable_set::Set{V}) where {V}
     variable_map = Dict{V,Int}(
-        v => k for (k, v) in enumerate(sort(collect(variable_set)))
+        v => k for (k, v) in enumerate(sort(collect(variable_set); lt=≺))
     )
     variable_inv = Dict{Int,V}(v => k for (k, v) in variable_map)
 
