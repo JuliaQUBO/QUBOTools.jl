@@ -8,10 +8,31 @@ QUBOTools.__isvalidbridge(
     kws...
 ) where {M<:AbstractQUBOModel} = false
 
-QUBOTools.model_name(::X) where {X <: AbstractQUBOModel} = string(X)
+QUBOTools.model_name(::X) where {X<:AbstractQUBOModel} = string(X)
 
+QUBOTools.domain(::AbstractQUBOModel{D}) where {D} = D
 QUBOTools.domain_name(model::AbstractQUBOModel{<:BoolDomain}) = "Bool"
 QUBOTools.domain_name(model::AbstractQUBOModel{<:SpinDomain}) = "Spin"
+
+function QUBOTools.variable_map(model::AbstractQUBOModel, v)
+    variable_map = QUBOTools.variable_map(model)
+
+    if haskey(variable_map, v)
+        return variable_map[v]
+    else
+        error("Variable '$v' doesn't belong to the model")
+    end
+end
+
+function QUBOTools.variable_inv(model::AbstractQUBOModel, i::Integer)
+    variable_inv = QUBOTools.variable_inv(model)
+    
+    if haskey(variable_inv, i)
+        return variable_inv[i]
+    else
+        error("Variable index '$i' doesn't belong to the model")
+    end
+end
 
 QUBOTools.domain_size(model::AbstractQUBOModel) = length(QUBOTools.variable_map(model))
 QUBOTools.linear_size(model::AbstractQUBOModel) = length(QUBOTools.linear_terms(model))
@@ -28,7 +49,6 @@ function QUBOTools.qubo(::AbstractQUBOModel{<:SpinDomain})
 end
 
 function QUBOTools.qubo(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
-    x = QUBOTools.variable_map(model)
     Q = Dict{Tuple{Int,Int},T}()
     α::T = QUBOTools.scale(model)
     β::T = QUBOTools.offset(model)
@@ -41,11 +61,10 @@ function QUBOTools.qubo(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:Bool
         Q[i, j] = qᵢⱼ
     end
 
-    return (x, Q, α, β)
+    return (Q, α, β)
 end
 
 function QUBOTools.qubo(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
-    x = QUBOTools.variable_map(model)
     n = length(x)
     Q = zeros(T, n, n)
     α::T = QUBOTools.scale(model)
@@ -59,7 +78,7 @@ function QUBOTools.qubo(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:Boo
         Q[i, j] = qᵢⱼ
     end
 
-    return (x, Q, α, β)
+    return (Q, α, β)
 end
 
 QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}) = QUBOTools.ising(Dict, model)
@@ -73,17 +92,15 @@ function QUBOTools.ising(::AbstractQUBOModel{<:BoolDomain})
 end
 
 function QUBOTools.ising(::Type{<:Dict}, model::AbstractQUBOModel{<:SpinDomain})
-    s = QUBOTools.variable_map(model)
-    h = QUBOTools.linear_terms(model)
+    h = QUBOTools.linear_terms(model; explicit=true)
     J = QUBOTools.quadratic_terms(model)
     α = QUBOTools.scale(model)
     β = QUBOTools.offset(model)
 
-    return (s, h, J, α, β)
+    return (h, J, α, β)
 end
 
 function QUBOTools.ising(::Type{<:Array}, model::AbstractQUBOModel{<:SpinDomain})
-    s = QUBOTools.variable_map(model)
     n = length(s)
     h = zeros(Float64, n)
     J = zeros(Float64, n, n)
@@ -98,5 +115,22 @@ function QUBOTools.ising(::Type{<:Array}, model::AbstractQUBOModel{<:SpinDomain}
         J[i, j] = Jᵢⱼ
     end
 
-    return (s, h, J, α, β)
+    return (h, J, α, β)
+end
+
+function QUBOTools.energy(state::Vector, model::AbstractQUBOModel)
+    @assert length(state) == QUBOTools.domain_size(model)
+
+    α = QUBOTools.scale(model)
+    s = QUBOTools.offset(model)
+
+    for (i, l) in QUBOTools.linear_terms(model)
+        s += state[i] * l
+    end
+
+    for ((i, j), q) in QUBOTools.quadratic_terms(model)
+        s += state[i] * state[j] * q
+    end
+
+    return α * s
 end

@@ -16,9 +16,29 @@
 """ function model_name end
 
 @doc raw"""
+    domain(model)
+
+""" function domain end
+
+@doc raw"""
+    swap_domain(model)
+    
+""" function swap_domain end
+
+@doc raw"""
     domain_name(model)
 
 """ function domain_name end
+
+@doc raw"""
+    sense(model)
+
+""" function sense end
+
+@doc raw"""
+    swap_sense(model)
+    
+""" function swap_sense end
 
 @doc raw"""
     offset(model)
@@ -98,8 +118,7 @@ Returns the set of variables of a given model.
 f(\vec{x}) = \alpha \left[{ \vec{x}'\,Q\,\vec{x} + \beta }\right]
 ```
 
-Returns a quadruple ``(x, Q, \alpha, \beta)`` where:
- * `x::Dict{S, Int}` maps each of the model's variables to an integer index, to be used when interacting with `Q`.
+Returns a triple ``(Q, \alpha, \beta)`` where:
  * `Q::Dict{Tuple{Int, Int}, T}` is a sparse representation of the QUBO Matrix.
  * `α::T` is the scaling factor.
  * `β::T` is the offset constant.
@@ -116,8 +135,7 @@ Returns a quadruple ``(x, Q, \alpha, \beta)`` where:
 H(\vec{s}) = \alpha \left[{ \vec{s}'\,J\,\vec{s} + \vec{h}\,\vec{s} + \beta }\right]
 ```
 
-Returns a quintuple ``(s, h, J, \alpha, \beta)`` where:
-* `s::Dict{S, Int}` maps each of the model's variables to an integer index, to be used when interacting with ``h`` and ``J``.
+Returns a quadruple ``(h, J, \alpha, \beta)`` where:
 * `h::Dict{Int, T}` is a sparse vector for the linear terms of the Ising Model.
 * `J::Dict{Tuple{Int, Int}, T}` is a sparse representation of the quadratic magnetic interactions.
 * `α::T` is the scaling factor.

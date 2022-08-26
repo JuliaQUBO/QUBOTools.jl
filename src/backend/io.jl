@@ -53,12 +53,12 @@ function Base.copy!(
     target.metadata = deepcopy(source.metadata)
     target.sampleset = source.sampleset
 
-    target
+    return target
 end
 
 function Base.copy!(
     target::StandardQUBOModel{V,U,T,B},
     source::StandardQUBOModel{V,U,T,A},
 ) where {V,U,T,A,B}
-    copy!(target, convert(StandardQUBOModel{V,U,T,B}, source))
+    return copy!(target, convert(StandardQUBOModel{V,U,T,B}, source))
 end

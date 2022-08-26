@@ -6,7 +6,11 @@ This allows for external models to define a QUBOTools-based backend and profit f
 """
 
 QUBOTools.model_name(model) = QUBOTools.model_name(QUBOTools.backend(model))
+QUBOTools.domain(model) = QUBOTools.domain(QUBOTools.backend(model))
 QUBOTools.domain_name(model) = QUBOTools.domain_name(QUBOTools.backend(model))
+QUBOTools.swap_domain(model) = QUBOTools.swap_domain(QUBOTools.backend(model))
+QUBOTools.sense(model) = QUBOTools.sense(QUBOTools.backend(model))
+QUBOTools.swap_sense(model) = QUBOTools.swap_sense(QUBOTools.backend(model))
 QUBOTools.offset(model) = QUBOTools.offset(QUBOTools.backend(model))
 QUBOTools.scale(model) = QUBOTools.scale(QUBOTools.backend(model))
 QUBOTools.id(model) = QUBOTools.id(QUBOTools.backend(model))
