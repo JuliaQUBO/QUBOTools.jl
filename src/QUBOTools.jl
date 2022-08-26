@@ -4,8 +4,10 @@ using Printf
 using JSON
 using JSONSchema
 
+# ~*~ Variable Domains ~*~ #
 export BoolDomain, SpinDomain
-export StandardQUBOModel
+
+# ~*~ Supported Model Formats ~*~ #
 export BQPJSON
 export HFS
 export MiniZinc
@@ -32,8 +34,10 @@ include("fallback/fallback.jl")
 # ~*~ Standard backend implementation ~*~ #
 include("backend/backend.jl")
 
+# ~*~ Model implementation ~*~ #
 include("models/models.jl")
 
+# ~*~ Bridges between formats ~*~ #
 include("bridges/bridges.jl")
 
 end # module
