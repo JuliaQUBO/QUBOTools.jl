@@ -33,9 +33,10 @@ Returns a string representing the variable domain.
 """ function domain_name end
 
 @doc raw"""
-    swap_domain(::Type{B}, model::AbstractQUBOModel{A}) where {A<:VariableDomain, B<:VariableDomain}
+    swap_domain(source, target, model)
+    swap_domain(source, target, sampleset)
 
-Returns a new model, switching from domain `A` to domain `B`.
+Returns a new object, switching its domain from `source` to `target`.
 """ function swap_domain end
 
 @doc raw"""

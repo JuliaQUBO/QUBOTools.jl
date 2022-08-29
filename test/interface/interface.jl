@@ -3,7 +3,6 @@ struct Model{D} <: QUBOTools.AbstractQUBOModel{D}
 end
 
 QUBOTools.backend(m::Model) = m.backend
-Base.isvalid(m::Model) = isvalid(QUBOTools.backend(m))
 
 function test_interface()
     V = Symbol
@@ -24,8 +23,13 @@ function test_interface()
         end
 
         @testset "Queries" begin
+            @test QUBOTools.model_name(model) == "Model"
+            @test QUBOTools.domain_name(model) == "Bool"
             @test QUBOTools.linear_size(model) == 0
             @test QUBOTools.quadratic_size(model) == 0
+
+            @test_throws Exception QUBOTools.variable_map(model, :x)
+            @test_throws Exception QUBOTools.variable_inv(model, 0)
         end
     end
 end

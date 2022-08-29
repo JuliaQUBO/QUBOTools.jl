@@ -13,12 +13,6 @@ QUBOTools.domain(::AbstractQUBOModel{D}) where {D} = D
 QUBOTools.domain_name(model::AbstractQUBOModel{<:BoolDomain}) = "Bool"
 QUBOTools.domain_name(model::AbstractQUBOModel{<:SpinDomain}) = "Spin"
 
-QUBOTools.swap_domain(::Type{D}, model::AbstractQUBOModel{D}) where {D<:VariableDomain} = copy(model)
-
-function QUBOTools.swap_domain(::Type{D}, model::M) where {D<:VariableDomain,M<:AbstractQUBOModel}
-    QUBOTools.codec_error("Unable to represent model of type '$M' with '$D' variables")
-end
-
 function explicit_linear_terms(model::AbstractQUBOModel)
     return QUBOTools._explicit_linear_terms(
         QUBOTools.linear_terms(model),
