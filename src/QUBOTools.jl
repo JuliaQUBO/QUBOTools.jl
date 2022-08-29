@@ -27,22 +27,20 @@ export MiniZinc
 export Qubist
 export QUBO
 
-# ~*~ Package internal library ~*~ $
+# ~*~ Package internal library ~*~ #
 include("library/error.jl")
 include("library/types.jl")
 include("library/tools.jl")
 include("library/sampleset.jl")
 
-# ~*~ Interface definitions ~*~ $
-include("interface/data.jl")
-include("interface/io.jl")
+# ~*~ Interface definitions ~*~ #
+include("interface/interface.jl")
 
 # ~*~ Methods for the abstract model ~*~ #
-include("abstract/data.jl")
-include("abstract/io.jl")
+include("interface/abstract.jl")
 
 # ~*~ Fallback methods ~*~ #
-include("fallback/fallback.jl")
+include("interface/fallback.jl")
 
 # ~*~ Standard backend implementation ~*~ #
 include("backend/backend.jl")

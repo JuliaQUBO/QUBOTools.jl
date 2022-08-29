@@ -6,6 +6,13 @@ function isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
 end
 
 @doc raw"""
+    _swapdomain(
+        source::Type,
+        target::Type,
+        linear_terms::Dict{Int,T},
+        quadratic_terms::Dict{Tuple{Int,Int},T},
+        offset::Union{T,Nothing}
+    ) where {T}
 """ function _swapdomain end
 
 function _swapdomain(
@@ -15,7 +22,6 @@ function _swapdomain(
     quadratic_terms::Dict{Tuple{Int,Int},T},
     offset::Union{T,Nothing},
 ) where {T}
-
     bool_offset = isnothing(offset) ? zero(T) : offset
     bool_linear_terms = Dict{Int,T}()
     bool_quadratic_terms = Dict{Tuple{Int,Int},T}()
@@ -32,11 +38,7 @@ function _swapdomain(
         bool_offset += Q
     end
 
-    if isnothing(offset)
-        (bool_linear_terms, bool_quadratic_terms, nothing)
-    else
-        (bool_linear_terms, bool_quadratic_terms, bool_offset)
-    end
+    return (bool_linear_terms, bool_quadratic_terms, bool_offset)
 end
 
 function _swapdomain(
@@ -46,7 +48,6 @@ function _swapdomain(
     quadratic_terms::Dict{Tuple{Int,Int},T},
     offset::Union{T,Nothing}
 ) where {T}
-
     spin_offset = isnothing(offset) ? zero(T) : offset
     spin_linear_terms = Dict{Int,T}()
     spin_quadratic_terms = Dict{Tuple{Int,Int},T}()
@@ -63,11 +64,7 @@ function _swapdomain(
         spin_offset += Q / 4
     end
 
-    if isnothing(offset)
-        (spin_linear_terms, spin_quadratic_terms, nothing)
-    else
-        (spin_linear_terms, spin_quadratic_terms, spin_offset)
-    end
+    return (spin_linear_terms, spin_quadratic_terms, spin_offset)
 end
 
 function _map_terms(_linear_terms::Dict{S,T}, _quadratic_terms::Dict{Tuple{S,S},T}, variable_map::Dict{S,Int}) where {S,T}
@@ -157,15 +154,15 @@ function _build_mapping(variable_set::Set{V}) where {V}
 end
 
 @doc raw"""
-    infer_model_type(path::String)
     infer_model_type(ext::Symbol)
+    infer_model_type(path::String)
 """ function infer_model_type end
 
 function infer_model_type(path::String)
     _, ext = splitext(path)
 
     if !isempty(ext)
-        # Remove '.' from beginning
+        # Remove '.' from the beginning
         extsym = Symbol(ext[2:end])
 
         return infer_model_type(extsym)

@@ -1,6 +1,6 @@
 function Base.write(io::IO, model::Qubist)
     println(io, "$(model.sites) $(model.lines)")
-    for (i, h) in QUBOTools.linear_terms(model; explicit=true)
+    for (i, h) in QUBOTools.explicit_linear_terms(model)
         println(io, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, i)) $(h)")
     end
     for ((i, j), J) in QUBOTools.quadratic_terms(model)
@@ -9,8 +9,9 @@ function Base.write(io::IO, model::Qubist)
 end
 
 function Base.read(io::IO, ::Type{<:Qubist})
-    linear_terms = Dict{Int,Float64}()
+    linear_terms    = Dict{Int,Float64}()
     quadratic_terms = Dict{Tuple{Int,Int},Float64}()
+    
     sites = nothing
     lines = nothing
 

@@ -1,6 +1,6 @@
 """ /src/interface/data.jl @ QUBOTools.jl
 
-    This files contains iterfaces for data access within QUBO's format system.
+    This file contains iterfaces for data access within QUBO's format system.
     
     It also contains a few ones for executing queries on models.
 """
@@ -81,13 +81,18 @@ Returns a new model, inverting the optimization sense (:min or :max)
 """ function sampleset end
 
 @doc raw"""
-    linear_terms(model; explicit::Bool = false)::Dict{Int,T} where {T <: Real}
+    linear_terms(model)::Dict{Int,T} where {T <: Real}
 
 Retrieves the linear terms of a model as a dict.
 
-The `explicit` keyword includes all variables, breaking linear sparsity.
-
+!!! The `explicit_linear_terms` method includes all variables, breaking linear sparsity.
 """ function linear_terms end
+
+@doc raw"""
+    explicit_linear_terms(model)::Dict{Int,T} where {T <: Real}
+
+Retrieves the linear terms of a model as a dict, including zero entries.
+""" function explicit_linear_terms end
 
 @doc raw"""
     quadratic_terms(model)::Dict{Tuple{Int,Int},T} where {T <: Real}
