@@ -1,5 +1,5 @@
 function test_tools()
-    @testset "-*- Tools" begin
+    @testset "Tools" begin
         _linear_terms = Dict{Symbol,Float64}(
             :x => 0.5,
             :y => 1.0,

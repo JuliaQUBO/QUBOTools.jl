@@ -99,7 +99,7 @@ function test_standard()
 
         @testset "Bridges" verbose = true begin
             @testset "MIN -> MAX" verbose = true begin
-                max_model = swap_sense(std_model)
+                max_model = QUBOTools.swap_sense(std_model)
             end
 
             @testset "BOOL -> SPIN" verbose = true begin

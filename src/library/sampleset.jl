@@ -77,7 +77,7 @@ It was clearly inspired by [1], with a few tweaks.
             metadata = Dict{String,Any}()
         end
 
-        new{U,T}(samples, metadata)
+        return new{U,T}(samples, metadata)
     end
 
     function SampleSet{U,T}(
@@ -85,8 +85,7 @@ It was clearly inspired by [1], with a few tweaks.
         data::Vector{Vector{U}},
         metadata::Union{Dict{String,Any},Nothing}=nothing,
     ) where {U,T}
-
-        SampleSet{U,T}(
+        return SampleSet{U,T}(
             Sample{U,T}[Sample{U,T}(state, 1, QUBOTools.energy(state, model)) for state in data],
             metadata
         )
@@ -94,7 +93,10 @@ It was clearly inspired by [1], with a few tweaks.
 end
 
 function Base.copy(sampleset::SampleSet{U,T}) where {U,T}
-    SampleSet{U,T}(copy(sampleset.samples))
+    SampleSet{U,T}(
+        copy(sampleset.samples),
+        deepcopy(sampleset.metadata)
+    )
 end
 
 function Base.length(X::SampleSet)
@@ -121,10 +123,14 @@ function Base.getindex(X::SampleSet, i::Integer, j::Integer)
     X.samples[i].state[j]
 end
 
+function Base.isempty(X::SampleSet)
+    return isempty(X.samples)
+end
+
 function Base.size(X::SampleSet)
     if isempty(X)
         return (0, 0)
-    elseif isempty(X.samples)
+    elseif isempty(X[begin])
         return (1, 0)
     else
         return (length(X.samples), length(X.samples[begin]))

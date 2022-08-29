@@ -4,6 +4,28 @@ Base.isvalid(::StandardQUBOModel) = true
 
 QUBOTools.sense(model::StandardQUBOModel) = model.sense
 
+function QUBOTools.swap_sense(_model::StandardQUBOModel)
+    model = copy(_model)
+
+    source = QUBOTools.sense(model)
+    target = if source === :min
+        :max
+    elseif source === :max
+        :min
+    else
+        error("Invalid sense '$source'")
+    end
+
+    model.sense = target
+    model.scale = -model.scale
+    
+    if !isnothing(model.sampleset)
+        model.sampleset = QUBOTools.swap_sense(source, target, model.sampleset)
+    end
+
+    return model
+end
+
 function QUBOTools.scale(model::StandardQUBOModel{<:Any, <:Any, T, <:Any}) where {T}
     if isnothing(model.scale)
         return one(T)

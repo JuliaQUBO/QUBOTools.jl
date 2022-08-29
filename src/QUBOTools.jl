@@ -42,6 +42,9 @@ include("interface/abstract.jl")
 # ~*~ Fallback methods ~*~ #
 include("interface/fallback.jl")
 
+# ~*~ Concrete methods ~*~ #
+include("interface/concrete.jl")
+
 # ~*~ Standard backend implementation ~*~ #
 include("backend/backend.jl")
 
