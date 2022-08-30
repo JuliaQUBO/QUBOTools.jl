@@ -40,18 +40,6 @@ Returns a new object, switching its domain from `source` to `target`.
 """ function swap_domain end
 
 @doc raw"""
-    sense(model)::Symbol
-
-Returns the optimization sense of a model, as a symbol (:min or :max)
-""" function sense end
-
-@doc raw"""
-    swap_sense(model::AbstractQUBOModel)::AbstractQUBOModel
-    
-Returns a new model, inverting the optimization sense (:min or :max)
-""" function swap_sense end
-
-@doc raw"""
     offset(model)::T where {T <: Real}
 
 """ function offset end

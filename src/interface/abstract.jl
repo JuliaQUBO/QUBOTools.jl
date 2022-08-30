@@ -63,7 +63,7 @@ function QUBOTools.variable_inv(model::AbstractQUBOModel, i::Integer)
 end
 
 # ~*~ Model's Normal Forms ~*~ #
-QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}) = QUBOTools.qubo(Dict, Float64, model)
+QUBOTools.qubo(model::AbstractQUBOModel) = QUBOTools.qubo(Dict, Float64, model)
 
 function QUBOTools.qubo(S::Type, T::Type, model::AbstractQUBOModel{<:SpinDomain})
     h, J, α, β = QUBOTools.ising(S, T, model)
