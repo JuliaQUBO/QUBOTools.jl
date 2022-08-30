@@ -25,7 +25,6 @@ function Base.convert(
         quadratic_terms,
         copy(model.variable_map),
         copy(model.variable_inv);
-        sense=model.sense,
         scale=model.scale,
         offset=offset,
         id=model.id,
@@ -44,7 +43,6 @@ function Base.copy!(
     target.quadratic_terms = copy(source.quadratic_terms)
     target.variable_map = copy(source.variable_map)
     target.variable_inv = copy(source.variable_inv)
-    target.sense = source.sense
     target.scale = source.scale
     target.offset = source.offset
     target.id = source.id

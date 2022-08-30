@@ -33,8 +33,8 @@ function _swapdomain(
 
     for ((i, j), Q) in quadratic_terms
         bool_quadratic_terms[(i, j)] = get(bool_quadratic_terms, (i, j), zero(T)) + 4Q
-        bool_quadratic_terms[(i, i)] = get(bool_quadratic_terms, (i, i), zero(T)) - 2Q
-        bool_quadratic_terms[(j, j)] = get(bool_quadratic_terms, (j, j), zero(T)) - 2Q
+        bool_linear_terms[i] = get(bool_linear_terms, i, zero(T)) - 2Q
+        bool_linear_terms[j] = get(bool_linear_terms, j, zero(T)) - 2Q
         bool_offset += Q
     end
 
@@ -59,8 +59,8 @@ function _swapdomain(
 
     for ((i, j), Q) in quadratic_terms
         spin_quadratic_terms[(i, j)] = get(spin_quadratic_terms, (i, j), zero(T)) + Q / 4
-        spin_quadratic_terms[(i, i)] = get(spin_quadratic_terms, (i, i), zero(T)) + Q / 4
-        spin_quadratic_terms[(j, j)] = get(spin_quadratic_terms, (j, j), zero(T)) + Q / 4
+        spin_linear_terms[i] = get(spin_linear_terms, i, zero(T)) + Q / 4
+        spin_linear_terms[j] = get(spin_linear_terms, j, zero(T)) + Q / 4
         spin_offset += Q / 4
     end
 

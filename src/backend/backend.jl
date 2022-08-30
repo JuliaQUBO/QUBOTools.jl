@@ -24,8 +24,6 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     quadratic_terms::Dict{Tuple{Int,Int},T}
     variable_map::Dict{V,Int}
     variable_inv::Dict{Int,V}
-    # ~*~ Sense ~*~
-    sense::Symbol
     # ~*~ Factors ~*~
     offset::Union{T,Nothing}
     scale::Union{T,Nothing}
@@ -43,8 +41,6 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         quadratic_terms::Dict{Tuple{Int,Int},T},
         variable_map::Dict{V,Int},
         variable_inv::Dict{Int,V};
-        # ~*~ Sense ~*~
-        sense::Symbol=:min,
         # ~*~ Factors ~*~
         offset::Union{T,Nothing}=nothing,
         scale::Union{T,Nothing}=nothing,
@@ -56,14 +52,11 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         # ~*~ Solutions ~*~
         sampleset::Union{SampleSet{U,T},Nothing}=nothing
     ) where {V,U,T,D}
-        @assert sense === :min || sense === :max
-
         new{V,U,T,D}(
             linear_terms,
             quadratic_terms,
             variable_map,
             variable_inv,
-            sense,
             offset,
             scale,
             id,

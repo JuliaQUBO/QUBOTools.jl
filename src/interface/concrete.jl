@@ -1,21 +1,4 @@
 # ~*~ SampleSet ~*~ #
-function QUBOTools.swap_sense(source::Symbol, target::Symbol, sampleset::SampleSet{U,T}) where {U,T}
-    @assert source === :min || source === :max
-    @assert target === :min || target === :max
-
-    if source === target
-        return sampleset
-    else
-        return SampleSet{U,T}(
-            Sample{U,T}[
-                Sample{U,T}(sample.state, sample.reads, -sample.value)
-                for sample in sampleset
-            ],
-            sampleset.metadata
-        )
-    end
-end
-
 function QUBOTools.swap_domain(source::Symbol, target::Symbol, sampleset::SampleSet{U,T}) where {U,T}
     @assert source === :bool || source === :spin
     @assert target === :bool || target === :spin

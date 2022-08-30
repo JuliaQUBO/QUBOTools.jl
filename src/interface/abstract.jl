@@ -65,12 +65,52 @@ end
 # ~*~ Model's Normal Forms ~*~ #
 QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}) = QUBOTools.qubo(Dict, Float64, model)
 
-function QUBOTools.qubo(::AbstractQUBOModel{<:SpinDomain})
-    QUBOTools.codec_error(
-        """
-        Can't generate qubo normal form from ising model.
-        Consider converting your model with `convert`"""
-    )
+function QUBOTools.qubo(S::Type, T::Type, model::AbstractQUBOModel{<:SpinDomain})
+    h, J, α, β = QUBOTools.ising(S, T, model)
+
+    return QUBOTools.qubo(h, J, α, β)
+end
+
+function QUBOTools.qubo(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, α::T, β::T) where {T}
+    Q = Dict{Tuple{Int,Int},T}()
+
+    sizehint!(Q, length(h) + length(J))
+
+    for (i, l) in h
+        Q[(i, i)] = get(Q, (i, i), zero(T)) + 2l
+        β -= l
+    end
+
+    for ((i, j), q) in J
+        Q[(i, j)] = get(Q, (i, j), zero(T)) + 4q
+        Q[(i, i)] = get(Q, (i, i), zero(T)) - 2q
+        Q[(j, j)] = get(Q, (j, j), zero(T)) - 2q
+        β += q
+    end
+
+    return (Q, α, β)
+end
+
+function QUBOTools.qubo(h::Vector{T}, J::Matrix{T}, α::T, β::T) where T
+    n = length(h)
+
+    Q = zeros(T, n, n)
+
+    for i = 1:n, j = i:n
+        if i == j
+            l = h[i]
+            Q[i, i] += 2l
+            β -= l
+        else
+            q = J[i, j]
+            Q[i, j] += 4q
+            Q[i, i] -= 2q
+            Q[j, j] -= 2q
+            β += q
+        end
+    end
+
+    return (Q, α, β)
 end
 
 function QUBOTools.qubo(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
@@ -114,14 +154,54 @@ function QUBOTools.qubo(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:Boo
     return (Q, α, β)
 end
 
-QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}) = QUBOTools.ising(Dict, Float64, model)
+QUBOTools.ising(model::AbstractQUBOModel) = QUBOTools.ising(Dict, Float64, model)
 
-function QUBOTools.ising(::AbstractQUBOModel{<:BoolDomain})
-    QUBOTools.codec_error(
-        """
-        Can't generate ising normal form from boolean model.
-        Consider converting your model with `convert`"""
-    )
+function QUBOTools.ising(S::Type, T::Type, model::AbstractQUBOModel{<:BoolDomain})
+    Q, α, β = QUBOTools.qubo(S, T, model)
+
+    return QUBOTools.ising(Q, α, β)
+end
+
+function QUBOTools.ising(Q::Dict{Tuple{Int,Int},T}, α::T, β::T) where {T}
+    h = Dict{Int,T}()
+    J = Dict{Tuple{Int,Int},T}()
+
+    for ((i, j), q) in Q
+        if i == j
+            h[i] = get(h, i, zero(T)) + q / 2
+            β += q / 2
+        else # i < j
+            J[(i, j)] = get(J, (i, j), zero(T)) + q / 4
+            h[i] = get(h, i, zero(T)) + q / 4
+            h[j] = get(h, j, zero(T)) + q / 4
+            β += q / 4
+        end
+    end
+
+    return (h, J, α, β)
+end
+
+function QUBOTools.ising(Q::Matrix{T}, α::T, β::T) where {T}
+    n = size(Q, 1)
+
+    h = zeros(T, n)
+    J = zeros(T, n, n)
+
+    for i = 1:n, j = i:n
+        q = Q[i, j]
+
+        if i == j
+            h[i] += q / 2
+            β += q / 2
+        else
+            J[i, j] += q / 4
+            h[i] += q / 4
+            h[j] += q / 4
+            β += q / 4
+        end
+    end
+
+    return (h, J, α, β)
 end
 
 function QUBOTools.ising(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:SpinDomain})
@@ -257,7 +337,7 @@ function Base.write(path::AbstractString, model::AbstractQUBOModel)
     end
 end
 
-function Base.convert(::Type{Y}, ::X) where {X <: AbstractQUBOModel, Y<:AbstractQUBOModel}
+function Base.convert(::Type{Y}, ::X) where {X<:AbstractQUBOModel,Y<:AbstractQUBOModel}
     QUBOTools.codec_error("'Base.convert' not implemented for turning model of type '$(X)' into '$(Y)'")
 end
 

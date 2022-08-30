@@ -11,7 +11,6 @@ function test_standard()
     variables = Symbol[:x, :y]
     variable_set = Set{Symbol}([:x, :y])
 
-    sense = :min
     scale = 2.0
     offset = 1.0
 
@@ -46,7 +45,6 @@ function test_standard()
     std_model = QUBOTools.StandardQUBOModel{Symbol,Int,Float64,QUBOTools.BoolDomain}(
         _linear_terms,
         _quadratic_terms;
-        sense=sense,
         scale=scale,
         offset=offset,
         id=id,
@@ -72,7 +70,6 @@ function test_standard()
             @test QUBOTools.variables(std_model) == variables
             @test QUBOTools.variable_set(std_model) == variable_set
 
-            @test QUBOTools.sense(std_model) == sense
             @test QUBOTools.scale(std_model) == scale
             @test QUBOTools.offset(std_model) == offset
 
@@ -97,36 +94,32 @@ function test_standard()
             @test QUBOTools.density(std_model) ≈ 1.0
         end
 
-        @testset "Bridges" verbose = true begin
-            @testset "MIN -> MAX" verbose = true begin
-                max_model = QUBOTools.swap_sense(std_model)
-            end
+        # @testset "Bridges" verbose = true begin
+        #     @testset "BOOL -> SPIN" verbose = true begin
+        #         # spin_model = convert(
+        #         #     QUBOTools.StandardQUBOModel{Symbol,Int,Float64,QUBOTools.SpinDomain},
+        #         #     bool_model,
+        #         # )
 
-            @testset "BOOL -> SPIN" verbose = true begin
-                # spin_model = convert(
-                #     QUBOTools.StandardQUBOModel{Symbol,Int,Float64,QUBOTools.SpinDomain},
-                #     bool_model,
-                # )
+        #         # @test QUBOTools.id(spin_model) == id
+        #         # @test QUBOTools.description(spin_model) == description
 
-                # @test QUBOTools.id(spin_model) == id
-                # @test QUBOTools.description(spin_model) == description
+        #         # @test QUBOTools.linear_terms(spin_model) == Dict{Int,Float64}()
+        #         # @test QUBOTools.quadratic_terms(spin_model) == Dict{Tuple{Int,Int},Float64}(
+        #         #     (1, 2) => -0.5
+        #         # )
+        #         # @test QUBOTools.scale(spin_model) == 1.0
+        #         # @test QUBOTools.offset(spin_model) == 0.5
 
-                # @test QUBOTools.linear_terms(spin_model) == Dict{Int,Float64}()
-                # @test QUBOTools.quadratic_terms(spin_model) == Dict{Tuple{Int,Int},Float64}(
-                #     (1, 2) => -0.5
-                # )
-                # @test QUBOTools.scale(spin_model) == 1.0
-                # @test QUBOTools.offset(spin_model) == 0.5
+        #         # for x in [[0, 0], [0, 1], [1, 0], [1, 1]]
+        #         #     s = 2x .- 1
 
-                # for x in [[0, 0], [0, 1], [1, 0], [1, 1]]
-                #     s = 2x .- 1
+        #         #     bool_energy = QUBOTools.energy(x, bool_model)
+        #         #     spin_energy = QUBOTools.energy(s, spin_model)
 
-                #     bool_energy = QUBOTools.energy(x, bool_model)
-                #     spin_energy = QUBOTools.energy(s, spin_model)
-
-                #     @test bool_energy == spin_energy
-                # end
-            end
-        end
+        #         #     @test bool_energy == spin_energy
+        #         # end
+        #     end
+        # end
     end
 end
