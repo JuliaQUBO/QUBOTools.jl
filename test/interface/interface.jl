@@ -11,6 +11,13 @@ function test_interface()
     B = BoolDomain
     S = SpinDomain
 
+    null_model = Model{B}(
+        QUBOTools.StandardQUBOModel{V,U,T,B}(
+            Dict{V,T}(),
+            Dict{Tuple{V,V},T}()
+        )
+    )
+
     bool_model = Model{B}(
         QUBOTools.StandardQUBOModel{V,U,T,B}(
             Dict{V,T}(:x => 1.0, :y => -1.0),
@@ -30,16 +37,20 @@ function test_interface()
     )
 
     @testset "-*- Interface" verbose = true begin
+        @test QUBOTools.backend(null_model) isa QUBOTools.StandardQUBOModel
         @test QUBOTools.backend(bool_model) isa QUBOTools.StandardQUBOModel
         @test QUBOTools.backend(spin_model) isa QUBOTools.StandardQUBOModel
+        @test isempty(null_model)
         @test !isempty(bool_model)
         @test !isempty(spin_model)
         @test isvalid(bool_model)
         @test isvalid(spin_model)
 
         @testset "Data access" begin
+            @test QUBOTools.scale(null_model) == 1.0
             @test QUBOTools.scale(bool_model) == 2.0
             @test QUBOTools.scale(spin_model) == 2.0
+            @test QUBOTools.offset(null_model) == 0.0
             @test QUBOTools.offset(bool_model) == 1.0
             @test QUBOTools.offset(spin_model) == 1.5
         end
@@ -49,10 +60,25 @@ function test_interface()
             @test QUBOTools.model_name(spin_model) == "Model{SpinDomain}"
             @test QUBOTools.domain_name(bool_model) == "Bool"
             @test QUBOTools.domain_name(spin_model) == "Spin"
+            @test QUBOTools.domain_size(null_model) == 0
+            @test QUBOTools.domain_size(bool_model) == 2
+            @test QUBOTools.domain_size(spin_model) == 2
+            @test QUBOTools.linear_size(null_model) == 0
             @test QUBOTools.linear_size(bool_model) == 2
             @test QUBOTools.linear_size(spin_model) == 1
+            @test QUBOTools.quadratic_size(null_model) == 0
             @test QUBOTools.quadratic_size(bool_model) == 1
             @test QUBOTools.quadratic_size(spin_model) == 1
+
+            @test QUBOTools.density(null_model) |> isnan
+            @test QUBOTools.density(bool_model) ≈ 1.0
+            @test QUBOTools.density(spin_model) ≈ 0.75
+            @test QUBOTools.linear_density(null_model) |> isnan
+            @test QUBOTools.linear_density(bool_model) ≈ 1.0
+            @test QUBOTools.linear_density(spin_model) ≈ 0.5
+            @test QUBOTools.quadratic_density(null_model) |> isnan
+            @test QUBOTools.quadratic_density(bool_model) ≈ 1.0
+            @test QUBOTools.quadratic_density(spin_model) ≈ 1.0
 
             @test QUBOTools.variable_map(bool_model, :x) == 1
             @test QUBOTools.variable_map(spin_model, :x) == 1
