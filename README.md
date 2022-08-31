@@ -117,11 +117,13 @@ When `D <: SpinDomain`, it is necessary that `U <: Signed`.
 It is also the choice for the energy values corresponding to each solution.
 It's commonly set as `Float64`.
 
-This package follows **BQPJSON**'s mathematical formulation, given by
+This package's mathematical formulation was inspired by **BQPJSON**'s, and is given by
 
 $$\min f(\vec{x}) = \alpha \left[{ \sum_{i < j} q_{i, j}\,x_{i}\,x_{j} +\sum_{i} l_{i}\,x_{i} + \beta }\right]$$
 
 where $\alpha$ is a scaling factor, $\beta$ a constant offset, $l_{i}\,x_{i}$ are the linear terms and $q_{i, j}\,x_{i}\,x_{j}$ the quadratic ones.
+
+Problems 
 
 ### [JuMP](https://jump.dev) Integration
 
@@ -137,6 +139,6 @@ When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say
         <img width="200px" src="https://raw.githubusercontent.com/psrenergy/Anneal.jl/master/docs/src/assets/logo.svg" alt="Anneal.jl" />
     </a>
     <a href="https://github.com/psrenergy/QUBOTools.jl">
-        <img width="200px" src="/docs/src/assets/logo.svg" alt="QUBOTools.jl" />
+        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/QUBOTools.jl/main/docs/src/assets/logo.svg" alt="QUBOTools.jl" />
     </a>
 </div>
