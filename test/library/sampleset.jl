@@ -44,7 +44,59 @@ function test_sampleset()
                 QUBOTools.Sample{U,T}([0, 0], 1, 0.1)
             ]
         )
+        # ~*~ Merge & Sort ~*~#
+        source_samples = QUBOTools.Sample{U,T}[
+            QUBOTools.Sample{U,T}([0, 0], 1, 0.0),
+            QUBOTools.Sample{U,T}([0, 0], 2, 0.0),
+            QUBOTools.Sample{U,T}([0, 1], 3, 2.0),
+            QUBOTools.Sample{U,T}([0, 1], 4, 2.0),
+            QUBOTools.Sample{U,T}([1, 0], 5, 4.0),
+            QUBOTools.Sample{U,T}([1, 0], 6, 4.0),
+            QUBOTools.Sample{U,T}([1, 1], 7, 1.0),
+            QUBOTools.Sample{U,T}([1, 1], 8, 1.0),
+        ]
 
+        metadata = Dict{String,Any}(
+            "time" => Dict{String,Any}(
+                "total" => 10.0
+            ),
+            "origin" => "quantum",
+            "heuristics" => [
+                "presolve",
+                "decomposition",
+                "binary quadratic polytope cuts"
+            ]
+        )
+
+        target_samples = QUBOTools.Sample{U,T}[
+            QUBOTools.Sample{U,T}([0, 0], 3, 0.0),
+            QUBOTools.Sample{U,T}([1, 1], 15, 1.0),
+            QUBOTools.Sample{U,T}([0, 1], 7, 2.0),
+            QUBOTools.Sample{U,T}([1, 0], 11, 4.0),
+        ]
+
+        source_sampleset = QUBOTools.SampleSet{U,T}(
+            source_samples,
+            metadata,
+        )
+
+        let target_sampleset = QUBOTools.SampleSet{U,T}(
+                target_samples
+            )
+            @test source_sampleset == target_sampleset
+        end
+
+        let target_sampleset = copy(source_sampleset)
+            @test source_sampleset == target_sampleset
+            @test target_sampleset.metadata == metadata
+
+            # Ensure metadata was deepcopied
+            metadata["origin"] = "monte carlo"
+
+            @test target_sampleset.metadata != metadata
+        end
+
+        # ~*~ Model constructor ~*~ #
         let model = SampleModel{T}()
             data = Vector{U}[[0, 0], [0, 1], [1, 0], [1, 1]]
             model_set = QUBOTools.SampleSet{U,T}(
