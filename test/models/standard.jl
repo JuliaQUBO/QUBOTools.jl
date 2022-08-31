@@ -79,7 +79,7 @@ function test_standard()
         end
 
         @testset "Queries" verbose = true begin
-            @test isempty(std_model) == false
+            @test isnothing(QUBOTools.backend(std_model))
 
             @test QUBOTools.domain(std_model) == QUBOTools.BoolDomain
             @test QUBOTools.domain_name(std_model) == "Bool"
@@ -92,6 +92,12 @@ function test_standard()
             @test QUBOTools.quadratic_density(std_model) ≈ 1.0
 
             @test QUBOTools.density(std_model) ≈ 1.0
+        end
+
+        @testset "Reset" verbose = true begin
+            @test !isempty(std_model)
+            empty!(std_model)
+            @test isempty(std_model)
         end
 
         # @testset "Bridges" verbose = true begin
