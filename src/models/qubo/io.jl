@@ -32,7 +32,7 @@ function Base.write(io::IO, model::QUBO)
     println(io, "p qubo 0 $(model.max_index) $(model.num_diagonals) $(model.num_elements)")
 
     println(io, "c linear terms")
-    for (i, q) in QUBOTools.linear_terms(model; explicit=true)
+    for (i, q) in QUBOTools.explicit_linear_terms(model)
         println(io, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, i)) $(q)")
     end
 

@@ -1,4 +1,4 @@
-include("backend.jl")
+include("standard.jl")
 include("bqpjson.jl")
 include("hfs.jl")
 include("minizinc.jl")
@@ -7,7 +7,7 @@ include("qubo.jl")
 
 function test_models(path::String, n::Integer)
     @testset "-*- Models -*-" verbose = true begin
-        test_backend(path, n)
+        test_standard()
         test_bqpjson(path, n)
         test_hfs(path, n)
         test_minizinc(path, n)

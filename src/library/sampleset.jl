@@ -6,9 +6,17 @@
 end
 
 function Base.:(==)(x::Sample{U,T}, y::Sample{U,T}) where {U,T}
-    x.value == y.value &&
-        x.reads == y.reads &&
-        x.state == y.state
+    return x.value == y.value &&
+           x.reads == y.reads &&
+           x.state == y.state
+end
+
+function Base.length(x::Sample)
+    return length(x.state)
+end
+
+function Base.isempty(x::Sample)
+    return isempty(x.state) || iszero(x.reads)
 end
 
 @doc raw"""
@@ -57,8 +65,9 @@ It was clearly inspired by [1], with a few tweaks.
 
                 mapping[sample.state] = sample
             else
-                @assert cached.state == sample.state
-                @assert cached.value == sample.value
+                if !(cached.value ≈ sample.value)
+                    sample_error("Samples of the same state vector must have the same energy value")
+                end
 
                 mapping[sample.state] = Sample{U,T}(
                     sample.state,
@@ -77,7 +86,7 @@ It was clearly inspired by [1], with a few tweaks.
             metadata = Dict{String,Any}()
         end
 
-        new{U,T}(samples, metadata)
+        return new{U,T}(samples, metadata)
     end
 
     function SampleSet{U,T}(
@@ -85,8 +94,7 @@ It was clearly inspired by [1], with a few tweaks.
         data::Vector{Vector{U}},
         metadata::Union{Dict{String,Any},Nothing}=nothing,
     ) where {U,T}
-
-        SampleSet{U,T}(
+        return SampleSet{U,T}(
             Sample{U,T}[Sample{U,T}(state, 1, QUBOTools.energy(state, model)) for state in data],
             metadata
         )
@@ -94,39 +102,36 @@ It was clearly inspired by [1], with a few tweaks.
 end
 
 function Base.copy(sampleset::SampleSet{U,T}) where {U,T}
-    SampleSet{U,T}(copy(sampleset.samples))
+    SampleSet{U,T}(
+        copy(sampleset.samples),
+        deepcopy(sampleset.metadata)
+    )
 end
 
 function Base.length(X::SampleSet)
-    length(X.samples)
+    return length(X.samples)
 end
 
 function Base.:(==)(X::SampleSet{U,T}, Y::SampleSet{U,T}) where {U,T}
-    length(X) == length(Y) && all(X.samples .== Y.samples)
+    return length(X) == length(Y) && all(X.samples .== Y.samples)
 end
 
 function Base.iterate(X::SampleSet)
-    iterate(X.samples)
+    return iterate(X.samples)
 end
 
 function Base.iterate(X::SampleSet, i::Integer)
-    iterate(X.samples, i)
+    return iterate(X.samples, i)
 end
 
 function Base.getindex(X::SampleSet, i::Integer)
-    X.samples[i]
+    return X.samples[i]
 end
 
 function Base.getindex(X::SampleSet, i::Integer, j::Integer)
-    X.samples[i].state[j]
+    return X.samples[i].state[j]
 end
 
-function Base.size(X::SampleSet)
-    if isempty(X)
-        return (0, 0)
-    elseif isempty(X.samples)
-        return (1, 0)
-    else
-        return (length(X.samples), length(X.samples[begin]))
-    end
+function Base.isempty(X::SampleSet)
+    return isempty(X.samples)
 end
