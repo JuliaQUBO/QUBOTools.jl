@@ -34,6 +34,8 @@ Returns a string representing the variable domain.
 
 @doc raw"""
     swap_domain(source, target, model)
+    swap_domain(source, target, state)
+    swap_domain(source, target, states)
     swap_domain(source, target, sampleset)
 
 Returns a new object, switching its domain from `source` to `target`.
