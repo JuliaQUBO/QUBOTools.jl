@@ -117,5 +117,37 @@ function test_sampleset()
                 end
             end
         end
+
+        bool_samples = target_samples = QUBOTools.Sample{U,T}[
+            QUBOTools.Sample{U,T}([0, 0], 1, 4.0),
+            QUBOTools.Sample{U,T}([0, 1], 2, 3.0),
+            QUBOTools.Sample{U,T}([1, 0], 3, 2.0),
+            QUBOTools.Sample{U,T}([1, 1], 4, 1.0),
+        ]
+
+        spin_samples = QUBOTools.Sample{U,T}[
+            QUBOTools.Sample{U,T}([-1, -1], 1, 4.0),
+            QUBOTools.Sample{U,T}([-1, 1], 2, 3.0),
+            QUBOTools.Sample{U,T}([1, -1], 3, 2.0),
+            QUBOTools.Sample{U,T}([1, 1], 4, 1.0),
+        ]
+
+        # ~*~ Domain translation ~*~ #
+        let (bool_set, spin_set) = (
+            QUBOTools.SampleSet{U,T}(bool_samples),
+            QUBOTools.SampleSet{U,T}(spin_samples),
+        )
+            @test QUBOTools.swap_domain(
+                QUBOTools.BoolDomain,
+                QUBOTools.SpinDomain,
+                bool_set
+            ) == spin_set
+
+            @test QUBOTools.swap_domain(
+                QUBOTools.SpinDomain,
+                QUBOTools.BoolDomain,
+                spin_set
+            ) == bool_set
+        end
     end
 end
