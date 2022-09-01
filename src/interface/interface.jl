@@ -154,7 +154,9 @@ Returns a quadruple ``(h, J, \alpha, \beta)`` where:
 
 # ~*~ Data queries ~*~ #
 @doc raw"""
-    energy(state, model)::T where {T<:Real}
+    energy(state, model)::T
+    energy(state, Q::Dict{Tuple{Int,Int},T})
+    energy(state, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T})
 
 This function aims to evaluate the energy of a given state under some QUBO Model.
 **Note:** Scale and offset factors are taken into account.
@@ -200,6 +202,13 @@ If the model is empty, returns `NaN`.
     quadratic_density(model)::Float64
 
 """ function quadratic_density end
+
+@doc raw"""
+    adjacency(model)::Dict{Int,Set{Int}}
+    adjacency(model, i::Integer)::Set{Int}
+    adjacency(Q::Dict{Tuple{Int,Int},T})::Dict{Int,Set{Int}}
+    adjacency(Q::Dict{Tuple{Int,Int},T}, i::Integer)::Set{Int}
+""" function adjacency end
 
 # ~*~ Internal: bridge validation ~*~ #
 @doc raw"""

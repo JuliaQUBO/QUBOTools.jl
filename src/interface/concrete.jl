@@ -54,3 +54,66 @@ function QUBOTools.swap_domain(
         deepcopy(sampleset.metadata)
     )
 end
+
+function QUBOTools.energy(state::Vector{U}, Q::Dict{Tuple{Int,Int},T}) where {U<:Integer,T<:Real}
+    s = zero(T)
+
+    for ((i, j), c) in Q
+        s += state[i] * state[j] * c
+    end
+
+    return s
+end
+
+function QUBOTools.energy(state::Vector{U}, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}) where {U<:Integer,T<:Real}
+    s = zero(T)
+
+    for (i, c) in h
+        s += state[i] * c
+    end
+
+    for ((i, j), c) in J
+        s += state[i] * state[j] * c
+    end
+
+    return s
+end
+
+function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},<:Real})
+    A = Dict{Int,Set{Int}}()
+
+    for (i, j) in keys(Q)
+        if i == j
+            continue
+        end
+
+        if !haskey(A, i)
+            A[i] = Set{Int}()
+        end
+
+        if !haskey(A, j)
+            A[j] = Set{Int}()
+        end
+
+        push!(A[i], j)
+        push!(A[j], i)
+    end
+
+    return A
+end
+
+function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},<:Real}, k::Integer)
+    A = Set{Int}()
+
+    for (i, j) in keys(Q)
+        if i == j
+            continue
+        end
+
+        if i == k
+            push!(A, j)
+        end
+    end
+
+    return A
+end
