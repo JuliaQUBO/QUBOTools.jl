@@ -132,6 +132,8 @@ Returns a triple ``(Q, \alpha, \beta)`` where:
  * `Q::Dict{Tuple{Int, Int}, T}` is a sparse representation of the QUBO Matrix.
  * `α::T` is the scaling factor.
  * `β::T` is the offset constant.
+
+!!! The main diagonal is explicitly included, breaking sparsity by containing zero entries.
 """ function qubo end
 
 @doc raw"""
@@ -150,6 +152,8 @@ Returns a quadruple ``(h, J, \alpha, \beta)`` where:
 * `J::Dict{Tuple{Int, Int}, T}` is a sparse representation of the quadratic magnetic interactions.
 * `α::T` is the scaling factor.
 * `β::T` is the offset constant.
+
+!!! The main diagonal is explicitly included, breaking sparsity by containing zero entries.
 """ function ising end
 
 # ~*~ Data queries ~*~ #

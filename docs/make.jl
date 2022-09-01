@@ -1,13 +1,13 @@
 using Documenter
-using QUBO
+using QUBOTools
 
 # Set up to run docstrings with jldoctest
 DocMeta.setdocmeta!(
-    QUBO, :DocTestSetup, :(using QUBO); recursive=true
+    QUBOTools, :DocTestSetup, :(using QUBOTools); recursive=true
 )
 
 makedocs(;
-    modules=[QUBO],
+    modules=[QUBOTools],
     doctest=true,
     clean=true,
     format=Documenter.HTML(
@@ -20,7 +20,6 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "manual.md",
-        "examples.md",
     ],
     workdir="."
 )
