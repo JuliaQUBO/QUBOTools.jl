@@ -40,3 +40,5 @@ QUBOTools.quadratic_size(model)    = QUBOTools.quadratic_size(QUBOTools.backend(
 QUBOTools.density(model)           = QUBOTools.density(QUBOTools.backend(model))
 QUBOTools.linear_density(model)    = QUBOTools.linear_density(QUBOTools.backend(model))
 QUBOTools.quadratic_density(model) = QUBOTools.quadratic_density(QUBOTools.backend(model))
+QUBOTools.adjacency(model)         = QUBOTools.adjacency(QUBOTools.backend(model))
+QUBOTools.adjacency(model, k)      = QUBOTools.adjacency(QUBOTools.backend(model), k)

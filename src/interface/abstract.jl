@@ -308,6 +308,32 @@ function QUBOTools.quadratic_density(model::AbstractQUBOModel)
     end
 end
 
+function QUBOTools.adjacency(model::AbstractQUBOModel)
+    n = QUBOTools.domain_size(model)
+    A = Dict{Int,Set{Int}}(i => Set{Int}() for i = 1:n)
+
+    for (i, j) in keys(QUBOTools.quadratic_terms(model))
+        push!(A[i], j)
+        push!(A[j], i)
+    end
+
+    return A
+end
+
+function QUBOTools.adjacency(model::AbstractQUBOModel, k::Integer)
+    A = Set{Int}()
+
+    for (i, j) in keys(QUBOTools.quadratic_terms(model))
+        if i == k
+            push!(A, j)
+        elseif j == k
+            push!(A, i)
+        end
+    end
+
+    return A
+end
+
 # ~*~ Internal: bridge validation ~*~ #
 QUBOTools.__isvalidbridge(
     source::M,

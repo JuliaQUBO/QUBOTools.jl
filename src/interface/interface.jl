@@ -132,6 +132,8 @@ Returns a triple ``(Q, \alpha, \beta)`` where:
  * `Q::Dict{Tuple{Int, Int}, T}` is a sparse representation of the QUBO Matrix.
  * `α::T` is the scaling factor.
  * `β::T` is the offset constant.
+
+!!! The main diagonal is explicitly included, breaking sparsity by containing zero entries.
 """ function qubo end
 
 @doc raw"""
@@ -150,11 +152,15 @@ Returns a quadruple ``(h, J, \alpha, \beta)`` where:
 * `J::Dict{Tuple{Int, Int}, T}` is a sparse representation of the quadratic magnetic interactions.
 * `α::T` is the scaling factor.
 * `β::T` is the offset constant.
+
+!!! The main diagonal is explicitly included, breaking sparsity by containing zero entries.
 """ function ising end
 
 # ~*~ Data queries ~*~ #
 @doc raw"""
-    energy(state, model)::T where {T<:Real}
+    energy(state, model)::T
+    energy(state, Q::Dict{Tuple{Int,Int},T})
+    energy(state, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T})
 
 This function aims to evaluate the energy of a given state under some QUBO Model.
 **Note:** Scale and offset factors are taken into account.
@@ -200,6 +206,13 @@ If the model is empty, returns `NaN`.
     quadratic_density(model)::Float64
 
 """ function quadratic_density end
+
+@doc raw"""
+    adjacency(model)::Dict{Int,Set{Int}}
+    adjacency(model, i::Integer)::Set{Int}
+    adjacency(Q::Dict{Tuple{Int,Int},T})::Dict{Int,Set{Int}}
+    adjacency(Q::Dict{Tuple{Int,Int},T}, i::Integer)::Set{Int}
+""" function adjacency end
 
 # ~*~ Internal: bridge validation ~*~ #
 @doc raw"""
