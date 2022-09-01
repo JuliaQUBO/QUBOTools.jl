@@ -64,7 +64,10 @@
         alignment-baseline: middle;
         font-style: italic;
         font-weight: bold;
-        text-shadow: 5px 5px 1px #000000;
+    }
+
+    .shadow {
+        fill: #000;
     }
   	</style>
 
@@ -84,6 +87,10 @@
         <textPath href="#path-v" startOffset="50%">
         0 1 1 0 0 0 1 1 1 1 0 1 1 0 0 0 ↓ ↑ ↑ ↓ ↓ ↓ ↑ ↑ ↑ ↑ ↓ ↑ ↑ ↓ ↓ ↓ ↑
         </textPath>
+    </text>
+
+    <text class="title shadow" x="507" y="507">
+        QUBOTools.jl
     </text>
 
     <text class="title" x="500" y="500">
