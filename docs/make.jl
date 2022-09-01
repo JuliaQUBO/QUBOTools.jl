@@ -24,7 +24,7 @@ makedocs(;
     workdir="."
 )
 
-# deploydocs(
-#     repo=raw"github.com/psrenergy/QUBOTools.jl.git",
-#     push_preview = true
-# )
+deploydocs(
+    repo=raw"github.com/psrenergy/QUBOTools.jl.git",
+    push_preview = true
+)
