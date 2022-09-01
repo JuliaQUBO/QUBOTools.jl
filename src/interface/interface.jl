@@ -115,7 +115,8 @@ Returns the set of variables of a given model.
 @doc raw"""
     variable_inv(model)::Dict{Int,V} where {V}
     variable_inv(model, i::Integer)::V where {V}
-""" function variable_inv end
+
+    """ function variable_inv end
 
 # ~*~ Model's Normal Forms ~*~ #
 @doc raw"""
@@ -195,7 +196,7 @@ Computes the density ``\rho`` of non-zero terms in a model, according to the exp
 ```math
 \rho = \frac{2Q + L}{N^{2}}
 ```
-where ``l`` is the number of linear terms, ``Q`` the number of quadratic ones and ``N`` the number of variables.
+where ``L`` is the number of non-zero linear terms, ``Q`` the number of quadratic ones and ``N`` the number of variables.
 
 If the model is empty, returns `NaN`.
 """ function density end
@@ -203,11 +204,21 @@ If the model is empty, returns `NaN`.
 @doc raw"""
     linear_density(model)::Float64
 
+Computes the linear density ``\rho_{l}``, given by
+```math
+\rho_{l} = \frac{L}{N}
+```
+where ``L`` is the number of non-zero linear terms and ``N`` the number of variables.
 """ function linear_density end
 
 @doc raw"""
     quadratic_density(model)::Float64
 
+Computes the linear density ``\rho_{q}``, given by
+```math
+\rho_{q} = \frac{2Q}{N (N - 1)}
+```
+where ``Q`` is the number of non-zero quadratic terms and ``N`` the number of variables.
 """ function quadratic_density end
 
 @doc raw"""
@@ -215,6 +226,15 @@ If the model is empty, returns `NaN`.
     adjacency(model, i::Integer)::Set{Int}
     adjacency(Q::Dict{Tuple{Int,Int},T})::Dict{Int,Set{Int}}
     adjacency(Q::Dict{Tuple{Int,Int},T}, i::Integer)::Set{Int}
+
+Computes the adjacency list representation for the quadratic terms of a given model.
+A mapping between the variable's index and the set of its neighbors is returned.
+
+If a second parameter, an integer, is present, then the set of neighbors of that node is returned.
+
+!!! warning
+    Computing specific neighborhoods is expensive.
+    Thus, it is recommended that one stores the adjacency list for repeated access.
 """ function adjacency end
 
 # ~*~ Internal: bridge validation ~*~ #

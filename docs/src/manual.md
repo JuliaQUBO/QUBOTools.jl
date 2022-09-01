@@ -19,6 +19,7 @@ QUBOTools.QUBO
 QUBOTools.density
 QUBOTools.linear_density
 QUBOTools.quadratic_density
+QUBOTools.adjacency
 ```
 
 ### Normal Forms

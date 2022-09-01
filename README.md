@@ -124,7 +124,7 @@ $$\min f(\vec{x}) = \alpha \left[{ \sum_{i < j} q_{i, j}\,x_{i}\,x_{j} +\sum_{i}
 where $\alpha$ is a scaling factor, $\beta$ a constant offset, $l_{i}\,x_{i}$ are the linear terms and $q_{i, j}\,x_{i}\,x_{j}$ the quadratic ones.
 
 We defined our problems to follow a minimization sense by default.
-While the scaling factor $\alpha$ is strictly positive in **BQPJSON**, $\alpha < 0$ can be used to indicate _maximixation_ problems using **QUBOTools**.
+While the scaling factor $\alpha$ is strictly positive in **BQPJSON**, $\alpha < 0$ can be used to indicate _maximization_ problems using **QUBOTools**.
 
 ### [JuMP](https://jump.dev) Integration
 
