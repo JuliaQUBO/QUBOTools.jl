@@ -76,7 +76,8 @@ Returns a new object, switching its domain from `source` to `target`.
 
 Retrieves the linear terms of a model as a dict.
 
-!!! The `explicit_linear_terms` method includes all variables, breaking linear sparsity.
+!!! info
+    The `explicit_linear_terms` method includes all variables, breaking linear sparsity.
 """ function linear_terms end
 
 @doc raw"""
@@ -133,7 +134,8 @@ Returns a triple ``(Q, \alpha, \beta)`` where:
  * `α::T` is the scaling factor.
  * `β::T` is the offset constant.
 
-!!! The main diagonal is explicitly included, breaking sparsity by containing zero entries.
+!!! info
+    The main diagonal is explicitly included, breaking sparsity by containing zero entries.
 """ function qubo end
 
 @doc raw"""
@@ -153,7 +155,8 @@ Returns a quadruple ``(h, J, \alpha, \beta)`` where:
 * `α::T` is the scaling factor.
 * `β::T` is the offset constant.
 
-!!! The main diagonal is explicitly included, breaking sparsity by containing zero entries.
+!!! info
+    The main diagonal is explicitly included, breaking sparsity by containing zero entries.
 """ function ising end
 
 # ~*~ Data queries ~*~ #

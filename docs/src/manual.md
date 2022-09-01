@@ -1,4 +1,4 @@
-# QUBOTools.jl Manual
+# Manual
 
 ## Models
 
