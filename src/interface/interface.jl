@@ -162,9 +162,19 @@ Returns a quadruple ``(h, J, \alpha, \beta)`` where:
 
 # ~*~ Data queries ~*~ #
 @doc raw"""
-    energy(state, model)::T
+    state(index, model)
+""" function state end
+
+@doc raw"""
+    reads(model)
+    reads(index, model)
+""" function reads end
+
+@doc raw"""
+    energy(state, model)
     energy(state, Q::Dict{Tuple{Int,Int},T})
     energy(state, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T})
+    energy(index, model)
 
 This function aims to evaluate the energy of a given state under some QUBO Model.
 **Note:** Scale and offset factors are taken into account.
