@@ -1,1 +1,5 @@
 # QUBO
+
+```@docs
+QUBOTools.QUBO
+```

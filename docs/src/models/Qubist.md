@@ -9,3 +9,7 @@
 1 3 1.0
 2 3 1.0
 ```
+
+```@docs
+QUBOTools.Qubist
+```

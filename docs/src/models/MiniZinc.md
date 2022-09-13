@@ -1,1 +1,5 @@
 # MiniZinc
+
+```@docs
+QUBOTools.MiniZinc
+```
