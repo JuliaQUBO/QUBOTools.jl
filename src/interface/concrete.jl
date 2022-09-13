@@ -72,7 +72,7 @@ function QUBOTools.reads(index::Integer, sampleset::SampleSet)
         error("index '$index' out of bounds [1, $(length(sampleset))]")
     end
 
-    return sampleset[index].state
+    return sampleset[index].reads
 end
 
 function QUBOTools.energy(state::Vector{U}, Q::Dict{Tuple{Int,Int},T}) where {U<:Integer,T}
@@ -132,6 +132,10 @@ function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},T}, k::Integer) where {T}
 
         if i == k
             push!(A, j)
+        end
+
+        if j == k
+            push!(A, i)
         end
     end
 
