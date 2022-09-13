@@ -11,7 +11,7 @@ function QUBOTools.version(model::BQPJSON)
     end
 end
 
-function QUBOTools.__isvalidbridge(
+function QUBOTools._isvalidbridge(
     source::BQPJSON{B},
     target::BQPJSON{B},
     ::Type{<:BQPJSON{A}};
@@ -45,7 +45,7 @@ function QUBOTools.__isvalidbridge(
     #     flag = false
     # end
 
-    if !QUBOTools.__isvalidbridge(
+    if !QUBOTools._isvalidbridge(
         QUBOTools.backend(source),
         QUBOTools.backend(target);
         kws...

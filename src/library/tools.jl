@@ -1,7 +1,7 @@
 @doc raw"""
-""" function isapproxdict end
+""" function _isapproxdict end
 
-function isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
+function _isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
     (length(x) == length(y)) && all(haskey(y, k) && isapprox(x[k], y[k]; kw...) for k in keys(x))
 end
 

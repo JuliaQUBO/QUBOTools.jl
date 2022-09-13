@@ -41,7 +41,7 @@ const QUBO_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
     end
 end
 
-function __isvalidbridge(
+function _isvalidbridge(
     source::QUBO{D},
     target::QUBO{D},
     ::Type{<:QUBO{D}};
@@ -64,7 +64,7 @@ function __isvalidbridge(
         flag = false
     end
 
-    if !QUBOTools.__isvalidbridge(
+    if !QUBOTools._isvalidbridge(
         QUBOTools.backend(source),
         QUBOTools.backend(target);
         kws...

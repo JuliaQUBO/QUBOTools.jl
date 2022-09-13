@@ -3,15 +3,29 @@ const HFS_DEFAULT_CHIMERA_PRECISION = 5
 const HFS_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 @doc raw"""
+    Chimera(
+        linear_terms::Dict{Int,Int}
+        quadratic_terms::Dict{Tuple{Int,Int},Int}
+        cell_size::Int
+        precision::Int
+        scale::Float64
+        offset::Float64
+        factor::Float64
+        degree::Int
+        effective_degree::Int
+        coordinates::Dict{Int,Tuple{Int,Int,Int,Int}}
+    )
+
 Format description from [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
+
 The format of the instance-description file starts with a line giving the size of the Chimera graph.
 (Two numbers are given to specify an m x n rectangle, but currently only a square, m=n, is accepted.)
+
 The subsequent lines are of the form
 ```
     <Chimera vertex> <Chimera vertex> weight
 ```
-where `<Chimera vertex>` is specified by four numbers using the format,
-Chimera graph, C_N:
+where `<Chimera vertex>` is specified by four numbers using the format, Chimera graph, C_N:
     
 Vertices are ``v = (x,y,o,i)`` where
     - ``x, y \in [0, N - 1]`` are the horizontal, vertical coordinates of the ``K_{4, 4}``
@@ -184,6 +198,9 @@ There is an edge from ``v_p`` to ``v_q`` if
 end
 
 @doc raw"""
+    HFS{BoolDomain}(backend, chimera)
+
+This format offers a description for the setup of chimera graphs.
 """ mutable struct HFS{D<:BoolDomain} <: AbstractQUBOModel{D}
     backend::HFS_BACKEND_TYPE{D}
     chimera::Chimera

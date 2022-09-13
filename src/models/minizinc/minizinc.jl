@@ -47,13 +47,13 @@ MINIZINC_DEFAULT_SCALE(scale::Float64) = scale
     end
 end
 
-function __isvalidbridge(
+function _isvalidbridge(
     source::MiniZinc{D},
     target::MiniZinc{D},
     ::Type{<:MiniZinc{D}};
     kws...
 ) where {D<:VariableDomain}
-    QUBOTools.__isvalidbridge(
+    QUBOTools._isvalidbridge(
         QUBOTools.backend(source),
         QUBOTools.backend(target);
         kws...

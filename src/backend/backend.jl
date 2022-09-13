@@ -150,7 +150,7 @@ function Base.copy(model::StandardQUBOModel{V,U,T,D}) where {V,U,T,D}
     )
 end
 
-function QUBOTools.__isvalidbridge(
+function QUBOTools._isvalidbridge(
     source::StandardQUBOModel{V,U,T,D},
     target::StandardQUBOModel{V,U,T,D};
     kws...
@@ -178,7 +178,7 @@ function QUBOTools.__isvalidbridge(
         flag = false
     end
 
-    if !isapproxdict(source.linear_terms, target.linear_terms; kws...)
+    if !_isapproxdict(source.linear_terms, target.linear_terms; kws...)
         @error """
         Test Failure: Linear terms mismatch:
         $(source.linear_terms) ≉ $(target.linear_terms)
@@ -186,7 +186,7 @@ function QUBOTools.__isvalidbridge(
         flag = false
     end
 
-    if !isapproxdict(source.quadratic_terms, target.quadratic_terms; kws...)
+    if !_isapproxdict(source.quadratic_terms, target.quadratic_terms; kws...)
         @error """
         Test Failure: Quadratic terms mismatch:
         $(source.quadratic_terms) ≉ $(target.quadratic_terms)

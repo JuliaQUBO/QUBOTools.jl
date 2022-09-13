@@ -249,9 +249,9 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 
 # ~*~ Internal: bridge validation ~*~ #
 @doc raw"""
-    __isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
+    _isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
 
 Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
 Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` calls.
 
-""" function __isvalidbridge end
+""" function _isvalidbridge end

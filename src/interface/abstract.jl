@@ -347,7 +347,7 @@ function QUBOTools.adjacency(model::AbstractQUBOModel, k::Integer)
 end
 
 # ~*~ Internal: bridge validation ~*~ #
-QUBOTools.__isvalidbridge(
+QUBOTools._isvalidbridge(
     source::M,
     target::M,
     ::Type{<:AbstractQUBOModel};
