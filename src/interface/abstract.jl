@@ -249,6 +249,18 @@ function QUBOTools.ising(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:Sp
 end
 
 # ~*~ Data queries ~*~ #
+function QUBOTools.state(index::Integer, model::AbstractQUBOModel)
+    return QUBOTools.state(index, QUBOTools.sampleset(model))
+end
+
+function QUBOTools.reads(model::AbstractQUBOModel)
+    return QUBOTools.reads(QUBOTools.sampleset(model))
+end
+
+function QUBOTools.reads(index::Integer, model::AbstractQUBOModel)
+    return QUBOTools.reads(index, QUBOTools.sampleset(model))
+end
+
 function QUBOTools.energy(state::Vector, model::AbstractQUBOModel)
     @assert length(state) == QUBOTools.domain_size(model)
 
@@ -335,7 +347,7 @@ function QUBOTools.adjacency(model::AbstractQUBOModel, k::Integer)
 end
 
 # ~*~ Internal: bridge validation ~*~ #
-QUBOTools.__isvalidbridge(
+QUBOTools._isvalidbridge(
     source::M,
     target::M,
     ::Type{<:AbstractQUBOModel};

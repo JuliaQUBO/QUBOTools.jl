@@ -3,30 +3,43 @@ const HFS_DEFAULT_CHIMERA_PRECISION = 5
 const HFS_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 @doc raw"""
-Format description from [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
+    Chimera(
+        linear_terms::Dict{Int,Int}
+        quadratic_terms::Dict{Tuple{Int,Int},Int}
+        cell_size::Int
+        precision::Int
+        scale::Float64
+        offset::Float64
+        factor::Float64
+        degree::Int
+        effective_degree::Int
+        coordinates::Dict{Int,Tuple{Int,Int,Int,Int}}
+    )
+
+Format description from [1](@ref chimera-1).
+
 The format of the instance-description file starts with a line giving the size of the Chimera graph.
-(Two numbers are given to specify an m x n rectangle, but currently only a square, m=n, is accepted.)
+Two numbers are given to specify an ``m \times n`` rectangle, but currently only a square (``m = n``) is accepted.
+
 The subsequent lines are of the form
 ```
     <Chimera vertex> <Chimera vertex> weight
 ```
-where `<Chimera vertex>` is specified by four numbers using the format,
-Chimera graph, C_N:
+where `<Chimera vertex>` is specified by four numbers using the format, Chimera graph, ``C_N``:
     
-Vertices are ``v = (x,y,o,i)`` where
-    - ``x, y \in [0, N - 1]`` are the horizontal, vertical coordinates of the ``K_{4, 4}``
-    - ``o \in [0, 1]`` is the **orientation**: (0 = horizontally connected, 1 = vertically connected)
-    - ``i \in [0, 3]`` is the index within the "semi-``K_{4,4}" or "bigvertex"
-    - There is an involution given by ``x \iff y``, ``o \iff 1 - o``
+Vertices are ``v = (x, y, o, i)`` where
+- ``x, y \in [0, N - 1]`` are the horizontal, vertical coordinates of the ``K_{4, 4}``
+- ``o \in [0, 1]`` is the **orientation**: (``0 = \text{horizontally connected}``, ``1 = \text{vertically connected}``)
+- ``i \in [0, 3]`` is the index within the "semi-``K_{4,4}``" or "bigvertex"
+- There is an involution given by ``x \iff y``, ``o \iff 1 - o``
 
-There is an edge from ``v_p`` to ``v_q`` if
+There is an edge from ``v_p`` to ``v_q`` if at least one of the following holds:
+- ``(x_p, y_p) = (x_q, y_q) \wedge o_p \neq o_q``
+- ``|x_p - x_q| = 1 \wedge y_p = y_q \wedge o_p = o_q = 0 \wedge i_p = i_q``
+- ``x_p = x_q \wedge |y_p-y_q| = 1 \wedge o_p = o_q = 1 \wedge i_p = i_q``
 
-```math
- (x_p, y_p) = (x_q, y_q) \wedge o_p \neq o_q \vee
- |x_p-x_q| = 1 \wedge y_p = y_q \wedge o_p = o_q = 0 \wedge i_p = i_q \vee
- x_p = x_q \wedge |y_p-y_q| = 1 \wedge o_p = o_q = 1 \wedge i_p = i_q
-```
-
+### References
+[1](@id chimera-1) [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
 """ struct Chimera
     linear_terms::Dict{Int,Int}
     quadratic_terms::Dict{Tuple{Int,Int},Int}
@@ -184,6 +197,9 @@ There is an edge from ``v_p`` to ``v_q`` if
 end
 
 @doc raw"""
+    HFS{BoolDomain}(backend, chimera)
+
+This format offers a description for the setup of chimera graphs.
 """ mutable struct HFS{D<:BoolDomain} <: AbstractQUBOModel{D}
     backend::HFS_BACKEND_TYPE{D}
     chimera::Chimera

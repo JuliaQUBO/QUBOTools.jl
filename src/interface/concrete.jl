@@ -41,7 +41,7 @@ function QUBOTools.swap_domain(
     ::Type{A},
     ::Type{B},
     sampleset::SampleSet{U,T}
-) where {A<:VariableDomain,B<:VariableDomain,U<:Integer,T<:Real}
+) where {A<:VariableDomain,B<:VariableDomain,U<:Integer,T}
     return SampleSet{U,T}(
         Sample{U,T}[
             Sample{U,T}(
@@ -55,7 +55,27 @@ function QUBOTools.swap_domain(
     )
 end
 
-function QUBOTools.energy(state::Vector{U}, Q::Dict{Tuple{Int,Int},T}) where {U<:Integer,T<:Real}
+function QUBOTools.state(index::Integer, sampleset::SampleSet)
+    if !(1 <= index <= length(sampleset))
+        error("index '$index' out of bounds [1, $(length(sampleset))]")
+    end
+
+    return sampleset[index].state
+end
+
+function QUBOTools.reads(sampleset::SampleSet)
+    return sum(sample.reads for sample in sampleset)
+end
+
+function QUBOTools.reads(index::Integer, sampleset::SampleSet)
+    if !(1 <= index <= length(sampleset))
+        error("index '$index' out of bounds [1, $(length(sampleset))]")
+    end
+
+    return sampleset[index].reads
+end
+
+function QUBOTools.energy(state::Vector{U}, Q::Dict{Tuple{Int,Int},T}) where {U<:Integer,T}
     s = zero(T)
 
     for ((i, j), c) in Q
@@ -65,7 +85,7 @@ function QUBOTools.energy(state::Vector{U}, Q::Dict{Tuple{Int,Int},T}) where {U<
     return s
 end
 
-function QUBOTools.energy(state::Vector{U}, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}) where {U<:Integer,T<:Real}
+function QUBOTools.energy(state::Vector{U}, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}) where {U<:Integer,T}
     s = zero(T)
 
     for (i, c) in h
@@ -79,7 +99,7 @@ function QUBOTools.energy(state::Vector{U}, h::Dict{Int,T}, J::Dict{Tuple{Int,In
     return s
 end
 
-function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},<:Real})
+function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},T}) where {T}
     A = Dict{Int,Set{Int}}()
 
     for (i, j) in keys(Q)
@@ -102,7 +122,7 @@ function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},<:Real})
     return A
 end
 
-function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},<:Real}, k::Integer)
+function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},T}, k::Integer) where {T}
     A = Set{Int}()
 
     for (i, j) in keys(Q)
@@ -112,6 +132,10 @@ function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},<:Real}, k::Integer)
 
         if i == k
             push!(A, j)
+        end
+
+        if j == k
+            push!(A, i)
         end
     end
 

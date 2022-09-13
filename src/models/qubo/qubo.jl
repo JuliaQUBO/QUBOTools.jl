@@ -1,6 +1,15 @@
 const QUBO_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 @doc raw"""
+    QUBO{D}(
+        backend,
+        max_index,
+        num_diagonals,
+        num_elements
+    ) whre {D<:BoolDomain}
+
+### References
+[1] [qbsolv docs](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
 """ mutable struct QUBO{D<:BoolDomain} <: AbstractQUBOModel{D}
     backend::QUBO_BACKEND_TYPE{D}
     max_index::Int
@@ -41,7 +50,7 @@ const QUBO_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
     end
 end
 
-function __isvalidbridge(
+function _isvalidbridge(
     source::QUBO{D},
     target::QUBO{D},
     ::Type{<:QUBO{D}};
@@ -64,7 +73,7 @@ function __isvalidbridge(
         flag = false
     end
 
-    if !QUBOTools.__isvalidbridge(
+    if !QUBOTools._isvalidbridge(
         QUBOTools.backend(source),
         QUBOTools.backend(target);
         kws...

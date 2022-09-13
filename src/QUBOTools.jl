@@ -16,11 +16,16 @@ There is no predefined comparison between instances MOI's `VariableIndex` type.
 varcmp(x::V, y::V) where {V} = isless(x, y)
 
 const ≺ = varcmp # \prec[tab]
+const ↑ = -1
+const ↓ = +1
 
-# ~*~ Variable Domains ~*~ #
+# ~*~ Exports: Symbols ~*~ #
+export ↑, ↓
+
+# ~*~ Exports: Variable Domains ~*~ #
 export BoolDomain, SpinDomain
 
-# ~*~ Supported Model Formats ~*~ #
+# ~*~ Exports: Supported Model Formats ~*~ #
 export BQPJSON
 export HFS
 export MiniZinc

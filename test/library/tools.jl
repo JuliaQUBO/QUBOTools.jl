@@ -98,4 +98,77 @@ function test_tools()
         @test_throws Exception QUBOTools.infer_model_type(:xyz)
         @test_throws Exception QUBOTools.infer_model_type("file")
     end
+
+    @testset "Raw Model Queries" begin
+        Q = Dict{Tuple{Int,Int},Float64}(
+            (1, 1) => 1.0, (1, 2) => 1.0, (1, 3) => 1.0,
+                           (2, 2) => 1.0, 
+                                          (3, 3) => 1.0,
+        )
+
+        h = Dict{Int,Float64}(
+            1 => 1.0,
+            2 => 0.0,
+            3 => -1.0,
+        )
+
+        J = Dict{Tuple{Int,Int},Float64}(
+            (1, 2) => 2.0, (1, 3) => -4.0,
+                           (2, 3) => -8.0,
+        )
+
+        # ~ energy ~ #
+        X = [
+            [0, 0, 0] => 0.0,
+            [1, 0, 0] => 1.0,
+            [0, 1, 0] => 1.0,
+            [0, 0, 1] => 1.0,
+            [1, 1, 0] => 3.0,
+            [1, 0, 1] => 3.0,
+            [0, 1, 1] => 2.0,
+            [1, 1, 1] => 5.0,
+        ]
+
+        for (x, e) in X
+            @test QUBOTools.energy(x, Q) == e
+        end
+
+        S = [
+            [↑, ↑, ↑] => -10.0,
+            [↓, ↑, ↑] => -4.0,
+            [↑, ↓, ↑] => 2.0,
+            [↑, ↑, ↓] => 12.0,
+            [↓, ↓, ↑] => 16.0,
+            [↓, ↑, ↓] => 2.0,
+            [↑, ↓, ↓] => -8.0,
+            [↓, ↓, ↓] => -10.0,
+        ]
+
+        for (s, e) in S
+            @test QUBOTools.energy(s, h, J) == e
+        end
+
+        # ~ adjacency ~ #
+        A = Dict{Int,Set{Int}}(
+            1 => Set{Int}([2, 3]),
+            2 => Set{Int}([1]),
+            3 => Set{Int}([1]),
+        )
+
+        B = Dict{Int,Set{Int}}(
+            1 => Set{Int}([2, 3]),
+            2 => Set{Int}([1, 3]),
+            3 => Set{Int}([1, 2]),
+        )
+
+        @test QUBOTools.adjacency(Q) == A
+        @test QUBOTools.adjacency(Q, 1) == A[1]
+        @test QUBOTools.adjacency(Q, 2) == A[2]
+        @test QUBOTools.adjacency(Q, 3) == A[3]
+
+        @test QUBOTools.adjacency(J) == B
+        @test QUBOTools.adjacency(J, 1) == B[1]
+        @test QUBOTools.adjacency(J, 2) == B[2]
+        @test QUBOTools.adjacency(J, 3) == B[3]
+    end
 end

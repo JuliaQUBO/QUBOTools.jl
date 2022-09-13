@@ -1,1 +1,5 @@
 # BQPJSON
+
+```@docs
+QUBOTools.BQPJSON
+```

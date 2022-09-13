@@ -1,11 +1,11 @@
 # QUBOTools.jl's Assets
 
-## Logo
+## [Logo](@id logo)
 
-[QUBOTools](/)'s depicts the conversion between binary data and spin states.
+QUBOTools's logo depicts the conversion between binary data and spin states.
 This represents the available codecs for manipulating _Ising_ and _QUBO_ models.
 
-[![QUBOTools.jl](logo.svg)](/docs/src/assets)
+[![QUBOTools.jl](logo.svg)](@ref logo)
 
 ## Colors
 

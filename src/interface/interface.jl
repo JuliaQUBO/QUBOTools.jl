@@ -127,7 +127,7 @@ Returns the set of variables of a given model.
 # QUBO Normal Form
 
 ```math
-f(\vec{x}) = \alpha \left[{ \vec{x}'\,Q\,\vec{x} + \beta }\right]
+f(\mathbf{x}) = \alpha \left[{ \mathbf{x}'\,Q\,\mathbf{x} + \beta }\right]
 ```
 
 Returns a triple ``(Q, \alpha, \beta)`` where:
@@ -147,7 +147,7 @@ Returns a triple ``(Q, \alpha, \beta)`` where:
 # Ising Normal Form
 
 ```math
-H(\vec{s}) = \alpha \left[{ \vec{s}'\,J\,\vec{s} + \vec{h}\,\vec{s} + \beta }\right]
+H(\mathbf{s}) = \alpha \left[{ \mathbf{s}'\,J\,\mathbf{s} + \mathbf{h}\,\mathbf{s} + \beta }\right]
 ```
 
 Returns a quadruple ``(h, J, \alpha, \beta)`` where:
@@ -162,9 +162,19 @@ Returns a quadruple ``(h, J, \alpha, \beta)`` where:
 
 # ~*~ Data queries ~*~ #
 @doc raw"""
-    energy(state, model)::T
+    state(index, model)
+""" function state end
+
+@doc raw"""
+    reads(model)
+    reads(index, model)
+""" function reads end
+
+@doc raw"""
+    energy(state, model)
     energy(state, Q::Dict{Tuple{Int,Int},T})
     energy(state, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T})
+    energy(index, model)
 
 This function aims to evaluate the energy of a given state under some QUBO Model.
 **Note:** Scale and offset factors are taken into account.
@@ -239,9 +249,9 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 
 # ~*~ Internal: bridge validation ~*~ #
 @doc raw"""
-    __isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
+    _isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
 
 Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
 Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` calls.
 
-""" function __isvalidbridge end
+""" function _isvalidbridge end

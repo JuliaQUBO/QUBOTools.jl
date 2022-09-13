@@ -10,13 +10,13 @@ function test_bqpjson_qubo(path::String, n::Integer)
             @test qubo_model isa QUBO{BoolDomain}
             @test bool_model isa BQPJSON{BoolDomain}
 
-            @test QUBOTools.__isvalidbridge(
+            @test QUBOTools._isvalidbridge(
                 convert(QUBO{BoolDomain}, bool_model),
                 qubo_model,
                 BQPJSON{BoolDomain};
                 atol=BQPJSON_ATOL,
             )
-            @test QUBOTools.__isvalidbridge(
+            @test QUBOTools._isvalidbridge(
                 convert(BQPJSON{BoolDomain}, qubo_model),
                 bool_model,
                 QUBO{BoolDomain};

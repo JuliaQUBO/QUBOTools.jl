@@ -1,8 +1,25 @@
-# API Reference
+# [API Reference](@id api-reference)
 
 ### Fallback dispatch
+When extending `QUBOTools`, one must implement a method for [`QUBOTools.backend`](@ref). 
+
 ```@docs
 QUBOTools.backend
+```
+
+### Variable System
+```@docs
+QUBOTools.varcmp
+```
+
+### Variable Domains
+```@docs
+QUBOTools.VariableDomain
+QUBOTools.BoolDomain
+QUBOTools.SpinDomain
+QUBOTools.domain
+QUBOTools.domain_name
+QUBOTools.swap_domain
 ```
 
 ### Solution Interface
@@ -12,18 +29,21 @@ QUBOTools.SampleSet
 QUBOTools.sampleset
 ```
 
-### Standard Model
 ```@docs
+QUBOTools.state
+QUBOTools.reads
+QUBOTools.energy
+```
+
+### Models
+```@docs
+QUBOTools.AbstractQUBOModel
 QUBOTools.StandardQUBOModel
-QUBOTools.BQPJSON
-QUBOTools.HFS
-QUBOTools.MiniZinc
-QUBOTools.Qubist
-QUBOTools.QUBO
+QUBOTools.model_name
+QUBOTools.infer_model_type
 ```
 
 ## Data Access
-
 ```@docs
 QUBOTools.linear_terms
 QUBOTools.explicit_linear_terms
@@ -48,7 +68,6 @@ QUBOTools.metadata
 
 ### Queries
 ```@docs
-QUBOTools.energy
 QUBOTools.domain_size
 QUBOTools.linear_size
 QUBOTools.quadratic_size
