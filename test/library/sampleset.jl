@@ -5,6 +5,38 @@ QUBOTools.energy(::Any, ::SampleModel{T}) where {T} = zero(T)
 function test_sampleset()
     U = Int
     T = Float64
+    B = QUBOTools.BoolDomain
+    S = QUBOTools.BoolDomain
+
+    ↑ = -1
+    ↓ = +1
+
+    @testset "States" begin
+        ψ = [↑, ↓, ↑]
+        Ψ = [0, 1, 0]
+        ϕ = [↓, ↑, ↓]
+        Φ = [1, 0, 1]
+        
+        # ~ Short Circuits ~ #
+        @test QUBOTools.swap_domain(S, S, ψ) == ψ
+        @test QUBOTools.swap_domain(S, S, ϕ) == ϕ
+        @test QUBOTools.swap_domain(S, S, Ψ) == Ψ
+        @test QUBOTools.swap_domain(S, S, Φ) == Φ
+        @test QUBOTools.swap_domain(B, B, ψ) == ψ
+        @test QUBOTools.swap_domain(B, B, ϕ) == ϕ
+        @test QUBOTools.swap_domain(B, B, Ψ) == Ψ
+        @test QUBOTools.swap_domain(B, B, Φ) == Φ
+
+        # ~ State Conversion ~ #
+        @test QUBOTools.swap_domain(B, S, Φ) == ϕ
+        @test QUBOTools.swap_domain(B, S, Ψ) == ψ
+        @test QUBOTools.swap_domain(S, B, ϕ) == Φ
+        @test QUBOTools.swap_domain(S, B, ψ) == Ψ
+
+        # ~ Multiple States Conversion ~ #
+        @test QUBOTools.swap_domain(B, S, [Φ, Ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(S, B, [ϕ, ψ]) == [Φ, Ψ]
+    end
 
     @testset "SampleSet" begin
         let sample = QUBOTools.Sample{U,T}([0, 0], 1, 0.0)
