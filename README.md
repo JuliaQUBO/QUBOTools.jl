@@ -23,18 +23,18 @@ This allows for rapid leverage of many emergent computing architectures whose jo
 The term QUBO is widely used when referring to *boolean* problems of the form
 
 $$\begin{array}{rl}
-       \min & \vec{x}'\ Q\ \vec{x} \\
-\text{s.t.} & \vec{x} \in \mathbb{B}^{n}
+       \min & \mathbf{x}'\ Q\ \mathbf{x} \\
+\text{s.t.} & \mathbf{x} \in \mathbb{B}^{n}
 \end{array}$$
 
 with symmetric $Q \in \mathbb{R}^{n \times n}$. Nevertheless, this package also fully supports *Ising Models*, given by
 
 $$\begin{array}{rl}
-       \min & \vec{s}'\ J\ \vec{s} + \vec{h}'\ \vec{s} \\
-\text{s.t.} & \vec{s} \in \left\lbrace-1, 1\right\rbrace^{n}
+       \min & \mathbf{s}'\ J\ \mathbf{s} + \mathbf{h}'\ \mathbf{s} \\
+\text{s.t.} & \mathbf{s} \in \left\lbrace-1, 1\right\rbrace^{n}
 \end{array}$$
 
-where $J \in \mathbb{R}^{n \times n}$ is triangular and $\vec{h} \in \mathbb{R}^{n}$.
+where $J \in \mathbb{R}^{n \times n}$ is triangular and $\mathbf{h} \in \mathbb{R}^{n}$.
 
 ## Getting Started
 
@@ -119,7 +119,7 @@ It's commonly set as `Float64`.
 
 This package's mathematical formulation was inspired by **BQPJSON**'s, and is given by
 
-$$\min f(\vec{x}) = \alpha \left[{ \sum_{i < j} q_{i, j}\,x_{i}\,x_{j} +\sum_{i} l_{i}\,x_{i} + \beta }\right]$$
+$$\min f(\mathbf{x}) = \alpha \left[{ \sum_{i < j} q_{i, j}\,x_{i}\,x_{j} +\sum_{i} l_{i}\,x_{i} + \beta }\right]$$
 
 where $\alpha$ is a scaling factor, $\beta$ a constant offset, $l_{i}\,x_{i}$ are the linear terms and $q_{i, j}\,x_{i}\,x_{j}$ the quadratic ones.
 

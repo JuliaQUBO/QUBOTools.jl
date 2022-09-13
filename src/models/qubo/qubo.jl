@@ -1,6 +1,15 @@
 const QUBO_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 @doc raw"""
+    QUBO{D}(
+        backend,
+        max_index,
+        num_diagonals,
+        num_elements
+    ) whre {D<:BoolDomain}
+
+### References
+[1] [qbsolv docs](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
 """ mutable struct QUBO{D<:BoolDomain} <: AbstractQUBOModel{D}
     backend::QUBO_BACKEND_TYPE{D}
     max_index::Int

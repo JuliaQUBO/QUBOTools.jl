@@ -1,6 +1,8 @@
 const QUBIST_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
 
 @doc raw"""
+    Qubist{D}(backend, sites, lines) where {D<:SpinDomain}
+
 """ mutable struct Qubist{D<:SpinDomain} <: AbstractQUBOModel{D}
     backend::QUBIST_BACKEND_TYPE{D}
     sites::Int

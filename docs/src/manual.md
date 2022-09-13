@@ -7,8 +7,10 @@ This manual aims to explain the fundamental concepts behind loading and manipula
 using QUBOTools
 ```
 
+By loading the package with an `using` statement, only a few constants will be dumped in the namespace, mostly model types.
+
 ## Mathematical Formulation
-The conventions adopted by `QUBOTools.jl` are built over models of the form
+The conventions adopted by _QUBOTools_ are built over models of the form
 
 ```math
 \begin{array}{rl}
@@ -17,8 +19,7 @@ The conventions adopted by `QUBOTools.jl` are built over models of the form
 \end{array}
 ```
 
-where ``\alpha, \beta \in \mathbb{R}`` and ``\mathbf{\ell} \in \mathbb{R}^{n}`.
-``Q \in \mathbb{R}^{n \times n}`` is assumed to be in its triangular superior form.
+where ``\alpha, \beta \in \mathbb{R}`` are the _scale_ and _offset_ parameters. The vector ``\mathbf{\ell} \in \mathbb{R}^{n}`` stores the linear terms and ``Q \in \mathbb{R}^{n \times n}``, the quadratic interaction matrix, is assumed to be in its triangular superior form.
 
 !!! info
     Any problem loaded with this package will be converted internally to the normal form presented above.
@@ -38,6 +39,11 @@ model = read(fpath, BQPJSON)
 ```
 
 ## Data Access
+When querying a model, one should rely on the provided methods, whose definitions are listed in the [API Reference](@ref api-reference).
+
+```@example manual
+QUBOTools.description(model)
+```
 
 ```@example manual
 QUBOTools.linear_terms(model)

@@ -1,4 +1,4 @@
-# API Reference
+# [API Reference](@id api-reference)
 
 ### Fallback dispatch
 When extending `QUBOTools`, one must implement a method for [`QUBOTools.backend`](@ref). 

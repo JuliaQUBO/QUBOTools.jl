@@ -1,33 +1,49 @@
 # QUBOTools.jl
 
 ## Introduction
-The `QUBOTools.jl` package implements codecs and queries for QUBO (*Quadratic Unconstrained Binary Optimization*) instances.
+The `QUBOTools.jl` package implements codecs and query methods for working with [QUBO](https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization) instances.
 Its purpose is to provide fast and reliable conversion between common formats used to represent such problems.
 This allows for rapid leverage of many emergent computing architectures whose job is to solve this kind of optimization problem.
 
-The term QUBO is widely used when referring to *boolean* problems of the form
+The _QUBO_ term, in the strict sense, is widely used to indicate *boolean* problems of the form
 
 ```math
 \begin{array}{rl}
-       \min & \vec{x}'\ Q\ \vec{x} \\
-\text{s.t.} & \vec{x} \in \mathbb{B}^{n}
+       \min & \mathbf{x}'\ Q\ \mathbf{x} \\
+\text{s.t.} & \mathbf{x} \in \mathbb{B}^{n}
 \end{array}
 ```
 
-with symmetric ``Q \in \mathbb{R}^{n \times n}``
-Nevertheless, this package also fully supports *Ising Models*, given by
+with symmetric ``Q \in \mathbb{R}^{n \times n}``.
+Nevertheless, this package also provides full support for _Ising Models_, given by
 
 ```math
 \begin{array}{rl}
-       \min & \vec{s}'\ J\ \vec{s} + \vec{h}'\ \vec{s} \\
-\text{s.t.} & \vec{s} \in \left\lbrace-1, 1\right\rbrace^{n}
+       \min & \mathbf{s}'\ J\ \mathbf{s} + \mathbf{h}'\ \mathbf{s} \\
+\text{s.t.} & \mathbf{s} \in \left\lbrace-1, 1\right\rbrace^{n}
 \end{array}
 ```
 
-where ``J \in \mathbb{R}^{n \times n}`` is triangular and ``\vec{h} \in \mathbb{R}^{n}``.
+where ``J \in \mathbb{R}^{n \times n}`` is upper triangular and ``\mathbf{h} \in \mathbb{R}^{n}``.
+
+## Installation
+QUBOTools.jl is avaible through Julia's General Registry:
+
+```julia-repl
+julia> ]add QUBOTools
+
+julia> using QUBOTools
+```
+
+You might also be interested in the latest development version:
+
+```julia-repl
+julia> ]add QUBOTools#main
+```
 
 ## Objectives
-The objectives of this package is to provide:
-- Fast and reliable I/O, including conversion between formats
-- Model & Solution Analysis through data queries and metrics
-- Generic yet complete backend for powering other applications
+The objective of this package is to provide:
+- Fast and reliable I/O, including conversion between formats.
+- Model & Solution Analysis through data queries and metrics and plot recipes.
+- Generic yet complete backend for powering other applications.
+- Synthetic problem generation.

@@ -127,7 +127,7 @@ Returns the set of variables of a given model.
 # QUBO Normal Form
 
 ```math
-f(\vec{x}) = \alpha \left[{ \vec{x}'\,Q\,\vec{x} + \beta }\right]
+f(\mathbf{x}) = \alpha \left[{ \mathbf{x}'\,Q\,\mathbf{x} + \beta }\right]
 ```
 
 Returns a triple ``(Q, \alpha, \beta)`` where:
@@ -147,7 +147,7 @@ Returns a triple ``(Q, \alpha, \beta)`` where:
 # Ising Normal Form
 
 ```math
-H(\vec{s}) = \alpha \left[{ \vec{s}'\,J\,\vec{s} + \vec{h}\,\vec{s} + \beta }\right]
+H(\mathbf{s}) = \alpha \left[{ \mathbf{s}'\,J\,\mathbf{s} + \mathbf{h}\,\mathbf{s} + \beta }\right]
 ```
 
 Returns a quadruple ``(h, J, \alpha, \beta)`` where:
