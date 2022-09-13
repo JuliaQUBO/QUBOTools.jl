@@ -1,7 +1,7 @@
 name = "QUBOTools"
 uuid = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"
-authors = ["pedromxavier <pedroxavier@psr-inc.com>"]
-version = "0.3.0"
+authors = ["pedromxavier <pedroxavier@psr-inc.com>", "joaquimg <joaquim@psr-inc.com>", "AndradeTiago <tiago.andrade@psr-inc.com>", "David Bernal <dbernalneira@usra.edu>"]
+version = "0.3.1"
 
 [deps]
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
@@ -10,5 +10,5 @@ Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
 JSON = "0.21.3"
-JSONSchema = "1.0"
+JSONSchema = "1"
 julia = "1.6"
