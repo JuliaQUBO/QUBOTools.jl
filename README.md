@@ -11,6 +11,12 @@
     <a href="/actions/workflows/ci.yml">
         <img src="https://github.com/psrenergy/QUBOTools.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
+    <a href="https://psrenergy.github.com/QUBOTools.jl/dev">
+        <img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Docs">
+    </a>
+    <a href="https://zenodo.org/badge/latestdoi/508908129">
+        <img src="https://zenodo.org/badge/508908129.svg" alt="DOI">
+    </a>
     <br>
     <i>Tools for Quadratic Unconstrained Binary Optimization models in Julia</i>
 </div>
