@@ -75,6 +75,14 @@ function QUBOTools.reads(index::Integer, sampleset::SampleSet)
     return sampleset[index].reads
 end
 
+function QUBOTools.energy(index::Integer, sampleset::SampleSet)
+    if !(1 <= index <= length(sampleset))
+        error("index '$index' out of bounds [1, $(length(sampleset))]")
+    end
+
+    return sampleset[index].value
+end
+
 function QUBOTools.energy(state::Vector{U}, Q::Dict{Tuple{Int,Int},T}) where {U<:Integer,T}
     s = zero(T)
 

@@ -261,6 +261,10 @@ function QUBOTools.reads(index::Integer, model::AbstractQUBOModel)
     return QUBOTools.reads(index, QUBOTools.sampleset(model))
 end
 
+function QUBOTools.energy(index::Integer, model::AbstractQUBOModel)
+    return QUBOTools.energy(index, QUBOTools.sampleset(model))
+end
+
 function QUBOTools.energy(state::Vector, model::AbstractQUBOModel)
     @assert length(state) == QUBOTools.domain_size(model)
 
