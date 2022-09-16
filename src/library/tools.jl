@@ -1,11 +1,15 @@
-@doc raw"""
+"""
+    _isapproxdict(::Dict{K,T}, ::Dict{K,T}; kw...) where {K, T}
+
+Tells if two dictionaries have the same keys and approximate values for those keys.
+The keyword arguments are passed to `isapprox` calls.
 """ function _isapproxdict end
 
 function _isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
     (length(x) == length(y)) && all(haskey(y, k) && isapprox(x[k], y[k]; kw...) for k in keys(x))
 end
 
-@doc raw"""
+"""
     _swapdomain(
         source::Type,
         target::Type,
@@ -13,6 +17,8 @@ end
         quadratic_terms::Dict{Tuple{Int,Int},T},
         offset::Union{T,Nothing}
     ) where {T}
+
+Swaps the variable domain of a model, recalculating its coefficients.
 """ function _swapdomain end
 
 function _swapdomain(
@@ -154,8 +160,13 @@ function _build_mapping(variable_set::Set{V}) where {V}
 end
 
 @doc raw"""
-    infer_model_type(ext::Symbol)
     infer_model_type(path::String)
+
+Given a file path, tries to infer the type associated to a QUBO model format.
+
+    infer_model_type(ext::Symbol)
+
+Returns the type associated to a QUBO model format given a file extension.
 """ function infer_model_type end
 
 function infer_model_type(path::String)

@@ -25,9 +25,10 @@ makedocs(;
             "Qubist"   => "models/Qubist.md",
             "QUBO"     => "models/QUBO.md",
         ],
+        "Analysis" => "analysis.md",
         "API Reference" => "api.md",
     ],
-    workdir = "src/",
+    workdir = @__DIR__,
 )
 
 if "--skip-deploy" ∈ ARGS
