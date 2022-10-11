@@ -96,63 +96,63 @@ function test_interface()
         end
 
         @testset "Normal Forms" begin
-            let (Q, α, β) = QUBOTools.qubo(Dict, T, bool_model)
+            let (Q, α, β) = QUBOTools.qubo(bool_model, Dict, T)
                 @test Q == Dict{Tuple{Int,Int},T}((1, 1) => 1.0, (1, 2) => 2.0, (2, 2) => -1.0)
                 @test α == 2.0
                 @test β == 1.0
             end
 
-            let (Q, α, β) = QUBOTools.qubo(Array, T, bool_model)
+            let (Q, α, β) = QUBOTools.qubo(bool_model, Matrix, T)
                 @test Q == [1.0 2.0; 0.0 -1.0]
                 @test α == 2.0
                 @test β == 1.0
             end
 
-            let (h, J, α, β) = QUBOTools.ising(Dict, T, bool_model)
+            let (h, J, α, β) = QUBOTools.ising(bool_model, Dict, T)
                 @test h == Dict{Int,T}(1 => 1.0, 2 => 0.0)
                 @test J == Dict{Tuple{Int,Int},T}((1, 2) => 0.5)
                 @test α == 2.0
                 @test β == 1.5
             end
 
-            let (h, J, α, β) = QUBOTools.ising(Array, T, bool_model)
+            let (h, J, α, β) = QUBOTools.ising(bool_model, Matrix, T)
                 @test h == [1.0, 0.0]
                 @test J == [0.0 0.5; 0.0 0.0]
                 @test α == 2.0
                 @test β == 1.5
             end
 
-            @test QUBOTools.qubo(bool_model) == QUBOTools.qubo(Dict, T, bool_model)
-            @test QUBOTools.ising(bool_model) == QUBOTools.ising(Dict, T, bool_model)
+            @test QUBOTools.qubo(bool_model) == QUBOTools.qubo(bool_model, Dict, T)
+            @test QUBOTools.ising(bool_model) == QUBOTools.ising(bool_model, Dict, T)
 
-            let (Q, α, β) = QUBOTools.qubo(Dict, T, spin_model)
+            let (Q, α, β) = QUBOTools.qubo(spin_model, Dict, T)
                 @test Q == Dict{Tuple{Int,Int},T}((1, 1) => 1.0, (1, 2) => 2.0, (2, 2) => -1.0)
                 @test α == 2.0
                 @test β == 1.0
             end
 
-            let (Q, α, β) = QUBOTools.qubo(Array, T, spin_model)
+            let (Q, α, β) = QUBOTools.qubo(spin_model, Matrix, T)
                 @test Q == [1.0 2.0; 0.0 -1.0]
                 @test α == 2.0
                 @test β == 1.0
             end
 
-            let (h, J, α, β) = QUBOTools.ising(Dict, T, spin_model)
+            let (h, J, α, β) = QUBOTools.ising(spin_model, Dict, T)
                 @test h == Dict{Int,T}(1 => 1.0, 2 => 0.0)
                 @test J == Dict{Tuple{Int,Int},T}((1, 2) => 0.5)
                 @test α == 2.0
                 @test β == 1.5
             end
 
-            let (h, J, α, β) = QUBOTools.ising(Array, T, spin_model)
+            let (h, J, α, β) = QUBOTools.ising(spin_model, Matrix, T)
                 @test h == [1.0, 0.0]
                 @test J == [0.0 0.5; 0.0 0.0]
                 @test α == 2.0
                 @test β == 1.5
             end
 
-            @test QUBOTools.qubo(spin_model) == QUBOTools.qubo(Dict, T, spin_model)
-            @test QUBOTools.ising(spin_model) == QUBOTools.ising(Dict, T, spin_model)
+            @test QUBOTools.qubo(spin_model) == QUBOTools.qubo(spin_model, Dict, T)
+            @test QUBOTools.ising(spin_model) == QUBOTools.ising(spin_model, Dict, T)
         end
 
         @testset "Energy" begin

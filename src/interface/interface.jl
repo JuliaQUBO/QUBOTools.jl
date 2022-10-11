@@ -121,22 +121,34 @@ Returns the set of variables of a given model.
 # ~*~ Model's Normal Forms ~*~ #
 @doc raw"""
     qubo(model::AbstractQUBOModel{<:BoolDomain})
-    qubo(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
-    qubo(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
+    qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
 
-# QUBO Normal Form
+Returns sparse dictionary representation.
 
-```math
-f(\mathbf{x}) = \alpha \left[{ \mathbf{x}'\,Q\,\mathbf{x} + \beta }\right]
-```
+    qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
 
-Returns a triple ``(Q, \alpha, \beta)`` where:
- * `Q::Dict{Tuple{Int, Int}, T}` is a sparse representation of the QUBO Matrix.
- * `α::T` is the scaling factor.
- * `β::T` is the offset constant.
+Returns sparse vector quadruple (linear, quadratic, lower index & upper index).
+
+    qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
+
+Returns dense matrix representation.
+
+    qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
+
+Returns sparse matrix representation.
+
+    qubo(model::AbstractQUBOModel{<:SpinDomain}, args...)
+
+Returns QUBO form from Ising Model (Spin).
+
+    qubo(h::Dict{Int,T}, J::Dict{Tuple{Int, Int}, T}, α::T = one(T), β::T = zero(T)) where {T}
+    qubo(h::Vector{T}, J::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where {T}
+    qubo(h::Vector{T}, J::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
+    qubo(h::SparseVector{T}, J::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
 
 !!! info
-    The main diagonal is explicitly included, breaking sparsity by containing zero entries.
+    Apart from the sparse matricial case, the linear terms are explicitly included,
+    breaking sparsity by containing zero entries.
 """ function qubo end
 
 @doc raw"""

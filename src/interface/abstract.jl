@@ -1,8 +1,3 @@
-""" /src/abstract/data.jl @ QUBOTools.jl
-
-    This file contains abstract implementations for data access and querying.
-"""
-
 # ~*~ Base methods ~*~ #
 Base.isvalid(::AbstractQUBOModel) = true
 Base.isempty(model::AbstractQUBOModel) = isempty(QUBOTools.variable_map(model))
@@ -63,15 +58,98 @@ function QUBOTools.variable_inv(model::AbstractQUBOModel, i::Integer)
 end
 
 # ~*~ Model's Normal Forms ~*~ #
-QUBOTools.qubo(model::AbstractQUBOModel) = QUBOTools.qubo(Dict, Float64, model)
+QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}) = QUBOTools.qubo(model, Dict)
 
-function QUBOTools.qubo(S::Type, T::Type, model::AbstractQUBOModel{<:SpinDomain})
-    h, J, α, β = QUBOTools.ising(S, T, model)
+function QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
+    n = QUBOTools.domain_size(model)
+    m = QUBOTools.quadratic_size(model)
 
-    return QUBOTools.qubo(h, J, α, β)
+    Q = Dict{Tuple{Int,Int},T}()
+
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
+
+    sizehint!(Q, m + n)
+
+    for (i, qi) in QUBOTools.explicit_linear_terms(model)
+        Q[i, i] = qi
+    end
+
+    for ((i, j), Qij) in QUBOTools.quadratic_terms(model)
+        Q[i, j] = Qij
+    end
+
+    return (Q, α, β)
 end
 
-function QUBOTools.qubo(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, α::T, β::T) where {T}
+function QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
+    n = QUBOTools.domain_size(model)
+    m = QUBOTools.quadratic_size(model)
+
+    L = zeros(T, n)
+    Q = Vector{T}(undef, m)
+    u = Vector{T}(undef, m)
+    v = Vector{T}(undef, m)
+
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
+
+    for (i, l) in QUBOTools.linear_terms(model)
+        L[i] = l
+    end
+
+    for (k, ((i, j), q)) in enumerate(QUBOTools.quadratic_terms(model))
+        Q[k] = q
+        u[k] = i
+        v[k] = j
+    end
+
+    return (L, Q, u, v, α, β)
+end
+
+function QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
+    n = QUBOTools.domain_size(model)
+
+    Q = zeros(T, n, n)
+
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
+
+    for (i, l) in QUBOTools.linear_terms(model)
+        Q[i, i] = l
+    end
+
+    for ((i, j), q) in QUBOTools.quadratic_terms(model)
+        Q[i, j] = q
+    end
+
+    return (Q, α, β)
+end
+
+function QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
+    n = QUBOTools.domain_size(model)
+
+    Q = spzeros(T, n, n)
+
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
+
+    for (i, l) in QUBOTools.linear_terms(model)
+        Q[i, i] = l
+    end
+
+    for ((i, j), q) in QUBOTools.quadratic_terms(model)
+        Q[i, j] = q
+    end
+
+    return (Q, α, β)
+end
+
+function QUBOTools.qubo(model::AbstractQUBOModel{<:SpinDomain}, args...)
+    return QUBOTools.qubo(QUBOTools.ising(model, args...)...)
+end
+
+function QUBOTools.qubo(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, α::T = one(T), β::T = zero(T)) where {T}
     Q = Dict{Tuple{Int,Int},T}()
 
     sizehint!(Q, length(h) + length(J))
@@ -91,10 +169,55 @@ function QUBOTools.qubo(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, α::T, β::T)
     return (Q, α, β)
 end
 
-function QUBOTools.qubo(h::Vector{T}, J::Matrix{T}, α::T, β::T) where T
+function QUBOTools.qubo(h::Vector{T}, J::Vector{T}, u::Vector{T}, v::Vector{T}, α::T = one(T), β::T = zero(T)) where T
     n = length(h)
+    m = length(J)
+    L = zeros(T, n)
+    Q = zeros(T, m)
 
+    for i = 1:n
+        l = h[i]
+        β -= l
+        L[i] += 2l
+    end
+
+    for k = 1:m
+        i = u[k]
+        j = v[k]
+        q = J[k]
+        β += q
+        L[i] -= 2q
+        L[j] -= 2q
+        Q[i, j] += 4q
+    end
+
+    return (L, Q, u, v, α, β)
+end
+
+function QUBOTools.qubo(h::Vector{T}, J::Matrix{T}, α::T = one(T), β::T = zero(T)) where T
+    n = length(h)
     Q = zeros(T, n, n)
+
+    for i = 1:n, j = i:n
+        if i == j
+            l = h[i]
+            β -= l
+            Q[i, i] += 2l
+        else
+            q = J[i, j]
+            β += q
+            Q[i, i] -= 2q
+            Q[j, j] -= 2q
+            Q[i, j] += 4q
+        end
+    end
+
+    return (Q, α, β)
+end
+
+function QUBOTools.qubo(h::SparseVector{T}, J::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where T
+    n = length(h)
+    Q = spzeros(T, n, n)
 
     for i = 1:n, j = i:n
         if i == j
@@ -113,47 +236,6 @@ function QUBOTools.qubo(h::Vector{T}, J::Matrix{T}, α::T, β::T) where T
     return (Q, α, β)
 end
 
-function QUBOTools.qubo(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
-    m = QUBOTools.domain_size(model)
-    n = QUBOTools.quadratic_size(model)
-
-    Q = Dict{Tuple{Int,Int},T}()
-
-    α::T = QUBOTools.scale(model)
-    β::T = QUBOTools.offset(model)
-
-    sizehint!(Q, m + n)
-
-    for (i, qᵢ) in QUBOTools.explicit_linear_terms(model)
-        Q[i, i] = qᵢ
-    end
-
-    for ((i, j), qᵢⱼ) in QUBOTools.quadratic_terms(model)
-        Q[i, j] = qᵢⱼ
-    end
-
-    return (Q, α, β)
-end
-
-function QUBOTools.qubo(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:BoolDomain})
-    n = QUBOTools.domain_size(model)
-
-    Q = zeros(T, n, n)
-
-    α::T = QUBOTools.scale(model)
-    β::T = QUBOTools.offset(model)
-
-    for (i, qᵢᵢ) in QUBOTools.linear_terms(model)
-        Q[i, i] = qᵢᵢ
-    end
-
-    for ((i, j), qᵢⱼ) in QUBOTools.quadratic_terms(model)
-        Q[i, j] = qᵢⱼ
-    end
-
-    return (Q, α, β)
-end
-
 QUBOTools.ising(model::AbstractQUBOModel) = QUBOTools.ising(Dict, Float64, model)
 
 function QUBOTools.ising(S::Type, T::Type, model::AbstractQUBOModel{<:BoolDomain})
@@ -162,7 +244,7 @@ function QUBOTools.ising(S::Type, T::Type, model::AbstractQUBOModel{<:BoolDomain
     return QUBOTools.ising(Q, α, β)
 end
 
-function QUBOTools.ising(Q::Dict{Tuple{Int,Int},T}, α::T, β::T) where {T}
+function QUBOTools.ising(Q::Dict{Tuple{Int,Int},T}, α::T = one(T), β::T = zero(T)) where {T}
     h = Dict{Int,T}()
     J = Dict{Tuple{Int,Int},T}()
 
@@ -181,7 +263,7 @@ function QUBOTools.ising(Q::Dict{Tuple{Int,Int},T}, α::T, β::T) where {T}
     return (h, J, α, β)
 end
 
-function QUBOTools.ising(Q::Matrix{T}, α::T, β::T) where {T}
+function QUBOTools.ising(Q::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
     n = size(Q, 1)
 
     h = zeros(T, n)

@@ -3,6 +3,7 @@ module QUBOTools
 using Printf
 using JSON
 using JSONSchema
+using SparseArrays
 
 # ~*~ Variable comparison ~*~ #
 @doc raw"""
@@ -52,9 +53,6 @@ include("interface/fallback.jl")
 
 # ~*~ Concrete methods ~*~ #
 include("interface/concrete.jl")
-
-# ~*~ Standard backend implementation ~*~ #
-include("backend/backend.jl")
 
 # ~*~ Model implementation ~*~ #
 include("models/models.jl")
