@@ -236,13 +236,7 @@ function QUBOTools.qubo(h::SparseVector{T}, J::SparseMatrixCSC{T}, α::T = one(T
     return (Q, α, β)
 end
 
-QUBOTools.ising(model::AbstractQUBOModel) = QUBOTools.ising(Dict, Float64, model)
-
-function QUBOTools.ising(S::Type, T::Type, model::AbstractQUBOModel{<:BoolDomain})
-    Q, α, β = QUBOTools.qubo(S, T, model)
-
-    return QUBOTools.ising(Q, α, β)
-end
+QUBOTools.ising(model::AbstractQUBOModel) = QUBOTools.ising(model, Dict, Float64)
 
 function QUBOTools.ising(Q::Dict{Tuple{Int,Int},T}, α::T = one(T), β::T = zero(T)) where {T}
     h = Dict{Int,T}()
@@ -286,7 +280,7 @@ function QUBOTools.ising(Q::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T
     return (h, J, α, β)
 end
 
-function QUBOTools.ising(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:SpinDomain})
+function QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Dict}, T::Type = Float64)
     m = QUBOTools.domain_size(model)
     n = QUBOTools.quadratic_size(model)
 
@@ -310,7 +304,7 @@ function QUBOTools.ising(::Type{<:Dict}, T::Type, model::AbstractQUBOModel{<:Spi
     return (h, J, α, β)
 end
 
-function QUBOTools.ising(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:SpinDomain})
+function QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Matrix}, T::Type = Float64)
     n = QUBOTools.domain_size(model)
 
     h = zeros(T, n)
@@ -328,6 +322,10 @@ function QUBOTools.ising(::Type{<:Array}, T::Type, model::AbstractQUBOModel{<:Sp
     end
 
     return (h, J, α, β)
+end
+
+function QUBOTools.ising(model::AbstractQUBOModel{<:BoolDomain}, args...)
+    return QUBOTools.ising(QUBOTools.qubo(model, args...)...)
 end
 
 # ~*~ Data queries ~*~ #

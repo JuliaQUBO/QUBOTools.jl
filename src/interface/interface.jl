@@ -174,22 +174,25 @@ Returns a quadruple ``(h, J, \alpha, \beta)`` where:
 
 # ~*~ Data queries ~*~ #
 @doc raw"""
-    state(index, model)
+    state(model, index)
 """ function state end
 
 @doc raw"""
     reads(model)
-    reads(index, model)
+    reads(model, index)
 """ function reads end
 
 @doc raw"""
-    energy(state, model)
-    energy(state, Q::Dict{Tuple{Int,Int},T})
-    energy(state, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T})
-    energy(index, model)
+    energy(model, state::Vector)
+    energy(model, index::Integer)
 
 This function aims to evaluate the energy of a given state under some QUBO Model.
-**Note:** Scale and offset factors are taken into account.
+
+!!! info
+    Scale and offset factors are taken into account.
+
+    energy(Q::Dict{Tuple{Int,Int},T}, state::Vector)
+    energy(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, state::Vector)
 """ function energy end
 
 # ~*~ Queries: sizes & density ~*~ #
