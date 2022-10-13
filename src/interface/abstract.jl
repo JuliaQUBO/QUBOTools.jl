@@ -88,8 +88,8 @@ function QUBOTools.qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Vector}, 
 
     L = zeros(T, n)
     Q = Vector{T}(undef, m)
-    u = Vector{T}(undef, m)
-    v = Vector{T}(undef, m)
+    u = Vector{Int}(undef, m)
+    v = Vector{Int}(undef, m)
 
     α::T = QUBOTools.scale(model)
     β::T = QUBOTools.offset(model)
@@ -238,6 +238,98 @@ end
 
 QUBOTools.ising(model::AbstractQUBOModel) = QUBOTools.ising(model, Dict, Float64)
 
+function QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Dict}, T::Type = Float64)
+    n = QUBOTools.domain_size(model)
+    m = QUBOTools.quadratic_size(model)
+
+    h = Dict{Int,T}()
+    J = Dict{Tuple{Int,Int},T}()
+
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
+
+    for (i, hi) in QUBOTools.explicit_linear_terms(model)
+        h[i] = hi
+    end
+
+    for ((i, j), Jij) in QUBOTools.quadratic_terms(model)
+        J[i, j] = Jij
+    end
+
+    return (h, J, α, β)
+end
+
+function QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Vector}, T::Type = Float64)
+    n = QUBOTools.domain_size(model)
+    m = QUBOTools.quadratic_size(model)
+
+    h = zeros(T, n)
+    J = Vector{T}(undef, m)
+    u = Vector{Int}(undef, m)
+    v = Vector{Int}(undef, m)
+
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
+
+
+    for (i, hi) in QUBOTools.linear_terms(model)
+        h[i] = hi
+    end
+
+    for (k, ((i, j), q)) in enumerate(QUBOTools.quadratic_terms(model))
+        J[k] = q
+        u[k] = i
+        v[k] = j
+    end
+
+    return (h, J, u, v, α, β)
+end
+
+function QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Matrix}, T::Type = Float64)
+    n = QUBOTools.domain_size(model)
+
+    h = zeros(T, n)
+    J = zeros(T, n, n)
+
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
+
+    for (i, hi) in QUBOTools.linear_terms(model)
+        h[i] = hi
+    end
+
+    for ((i, j), Jij) in QUBOTools.quadratic_terms(model)
+        J[i, j] = Jij
+    end
+
+    return (h, J, α, β)
+end
+
+function QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
+    n = QUBOTools.domain_size(model)
+
+    h = spzeros(T, n)
+    J = spzeros(T, n, n)
+
+    α::T = QUBOTools.scale(model)
+    β::T = QUBOTools.offset(model)
+
+    for (i, hi) in QUBOTools.linear_terms(model)
+        h[i] = hi
+    end
+
+    for ((i, j), Jij) in QUBOTools.quadratic_terms(model)
+        J[i, j] = Jij
+    end
+
+    return (h, J, α, β)
+end
+
+function QUBOTools.ising(model::AbstractQUBOModel{<:BoolDomain}, args...)
+    return QUBOTools.ising(QUBOTools.qubo(model, args...)...)
+end
+
+
 function QUBOTools.ising(Q::Dict{Tuple{Int,Int},T}, α::T = one(T), β::T = zero(T)) where {T}
     h = Dict{Int,T}()
     J = Dict{Tuple{Int,Int},T}()
@@ -256,6 +348,34 @@ function QUBOTools.ising(Q::Dict{Tuple{Int,Int},T}, α::T = one(T), β::T = zero
 
     return (h, J, α, β)
 end
+
+function QUBOTools.ising(L::Vector{T}, Q::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where {T}
+    n = length(L)
+    m = length(Q)
+
+    h = zeros(T, n)
+    J = zeros(T, m)
+
+    for i = 1:n
+        l = L[i]
+        β += l/2
+        h[i] += l/2
+    end
+
+    for k = 1:m
+        i = u[k]
+        j = v[k]
+        q = Q[k]
+        β += q
+        h[i] += q/4
+        h[j] += q/4
+        J[k] += q/4
+    end
+
+    return (h, J, u, v, α, β)
+end
+
+
 
 function QUBOTools.ising(Q::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
     n = size(Q, 1)
@@ -280,53 +400,29 @@ function QUBOTools.ising(Q::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T
     return (h, J, α, β)
 end
 
-function QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Dict}, T::Type = Float64)
-    m = QUBOTools.domain_size(model)
-    n = QUBOTools.quadratic_size(model)
+function QUBOTools.ising(Q::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
+    n = size(Q, 1)
 
-    h = Dict{Int,T}()
-    J = Dict{Tuple{Int,Int},T}()
+    h = spzeros(T, n)
+    J = spzeros(T, n, n)
 
-    α::T = QUBOTools.scale(model)
-    β::T = QUBOTools.offset(model)
+    for i = 1:n, j = i:n
+        q = Q[i, j]
 
-    sizehint!(h, m)
-    sizehint!(J, n)
-
-    for (i, qᵢ) in QUBOTools.explicit_linear_terms(model)
-        h[i] = qᵢ
-    end
-
-    for ((i, j), qᵢⱼ) in QUBOTools.quadratic_terms(model)
-        J[i, j] = qᵢⱼ
-    end
-
-    return (h, J, α, β)
-end
-
-function QUBOTools.ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Matrix}, T::Type = Float64)
-    n = QUBOTools.domain_size(model)
-
-    h = zeros(T, n)
-    J = zeros(T, n, n)
-
-    α::T = QUBOTools.scale(model)
-    β::T = QUBOTools.offset(model)
-
-    for (i, hᵢ) in QUBOTools.linear_terms(model)
-        h[i] = hᵢ
-    end
-
-    for ((i, j), Jᵢⱼ) in QUBOTools.quadratic_terms(model)
-        J[i, j] = Jᵢⱼ
+        if i == j
+            h[i] += q / 2
+            β += q / 2
+        else
+            J[i, j] += q / 4
+            h[i] += q / 4
+            h[j] += q / 4
+            β += q / 4
+        end
     end
 
     return (h, J, α, β)
 end
 
-function QUBOTools.ising(model::AbstractQUBOModel{<:BoolDomain}, args...)
-    return QUBOTools.ising(QUBOTools.qubo(model, args...)...)
-end
 
 # ~*~ Data queries ~*~ #
 function QUBOTools.state(index::Integer, model::AbstractQUBOModel)

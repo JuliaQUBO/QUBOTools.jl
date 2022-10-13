@@ -141,7 +141,7 @@ Returns sparse matrix representation.
 
 Returns QUBO form from Ising Model (Spin).
 
-    qubo(h::Dict{Int,T}, J::Dict{Tuple{Int, Int}, T}, α::T = one(T), β::T = zero(T)) where {T}
+    qubo(h::Dict{Int,T}, J::Dict{Tuple{Int, Int}, T}, α::T = one(T), β::T = zero(T)) where {T}    
     qubo(h::Vector{T}, J::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where {T}
     qubo(h::Vector{T}, J::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
     qubo(h::SparseVector{T}, J::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
@@ -153,23 +153,36 @@ Returns QUBO form from Ising Model (Spin).
 
 @doc raw"""
     ising(model::AbstractQUBOModel{<:SpinDomain})
-    ising(::Type{<:Dict}, model::AbstractQUBOModel{<:SpinDomain})
-    ising(::Type{<:Array}, model::AbstractQUBOModel{<:SpinDomain})
+    ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{<:Dict}, T::Type = Float64))
+
+Returns sparce dictionary representation
+
+    ising(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
+
+Returns sparse vector quadruple (linear, quadratic, lower index & upper index).
+
+    ising(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
+
+Returns dense matrix representation.
+
+    ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
+
+Returns sparce matrix representation
+
+    ising(model::AbstractQUBOModel{<:BoolDomain}, args...)
+
+Returns Ising Model form from QUBO Model (Bool).
+
+    ising(h::Dict{Int,T}, J::Dict{Tuple{Int, Int}, T}, α::T = one(T), β::T = zero(T)) where {T}    
+    ising(h::Vector{T}, J::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where {T}
+    ising(h::Vector{T}, J::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
+    ising(h::SparseVector{T}, J::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
 
 # Ising Normal Form
 
-```math
-H(\mathbf{s}) = \alpha \left[{ \mathbf{s}'\,J\,\mathbf{s} + \mathbf{h}\,\mathbf{s} + \beta }\right]
-```
-
-Returns a quadruple ``(h, J, \alpha, \beta)`` where:
-* `h::Dict{Int, T}` is a sparse vector for the linear terms of the Ising Model.
-* `J::Dict{Tuple{Int, Int}, T}` is a sparse representation of the quadratic magnetic interactions.
-* `α::T` is the scaling factor.
-* `β::T` is the offset constant.
-
 !!! info
-    The main diagonal is explicitly included, breaking sparsity by containing zero entries.
+    Apart from the sparse matricial case, the linear terms are explicitly included,
+    breaking sparsity by containing zero entries.
 """ function ising end
 
 # ~*~ Data queries ~*~ #
