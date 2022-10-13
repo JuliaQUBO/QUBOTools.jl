@@ -3,6 +3,13 @@
     state::Vector{U}
     reads::Int
     value::T
+
+    function Sample{U,T}(state::Vector{U}, reads::Int, value::T) where {U,T}
+        return new{U,T}(state, reads, value)
+    end
+
+    Sample{T}(args...) where {T} = Sample{Int,T}(args...)
+    Sample(args...) = Sample{Int,Float64}(args...)
 end
 
 function Base.:(==)(x::Sample{U,T}, y::Sample{U,T}) where {U,T}
@@ -96,11 +103,14 @@ It was clearly inspired by [1], with a few tweaks.
     ) where {U,T}
         return SampleSet{U,T}(
             Sample{U,T}[
-                Sample{U,T}(state, 1, QUBOTools.energy(state, model)) for state in data
+                Sample{U,T}(state, 1, QUBOTools.energy(model, state)) for state in data
             ],
             metadata,
         )
     end
+
+    SampleSet{T}(args...) where {T} = SampleSet{Int,T}(args...)
+    SampleSet(args...) = SampleSet{Int,Float64}(args...)
 end
 
 function Base.copy(sampleset::SampleSet{U,T}) where {U,T}
@@ -135,16 +145,12 @@ function Base.isempty(sampleset::SampleSet)
     return isempty(sampleset.samples)
 end
 
-const SAMPLESET_METADATA_SCHEMA = JSONSchema.Schema(
-    JSON.parsefile(joinpath(@__DIR__, "sampleset.schema.json"))
-)
+const SAMPLESET_METADATA_SCHEMA =
+    JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "sampleset.schema.json")))
 
 function Base.isvalid(sampleset::SampleSet)
-    report = JSONSchema.validate(
-        SAMPLESET_METADATA_SCHEMA,
-        sampleset.metadata
-    )
-    
+    report = JSONSchema.validate(SAMPLESET_METADATA_SCHEMA, sampleset.metadata)
+
     if !isnothing(report)
         @warn report
         return false

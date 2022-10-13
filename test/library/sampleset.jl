@@ -1,6 +1,6 @@
 struct SampleModel{T} end
 
-QUBOTools.energy(::Any, ::SampleModel{T}) where {T} = zero(T)
+QUBOTools.energy(::SampleModel{T}, ::Any) where {T} = zero(T)
 
 function test_sampleset()
     U = Int
@@ -160,41 +160,41 @@ function test_sampleset()
             )
 
             # ~ state ~ #
-            @test QUBOTools.state(1, bool_set) == [1, 1]
-            @test QUBOTools.state(2, bool_set) == [1, 0]
-            @test QUBOTools.state(3, bool_set) == [0, 1]
-            @test QUBOTools.state(4, bool_set) == [0, 0]
+            @test QUBOTools.state(bool_set, 1) == [1, 1]
+            @test QUBOTools.state(bool_set, 2) == [1, 0]
+            @test QUBOTools.state(bool_set, 3) == [0, 1]
+            @test QUBOTools.state(bool_set, 4) == [0, 0]
 
-            @test_throws Exception QUBOTools.state(0, bool_set)
-            @test_throws Exception QUBOTools.state(5, bool_set)
+            @test_throws Exception QUBOTools.state(bool_set, 0)
+            @test_throws Exception QUBOTools.state(bool_set, 5)
 
-            @test QUBOTools.state(1, spin_set) == [↓, ↓]
-            @test QUBOTools.state(2, spin_set) == [↓, ↑]
-            @test QUBOTools.state(3, spin_set) == [↑, ↓]
-            @test QUBOTools.state(4, spin_set) == [↑, ↑]
+            @test QUBOTools.state(spin_set, 1) == [↓, ↓]
+            @test QUBOTools.state(spin_set, 2) == [↓, ↑]
+            @test QUBOTools.state(spin_set, 3) == [↑, ↓]
+            @test QUBOTools.state(spin_set, 4) == [↑, ↑]
 
-            @test_throws Exception QUBOTools.state(0, spin_set)
-            @test_throws Exception QUBOTools.state(5, spin_set)
+            @test_throws Exception QUBOTools.state(spin_set, 0)
+            @test_throws Exception QUBOTools.state(spin_set, 5)
 
             # ~ reads ~ #
             @test QUBOTools.reads(bool_set) == 10
             @test QUBOTools.reads(spin_set) == 10
 
-            @test QUBOTools.reads(1, bool_set) == 4
-            @test QUBOTools.reads(2, bool_set) == 3
-            @test QUBOTools.reads(3, bool_set) == 2
-            @test QUBOTools.reads(4, bool_set) == 1
+            @test QUBOTools.reads(bool_set, 1) == 4
+            @test QUBOTools.reads(bool_set, 2) == 3
+            @test QUBOTools.reads(bool_set, 3) == 2
+            @test QUBOTools.reads(bool_set, 4) == 1
 
-            @test_throws Exception QUBOTools.reads(0, bool_set)
-            @test_throws Exception QUBOTools.reads(5, bool_set)
+            @test_throws Exception QUBOTools.reads(bool_set, 0)
+            @test_throws Exception QUBOTools.reads(bool_set, 5)
 
-            @test QUBOTools.reads(1, spin_set) == 4
-            @test QUBOTools.reads(2, spin_set) == 3
-            @test QUBOTools.reads(3, spin_set) == 2
-            @test QUBOTools.reads(4, spin_set) == 1
+            @test QUBOTools.reads(spin_set, 1) == 4
+            @test QUBOTools.reads(spin_set, 2) == 3
+            @test QUBOTools.reads(spin_set, 3) == 2
+            @test QUBOTools.reads(spin_set, 4) == 1
 
-            @test_throws Exception QUBOTools.reads(0, spin_set)
-            @test_throws Exception QUBOTools.reads(5, spin_set)
+            @test_throws Exception QUBOTools.reads(spin_set, 0)
+            @test_throws Exception QUBOTools.reads(spin_set, 5)
 
             # ~ swap_domain ~ #
             @test QUBOTools.swap_domain(S, S, bool_set) == bool_set

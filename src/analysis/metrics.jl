@@ -15,16 +15,12 @@ function tts(sampleset::SampleSet{<:Any,T}, e::T; s::Float64 = 0.99) where {T}
         return NaN
     end
 
-    t = total_time(sampleset)
+    t = effective_time(sampleset)
     p = success_rate(sampleset, e)
 
     return tts(t, p, s)
 end
 
 function tts(t::Float64, p::Float64, s::Float64 = 0.99)
-    if iszero(p)
-        return Inf
-    else
-        return t * log(1 - s) / log(1 - p)
-    end
+    return t * log(1 - s) / log(1 - p)
 end
