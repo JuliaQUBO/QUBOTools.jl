@@ -1,5 +1,5 @@
 function test_metrics()
-    @testset "Metrics" verbose = true begin
+    @testset "-*- Metrics" verbose = true begin
         e = 1.0
         s = QUBOTools.SampleSet{Int,Float64}(
             QUBOTools.Sample{Int,Float64}[
@@ -15,12 +15,44 @@ function test_metrics()
                 ),
             ),
         )
+
         @testset "TTS" begin
             @test QUBOTools.total_time(s) == 2.0
             @test QUBOTools.effective_time(s) == 1.0
 
             @test QUBOTools.success_rate(s, e) ≈ 0.1 atol = 1e-8
             @test QUBOTools.tts(s, e) ≈ 43.708690653 atol = 1e-8
+
+            let s = QUBOTools.SampleSet{Int,Float64}()
+                @test isnan(QUBOTools.total_time(s))
+                @test isnan(QUBOTools.effective_time(s))
+                @test isnan(QUBOTools.success_rate(s, 0.0))
+                @test isnan(QUBOTools.tts(s, 0.0))
+            end
+
+            let s = QUBOTools.SampleSet{Int,Float64}(
+                QUBOTools.Sample{Int,Float64}[],
+                Dict{String,Any}("time" => Dict{String,Any}()),
+            )
+                @test isnan(QUBOTools.total_time(s))
+                @test isnan(QUBOTools.effective_time(s))
+                @test isnan(QUBOTools.success_rate(s, 0.0))
+                @test isnan(QUBOTools.tts(s, 0.0))
+            end
+
+            let s = QUBOTools.SampleSet{Int,Float64}(
+                QUBOTools.Sample{Int,Float64}[],
+                Dict{String,Any}(
+                    "time" => Dict{String,Any}(
+                        "total" => 1.0,
+                    )
+                ),
+            )
+                @test QUBOTools.total_time(s) == 1.0
+                @test QUBOTools.effective_time(s) == 1.0
+                @test isnan(QUBOTools.success_rate(s, 0.0))
+                @test isnan(QUBOTools.tts(s, 0.0))
+            end
         end
     end
 end
