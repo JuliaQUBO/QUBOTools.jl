@@ -40,11 +40,11 @@ end
 function QUBOTools.swap_domain(
     ::Type{A},
     ::Type{B},
-    sampleset::SampleSet{U,T}
+    sampleset::SampleSet{T,U}
 ) where {A<:VariableDomain,B<:VariableDomain,U<:Integer,T}
-    return SampleSet{U,T}(
-        Sample{U,T}[
-            Sample{U,T}(
+    return SampleSet{T,U}(
+        Sample{T,U}[
+            Sample{T,U}(
                 QUBOTools.swap_domain(A, B, sample.state),
                 sample.reads,
                 sample.value,

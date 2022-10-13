@@ -33,7 +33,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     description::Union{String,Nothing}
     metadata::Union{Dict{String,Any},Nothing}
     # ~*~ Solutions ~*~
-    sampleset::Union{SampleSet{U,T},Nothing}
+    sampleset::Union{SampleSet{T,U},Nothing}
 
     function StandardQUBOModel{V,U,T,D}(
         # ~*~ Required data ~*~
@@ -50,7 +50,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         description::Union{String,Nothing}=nothing,
         metadata::Union{Dict{String,Any},Nothing}=nothing,
         # ~*~ Solutions ~*~
-        sampleset::Union{SampleSet{U,T},Nothing}=nothing
+        sampleset::Union{SampleSet{T,U},Nothing}=nothing
     ) where {V,U,T,D}
         new{V,U,T,D}(
             linear_terms,

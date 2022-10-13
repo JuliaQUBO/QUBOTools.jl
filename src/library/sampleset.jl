@@ -1,18 +1,18 @@
 @doc raw"""
-""" struct Sample{U<:Integer,T<:Real}
+""" struct Sample{T<:Real,U<:Integer}
     state::Vector{U}
     reads::Int
     value::T
 
-    function Sample{U,T}(state::Vector{U}, reads::Int, value::T) where {U,T}
-        return new{U,T}(state, reads, value)
+    function Sample{T,U}(state::Vector{U}, reads::Int, value::T) where {T,U}
+        return new{T,U}(state, reads, value)
     end
 
-    Sample{T}(args...) where {T} = Sample{Int,T}(args...)
-    Sample(args...) = Sample{Int,Float64}(args...)
+    Sample{T}(args...) where {T} = Sample{T,Int}(args...)
+    Sample(args...) = Sample{Float64,Int}(args...)
 end
 
-function Base.:(==)(x::Sample{U,T}, y::Sample{U,T}) where {U,T}
+function Base.:(==)(x::Sample{T,U}, y::Sample{T,U}) where {T,U}
     return x.value == y.value && x.reads == y.reads && x.state == y.state
 end
 
@@ -40,27 +40,27 @@ It was clearly inspired by [1], with a few tweaks.
 
 ## References
 [1] https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/sampleset.html#dimod.SampleSet
-""" struct SampleSet{U<:Integer,T<:Real}
+""" struct SampleSet{T<:Real,U<:Integer}
     reads::Int
-    samples::Vector{Sample{U,T}}
+    samples::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
 
     # ~ Empty SampleSet ~ #
-    function SampleSet{U,T}() where {U,T}
-        new{U,T}(0, Sample{U,T}[], Dict{String,Any}())
+    function SampleSet{T,U}() where {T,U}
+        new{T,U}(0, Sample{T,U}[], Dict{String,Any}())
     end
 
     # ~ Default Constructor ~ #
-    function SampleSet{U,T}(
-        data::Vector{Sample{U,T}},
+    function SampleSet{T,U}(
+        data::Vector{Sample{T,U}},
         metadata::Union{Dict{String,Any},Nothing} = nothing,
-    ) where {U,T}
+    ) where {T,U}
         # ~*~ Compress samples ~*~
         bits    = nothing
         reads   = 0
-        mapping = Dict{Vector{U},Sample{U,T}}()
+        mapping = Dict{Vector{U},Sample{T,U}}()
 
-        for sample::Sample{U,T} in data
+        for sample::Sample{T,U} in data
             cached = get(mapping, sample.state, nothing)
 
             if isnothing(cached)
@@ -80,7 +80,7 @@ It was clearly inspired by [1], with a few tweaks.
                 end
 
                 mapping[sample.state] =
-                    Sample{U,T}(sample.state, sample.reads + cached.reads, sample.value)
+                    Sample{T,U}(sample.state, sample.reads + cached.reads, sample.value)
             end
 
             reads += sample.reads
@@ -93,35 +93,35 @@ It was clearly inspired by [1], with a few tweaks.
             metadata = Dict{String,Any}()
         end
 
-        return new{U,T}(reads, samples, metadata)
+        return new{T,U}(reads, samples, metadata)
     end
 
-    function SampleSet{U,T}(
+    function SampleSet{T,U}(
         model,
         data::Vector{Vector{U}},
         metadata::Union{Dict{String,Any},Nothing} = nothing,
-    ) where {U,T}
-        return SampleSet{U,T}(
-            Sample{U,T}[
-                Sample{U,T}(state, 1, QUBOTools.energy(model, state)) for state in data
+    ) where {T,U}
+        return SampleSet{T,U}(
+            Sample{T,U}[
+                Sample{T,U}(state, 1, QUBOTools.energy(model, state)) for state in data
             ],
             metadata,
         )
     end
 
-    SampleSet{T}(args...) where {T} = SampleSet{Int,T}(args...)
-    SampleSet(args...) = SampleSet{Int,Float64}(args...)
+    SampleSet{T}(args...) where {T} = SampleSet{T,Int}(args...)
+    SampleSet(args...) = SampleSet{Float64,Int}(args...)
 end
 
-function Base.copy(sampleset::SampleSet{U,T}) where {U,T}
-    SampleSet{U,T}(copy(sampleset.samples), deepcopy(sampleset.metadata))
+function Base.copy(sampleset::SampleSet{T,U}) where {T,U}
+    SampleSet{T,U}(copy(sampleset.samples), deepcopy(sampleset.metadata))
 end
 
 function Base.length(sampleset::SampleSet)
     return length(sampleset.samples)
 end
 
-function Base.:(==)(sampleset::SampleSet{U,T}, Y::SampleSet{U,T}) where {U,T}
+function Base.:(==)(sampleset::SampleSet{T,U}, Y::SampleSet{T,U}) where {T,U}
     return length(sampleset) == length(Y) && all(sampleset.samples .== Y.samples)
 end
 
@@ -148,13 +148,13 @@ end
 const SAMPLESET_METADATA_SCHEMA =
     JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "sampleset.schema.json")))
 
-function Base.isvalid(sampleset::SampleSet)
-    report = JSONSchema.validate(SAMPLESET_METADATA_SCHEMA, sampleset.metadata)
+# function Base.isvalid(sampleset::SampleSet)
+#     report = JSONSchema.validate(SAMPLESET_METADATA_SCHEMA, sampleset.metadata)
 
-    if !isnothing(report)
-        @warn report
-        return false
-    else
-        return true
-    end
-end
+#     if !isnothing(report)
+#         @warn report
+#         return false
+#     else
+#         return true
+#     end
+# end

@@ -1,4 +1,4 @@
-function success_rate(sampleset::SampleSet{<:Any,T}, e::T) where {T}
+function success_rate(sampleset::SampleSet{T,<:Any}, e::T) where {T}
     if isempty(sampleset)
         return NaN
     else
@@ -10,7 +10,7 @@ function success_rate(sampleset::SampleSet{<:Any,T}, e::T) where {T}
     end
 end
 
-function tts(sampleset::SampleSet{<:Any,T}, e::T; s::Float64 = 0.99) where {T}
+function tts(sampleset::SampleSet{T,<:Any}, e::T; s::Float64 = 0.99) where {T}
     if isempty(sampleset)
         return NaN
     end
