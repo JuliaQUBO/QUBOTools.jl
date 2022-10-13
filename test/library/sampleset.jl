@@ -45,8 +45,8 @@ function test_samples()
             @test sample isa QUBOTools.Sample{Float64,Int}
         end
 
-        let sample = QUBOTools.Sample{T}(Int[], 0, 0.0)
-            @test sample isa QUBOTools.Sample{T,Int}
+        let sample = QUBOTools.Sample{Float64}(Int[], 0, 0.0)
+            @test sample isa QUBOTools.Sample{Float64,Int}
         end
 
         let sample = QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0)
@@ -157,7 +157,7 @@ function test_sampleset()
                 @test sample === model_set[i]
                 @test sample isa QUBOTools.Sample{Float64,Int}
                 @test sample.reads == 1
-                @test sample.value == zero(T)
+                @test sample.value == 0.0
 
                 for j in eachindex(sample.state)
                     @test model_set[i, j] == sample.state[j]
