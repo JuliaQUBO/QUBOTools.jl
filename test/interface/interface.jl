@@ -323,17 +323,26 @@ function test_interface_normal_forms(bool_model, spin_model)
     return nothing
 end
 
-function test_interface_evaluation(bool_model, spin_model)
+function test_interface_evaluation(bool_model, bool_states, spin_model, spin_states, reads, values)
     @testset "Evaluation" begin
-        bool_states = [[0, 0], [0, 1], [1, 0], [1, 1]]
-        spin_states = [[↑, ↑], [↑, ↓], [↓, ↑], [↓, ↓]]
+        n = 0
 
-        energy_values = [2.0, 0.0, 4.0, 6.0]
+        for (i, x, s, k, e) in zip(1:4, bool_states, spin_states, reads, values)
+            @test QUBOTools.state(bool_model, i) == x
+            @test QUBOTools.state(spin_model, i) == s
+            @test QUBOTools.reads(bool_model, i) == k
+            @test QUBOTools.reads(spin_model, i) == k
 
-        for (x, s, e) in zip(bool_states, spin_states, energy_values)
             @test QUBOTools.energy(bool_model, x) == e
             @test QUBOTools.energy(spin_model, s) == e
+            @test QUBOTools.energy(bool_model, i) == e
+            @test QUBOTools.energy(spin_model, i) == e
+
+            n += k
         end
+
+        @test QUBOTools.reads(bool_model) == n
+        @test QUBOTools.reads(spin_model) == n
     end
 
     return nothing
@@ -345,6 +354,14 @@ function test_interface()
     T = Float64
     B = BoolDomain
     S = SpinDomain
+
+    bool_states = [[0, 1], [0, 0], [1, 0], [1, 1]]
+    spin_states = [[↑, ↓], [↑, ↑], [↓, ↑], [↓, ↓]]
+    reads       = [     2,      1,      3,      4]
+    values      = [   0.0,    2.0,    4.0,    6.0]
+
+    bool_samples = [QUBOTools.Sample(s...) for s in zip(bool_states, reads, values)]
+    spin_samples = [QUBOTools.Sample(s...) for s in zip(spin_states, reads, values)]
 
     null_model = Model{B}(
         QUBOTools.StandardQUBOModel{V,U,T,B}(
@@ -359,6 +376,7 @@ function test_interface()
             Dict{Tuple{V,V},T}((:x, :y) => 2.0);
             scale = 2.0,
             offset = 1.0,
+            sampleset=QUBOTools.SampleSet(bool_samples),
         ),
     )
 
@@ -368,6 +386,7 @@ function test_interface()
             Dict{Tuple{V,V},T}((:x, :y) => 0.5);
             scale = 2.0,
             offset = 1.5,
+            sampleset=QUBOTools.SampleSet(spin_samples),
         ),
     )
 
@@ -376,6 +395,6 @@ function test_interface()
         test_interface_data_access(bool_model, spin_model, null_model)
         test_interface_queries(bool_model, spin_model, null_model)
         test_interface_normal_forms(bool_model, spin_model)
-        test_interface_evaluation(bool_model, spin_model)
+        test_interface_evaluation(bool_model, bool_states, spin_model, spin_states, reads, values)
     end
 end
