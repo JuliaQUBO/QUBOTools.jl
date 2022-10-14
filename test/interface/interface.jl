@@ -297,6 +297,70 @@ function test_interface_evaluation(bool_model, bool_states, spin_model, spin_sta
             @test QUBOTools.energy(bool_model, i) == e
             @test QUBOTools.energy(spin_model, i) == e
 
+            let (Q, α, β) = QUBOTools.qubo(bool_model, Dict)
+                @test α * (QUBOTools.energy(Q, x) + β) ≈ e atol=1e-8
+            end
+
+            let (Q, α, β) = QUBOTools.qubo(spin_model, Dict)
+                @test α * (QUBOTools.energy(Q, x) + β) ≈ e atol=1e-8
+            end
+
+            let (h, J, α, β) = QUBOTools.ising(bool_model, Dict)
+                @test α * (QUBOTools.energy(h, J, s) + β) ≈ e atol=1e-8
+            end
+
+            let (h, J, α, β) = QUBOTools.ising(spin_model, Dict)
+                @test α * (QUBOTools.energy(h, J, s) + β) ≈ e atol=1e-8
+            end
+
+            let (L, Q, u, v, α, β) = QUBOTools.qubo(bool_model, Vector)
+                @test α * (QUBOTools.energy(L, Q, u, v, x) + β) ≈ e atol=1e-8
+            end
+
+            let (L, Q, u, v, α, β) = QUBOTools.qubo(spin_model, Vector)
+                @test α * (QUBOTools.energy(L, Q, u, v, x) + β) ≈ e atol=1e-8
+            end
+
+            let (h, J, u, v, α, β) = QUBOTools.ising(bool_model, Vector)
+                @test α * (QUBOTools.energy(h, J, u, v, s) + β) ≈ e atol=1e-8
+            end
+
+            let (h, J, u, v, α, β) = QUBOTools.ising(spin_model, Vector)
+                @test α * (QUBOTools.energy(h, J, u, v, s) + β) ≈ e atol=1e-8
+            end
+
+            let (Q, α, β) = QUBOTools.qubo(bool_model, Matrix)
+                @test α * (QUBOTools.energy(Q, x) + β) ≈ e atol=1e-8
+            end
+
+            let (Q, α, β) = QUBOTools.qubo(spin_model, Matrix)
+                @test α * (QUBOTools.energy(Q, x) + β) ≈ e atol=1e-8
+            end
+
+            let (h, J, α, β) = QUBOTools.ising(bool_model, Matrix)
+                @test α * (QUBOTools.energy(h, J, s) + β) ≈ e atol=1e-8
+            end
+
+            let (h, J, α, β) = QUBOTools.ising(spin_model, Matrix)
+                @test α * (QUBOTools.energy(h, J, s) + β) ≈ e atol=1e-8
+            end
+
+            let (Q, α, β) = QUBOTools.qubo(bool_model, SparseMatrixCSC)
+                @test α * (QUBOTools.energy(Q, x) + β) ≈ e atol=1e-8
+            end
+
+            let (Q, α, β) = QUBOTools.qubo(spin_model, SparseMatrixCSC)
+                @test α * (QUBOTools.energy(Q, x) + β) ≈ e atol=1e-8
+            end
+
+            let (h, J, α, β) = QUBOTools.ising(bool_model, SparseMatrixCSC)
+                @test α * (QUBOTools.energy(h, J, s) + β) ≈ e atol=1e-8
+            end
+
+            let (h, J, α, β) = QUBOTools.ising(spin_model, SparseMatrixCSC)
+                @test α * (QUBOTools.energy(h, J, s) + β) ≈ e atol=1e-8
+            end
+
             n += k
         end
 

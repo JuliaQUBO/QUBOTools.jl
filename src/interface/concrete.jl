@@ -83,6 +83,14 @@ function QUBOTools.energy(sampleset::SampleSet, index::Integer)
     return sampleset[index].value
 end
 
+function QUBOTools.energy(Q::AbstractMatrix{T}, ψ::AbstractVector{U}) where {U<:Integer,T}
+    return ψ' * Q * ψ
+end
+
+function QUBOTools.energy(h::AbstractVector{T}, J::AbstractMatrix{T}, ψ::AbstractVector{U}) where {U<:Integer,T}
+    return ψ' * J * ψ + h' * ψ
+end
+
 function QUBOTools.energy(Q::Dict{Tuple{Int,Int},T}, ψ::Vector{U}) where {U<:Integer,T}
     s = zero(T)
 

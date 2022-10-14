@@ -222,6 +222,26 @@ function test_sampleset()
             @test_throws Exception QUBOTools.reads(spin_set, 0)
             @test_throws Exception QUBOTools.reads(spin_set, 5)
 
+            # ~ energy ~ #
+            @test QUBOTools.energy(bool_set) == 10
+            @test QUBOTools.energy(spin_set) == 10
+
+            @test QUBOTools.energy(bool_set, 1) == 1.0
+            @test QUBOTools.energy(bool_set, 2) == 2.0
+            @test QUBOTools.energy(bool_set, 3) == 3.0
+            @test QUBOTools.energy(bool_set, 4) == 4.0
+
+            @test_throws Exception QUBOTools.energy(bool_set, 0)
+            @test_throws Exception QUBOTools.energy(bool_set, 5)
+
+            @test QUBOTools.energy(spin_set, 1) == 1.0
+            @test QUBOTools.energy(spin_set, 2) == 2.0
+            @test QUBOTools.energy(spin_set, 3) == 3.0
+            @test QUBOTools.energy(spin_set, 4) == 4.0
+
+            @test_throws Exception QUBOTools.energy(spin_set, 0)
+            @test_throws Exception QUBOTools.energy(spin_set, 5)
+
             # ~ swap_domain ~ #
             @test QUBOTools.swap_domain(S, S, bool_set) == bool_set
             @test QUBOTools.swap_domain(S, S, spin_set) == spin_set
