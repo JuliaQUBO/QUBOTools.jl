@@ -329,7 +329,6 @@ function QUBOTools.ising(model::AbstractQUBOModel{<:BoolDomain}, args...)
     return QUBOTools.ising(QUBOTools.qubo(model, args...)...)
 end
 
-
 function QUBOTools.ising(Q::Dict{Tuple{Int,Int},T}, α::T = one(T), β::T = zero(T)) where {T}
     h = Dict{Int,T}()
     J = Dict{Tuple{Int,Int},T}()
@@ -374,8 +373,6 @@ function QUBOTools.ising(L::Vector{T}, Q::Vector{T}, u::Vector{Int}, v::Vector{I
 
     return (h, J, u, v, α, β)
 end
-
-
 
 function QUBOTools.ising(Q::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
     n = size(Q, 1)
@@ -425,23 +422,23 @@ end
 
 
 # ~*~ Data queries ~*~ #
-function QUBOTools.state(index::Integer, model::AbstractQUBOModel)
-    return QUBOTools.state(index, QUBOTools.sampleset(model))
+function QUBOTools.state(model::AbstractQUBOModel, index::Integer)
+    return QUBOTools.state(QUBOTools.sampleset(model), index)
 end
 
 function QUBOTools.reads(model::AbstractQUBOModel)
     return QUBOTools.reads(QUBOTools.sampleset(model))
 end
 
-function QUBOTools.reads(index::Integer, model::AbstractQUBOModel)
-    return QUBOTools.reads(index, QUBOTools.sampleset(model))
+function QUBOTools.reads(model::AbstractQUBOModel, index::Integer)
+    return QUBOTools.reads(QUBOTools.sampleset(model), index)
 end
 
-function QUBOTools.energy(index::Integer, model::AbstractQUBOModel)
-    return QUBOTools.energy(index, QUBOTools.sampleset(model))
+function QUBOTools.energy(model::AbstractQUBOModel, index::Integer)
+    return QUBOTools.energy(QUBOTools.sampleset(model), index)
 end
 
-function QUBOTools.energy(state::Vector, model::AbstractQUBOModel)
+function QUBOTools.energy(model::AbstractQUBOModel, state::Vector)
     @assert length(state) == QUBOTools.domain_size(model)
 
     α = QUBOTools.scale(model)

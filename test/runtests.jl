@@ -1,5 +1,6 @@
 using Test
 using Printf
+using SparseArrays
 using QUBOTools
 
 # ~*~ Include test functions ~*~
