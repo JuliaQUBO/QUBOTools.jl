@@ -18,9 +18,9 @@ function test_tools()
             (:w, :z) => -2.0,
             (:γ, :γ) => -1.0,
             (:α, :β) => 0.5,
-            (:α, :β) => -0.5,
             (:β, :α) => -0.5,
             (:β, :α) => 0.5,
+            (:α, :β) => -0.5,
         )
 
         _linear_terms, _quadratic_terms, variable_set = QUBOTools._normal_form(
@@ -130,7 +130,7 @@ function test_tools()
         ]
 
         for (x, e) in X
-            @test QUBOTools.energy(x, Q) == e
+            @test QUBOTools.energy(Q, x) == e
         end
 
         S = [
@@ -145,7 +145,7 @@ function test_tools()
         ]
 
         for (s, e) in S
-            @test QUBOTools.energy(s, h, J) == e
+            @test QUBOTools.energy(h, J, s) == e
         end
 
         # ~ adjacency ~ #

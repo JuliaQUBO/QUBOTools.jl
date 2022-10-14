@@ -15,10 +15,8 @@ const HFS_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
         effective_degree::Int
         coordinates::Dict{Int,Tuple{Int,Int,Int,Int}}
     )
-
-Format description from [1](@ref chimera-1).
-
-The format of the instance-description file starts with a line giving the size of the Chimera graph.
+    
+The format of the instance-description file starts with a line giving the size of the Chimera graph[^chimera].
 Two numbers are given to specify an ``m \times n`` rectangle, but currently only a square (``m = n``) is accepted.
 
 The subsequent lines are of the form
@@ -38,8 +36,7 @@ There is an edge from ``v_p`` to ``v_q`` if at least one of the following holds:
 - ``|x_p - x_q| = 1 \wedge y_p = y_q \wedge o_p = o_q = 0 \wedge i_p = i_q``
 - ``x_p = x_q \wedge |y_p-y_q| = 1 \wedge o_p = o_q = 1 \wedge i_p = i_q``
 
-### References
-[1](@id chimera-1) [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
+[^chimera] [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
 """ struct Chimera
     linear_terms::Dict{Int,Int}
     quadratic_terms::Dict{Tuple{Int,Int},Int}

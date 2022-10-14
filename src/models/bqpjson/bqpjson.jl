@@ -15,10 +15,7 @@ BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
 @doc raw"""
     BQPJSON{D}(backend, solutions) where {D<:VariableDomain}
 
-Precise and detailed information found in [1](@ref bqpjson-1).
-
-### References
-[1](@id bqpjson-1) [bqpjson docs](https://bqpjson.readthedocs.io)
+Precise and detailed information found in the [bqpjson docs](https://bqpjson.readthedocs.io)
 """ mutable struct BQPJSON{D<:VariableDomain} <: AbstractQUBOModel{D}
     backend::BQPJSON_BACKEND_TYPE{D}
     solutions::Union{Vector,Nothing}

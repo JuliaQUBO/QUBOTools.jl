@@ -3,6 +3,7 @@ module QUBOTools
 using Printf
 using JSON
 using JSONSchema
+using SparseArrays
 
 # ~*~ Variable comparison ~*~ #
 @doc raw"""
@@ -16,14 +17,17 @@ There is no predefined comparison between instances MOI's `VariableIndex` type.
 varcmp(x::V, y::V) where {V} = isless(x, y)
 
 const ≺ = varcmp # \prec[tab]
-const ↑ = -1
-const ↓ = +1
+const ↑ = -1 # \uparrow[tab]
+const ↓ = +1 # \downarrow[tab]
 
 # ~*~ Exports: Symbols ~*~ #
 export ↑, ↓
 
 # ~*~ Exports: Variable Domains ~*~ #
 export BoolDomain, SpinDomain
+
+# ~*~ Exports: Solution Interface ~*~ #
+export SampleSet
 
 # ~*~ Exports: Supported Model Formats ~*~ #
 export BQPJSON
@@ -50,13 +54,15 @@ include("interface/fallback.jl")
 # ~*~ Concrete methods ~*~ #
 include("interface/concrete.jl")
 
-# ~*~ Standard backend implementation ~*~ #
-include("backend/backend.jl")
-
 # ~*~ Model implementation ~*~ #
 include("models/models.jl")
 
 # ~*~ Bridges between formats ~*~ #
 include("bridges/bridges.jl")
+
+# ~*~ Analysis Tools ~*~ #
+include("analysis/interface.jl")
+include("analysis/time.jl")
+include("analysis/metrics.jl")
 
 end # module

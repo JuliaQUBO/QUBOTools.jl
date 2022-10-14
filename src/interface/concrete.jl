@@ -40,11 +40,11 @@ end
 function QUBOTools.swap_domain(
     ::Type{A},
     ::Type{B},
-    sampleset::SampleSet{U,T}
+    sampleset::SampleSet{T,U}
 ) where {A<:VariableDomain,B<:VariableDomain,U<:Integer,T}
-    return SampleSet{U,T}(
-        Sample{U,T}[
-            Sample{U,T}(
+    return SampleSet{T,U}(
+        Sample{T,U}[
+            Sample{T,U}(
                 QUBOTools.swap_domain(A, B, sample.state),
                 sample.reads,
                 sample.value,
@@ -55,7 +55,7 @@ function QUBOTools.swap_domain(
     )
 end
 
-function QUBOTools.state(index::Integer, sampleset::SampleSet)
+function QUBOTools.state(sampleset::SampleSet, index::Integer)
     if !(1 <= index <= length(sampleset))
         error("index '$index' out of bounds [1, $(length(sampleset))]")
     end
@@ -67,7 +67,7 @@ function QUBOTools.reads(sampleset::SampleSet)
     return sum(sample.reads for sample in sampleset)
 end
 
-function QUBOTools.reads(index::Integer, sampleset::SampleSet)
+function QUBOTools.reads(sampleset::SampleSet, index::Integer)
     if !(1 <= index <= length(sampleset))
         error("index '$index' out of bounds [1, $(length(sampleset))]")
     end
@@ -75,25 +75,55 @@ function QUBOTools.reads(index::Integer, sampleset::SampleSet)
     return sampleset[index].reads
 end
 
-function QUBOTools.energy(state::Vector{U}, Q::Dict{Tuple{Int,Int},T}) where {U<:Integer,T}
+function QUBOTools.energy(sampleset::SampleSet, index::Integer)
+    if !(1 <= index <= length(sampleset))
+        error("index '$index' out of bounds [1, $(length(sampleset))]")
+    end
+
+    return sampleset[index].value
+end
+
+function QUBOTools.energy(Q::AbstractMatrix{T}, ψ::AbstractVector{U}) where {U<:Integer,T}
+    return ψ' * Q * ψ
+end
+
+function QUBOTools.energy(h::AbstractVector{T}, J::AbstractMatrix{T}, ψ::AbstractVector{U}) where {U<:Integer,T}
+    return ψ' * J * ψ + h' * ψ
+end
+
+function QUBOTools.energy(Q::Dict{Tuple{Int,Int},T}, ψ::Vector{U}) where {U<:Integer,T}
     s = zero(T)
 
     for ((i, j), c) in Q
-        s += state[i] * state[j] * c
+        s += ψ[i] * ψ[j] * c
     end
 
     return s
 end
 
-function QUBOTools.energy(state::Vector{U}, h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}) where {U<:Integer,T}
+function QUBOTools.energy(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, ψ::Vector{U}) where {U<:Integer,T}
     s = zero(T)
 
     for (i, c) in h
-        s += state[i] * c
+        s += ψ[i] * c
     end
 
     for ((i, j), c) in J
-        s += state[i] * state[j] * c
+        s += ψ[i] * ψ[j] * c
+    end
+
+    return s
+end
+
+function QUBOTools.energy(L::Vector{T}, Q::Vector{T}, u::Vector{Int}, v::Vector{Int}, ψ::Vector{U}) where {U<:Integer,T}
+    s = zero(T)
+
+    for i = eachindex(L)
+        s += ψ[i] * L[i]
+    end
+
+    for k = eachindex(Q)
+        s += ψ[u[k]] * ψ[v[k]] * Q[k]
     end
 
     return s
@@ -103,12 +133,12 @@ function QUBOTools.adjacency(Q::Dict{Tuple{Int,Int},T}) where {T}
     A = Dict{Int,Set{Int}}()
 
     for (i, j) in keys(Q)
-        if i == j
-            continue
-        end
-
         if !haskey(A, i)
             A[i] = Set{Int}()
+        end
+
+        if i == j
+            continue
         end
 
         if !haskey(A, j)

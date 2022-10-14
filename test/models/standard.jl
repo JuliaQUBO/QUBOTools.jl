@@ -1,33 +1,40 @@
 function test_standard()
+    # ~*~ Types ~*~ #
+    V = Symbol
+    U = Int
+    T = Float64
+    D = BoolDomain
+
     # ~*~ Data ~*~ #
-    _linear_terms = Dict{Symbol,Float64}(:x => 1.0, :y => 1.0)
-    linear_terms = Dict{Int,Float64}(1 => 1.0, 2 => 1.0)
+    _linear_terms    = Dict{Symbol,Float64}(:x => 1.0, :y => 1.0)
     _quadratic_terms = Dict{Tuple{Symbol,Symbol},Float64}((:x, :y) => -2.0)
-    quadratic_terms = Dict{Tuple{Int,Int},Float64}((1, 2) => -2.0)
+    linear_terms     = Dict{Float64,Int}(1 => 1.0, 2 => 1.0)
+    quadratic_terms  = Dict{Tuple{Int,Int},Float64}((1, 2) => -2.0)
 
     variable_map = Dict{Symbol,Int}(:x => 1, :y => 2)
     variable_inv = Dict{Int,Symbol}(1 => :x, 2 => :y)
-
-    variables = Symbol[:x, :y]
+    variables    = Symbol[:x, :y]
     variable_set = Set{Symbol}([:x, :y])
 
-    scale = 2.0
+    scale  = 2.0
     offset = 1.0
 
-    id = 33
-    version = v"2.0.0"
+    id          = 33
+    version     = v"2.0.0"
     description = """
     This model is a test one.
     The end.
     """
+
     metadata = Dict{String,Any}(
         "type" => "test_model",
     )
-    sampleset_samples = QUBOTools.Sample{Int,Float64}[
-        QUBOTools.Sample{Int,Float64}(Int[0, 0], 1, 2.0),
-        QUBOTools.Sample{Int,Float64}(Int[0, 1], 1, 4.0),
-        QUBOTools.Sample{Int,Float64}(Int[1, 0], 1, 4.0),
-        QUBOTools.Sample{Int,Float64}(Int[1, 1], 1, 2.0),
+    
+    sampleset_samples = QUBOTools.Sample{Float64,Int}[
+        QUBOTools.Sample{Float64,Int}(Int[0, 0], 1, 2.0),
+        QUBOTools.Sample{Float64,Int}(Int[0, 1], 1, 4.0),
+        QUBOTools.Sample{Float64,Int}(Int[1, 0], 1, 4.0),
+        QUBOTools.Sample{Float64,Int}(Int[1, 1], 1, 2.0),
     ]
 
     sampleset_metadata = Dict{String,Any}(
@@ -37,12 +44,12 @@ function test_standard()
         )
     )
 
-    sampleset = QUBOTools.SampleSet{Int,Float64}(
+    sampleset = QUBOTools.SampleSet{Float64,Int}(
         sampleset_samples,
         sampleset_metadata,
     )
 
-    std_model = QUBOTools.StandardQUBOModel{Symbol,Int,Float64,QUBOTools.BoolDomain}(
+    std_model = QUBOTools.StandardQUBOModel{V,U,T,QUBOTools.BoolDomain}(
         _linear_terms,
         _quadratic_terms;
         scale=scale,
@@ -103,14 +110,14 @@ function test_standard()
         # @testset "Bridges" verbose = true begin
         #     @testset "BOOL -> SPIN" verbose = true begin
         #         # spin_model = convert(
-        #         #     QUBOTools.StandardQUBOModel{Symbol,Int,Float64,QUBOTools.SpinDomain},
+        #         #     QUBOTools.StandardQUBOModel{Symbol,Float64,Int,QUBOTools.SpinDomain},
         #         #     bool_model,
         #         # )
 
         #         # @test QUBOTools.id(spin_model) == id
         #         # @test QUBOTools.description(spin_model) == description
 
-        #         # @test QUBOTools.linear_terms(spin_model) == Dict{Int,Float64}()
+        #         # @test QUBOTools.linear_terms(spin_model) == Dict{Float64,Int}()
         #         # @test QUBOTools.quadratic_terms(spin_model) == Dict{Tuple{Int,Int},Float64}(
         #         #     (1, 2) => -0.5
         #         # )
