@@ -169,7 +169,7 @@ function QUBOTools.qubo(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, α::T = one(T
     return (Q, α, β)
 end
 
-function QUBOTools.qubo(h::Vector{T}, J::Vector{T}, u::Vector{T}, v::Vector{T}, α::T = one(T), β::T = zero(T)) where T
+function QUBOTools.qubo(h::Vector{T}, J::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where T
     n = length(h)
     m = length(J)
     L = zeros(T, n)
@@ -188,7 +188,7 @@ function QUBOTools.qubo(h::Vector{T}, J::Vector{T}, u::Vector{T}, v::Vector{T}, 
         β += q
         L[i] -= 2q
         L[j] -= 2q
-        Q[i, j] += 4q
+        Q[k] += 4q
     end
 
     return (L, Q, u, v, α, β)
@@ -365,7 +365,7 @@ function QUBOTools.ising(L::Vector{T}, Q::Vector{T}, u::Vector{Int}, v::Vector{I
         i = u[k]
         j = v[k]
         q = Q[k]
-        β += q
+        β += q/4
         h[i] += q/4
         h[j] += q/4
         J[k] += q/4

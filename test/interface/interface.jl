@@ -76,14 +76,8 @@ function test_interface_queries(bool_model, spin_model, null_model)
     return nothing
 end
 
-function test_interface_normal_forms(bool_model, spin_model, null_model)
-    @testset "Normal Forms" begin
-        let (Q, α, β) = QUBOTools.qubo(bool_model, Dict)
-            @test Q ==
-                  Dict{Tuple{Int,Int},Float64}((1, 1) => 1.0, (1, 2) => 2.0, (2, 2) => -1.0)
-            @test α == 2.0
-            @test β == 1.0
-        end
+function test_interface_qubo_normal_forms(bool_model, spin_model)
+    @testset "QUBO" begin
 
         let (L, Q, u, v, α, β) = QUBOTools.qubo(bool_model, Vector)
             @test L == [1.0, -1.0]
@@ -95,37 +89,39 @@ function test_interface_normal_forms(bool_model, spin_model, null_model)
         end
 
         let (Q, α, β) = QUBOTools.qubo(bool_model, Matrix)
-            @test Q == [1.0 2.0; 0.0 -1.0]
+            @test Q == [
+                1.0  2.0
+                0.0 -1.0
+            ]
             @test α == 2.0
             @test β == 1.0
         end
 
         let (Q, α, β) = QUBOTools.qubo(bool_model, SparseMatrixCSC)
-            @test Q == sparse([1.0 2.0; 0.0 -1.0])
+            @test Q == sparse([
+                1.0  2.0
+                0.0 -1.0
+            ])
             @test α == 2.0
             @test β == 1.0
         end
 
-        let (h, J, α, β) = QUBOTools.ising(bool_model, Dict)
-            @test h == Dict{Int,Float64}(1 => 1.0, 2 => 0.0)
-            @test J == Dict{Tuple{Int,Int},Float64}((1, 2) => 0.5)
-            @test α == 2.0
-            @test β == 1.5
-        end
-
-        let (h, J, α, β) = QUBOTools.ising(bool_model, Matrix)
-            @test h == [1.0, 0.0]
-            @test J == [0.0 0.5; 0.0 0.0]
-            @test α == 2.0
-            @test β == 1.5
-        end
-
-        @test QUBOTools.qubo(bool_model) == QUBOTools.qubo(bool_model, Dict)
-        @test QUBOTools.ising(bool_model) == QUBOTools.ising(bool_model, Dict)
+        @test QUBOTools.qubo(spin_model) == QUBOTools.qubo(spin_model, Dict)
 
         let (Q, α, β) = QUBOTools.qubo(spin_model, Dict)
-            @test Q ==
-                  Dict{Tuple{Int,Int},Float64}((1, 1) => 1.0, (1, 2) => 2.0, (2, 2) => -1.0)
+            @test Q == Dict{Tuple{Int,Int},Float64}(
+                (1, 1) => 1.0, (1, 2) => 2.0,
+                               (2, 2) => -1.0
+            )
+            @test α == 2.0
+            @test β == 1.0
+        end
+
+        let (L, Q, u, v, α, β) = QUBOTools.qubo(spin_model, Vector)
+            @test L == [1.0, -1.0]
+            @test Q == [2.0]
+            @test u == [1]
+            @test v == [2]
             @test α == 2.0
             @test β == 1.0
         end
@@ -135,6 +131,29 @@ function test_interface_normal_forms(bool_model, spin_model, null_model)
             @test α == 2.0
             @test β == 1.0
         end
+
+        let (Q, α, β) = QUBOTools.qubo(spin_model, Matrix)
+            @test Q == [1.0 2.0; 0.0 -1.0]
+            @test α == 2.0
+            @test β == 1.0
+        end
+    end
+
+    return nothing
+end
+
+function test_interface_ising_normal_forms(bool_model, spin_model)
+    @testset "Ising" begin
+        @test QUBOTools.ising(bool_model) == QUBOTools.ising(bool_model, Dict)
+
+        let (h, J, α, β) = QUBOTools.ising(bool_model, Dict)
+            @test h == Dict{Int,Float64}(1 => 1.0, 2 => 0.0)
+            @test J == Dict{Tuple{Int,Int},Float64}((1, 2) => 0.5)
+            @test α == 2.0
+            @test β == 1.5
+        end
+
+        
 
         let (h, J, α, β) = QUBOTools.ising(spin_model, Dict)
             @test h == Dict{Int,Float64}(1 => 1.0, 2 => 0.0)
@@ -150,7 +169,18 @@ function test_interface_normal_forms(bool_model, spin_model, null_model)
             @test v == [2]
             @test α == 2.0
             @test β == 1.5
+
+            let (L, Q, u, v, α, β) = QUBOTools.qubo(h, J, u, v, α, β)
+                @test L == [1.0, -1.0]
+                @test Q == [2.0]
+                @test u == [1]
+                @test v == [2]
+                @test α == 2.0
+                @test β == 1.0
+            end
         end
+
+        @test QUBOTools.ising(spin_model) == QUBOTools.ising(spin_model, Dict)
 
         let (h, J, α, β) = QUBOTools.ising(spin_model, Matrix)
             @test h == [1.0, 0.0]
@@ -159,14 +189,141 @@ function test_interface_normal_forms(bool_model, spin_model, null_model)
             @test β == 1.5
         end
 
-        @test QUBOTools.qubo(spin_model) == QUBOTools.qubo(spin_model, Dict)
-        @test QUBOTools.ising(spin_model) == QUBOTools.ising(spin_model, Dict)
+    end
+end
+
+function test_interface_dict_normal_forms(bool_model, spin_model)
+    @testset "Dict" begin
+        # -*- :: QUBO :: -*- #
+        Q̄ = Dict{Tuple{Int,Int},Float64}(
+            (1, 1) => 1.0, (1, 2) =>  2.0,
+                           (2, 2) => -1.0,
+        )
+        ᾱ = 2.0
+        β̄ = 1.0
+
+        # -*- :: Ising :: -*- #
+        ĥ = Dict{Int,Float64}(1 => 1.0, 2 => 0.0)
+        Ĵ = Dict{Tuple{Int,Int},Float64}((1, 2) => 0.5)
+        α̂ = 2.0
+        β̂ = 1.5
+
+        # -*- :: QUBO :: -*- #
+        @test QUBOTools.qubo(bool_model) == (Q̄, ᾱ, β̄)
+        @test QUBOTools.qubo(bool_model, Dict) == (Q̄, ᾱ, β̄)
+        @test QUBOTools.qubo(spin_model) == (Q̄, ᾱ, β̄)
+        @test QUBOTools.qubo(spin_model, Dict) == (Q̄, ᾱ, β̄)
+        @test QUBOTools.qubo(ĥ, Ĵ, α̂, β̂) == (Q̄, ᾱ, β̄)      
+        
+        # -*- :: Ising :: -*- #
+        @test QUBOTools.ising(bool_model) == (ĥ, Ĵ, α̂, β̂)
+        @test QUBOTools.ising(bool_model, Dict) == (ĥ, Ĵ, α̂, β̂)
+        @test QUBOTools.ising(spin_model) == (ĥ, Ĵ, α̂, β̂)
+        @test QUBOTools.ising(spin_model, Dict) == (ĥ, Ĵ, α̂, β̂)
+        @test QUBOTools.ising(Q̄, ᾱ, β̄) == (ĥ, Ĵ, α̂, β̂) 
     end
 
     return nothing
 end
 
-function test_interface_evaluation(bool_model, spin_model, null_model)
+function test_interface_vector_normal_forms(bool_model, spin_model)
+    @testset "Vector" begin
+        # -*- :: QUBO :: -*- #
+        L̄ = [1.0, -1.0]
+        Q̄ = [2.0]
+        ᾱ = 2.0
+        β̄ = 1.0
+
+        # -*- :: Ising :: -*- #
+        ĥ = [1.0, 0.0]
+        Ĵ = [0.5]
+        α̂ = 2.0
+        β̂ = 1.5
+
+        # -*- :: Both :: -*- #
+        u = [1]
+        v = [2]
+
+        # -*- :: QUBO :: -*- #
+        @test QUBOTools.qubo(bool_model, Vector) == (L̄, Q̄, u, v, ᾱ, β̄)
+        @test QUBOTools.qubo(spin_model, Vector) == (L̄, Q̄, u, v, ᾱ, β̄)
+        @test QUBOTools.qubo(ĥ, Ĵ, u, v, α̂, β̂) == (L̄, Q̄, u, v, ᾱ, β̄)
+        
+        # -*- :: Ising :: -*- #
+        @test QUBOTools.ising(bool_model, Vector) == (ĥ, Ĵ, u, v, α̂, β̂)
+        @test QUBOTools.ising(spin_model, Vector) == (ĥ, Ĵ, u, v, α̂, β̂)
+        @test QUBOTools.ising(L̄, Q̄, u, v, ᾱ, β̄) == (ĥ, Ĵ, u, v, α̂, β̂) 
+    end
+
+    return nothing
+end
+
+function test_interface_matrix_normal_forms(bool_model, spin_model)
+    @testset "Matrix" begin
+        # -*- :: QUBO :: -*- #
+        Q̄ = [1.0 2.0; 0.0 -1.0]
+        ᾱ = 2.0
+        β̄ = 1.0
+
+        # -*- :: Ising :: -*- #
+        ĥ = [1.0, 0.0]
+        Ĵ = [0.0 0.5; 0.0 0.0]
+        α̂ = 2.0
+        β̂ = 1.5
+
+        # -*- :: QUBO :: -*- #
+        @test QUBOTools.qubo(bool_model, Matrix) == (Q̄, ᾱ, β̄)
+        @test QUBOTools.qubo(spin_model, Matrix) == (Q̄, ᾱ, β̄)
+        @test QUBOTools.qubo(ĥ, Ĵ, α̂, β̂) == (Q̄, ᾱ, β̄)
+        
+        # -*- :: Ising :: -*- #
+        @test QUBOTools.ising(bool_model, Matrix) == (ĥ, Ĵ, α̂, β̂)
+        @test QUBOTools.ising(spin_model, Matrix) == (ĥ, Ĵ, α̂, β̂)
+        @test QUBOTools.ising(Q̄, ᾱ, β̄) == (ĥ, Ĵ, α̂, β̂) 
+    end
+
+    return nothing
+end
+
+function test_interface_sparse_normal_forms(bool_model, spin_model)
+    @testset "Sparse" begin
+        # -*- :: QUBO :: -*- #
+        Q̄ = sparse([1.0 2.0; 0.0 -1.0])
+        ᾱ = 2.0
+        β̄ = 1.0
+
+        # -*- :: Ising :: -*- #
+        ĥ = sparsevec([1.0, 0.0])
+        Ĵ = sparse([0.0 0.5; 0.0 0.0])
+        α̂ = 2.0
+        β̂ = 1.5
+
+        # -*- :: QUBO :: -*- #
+        @test QUBOTools.qubo(bool_model, SparseMatrixCSC) == (Q̄, ᾱ, β̄)
+        @test QUBOTools.qubo(spin_model, SparseMatrixCSC) == (Q̄, ᾱ, β̄)
+        @test QUBOTools.qubo(ĥ, Ĵ, α̂, β̂) == (Q̄, ᾱ, β̄)
+        
+        # -*- :: Ising :: -*- #
+        @test QUBOTools.ising(bool_model, SparseMatrixCSC) == (ĥ, Ĵ, α̂, β̂)
+        @test QUBOTools.ising(spin_model, SparseMatrixCSC) == (ĥ, Ĵ, α̂, β̂)
+        @test QUBOTools.ising(Q̄, ᾱ, β̄) == (ĥ, Ĵ, α̂, β̂) 
+    end
+
+    return nothing
+end
+
+function test_interface_normal_forms(bool_model, spin_model)
+    @testset "Normal Forms" verbose = true begin
+        test_interface_dict_normal_forms(bool_model, spin_model)
+        test_interface_vector_normal_forms(bool_model, spin_model)
+        test_interface_matrix_normal_forms(bool_model, spin_model)
+        test_interface_sparse_normal_forms(bool_model, spin_model)
+    end
+
+    return nothing
+end
+
+function test_interface_evaluation(bool_model, spin_model)
     @testset "Evaluation" begin
         bool_states = [[0, 0], [0, 1], [1, 0], [1, 1]]
         spin_states = [[↑, ↑], [↑, ↓], [↓, ↑], [↓, ↓]]
@@ -177,8 +334,6 @@ function test_interface_evaluation(bool_model, spin_model, null_model)
             @test QUBOTools.energy(bool_model, x) == e
             @test QUBOTools.energy(spin_model, s) == e
         end
-
-        @test_throws AssertionError QUBOTools.energy(null_model, [0, 0])
     end
 
     return nothing
@@ -191,8 +346,12 @@ function test_interface()
     B = BoolDomain
     S = SpinDomain
 
-    null_model =
-        Model{B}(QUBOTools.StandardQUBOModel{V,U,T,B}(Dict{V,T}(), Dict{Tuple{V,V},T}()))
+    null_model = Model{B}(
+        QUBOTools.StandardQUBOModel{V,U,T,B}(
+            Dict{V,T}(),
+            Dict{Tuple{V,V},T}()
+        )
+    )
 
     bool_model = Model{B}(
         QUBOTools.StandardQUBOModel{V,U,T,B}(
@@ -216,7 +375,7 @@ function test_interface()
         test_interface_setup(bool_model, spin_model, null_model)
         test_interface_data_access(bool_model, spin_model, null_model)
         test_interface_queries(bool_model, spin_model, null_model)
-        test_interface_normal_forms(bool_model, spin_model, null_model)
-        test_interface_evaluation(bool_model, spin_model, null_model)
+        test_interface_normal_forms(bool_model, spin_model)
+        test_interface_evaluation(bool_model, spin_model)
     end
 end
