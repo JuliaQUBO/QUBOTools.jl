@@ -227,7 +227,6 @@ function test_sampleset()
             @test QUBOTools.swap_domain(S, S, spin_set) == spin_set
             @test QUBOTools.swap_domain(B, B, bool_set) == bool_set
             @test QUBOTools.swap_domain(B, B, spin_set) == spin_set
-
             @test QUBOTools.swap_domain(B, S, bool_set) == spin_set
             @test QUBOTools.swap_domain(S, B, spin_set) == bool_set
         end

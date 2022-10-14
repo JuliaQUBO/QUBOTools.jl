@@ -18,9 +18,9 @@ function test_tools()
             (:w, :z) => -2.0,
             (:γ, :γ) => -1.0,
             (:α, :β) => 0.5,
-            (:α, :β) => -0.5,
             (:β, :α) => -0.5,
             (:β, :α) => 0.5,
+            (:α, :β) => -0.5,
         )
 
         _linear_terms, _quadratic_terms, variable_set = QUBOTools._normal_form(
