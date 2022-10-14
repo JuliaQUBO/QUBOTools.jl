@@ -19,7 +19,7 @@ function test_interface_setup(bool_model, spin_model, null_model)
     return nothing
 end
 
-function test_interface_data_access(bool_model, spin_model, null_model)
+function test_interface_data_access(bool_model, bool_samples, spin_model, spin_samples, null_model)
     @testset "Data Access" begin
         @test QUBOTools.model_name(bool_model) == "QUBOTools.StandardQUBOModel{$Symbol, $Int, $Float64, BoolDomain}"
         @test QUBOTools.model_name(spin_model) == "QUBOTools.StandardQUBOModel{$Symbol, $Int, $Float64, SpinDomain}"
@@ -62,7 +62,49 @@ function test_interface_data_access(bool_model, spin_model, null_model)
             "meta" => "data",
             "type" => "spin",
         )
+
+        @test QUBOTools.sampleset(null_model) === nothing
+        @test QUBOTools.sampleset(bool_model) == QUBOTools.SampleSet(bool_samples)
+        @test QUBOTools.sampleset(spin_model) == QUBOTools.SampleSet(spin_samples)
+
+        @test QUBOTools.linear_terms(null_model) == Dict{Int,Float64}()
+        @test QUBOTools.linear_terms(bool_model) == Dict{Int,Float64}(1 => 1.0, 2 => -1.0)
+        @test QUBOTools.linear_terms(spin_model) == Dict{Int,Float64}(1 => 1.0)
+
+        @test QUBOTools.explicit_linear_terms(null_model) == Dict{Int,Float64}()
+        @test QUBOTools.explicit_linear_terms(bool_model) == Dict{Int,Float64}(1 => 1.0, 2 => -1.0)
+        @test QUBOTools.explicit_linear_terms(spin_model) == Dict{Int,Float64}(1 => 1.0, 2 => 0.0)
+
+        @test QUBOTools.quadratic_terms(null_model) == Dict{Tuple{Int,Int},Float64}()
+        @test QUBOTools.quadratic_terms(bool_model) == Dict{Tuple{Int,Int},Float64}((1, 2) => 2.0)
+        @test QUBOTools.quadratic_terms(spin_model) == Dict{Tuple{Int,Int},Float64}((1, 2) => 0.5)
         
+        @test QUBOTools.variables(null_model) == Symbol[]
+        @test QUBOTools.variables(bool_model) == Symbol[:x, :y]
+        @test QUBOTools.variables(spin_model) == Symbol[:x, :y]
+
+        @test QUBOTools.variable_set(null_model) == Set{Symbol}([])
+        @test QUBOTools.variable_set(bool_model) == Set{Symbol}([:x, :y])
+        @test QUBOTools.variable_set(spin_model) == Set{Symbol}([:x, :y])
+
+        @test QUBOTools.variable_map(bool_model, :x) == 1
+        @test QUBOTools.variable_map(spin_model, :x) == 1
+        @test QUBOTools.variable_map(bool_model, :y) == 2
+        @test QUBOTools.variable_map(spin_model, :y) == 2
+        
+        @test QUBOTools.variable_inv(bool_model, 1) == :x
+        @test QUBOTools.variable_inv(spin_model, 1) == :x
+        @test QUBOTools.variable_inv(bool_model, 2) == :y
+        @test QUBOTools.variable_inv(spin_model, 2) == :y
+
+        @test_throws Exception QUBOTools.variable_map(null_model, :x)
+        @test_throws Exception QUBOTools.variable_map(bool_model, :z)
+        @test_throws Exception QUBOTools.variable_map(spin_model, :z)
+        
+        @test_throws Exception QUBOTools.variable_inv(null_model,  1)
+        @test_throws Exception QUBOTools.variable_inv(bool_model, -1)
+        @test_throws Exception QUBOTools.variable_inv(spin_model, -1)
+
         @test QUBOTools.domain_size(null_model) == 0
         @test QUBOTools.domain_size(bool_model) == 2
         @test QUBOTools.domain_size(spin_model) == 2
@@ -87,140 +129,26 @@ function test_interface_data_access(bool_model, spin_model, null_model)
         @test QUBOTools.quadratic_density(bool_model) ≈ 1.0
         @test QUBOTools.quadratic_density(spin_model) ≈ 1.0
 
-        @test QUBOTools.variable_map(bool_model, :x) == 1
-        @test QUBOTools.variable_map(spin_model, :x) == 1
-        @test QUBOTools.variable_map(bool_model, :y) == 2
-        @test QUBOTools.variable_map(spin_model, :y) == 2
-        
-        @test QUBOTools.variable_inv(bool_model, 1) == :x
-        @test QUBOTools.variable_inv(spin_model, 1) == :x
-        @test QUBOTools.variable_inv(bool_model, 2) == :y
-        @test QUBOTools.variable_inv(spin_model, 2) == :y
+        @test QUBOTools.adjacency(null_model) == Dict{Int, Set{Int}}()
+        @test QUBOTools.adjacency(bool_model) == Dict{Int, Set{Int}}(
+            1 => Set{Int}([2]),
+            2 => Set{Int}([1]),
+        )
+        @test QUBOTools.adjacency(spin_model) == Dict{Int, Set{Int}}(
+            1 => Set{Int}([2]),
+            2 => Set{Int}([1]),
+        )
 
-        @test_throws Exception QUBOTools.variable_map(bool_model, :z)
-        @test_throws Exception QUBOTools.variable_map(spin_model, :z)
-        
-        @test_throws Exception QUBOTools.variable_inv(bool_model, -1)
-        @test_throws Exception QUBOTools.variable_inv(spin_model, -1)
+        @test QUBOTools.adjacency(null_model, 1) == Set{Int}()
+        @test QUBOTools.adjacency(bool_model, 1) == Set{Int}([2])
+        @test QUBOTools.adjacency(spin_model, 1) == Set{Int}([2])
+
+        @test QUBOTools.adjacency(null_model, 2) == Set{Int}()
+        @test QUBOTools.adjacency(bool_model, 2) == Set{Int}([1])
+        @test QUBOTools.adjacency(spin_model, 2) == Set{Int}([1])
     end
 
     return nothing
-end
-
-function test_interface_qubo_normal_forms(bool_model, spin_model)
-    @testset "QUBO" begin
-
-        let (L, Q, u, v, α, β) = QUBOTools.qubo(bool_model, Vector)
-            @test L == [1.0, -1.0]
-            @test Q == [2.0]
-            @test u == [1]
-            @test v == [2]
-            @test α == 2.0
-            @test β == 1.0
-        end
-
-        let (Q, α, β) = QUBOTools.qubo(bool_model, Matrix)
-            @test Q == [
-                1.0  2.0
-                0.0 -1.0
-            ]
-            @test α == 2.0
-            @test β == 1.0
-        end
-
-        let (Q, α, β) = QUBOTools.qubo(bool_model, SparseMatrixCSC)
-            @test Q == sparse([
-                1.0  2.0
-                0.0 -1.0
-            ])
-            @test α == 2.0
-            @test β == 1.0
-        end
-
-        @test QUBOTools.qubo(spin_model) == QUBOTools.qubo(spin_model, Dict)
-
-        let (Q, α, β) = QUBOTools.qubo(spin_model, Dict)
-            @test Q == Dict{Tuple{Int,Int},Float64}(
-                (1, 1) => 1.0, (1, 2) => 2.0,
-                               (2, 2) => -1.0
-            )
-            @test α == 2.0
-            @test β == 1.0
-        end
-
-        let (L, Q, u, v, α, β) = QUBOTools.qubo(spin_model, Vector)
-            @test L == [1.0, -1.0]
-            @test Q == [2.0]
-            @test u == [1]
-            @test v == [2]
-            @test α == 2.0
-            @test β == 1.0
-        end
-
-        let (Q, α, β) = QUBOTools.qubo(spin_model, Matrix)
-            @test Q == [1.0 2.0; 0.0 -1.0]
-            @test α == 2.0
-            @test β == 1.0
-        end
-
-        let (Q, α, β) = QUBOTools.qubo(spin_model, Matrix)
-            @test Q == [1.0 2.0; 0.0 -1.0]
-            @test α == 2.0
-            @test β == 1.0
-        end
-    end
-
-    return nothing
-end
-
-function test_interface_ising_normal_forms(bool_model, spin_model)
-    @testset "Ising" begin
-        @test QUBOTools.ising(bool_model) == QUBOTools.ising(bool_model, Dict)
-
-        let (h, J, α, β) = QUBOTools.ising(bool_model, Dict)
-            @test h == Dict{Int,Float64}(1 => 1.0, 2 => 0.0)
-            @test J == Dict{Tuple{Int,Int},Float64}((1, 2) => 0.5)
-            @test α == 2.0
-            @test β == 1.5
-        end
-
-        
-
-        let (h, J, α, β) = QUBOTools.ising(spin_model, Dict)
-            @test h == Dict{Int,Float64}(1 => 1.0, 2 => 0.0)
-            @test J == Dict{Tuple{Int,Int},Float64}((1, 2) => 0.5)
-            @test α == 2.0
-            @test β == 1.5
-        end
-
-        let (h, J, u, v, α, β) = QUBOTools.ising(spin_model, Vector)
-            @test h == [1.0, 0.0]
-            @test J == [0.5]
-            @test u == [1]
-            @test v == [2]
-            @test α == 2.0
-            @test β == 1.5
-
-            let (L, Q, u, v, α, β) = QUBOTools.qubo(h, J, u, v, α, β)
-                @test L == [1.0, -1.0]
-                @test Q == [2.0]
-                @test u == [1]
-                @test v == [2]
-                @test α == 2.0
-                @test β == 1.0
-            end
-        end
-
-        @test QUBOTools.ising(spin_model) == QUBOTools.ising(spin_model, Dict)
-
-        let (h, J, α, β) = QUBOTools.ising(spin_model, Matrix)
-            @test h == [1.0, 0.0]
-            @test J == [0.0 0.5; 0.0 0.0]
-            @test α == 2.0
-            @test β == 1.5
-        end
-
-    end
 end
 
 function test_interface_dict_normal_forms(bool_model, spin_model)
@@ -444,7 +372,7 @@ function test_interface()
 
     @testset "-*- Interface" verbose = true begin
         test_interface_setup(bool_model, spin_model, null_model)
-        test_interface_data_access(bool_model, spin_model, null_model)
+        test_interface_data_access(bool_model, bool_samples, spin_model, spin_samples, null_model)
         test_interface_normal_forms(bool_model, spin_model)
         test_interface_evaluation(bool_model, bool_states, spin_model, spin_states, reads, values)
     end
