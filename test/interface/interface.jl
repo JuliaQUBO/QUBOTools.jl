@@ -1,4 +1,4 @@
-struct Model{D} <: QUBOTools.AbstractQUBOModel{D}
+struct Model
     backend::Any
 end
 
@@ -9,41 +9,68 @@ function test_interface_setup(bool_model, spin_model, null_model)
         @test QUBOTools.backend(null_model) isa QUBOTools.StandardQUBOModel
         @test QUBOTools.backend(bool_model) isa QUBOTools.StandardQUBOModel
         @test QUBOTools.backend(spin_model) isa QUBOTools.StandardQUBOModel
-        @test isempty(null_model)
-        @test !isempty(bool_model)
-        @test !isempty(spin_model)
-        @test isvalid(bool_model)
-        @test isvalid(spin_model)
+        @test isempty(QUBOTools.backend(null_model))
+        @test !isempty(QUBOTools.backend(bool_model))
+        @test !isempty(QUBOTools.backend(spin_model))
+        @test isvalid(QUBOTools.backend(bool_model))
+        @test isvalid(QUBOTools.backend(spin_model))
     end
 
     return nothing
 end
 
 function test_interface_data_access(bool_model, spin_model, null_model)
-    @testset "Data access" begin
+    @testset "Data Access" begin
+        @test QUBOTools.model_name(bool_model) == "QUBOTools.StandardQUBOModel{$Symbol, $Int, $Float64, BoolDomain}"
+        @test QUBOTools.model_name(spin_model) == "QUBOTools.StandardQUBOModel{$Symbol, $Int, $Float64, SpinDomain}"
+        
+        @test QUBOTools.domain(bool_model) == QUBOTools.BoolDomain
+        @test QUBOTools.domain(spin_model) == QUBOTools.SpinDomain
+        
+        @test QUBOTools.domain_name(bool_model) == "Bool"
+        @test QUBOTools.domain_name(spin_model) == "Spin"
+        
         @test QUBOTools.scale(null_model) == 1.0
         @test QUBOTools.scale(bool_model) == 2.0
         @test QUBOTools.scale(spin_model) == 2.0
+        
         @test QUBOTools.offset(null_model) == 0.0
         @test QUBOTools.offset(bool_model) == 1.0
         @test QUBOTools.offset(spin_model) == 1.5
-    end
+        
+        @test QUBOTools.id(null_model) == 0
+        @test QUBOTools.id(bool_model) == 1
+        @test QUBOTools.id(spin_model) == 2
+        
+        @test QUBOTools.version(null_model) == v"0.0.0"
+        @test QUBOTools.version(bool_model) == v"0.1.0"
+        @test QUBOTools.version(spin_model) == v"0.2.0"
 
-    return nothing
-end
+        @test QUBOTools.description(null_model) == "This is a Null Model"
+        @test QUBOTools.description(bool_model) == "This is a Bool Model"
+        @test QUBOTools.description(spin_model) == "This is a Spin Model"
 
-function test_interface_queries(bool_model, spin_model, null_model)
-    @testset "Queries" begin
-        @test QUBOTools.model_name(bool_model) == "Model{BoolDomain}"
-        @test QUBOTools.model_name(spin_model) == "Model{SpinDomain}"
-        @test QUBOTools.domain_name(bool_model) == "Bool"
-        @test QUBOTools.domain_name(spin_model) == "Spin"
+        @test QUBOTools.metadata(null_model) == Dict{String,Any}(
+            "meta" => "data",
+            "type" => "null",
+        )
+        @test QUBOTools.metadata(bool_model) == Dict{String,Any}(
+            "meta" => "data",
+            "type" => "bool",
+        )
+        @test QUBOTools.metadata(spin_model) == Dict{String,Any}(
+            "meta" => "data",
+            "type" => "spin",
+        )
+        
         @test QUBOTools.domain_size(null_model) == 0
         @test QUBOTools.domain_size(bool_model) == 2
         @test QUBOTools.domain_size(spin_model) == 2
+        
         @test QUBOTools.linear_size(null_model) == 0
         @test QUBOTools.linear_size(bool_model) == 2
         @test QUBOTools.linear_size(spin_model) == 1
+
         @test QUBOTools.quadratic_size(null_model) == 0
         @test QUBOTools.quadratic_size(bool_model) == 1
         @test QUBOTools.quadratic_size(spin_model) == 1
@@ -51,9 +78,11 @@ function test_interface_queries(bool_model, spin_model, null_model)
         @test QUBOTools.density(null_model) |> isnan
         @test QUBOTools.density(bool_model) ≈ 1.0
         @test QUBOTools.density(spin_model) ≈ 0.75
+
         @test QUBOTools.linear_density(null_model) |> isnan
         @test QUBOTools.linear_density(bool_model) ≈ 1.0
         @test QUBOTools.linear_density(spin_model) ≈ 0.5
+        
         @test QUBOTools.quadratic_density(null_model) |> isnan
         @test QUBOTools.quadratic_density(bool_model) ≈ 1.0
         @test QUBOTools.quadratic_density(spin_model) ≈ 1.0
@@ -62,6 +91,7 @@ function test_interface_queries(bool_model, spin_model, null_model)
         @test QUBOTools.variable_map(spin_model, :x) == 1
         @test QUBOTools.variable_map(bool_model, :y) == 2
         @test QUBOTools.variable_map(spin_model, :y) == 2
+        
         @test QUBOTools.variable_inv(bool_model, 1) == :x
         @test QUBOTools.variable_inv(spin_model, 1) == :x
         @test QUBOTools.variable_inv(bool_model, 2) == :y
@@ -69,6 +99,7 @@ function test_interface_queries(bool_model, spin_model, null_model)
 
         @test_throws Exception QUBOTools.variable_map(bool_model, :z)
         @test_throws Exception QUBOTools.variable_map(spin_model, :z)
+        
         @test_throws Exception QUBOTools.variable_inv(bool_model, -1)
         @test_throws Exception QUBOTools.variable_inv(spin_model, -1)
     end
@@ -363,29 +394,50 @@ function test_interface()
     bool_samples = [QUBOTools.Sample(s...) for s in zip(bool_states, reads, values)]
     spin_samples = [QUBOTools.Sample(s...) for s in zip(spin_states, reads, values)]
 
-    null_model = Model{B}(
+    null_model = Model(
         QUBOTools.StandardQUBOModel{V,U,T,B}(
             Dict{V,T}(),
-            Dict{Tuple{V,V},T}()
+            Dict{Tuple{V,V},T}();
+            id = 0,
+            version = v"0.0.0",
+            description = "This is a Null Model",
+            metadata = Dict{String,Any}(
+                "meta" => "data",
+                "type" => "null",
+            ),
         )
     )
 
-    bool_model = Model{B}(
+    bool_model = Model(
         QUBOTools.StandardQUBOModel{V,U,T,B}(
             Dict{V,T}(:x => 1.0, :y => -1.0),
             Dict{Tuple{V,V},T}((:x, :y) => 2.0);
             scale = 2.0,
             offset = 1.0,
+            id = 1,
+            version = v"0.1.0",
+            description = "This is a Bool Model",
+            metadata = Dict{String,Any}(
+                "meta" => "data",
+                "type" => "bool",
+            ),
             sampleset=QUBOTools.SampleSet(bool_samples),
         ),
     )
 
-    spin_model = Model{S}(
+    spin_model = Model(
         QUBOTools.StandardQUBOModel{V,U,T,S}(
             Dict{V,T}(:x => 1.0),
             Dict{Tuple{V,V},T}((:x, :y) => 0.5);
             scale = 2.0,
             offset = 1.5,
+            id = 2,
+            version = v"0.2.0",
+            description = "This is a Spin Model",
+            metadata = Dict{String,Any}(
+                "meta" => "data",
+                "type" => "spin",
+            ),
             sampleset=QUBOTools.SampleSet(spin_samples),
         ),
     )
@@ -393,7 +445,6 @@ function test_interface()
     @testset "-*- Interface" verbose = true begin
         test_interface_setup(bool_model, spin_model, null_model)
         test_interface_data_access(bool_model, spin_model, null_model)
-        test_interface_queries(bool_model, spin_model, null_model)
         test_interface_normal_forms(bool_model, spin_model)
         test_interface_evaluation(bool_model, bool_states, spin_model, spin_states, reads, values)
     end

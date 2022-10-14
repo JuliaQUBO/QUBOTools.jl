@@ -125,13 +125,7 @@ function Base.isempty(model::StandardQUBOModel)
            isempty(model.quadratic_terms) &&
            isempty(model.variable_map) &&
            isempty(model.variable_inv) &&
-           isnothing(model.offset) &&
-           isnothing(model.scale) &&
-           isnothing(model.id) &&
-           isnothing(model.version) &&
-           isnothing(model.description) &&
-           isnothing(model.metadata) &&
-           isnothing(model.sampleset)
+           isnothing(model.sampleset) || isempty(model.sampleset)
 end
 
 function Base.copy(model::StandardQUBOModel{V,U,T,D}) where {V,U,T,D}
