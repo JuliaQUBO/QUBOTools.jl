@@ -60,16 +60,22 @@ function test_samples()
     @testset "SampleSet" begin
         let null_set = QUBOTools.SampleSet()
             @test isempty(null_set)
-            @test length(null_set) == 0
-            @test null_set.metadata isa Dict{String,Any}
             @test isempty(null_set.metadata)
+            
+            # ~ index ~ #
+            @test size(null_set) == (0, 1)
+            @test size(null_set, 1) == length(null_set) == 0
+            @test size(null_set, 2) == 1
+            @test size(null_set, 3) == 1
+
+            @test_throws BoundsError null_set[begin]
+            @test_throws BoundsError null_set[end]
         end
 
         let metadata = Dict{String,Any}("time" => Dict{String,Any}("total" => 1.0))
             meta_set = QUBOTools.SampleSet(QUBOTools.Sample{Float64,Int}[], metadata)
 
-            @test meta_set |> isempty
-            @test meta_set.metadata isa Dict{String,Any}
+            @test isempty(meta_set)
             @test meta_set.metadata === metadata
         end
 
@@ -162,17 +168,38 @@ function test_samples()
         ]
 
         spin_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([↑, ↑], 4.0, 1),
-            QUBOTools.Sample{Float64,Int}([↑, ↓], 3.0, 2),
-            QUBOTools.Sample{Float64,Int}([↓, ↑], 2.0, 3),
-            QUBOTools.Sample{Float64,Int}([↓, ↓], 1.0, 4),
+            QUBOTools.Sample([↑, ↑], 4.0, 1),
+            QUBOTools.Sample([↑, ↓], 3.0, 2),
+            QUBOTools.Sample([↓, ↑], 2.0, 3),
+            QUBOTools.Sample([↓, ↓], 1.0, 4),
         ]
 
         # ~*~ Domain translation ~*~ #
         let (bool_set, spin_set) = (
-                QUBOTools.SampleSet{Float64,Int}(bool_samples),
-                QUBOTools.SampleSet{Float64,Int}(spin_samples),
+                QUBOTools.SampleSet(bool_samples),
+                QUBOTools.SampleSet(spin_samples),
             )
+            # ~ index ~ #
+            @test size(bool_set) == (4, 2)
+            @test size(spin_set) == (4, 2)
+            @test size(bool_set, 1) == length(bool_set) == 4
+            @test size(spin_set, 1) == length(spin_set) == 4
+            @test size(bool_set, 2) == 2
+            @test size(spin_set, 2) == 2
+            @test size(bool_set, 3) == 1
+            @test size(spin_set, 3) == 1
+            @test bool_set[begin] === bool_set[1]
+            @test spin_set[begin] === spin_set[1]
+            @test bool_set[end]   === bool_set[4]
+            @test spin_set[end]   === spin_set[4]
+            @test bool_set[begin, begin] == bool_set[1, 1]
+            @test spin_set[begin, begin] == spin_set[1, 1]
+            @test bool_set[end, begin]   == bool_set[4, 1]
+            @test spin_set[end, begin]   == spin_set[4, 1]
+            @test bool_set[begin, end]   == bool_set[1, 2]
+            @test spin_set[begin, end]   == spin_set[1, 2]
+            @test bool_set[end,end]      == bool_set[4, 2]
+            @test spin_set[end,end]      == spin_set[4, 2]
 
             # ~ state ~ #
             @test QUBOTools.state(bool_set, 1) == [1, 1]

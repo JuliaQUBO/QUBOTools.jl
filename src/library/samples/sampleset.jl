@@ -23,11 +23,6 @@ It was inspired by [1], with a few tweaks.
         new{T,U}(Sample{T,U}[], Dict{String,Any}())
     end
 
-    # ~ Copy Constructor ~ #
-    function SampleSet{T,U}(S::SampleSet{T,U}) where {T,U}
-        return new{T,U}(deepcopy(S.data), deepcopy(S.metadata))
-    end
-
     # ~ Default Constructor ~ #
     function SampleSet{T,U}(
         samples::Vector{Sample{T,U}},
@@ -61,11 +56,13 @@ SampleSet(args...; kws...)              = SampleSet{Float64}(args...; kws...)
 
 Base.copy(S::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(copy(S.data), deepcopy(S.metadata))
 
-Base.:(==)(X::SampleSet{T,U}, Y::SampleSet{T,U}) where {T,U} = X.data == Y.data
+@inline Base.:(==)(X::SampleSet{T,U}, Y::SampleSet{T,U}) where {T,U} = X.data == Y.data
 
-Base.length(S::SampleSet) = length(S.data)
+@inline Base.length(S::SampleSet) = length(S.data)
 
-function Base.size(S::SampleSet, axis::Integer)
+@inline Base.size(S::SampleSet) = (size(S, 1), size(S, 2))
+
+@inline function Base.size(S::SampleSet, axis::Integer)
     if axis == 1
         return length(S)
     elseif axis == 2 && !isempty(S)
