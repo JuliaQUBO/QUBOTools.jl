@@ -50,13 +50,12 @@ function test_samples()
         end
 
         let sample = QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 1)
-            @test !isempty(sample)
             @test length(sample) == 2
 
             @test QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 1) == sample
             @test QUBOTools.Sample{Float64,Int}([1, 1], 0.0, 1) != sample
-            @test QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 2) != sample
-            @test QUBOTools.Sample{Float64,Int}([0, 0], 1.0, 1) != sample
+            @test QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 2) == sample
+            @test QUBOTools.Sample{Float64,Int}([0, 0], 1.0, 1) == sample
         end
     end
 end
