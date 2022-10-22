@@ -4,6 +4,8 @@
 
 """ abstract type VariableDomain end
 
+Base.Broadcast.broadcastable(D::VariableDomain) = Ref(D)
+
 @doc raw"""
     SpinDomain <: VariableDomain
 
