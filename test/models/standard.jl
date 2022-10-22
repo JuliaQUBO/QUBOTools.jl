@@ -31,10 +31,10 @@ function test_standard()
     )
     
     sampleset_samples = QUBOTools.Sample{Float64,Int}[
-        QUBOTools.Sample{Float64,Int}(Int[0, 0], 1, 2.0),
-        QUBOTools.Sample{Float64,Int}(Int[0, 1], 1, 4.0),
-        QUBOTools.Sample{Float64,Int}(Int[1, 0], 1, 4.0),
-        QUBOTools.Sample{Float64,Int}(Int[1, 1], 1, 2.0),
+        QUBOTools.Sample{Float64,Int}(Int[0, 0], 2.0, 1),
+        QUBOTools.Sample{Float64,Int}(Int[0, 1], 4.0, 1),
+        QUBOTools.Sample{Float64,Int}(Int[1, 0], 4.0, 1),
+        QUBOTools.Sample{Float64,Int}(Int[1, 1], 2.0, 1),
     ]
 
     sampleset_metadata = Dict{String,Any}(

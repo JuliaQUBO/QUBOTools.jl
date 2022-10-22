@@ -1,22 +1,29 @@
-function success_rate(sampleset::SampleSet{T,<:Any}, e::T) where {T}
+function success_rate(sampleset::SampleSet{T,<:Any}, λ::T) where {T}
     if isempty(sampleset)
         return NaN
     else
-        return sum(
-            sample.reads
-            for sample in sampleset
-            if sample.value <= e
-        ) / sampleset.reads
+        s = 0
+        r = 0
+
+        for sample in sampleset
+            if sample.value <= λ
+                s += sample.reads
+            end
+
+            r += sample.reads
+        end
+
+        return s / r
     end
 end
 
-function tts(sampleset::SampleSet{T,<:Any}, e::T; s::Float64 = 0.99) where {T}
+function tts(sampleset::SampleSet{T,<:Any}, λ::T; s::Float64 = 0.99) where {T}
     if isempty(sampleset)
         return NaN
     end
 
     t = effective_time(sampleset)
-    p = success_rate(sampleset, e)
+    p = success_rate(sampleset, λ)
 
     return tts(t, p, s)
 end

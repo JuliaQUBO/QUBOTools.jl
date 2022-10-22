@@ -46,8 +46,8 @@ function QUBOTools.swap_domain(
         Sample{T,U}[
             Sample{T,U}(
                 QUBOTools.swap_domain(A, B, sample.state),
-                sample.reads,
                 sample.value,
+                sample.reads,
             )
             for sample in sampleset
         ],

@@ -41,22 +41,22 @@ end
 
 function test_samples()
     @testset "Samples" begin
-        let sample = QUBOTools.Sample(Int[], 0, 0.0)
+        let sample = QUBOTools.Sample(Int[], 0.0, 0)
             @test sample isa QUBOTools.Sample{Float64,Int}
         end
 
-        let sample = QUBOTools.Sample{Float64}(Int[], 0, 0.0)
+        let sample = QUBOTools.Sample{Float64}(Int[], 0.0, 0)
             @test sample isa QUBOTools.Sample{Float64,Int}
         end
 
-        let sample = QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0)
+        let sample = QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 1)
             @test !isempty(sample)
             @test length(sample) == 2
 
-            @test QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0) == sample
-            @test QUBOTools.Sample{Float64,Int}([1, 1], 1, 0.0) != sample
-            @test QUBOTools.Sample{Float64,Int}([0, 0], 2, 0.0) != sample
-            @test QUBOTools.Sample{Float64,Int}([0, 0], 1, 1.0) != sample
+            @test QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 1) == sample
+            @test QUBOTools.Sample{Float64,Int}([1, 1], 0.0, 1) != sample
+            @test QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 2) != sample
+            @test QUBOTools.Sample{Float64,Int}([0, 0], 1.0, 1) != sample
         end
     end
 end
@@ -94,26 +94,26 @@ function test_sampleset()
 
         @test_throws QUBOTools.SampleError QUBOTools.SampleSet{Float64,Int}(
             QUBOTools.Sample{Float64,Int}[
-                QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0),
-                QUBOTools.Sample{Float64,Int}([0, 0, 1], 1, 0.0),
+                QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 1),
+                QUBOTools.Sample{Float64,Int}([0, 0, 1], 0.0, 1),
             ],
         )
         @test_throws QUBOTools.SampleError QUBOTools.SampleSet{Float64,Int}(
             QUBOTools.Sample{Float64,Int}[
-                QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0),
-                QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.1),
+                QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 1),
+                QUBOTools.Sample{Float64,Int}([0, 0], 0.1, 1),
             ],
         )
         # ~*~ Merge & Sort ~*~#
         source_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0),
-            QUBOTools.Sample{Float64,Int}([0, 0], 2, 0.0),
-            QUBOTools.Sample{Float64,Int}([0, 1], 3, 2.0),
-            QUBOTools.Sample{Float64,Int}([0, 1], 4, 2.0),
-            QUBOTools.Sample{Float64,Int}([1, 0], 5, 4.0),
-            QUBOTools.Sample{Float64,Int}([1, 0], 6, 4.0),
-            QUBOTools.Sample{Float64,Int}([1, 1], 7, 1.0),
-            QUBOTools.Sample{Float64,Int}([1, 1], 8, 1.0),
+            QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 1),
+            QUBOTools.Sample{Float64,Int}([0, 0], 0.0, 2),
+            QUBOTools.Sample{Float64,Int}([0, 1], 2.0, 3),
+            QUBOTools.Sample{Float64,Int}([0, 1], 2.0, 4),
+            QUBOTools.Sample{Float64,Int}([1, 0], 4.0, 5),
+            QUBOTools.Sample{Float64,Int}([1, 0], 4.0, 6),
+            QUBOTools.Sample{Float64,Int}([1, 1], 1.0, 7),
+            QUBOTools.Sample{Float64,Int}([1, 1], 1.0, 8),
         ]
 
         metadata = Dict{String,Any}(
@@ -124,10 +124,10 @@ function test_sampleset()
         )
 
         target_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([0, 0], 3, 0.0),
-            QUBOTools.Sample{Float64,Int}([1, 1], 15, 1.0),
-            QUBOTools.Sample{Float64,Int}([0, 1], 7, 2.0),
-            QUBOTools.Sample{Float64,Int}([1, 0], 11, 4.0),
+            QUBOTools.Sample{Float64,Int}([0, 0], 0.0,  3),
+            QUBOTools.Sample{Float64,Int}([1, 1], 1.0, 15),
+            QUBOTools.Sample{Float64,Int}([0, 1], 2.0,  7),
+            QUBOTools.Sample{Float64,Int}([1, 0], 4.0, 11),
         ]
 
         source_sampleset = QUBOTools.SampleSet{Float64,Int}(source_samples, metadata)
@@ -166,17 +166,17 @@ function test_sampleset()
         end
 
         bool_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([0, 0], 1, 4.0),
-            QUBOTools.Sample{Float64,Int}([0, 1], 2, 3.0),
-            QUBOTools.Sample{Float64,Int}([1, 0], 3, 2.0),
-            QUBOTools.Sample{Float64,Int}([1, 1], 4, 1.0),
+            QUBOTools.Sample{Float64,Int}([0, 0], 4.0, 1),
+            QUBOTools.Sample{Float64,Int}([0, 1], 3.0, 2),
+            QUBOTools.Sample{Float64,Int}([1, 0], 2.0, 3),
+            QUBOTools.Sample{Float64,Int}([1, 1], 1.0, 4),
         ]
 
         spin_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([↑, ↑], 1, 4.0),
-            QUBOTools.Sample{Float64,Int}([↑, ↓], 2, 3.0),
-            QUBOTools.Sample{Float64,Int}([↓, ↑], 3, 2.0),
-            QUBOTools.Sample{Float64,Int}([↓, ↓], 4, 1.0),
+            QUBOTools.Sample{Float64,Int}([↑, ↑], 4.0, 1),
+            QUBOTools.Sample{Float64,Int}([↑, ↓], 3.0, 2),
+            QUBOTools.Sample{Float64,Int}([↓, ↑], 2.0, 3),
+            QUBOTools.Sample{Float64,Int}([↓, ↓], 1.0, 4),
         ]
 
         # ~*~ Domain translation ~*~ #

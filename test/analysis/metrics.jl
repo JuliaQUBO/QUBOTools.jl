@@ -3,10 +3,10 @@ function test_metrics()
         e = 1.0
         s = QUBOTools.SampleSet{Float64,Int}(
             QUBOTools.Sample{Float64,Int}[
-                QUBOTools.Sample{Float64,Int}([0, 0, 1], 1, 1.0),
-                QUBOTools.Sample{Float64,Int}([0, 1, 0], 2, 2.0),
-                QUBOTools.Sample{Float64,Int}([0, 1, 1], 3, 3.0),
-                QUBOTools.Sample{Float64,Int}([1, 0, 0], 4, 4.0),
+                QUBOTools.Sample{Float64,Int}([0, 0, 1], 1.0, 1),
+                QUBOTools.Sample{Float64,Int}([0, 1, 0], 2.0, 2),
+                QUBOTools.Sample{Float64,Int}([0, 1, 1], 3.0, 3),
+                QUBOTools.Sample{Float64,Int}([1, 0, 0], 4.0, 4),
             ],
             Dict{String,Any}(
                 "time" => Dict{String,Any}(

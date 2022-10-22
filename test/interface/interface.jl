@@ -383,8 +383,8 @@ function test_interface()
     reads       = [     2,      1,      3,      4]
     values      = [   0.0,    2.0,    4.0,    6.0]
 
-    bool_samples = [QUBOTools.Sample(s...) for s in zip(bool_states, reads, values)]
-    spin_samples = [QUBOTools.Sample(s...) for s in zip(spin_states, reads, values)]
+    bool_samples = [QUBOTools.Sample(s...) for s in zip(bool_states, values, reads)]
+    spin_samples = [QUBOTools.Sample(s...) for s in zip(spin_states, values, reads)]
 
     null_model = Model(
         QUBOTools.StandardQUBOModel{V,U,T,B}(

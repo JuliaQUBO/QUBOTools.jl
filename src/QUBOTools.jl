@@ -4,6 +4,8 @@ using Printf
 using JSON
 using JSONSchema
 using SparseArrays
+using RecipesBase
+using Base: @propagate_inbounds
 
 # ~*~ Variable comparison ~*~ #
 @doc raw"""
@@ -17,8 +19,8 @@ There is no predefined comparison between instances MOI's `VariableIndex` type.
 varcmp(x::V, y::V) where {V} = isless(x, y)
 
 const ≺ = varcmp # \prec[tab]
-const ↑ = -1 # \uparrow[tab]
-const ↓ = +1 # \downarrow[tab]
+const ↑ = -1     # \uparrow[tab]
+const ↓ = +1     # \downarrow[tab]
 
 # ~*~ Exports: Symbols ~*~ #
 export ↑, ↓
@@ -27,7 +29,7 @@ export ↑, ↓
 export BoolDomain, SpinDomain
 
 # ~*~ Exports: Solution Interface ~*~ #
-export SampleSet
+export SampleSet, Sample
 
 # ~*~ Exports: Supported Model Formats ~*~ #
 export BQPJSON
@@ -40,7 +42,7 @@ export QUBO
 include("library/error.jl")
 include("library/types.jl")
 include("library/tools.jl")
-include("library/sampleset.jl")
+include("library/samples/samples.jl")
 
 # ~*~ Interface definitions ~*~ #
 include("interface/interface.jl")
@@ -64,5 +66,6 @@ include("bridges/bridges.jl")
 include("analysis/interface.jl")
 include("analysis/time.jl")
 include("analysis/metrics.jl")
+include("analysis/plots.jl")
 
 end # module
