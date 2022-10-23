@@ -1,4 +1,5 @@
 struct SampleModel{T} end
+struct QUBOModel{T} <: QUBOTools.AbstractQUBOModel{T} end
 
 QUBOTools.energy(::SampleModel{T}, ::Any) where {T} = zero(T)
 
@@ -47,13 +48,27 @@ function test_samples()
             @test sample isa QUBOTools.Sample{Float64,Int}
         end
 
-        let sample = QUBOTools.Sample([0, 0], 0.0, 1)
+        let sample = QUBOTools.Sample([0, 1], -1.0, 1)
             @test length(sample) == 2
 
-            @test QUBOTools.Sample([0, 0], 0.0, 1) == sample
+            @test sample[1] == 0
+            @test sample[2] == 1
+            @test_throws BoundsError sample[3] 
+
+            @test QUBOTools.Sample([0, 1], -1.0, 1) == sample
             @test QUBOTools.Sample([1, 1], 0.0, 1) != sample
-            @test QUBOTools.Sample([0, 0], 0.0, 2) == sample
-            @test QUBOTools.Sample([0, 0], 1.0, 1) == sample
+            @test QUBOTools.Sample([0, 1], 0.0, 2) == sample
+            @test QUBOTools.Sample([0, 1], 1.0, 1) == sample
+
+            @test sample < QUBOTools.Sample([0, 0], 1.0, 1)
+            @test isequal(sample, QUBOTools.Sample([0, 1], -1.0, 1))
+            @test !isequal(sample, QUBOTools.Sample([0, 0], 0.0, 2))
+            @test !isequal(sample, QUBOTools.Sample([0, 0], 1.0, 1))
+
+            let io = IOBuffer()
+                print(io, sample)
+                @test String(take!(io)) == "↑↓"
+            end
         end
     end
 
