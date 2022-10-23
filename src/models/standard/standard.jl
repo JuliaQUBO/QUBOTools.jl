@@ -100,6 +100,14 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
             kws...
         )
     end
+
+    function StandardQUBOModel{V,U,T,D}(; kws...) where {V,U,T,D}
+        return StandardQUBOModel{V,U,T,D}(
+            Dict{V,T}(),
+            Dict{Tuple{V,V},T}();
+            kws...
+        )
+    end
 end
 
 function Base.empty!(model::StandardQUBOModel)

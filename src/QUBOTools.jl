@@ -24,6 +24,7 @@ const ↓ = +1     # \downarrow[tab]
 
 # ~*~ Exports: Symbols ~*~ #
 export ↑, ↓
+export 𝔹, 𝕊
 
 # ~*~ Exports: Variable Domains ~*~ #
 export BoolDomain, SpinDomain
