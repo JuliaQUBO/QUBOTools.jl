@@ -2,52 +2,52 @@
 
 # -*- Short-circuits:
 QUBOTools.swap_domain(
-    ::Type{D},
-    ::Type{D},
+    ::D,
+    ::D,
     state::Vector{U}
 ) where {D<:VariableDomain,U<:Integer} = state
 
 QUBOTools.swap_domain(
-    ::Type{D},
-    ::Type{D},
+    ::D,
+    ::D,
     states::Vector{Vector{U}}
 ) where {D<:VariableDomain,U<:Integer} = states
 
 QUBOTools.swap_domain(
-    ::Type{D},
-    ::Type{D},
-    sampleset::SampleSet
-) where {D<:VariableDomain} = sampleset
+    ::D,
+    ::D,
+    sampleset::SampleSet{T,U}
+) where {D<:VariableDomain,T,U<:Integer} = sampleset
 
-function QUBOTools.swap_domain(::Type{SpinDomain}, ::Type{BoolDomain}, state::Vector{U}) where {U<:Integer}
+function QUBOTools.swap_domain(::SpinDomain, ::BoolDomain, state::Vector{U}) where {U<:Integer}
     # ~ x = (s + 1) ÷ 2 ~ #
     return (state .+ 1) .÷ 2
 end
 
-function QUBOTools.swap_domain(::Type{BoolDomain}, ::Type{SpinDomain}, state::Vector{U}) where {U<:Integer}
+function QUBOTools.swap_domain(::BoolDomain, ::SpinDomain, state::Vector{U}) where {U<:Integer}
     # ~ s = 2x - 1 ~ #
     return (2 .* state) .- 1
 end
 
 function QUBOTools.swap_domain(
-    ::Type{A},
-    ::Type{B},
+    ::A,
+    ::B,
     states::Vector{Vector{U}}
 ) where {A<:VariableDomain,B<:VariableDomain,U<:Integer}
-    return Vector{U}[QUBOTools.swap_domain(A, B, state) for state in states]
+    return QUBOTools.swap_domain.(A(), B(), states)
 end
 
 function QUBOTools.swap_domain(
-    ::Type{A},
-    ::Type{B},
+    ::A,
+    ::B,
     sampleset::SampleSet{T,U}
 ) where {A<:VariableDomain,B<:VariableDomain,U<:Integer,T}
     return SampleSet{T,U}(
         Sample{T,U}[
             Sample{T,U}(
-                QUBOTools.swap_domain(A, B, sample.state),
-                sample.reads,
+                QUBOTools.swap_domain(A(), B(), sample.state),
                 sample.value,
+                sample.reads,
             )
             for sample in sampleset
         ],

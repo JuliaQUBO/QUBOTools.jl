@@ -30,11 +30,11 @@ function test_standard()
         "type" => "test_model",
     )
     
-    sampleset_samples = QUBOTools.Sample{Float64,Int}[
-        QUBOTools.Sample{Float64,Int}(Int[0, 0], 1, 2.0),
-        QUBOTools.Sample{Float64,Int}(Int[0, 1], 1, 4.0),
-        QUBOTools.Sample{Float64,Int}(Int[1, 0], 1, 4.0),
-        QUBOTools.Sample{Float64,Int}(Int[1, 1], 1, 2.0),
+    sampleset_samples = [
+        QUBOTools.Sample([0, 0], 2.0, 1),
+        QUBOTools.Sample([0, 1], 4.0, 1),
+        QUBOTools.Sample([1, 0], 4.0, 1),
+        QUBOTools.Sample([1, 1], 2.0, 1),
     ]
 
     sampleset_metadata = Dict{String,Any}(
@@ -99,6 +99,31 @@ function test_standard()
             @test QUBOTools.quadratic_density(std_model) ≈ 1.0
 
             @test QUBOTools.density(std_model) ≈ 1.0
+        end
+
+        @testset "Copy" verbose = true begin
+            let model = copy(std_model)
+                @test QUBOTools.linear_terms(model)    == QUBOTools.linear_terms(std_model)
+                @test QUBOTools.quadratic_terms(model) == QUBOTools.quadratic_terms(std_model)
+                @test QUBOTools.variable_map(model)    == QUBOTools.variable_map(std_model)
+                @test QUBOTools.variable_inv(model)    == QUBOTools.variable_inv(std_model)
+                @test QUBOTools.variables(model)       == QUBOTools.variables(std_model)
+                @test QUBOTools.scale(model)           == QUBOTools.scale(std_model)
+                @test QUBOTools.offset(model)          == QUBOTools.offset(std_model)
+                @test QUBOTools.id(model)              == QUBOTools.id(std_model)
+            end
+
+            let model = QUBOTools.StandardQUBOModel{V,U,T,QUBOTools.BoolDomain}()
+                copy!(model, std_model)
+                @test QUBOTools.linear_terms(model)    == QUBOTools.linear_terms(std_model)
+                @test QUBOTools.quadratic_terms(model) == QUBOTools.quadratic_terms(std_model)
+                @test QUBOTools.variable_map(model)    == QUBOTools.variable_map(std_model)
+                @test QUBOTools.variable_inv(model)    == QUBOTools.variable_inv(std_model)
+                @test QUBOTools.variables(model)       == QUBOTools.variables(std_model)
+                @test QUBOTools.scale(model)           == QUBOTools.scale(std_model)
+                @test QUBOTools.offset(model)          == QUBOTools.offset(std_model)
+                @test QUBOTools.id(model)              == QUBOTools.id(std_model)
+            end
         end
 
         @testset "Reset" verbose = true begin

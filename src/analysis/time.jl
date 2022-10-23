@@ -1,19 +1,19 @@
-function total_time(sampleset::SampleSet)
-    if !haskey(sampleset.metadata, "time")
+function total_time(S::SampleSet)
+    if !haskey(S.metadata, "time")
         return NaN
-    elseif !haskey(sampleset.metadata["time"], "total")
+    elseif !haskey(S.metadata["time"], "total")
         return NaN
     else
-        return sampleset.metadata["time"]["total"]
+        return S.metadata["time"]["total"]
     end
 end
 
-function effective_time(sampleset::SampleSet)
-    if !haskey(sampleset.metadata, "time")
+function effective_time(S::SampleSet)
+    if !haskey(S.metadata, "time")
         return NaN
-    elseif !haskey(sampleset.metadata["time"], "effective")
-        return total_time(sampleset)
+    elseif !haskey(S.metadata["time"], "effective")
+        return total_time(S)
     else
-        return sampleset.metadata["time"]["effective"]
+        return S.metadata["time"]["effective"]
     end
 end

@@ -4,6 +4,8 @@
 
 """ abstract type VariableDomain end
 
+Base.Broadcast.broadcastable(D::VariableDomain) = Ref(D)
+
 @doc raw"""
     SpinDomain <: VariableDomain
 
@@ -12,6 +14,8 @@ s \in \lbrace{-1, 1}\rbrace
 ```
 """ struct SpinDomain <: VariableDomain end
 
+const 𝕊 = SpinDomain
+
 @doc raw"""
     BoolDomain <: VariableDomain
 
@@ -19,6 +23,8 @@ s \in \lbrace{-1, 1}\rbrace
 x \in \lbrace{0, 1}\rbrace
 ```
 """ struct BoolDomain <: VariableDomain end
+
+const 𝔹 = BoolDomain
 
 @doc raw"""
     AbstractQUBOModel{D<:VariableDomain}

@@ -1,8 +1,9 @@
 struct SampleModel{T} end
+struct QUBOModel{T} <: QUBOTools.AbstractQUBOModel{T} end
 
 QUBOTools.energy(::SampleModel{T}, ::Any) where {T} = zero(T)
 
-function test_states()
+function test_samples()
     B = QUBOTools.BoolDomain
     S = QUBOTools.SpinDomain
 
@@ -13,74 +14,83 @@ function test_states()
         Φ = [1, 0, 1]
 
         # ~ Short Circuits ~ #
-        @test QUBOTools.swap_domain(S, S, ψ) == ψ
-        @test QUBOTools.swap_domain(S, S, ϕ) == ϕ
-        @test QUBOTools.swap_domain(S, S, Ψ) == Ψ
-        @test QUBOTools.swap_domain(S, S, Φ) == Φ
-        @test QUBOTools.swap_domain(B, B, ψ) == ψ
-        @test QUBOTools.swap_domain(B, B, ϕ) == ϕ
-        @test QUBOTools.swap_domain(B, B, Ψ) == Ψ
-        @test QUBOTools.swap_domain(B, B, Φ) == Φ
+        @test QUBOTools.swap_domain(S(), S(), ψ) == ψ
+        @test QUBOTools.swap_domain(S(), S(), ϕ) == ϕ
+        @test QUBOTools.swap_domain(S(), S(), Ψ) == Ψ
+        @test QUBOTools.swap_domain(S(), S(), Φ) == Φ
+        @test QUBOTools.swap_domain(B(), B(), ψ) == ψ
+        @test QUBOTools.swap_domain(B(), B(), ϕ) == ϕ
+        @test QUBOTools.swap_domain(B(), B(), Ψ) == Ψ
+        @test QUBOTools.swap_domain(B(), B(), Φ) == Φ
 
-        @test QUBOTools.swap_domain(S, S, [Φ, Ψ]) == [Φ, Ψ]
-        @test QUBOTools.swap_domain(S, S, [ϕ, ψ]) == [ϕ, ψ]
-        @test QUBOTools.swap_domain(B, B, [Φ, Ψ]) == [Φ, Ψ]
-        @test QUBOTools.swap_domain(B, B, [ϕ, ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(S(), S(), [Φ, Ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(S(), S(), [ϕ, ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(B(), B(), [Φ, Ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(B(), B(), [ϕ, ψ]) == [ϕ, ψ]
 
         # ~ State Conversion ~ #
-        @test QUBOTools.swap_domain(B, S, Φ) == ϕ
-        @test QUBOTools.swap_domain(B, S, Ψ) == ψ
-        @test QUBOTools.swap_domain(S, B, ϕ) == Φ
-        @test QUBOTools.swap_domain(S, B, ψ) == Ψ
+        @test QUBOTools.swap_domain(B(), S(), Φ) == ϕ
+        @test QUBOTools.swap_domain(B(), S(), Ψ) == ψ
+        @test QUBOTools.swap_domain(S(), B(), ϕ) == Φ
+        @test QUBOTools.swap_domain(S(), B(), ψ) == Ψ
 
         # ~ Multiple States Conversion ~ #
-        @test QUBOTools.swap_domain(B, S, [Φ, Ψ]) == [ϕ, ψ]
-        @test QUBOTools.swap_domain(S, B, [ϕ, ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(B(), S(), [Φ, Ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(S(), B(), [ϕ, ψ]) == [Φ, Ψ]
     end
-end
 
-function test_samples()
     @testset "Samples" begin
-        let sample = QUBOTools.Sample(Int[], 0, 0.0)
+        let sample = QUBOTools.Sample(Int[], 0.0, 0)
             @test sample isa QUBOTools.Sample{Float64,Int}
         end
 
-        let sample = QUBOTools.Sample{Float64}(Int[], 0, 0.0)
+        let sample = QUBOTools.Sample{Float64}(Int[], 0.0, 0)
             @test sample isa QUBOTools.Sample{Float64,Int}
         end
 
-        let sample = QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0)
-            @test !isempty(sample)
+        let sample = QUBOTools.Sample([0, 1], -1.0, 1)
             @test length(sample) == 2
 
-            @test QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0) == sample
-            @test QUBOTools.Sample{Float64,Int}([1, 1], 1, 0.0) != sample
-            @test QUBOTools.Sample{Float64,Int}([0, 0], 2, 0.0) != sample
-            @test QUBOTools.Sample{Float64,Int}([0, 0], 1, 1.0) != sample
+            @test sample[1] == 0
+            @test sample[2] == 1
+            @test_throws BoundsError sample[3] 
+
+            @test QUBOTools.Sample([0, 1], -1.0, 1) == sample
+            @test QUBOTools.Sample([1, 1], 0.0, 1) != sample
+            @test QUBOTools.Sample([0, 1], 0.0, 2) == sample
+            @test QUBOTools.Sample([0, 1], 1.0, 1) == sample
+
+            @test sample < QUBOTools.Sample([0, 0], 1.0, 1)
+            @test isequal(sample, QUBOTools.Sample([0, 1], -1.0, 1))
+            @test !isequal(sample, QUBOTools.Sample([0, 0], 0.0, 2))
+            @test !isequal(sample, QUBOTools.Sample([0, 0], 1.0, 1))
+
+            let io = IOBuffer()
+                print(io, sample)
+                @test String(take!(io)) == "↑↓"
+            end
         end
     end
-end
-
-function test_sampleset()
-    B = QUBOTools.BoolDomain
-    S = QUBOTools.SpinDomain
 
     @testset "SampleSet" begin
-        test_states()
-        test_samples()
-
-        let null_set = QUBOTools.SampleSet{Float64,Int}()
+        let null_set = QUBOTools.SampleSet()
             @test isempty(null_set)
-            @test length(null_set) == 0
-            @test null_set.metadata isa Dict{String,Any}
             @test isempty(null_set.metadata)
+            
+            # ~ index ~ #
+            @test size(null_set) == (0, 1)
+            @test size(null_set, 1) == length(null_set) == 0
+            @test size(null_set, 2) == 1
+            @test size(null_set, 3) == 1
+
+            @test_throws BoundsError null_set[begin]
+            @test_throws BoundsError null_set[end]
         end
 
         let metadata = Dict{String,Any}("time" => Dict{String,Any}("total" => 1.0))
-            meta_set = QUBOTools.SampleSet{Float64,Int}(QUBOTools.Sample{Float64,Int}[], metadata)
+            meta_set = QUBOTools.SampleSet(QUBOTools.Sample{Float64,Int}[], metadata)
 
-            @test meta_set |> isempty
-            @test meta_set.metadata isa Dict{String,Any}
+            @test isempty(meta_set)
             @test meta_set.metadata === metadata
         end
 
@@ -93,27 +103,27 @@ function test_sampleset()
         end
 
         @test_throws QUBOTools.SampleError QUBOTools.SampleSet{Float64,Int}(
-            QUBOTools.Sample{Float64,Int}[
-                QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0),
-                QUBOTools.Sample{Float64,Int}([0, 0, 1], 1, 0.0),
+            [
+                QUBOTools.Sample([0, 0], 0.0, 1),
+                QUBOTools.Sample([0, 0, 1], 0.0, 1),
             ],
         )
-        @test_throws QUBOTools.SampleError QUBOTools.SampleSet{Float64,Int}(
-            QUBOTools.Sample{Float64,Int}[
-                QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0),
-                QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.1),
+        @test_throws QUBOTools.SampleError QUBOTools.SampleSet(
+            [
+                QUBOTools.Sample([0, 0], 0.0, 1),
+                QUBOTools.Sample([0, 0], 0.1, 1),
             ],
         )
         # ~*~ Merge & Sort ~*~#
         source_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([0, 0], 1, 0.0),
-            QUBOTools.Sample{Float64,Int}([0, 0], 2, 0.0),
-            QUBOTools.Sample{Float64,Int}([0, 1], 3, 2.0),
-            QUBOTools.Sample{Float64,Int}([0, 1], 4, 2.0),
-            QUBOTools.Sample{Float64,Int}([1, 0], 5, 4.0),
-            QUBOTools.Sample{Float64,Int}([1, 0], 6, 4.0),
-            QUBOTools.Sample{Float64,Int}([1, 1], 7, 1.0),
-            QUBOTools.Sample{Float64,Int}([1, 1], 8, 1.0),
+            QUBOTools.Sample([0, 0], 0.0, 1),
+            QUBOTools.Sample([0, 0], 0.0, 2),
+            QUBOTools.Sample([0, 1], 2.0, 3),
+            QUBOTools.Sample([0, 1], 2.0, 4),
+            QUBOTools.Sample([1, 0], 4.0, 5),
+            QUBOTools.Sample([1, 0], 4.0, 6),
+            QUBOTools.Sample([1, 1], 1.0, 7),
+            QUBOTools.Sample([1, 1], 1.0, 8),
         ]
 
         metadata = Dict{String,Any}(
@@ -124,10 +134,10 @@ function test_sampleset()
         )
 
         target_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([0, 0], 3, 0.0),
-            QUBOTools.Sample{Float64,Int}([1, 1], 15, 1.0),
-            QUBOTools.Sample{Float64,Int}([0, 1], 7, 2.0),
-            QUBOTools.Sample{Float64,Int}([1, 0], 11, 4.0),
+            QUBOTools.Sample{Float64,Int}([0, 0], 0.0,  3),
+            QUBOTools.Sample{Float64,Int}([1, 1], 1.0, 15),
+            QUBOTools.Sample{Float64,Int}([0, 1], 2.0,  7),
+            QUBOTools.Sample{Float64,Int}([1, 0], 4.0, 11),
         ]
 
         source_sampleset = QUBOTools.SampleSet{Float64,Int}(source_samples, metadata)
@@ -166,24 +176,45 @@ function test_sampleset()
         end
 
         bool_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([0, 0], 1, 4.0),
-            QUBOTools.Sample{Float64,Int}([0, 1], 2, 3.0),
-            QUBOTools.Sample{Float64,Int}([1, 0], 3, 2.0),
-            QUBOTools.Sample{Float64,Int}([1, 1], 4, 1.0),
+            QUBOTools.Sample{Float64,Int}([0, 0], 4.0, 1),
+            QUBOTools.Sample{Float64,Int}([0, 1], 3.0, 2),
+            QUBOTools.Sample{Float64,Int}([1, 0], 2.0, 3),
+            QUBOTools.Sample{Float64,Int}([1, 1], 1.0, 4),
         ]
 
         spin_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([↑, ↑], 1, 4.0),
-            QUBOTools.Sample{Float64,Int}([↑, ↓], 2, 3.0),
-            QUBOTools.Sample{Float64,Int}([↓, ↑], 3, 2.0),
-            QUBOTools.Sample{Float64,Int}([↓, ↓], 4, 1.0),
+            QUBOTools.Sample([↑, ↑], 4.0, 1),
+            QUBOTools.Sample([↑, ↓], 3.0, 2),
+            QUBOTools.Sample([↓, ↑], 2.0, 3),
+            QUBOTools.Sample([↓, ↓], 1.0, 4),
         ]
 
         # ~*~ Domain translation ~*~ #
         let (bool_set, spin_set) = (
-                QUBOTools.SampleSet{Float64,Int}(bool_samples),
-                QUBOTools.SampleSet{Float64,Int}(spin_samples),
+                QUBOTools.SampleSet(bool_samples),
+                QUBOTools.SampleSet(spin_samples),
             )
+            # ~ index ~ #
+            @test size(bool_set) == (4, 2)
+            @test size(spin_set) == (4, 2)
+            @test size(bool_set, 1) == length(bool_set) == 4
+            @test size(spin_set, 1) == length(spin_set) == 4
+            @test size(bool_set, 2) == 2
+            @test size(spin_set, 2) == 2
+            @test size(bool_set, 3) == 1
+            @test size(spin_set, 3) == 1
+            @test bool_set[begin] === bool_set[1]
+            @test spin_set[begin] === spin_set[1]
+            @test bool_set[end]   === bool_set[4]
+            @test spin_set[end]   === spin_set[4]
+            @test bool_set[begin, begin] == bool_set[1, 1]
+            @test spin_set[begin, begin] == spin_set[1, 1]
+            @test bool_set[end, begin]   == bool_set[4, 1]
+            @test spin_set[end, begin]   == spin_set[4, 1]
+            @test bool_set[begin, end]   == bool_set[1, 2]
+            @test spin_set[begin, end]   == spin_set[1, 2]
+            @test bool_set[end,end]      == bool_set[4, 2]
+            @test spin_set[end,end]      == spin_set[4, 2]
 
             # ~ state ~ #
             @test QUBOTools.state(bool_set, 1) == [1, 1]
@@ -240,12 +271,10 @@ function test_sampleset()
             @test_throws Exception QUBOTools.energy(spin_set, 5)
 
             # ~ swap_domain ~ #
-            @test QUBOTools.swap_domain(S, S, bool_set) == bool_set
-            @test QUBOTools.swap_domain(S, S, spin_set) == spin_set
-            @test QUBOTools.swap_domain(B, B, bool_set) == bool_set
-            @test QUBOTools.swap_domain(B, B, spin_set) == spin_set
-            @test QUBOTools.swap_domain(B, S, bool_set) == spin_set
-            @test QUBOTools.swap_domain(S, B, spin_set) == bool_set
+            @test QUBOTools.swap_domain(S(), S(), bool_set) == bool_set
+            @test QUBOTools.swap_domain(B(), B(), bool_set) == bool_set
+            @test QUBOTools.swap_domain(B(), S(), bool_set) == spin_set
+            @test QUBOTools.swap_domain(S(), B(), spin_set) == bool_set
         end
     end
 end
