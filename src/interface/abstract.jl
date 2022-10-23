@@ -4,7 +4,7 @@ Base.isempty(model::AbstractQUBOModel) = isempty(QUBOTools.variable_map(model))
 
 # ~*~ Data access ~*~ #
 QUBOTools.model_name(::X) where {X<:AbstractQUBOModel} = string(X)
-QUBOTools.domain(::AbstractQUBOModel{D}) where {D} = D
+QUBOTools.domain(::AbstractQUBOModel{D}) where {D} = D()
 QUBOTools.domain_name(model::AbstractQUBOModel{<:BoolDomain}) = "Bool"
 QUBOTools.domain_name(model::AbstractQUBOModel{<:SpinDomain}) = "Spin"
 

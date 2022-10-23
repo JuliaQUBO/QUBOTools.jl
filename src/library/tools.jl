@@ -22,8 +22,8 @@ Swaps the variable domain of a model, recalculating its coefficients.
 """ function _swapdomain end
 
 function _swapdomain(
-    ::Type{<:SpinDomain},
-    ::Type{<:BoolDomain},
+    ::SpinDomain,
+    ::BoolDomain,
     linear_terms::Dict{Int,T},
     quadratic_terms::Dict{Tuple{Int,Int},T},
     offset::Union{T,Nothing},
@@ -48,8 +48,8 @@ function _swapdomain(
 end
 
 function _swapdomain(
-    ::Type{<:BoolDomain},
-    ::Type{<:SpinDomain},
+    ::BoolDomain,
+    ::SpinDomain,
     linear_terms::Dict{Int,T},
     quadratic_terms::Dict{Tuple{Int,Int},T},
     offset::Union{T,Nothing}

@@ -24,8 +24,8 @@ function test_interface_data_access(bool_model, bool_samples, spin_model, spin_s
         @test QUBOTools.model_name(bool_model) == "QUBOTools.StandardQUBOModel{$Symbol, $Int, $Float64, BoolDomain}"
         @test QUBOTools.model_name(spin_model) == "QUBOTools.StandardQUBOModel{$Symbol, $Int, $Float64, SpinDomain}"
         
-        @test QUBOTools.domain(bool_model) == QUBOTools.BoolDomain
-        @test QUBOTools.domain(spin_model) == QUBOTools.SpinDomain
+        @test QUBOTools.domain(bool_model) == QUBOTools.BoolDomain()
+        @test QUBOTools.domain(spin_model) == QUBOTools.SpinDomain()
         
         @test QUBOTools.domain_name(bool_model) == "Bool"
         @test QUBOTools.domain_name(spin_model) == "Spin"

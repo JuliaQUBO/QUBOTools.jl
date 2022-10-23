@@ -88,7 +88,7 @@ function test_standard()
         @testset "Queries" verbose = true begin
             @test isnothing(QUBOTools.backend(std_model))
 
-            @test QUBOTools.domain(std_model) == QUBOTools.BoolDomain
+            @test QUBOTools.domain(std_model) == QUBOTools.BoolDomain()
             @test QUBOTools.domain_name(std_model) == "Bool"
             @test QUBOTools.domain_size(std_model) == 2
 

@@ -23,7 +23,7 @@ Returns a string representing the model type.
 @doc raw"""
     domain(model)::VariableDomain
 
-Returns the type representing the variable domain of a given model.
+Returns the singleton representing the variable domain of a given model.
 """ function domain end
 
 @doc raw"""

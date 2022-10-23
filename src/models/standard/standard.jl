@@ -254,8 +254,8 @@ function Base.convert(
     model::StandardQUBOModel{V,U,T,A}
 ) where {V,U,T,A,B}
     _linear_terms, _quadratic_terms, offset = QUBOTools._swapdomain(
-        A,
-        B,
+        A(),
+        B(),
         model.linear_terms,
         model.quadratic_terms,
         model.offset,
