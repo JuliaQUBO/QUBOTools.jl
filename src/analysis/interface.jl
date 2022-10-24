@@ -1,5 +1,5 @@
 @doc raw"""
-    tts(sampleset::SampleSet{T,<:Any}, λ::T; s::Float64=0.99) where {T}
+    tts(sampleset::SampleSet{T,<:Any}, λ::T, s::Float64=0.99) where {T}
 
 Computes the _time to solution_ (TTS) from the optimal objective value and a sample set.
 The success factor ``s`` defaults to ``0.99``.
