@@ -1,7 +1,7 @@
 const BQPJSON_SCHEMA          = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "bqpjson.schema.json")))
 const BQPJSON_VERSION_LIST    = VersionNumber[v"1.0.0"]
 const BQPJSON_VERSION_LATEST  = BQPJSON_VERSION_LIST[end]
-const BQPJSON_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
+const BQPJSON_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
 
 BQPJSON_VARIABLE_DOMAIN(::Type{<:BoolDomain}) = "boolean"
 BQPJSON_VARIABLE_DOMAIN(::Type{<:SpinDomain}) = "spin"

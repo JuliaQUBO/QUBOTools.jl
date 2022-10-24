@@ -1,4 +1,4 @@
-const QUBIST_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
+const QUBIST_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
 
 @doc raw"""
     Qubist{D}(backend, sites, lines) where {D<:SpinDomain}

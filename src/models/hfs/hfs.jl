@@ -1,6 +1,6 @@
 const HFS_DEFAULT_CHIMERA_CELL_SIZE = 8
 const HFS_DEFAULT_CHIMERA_PRECISION = 5
-const HFS_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
+const HFS_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
 
 @doc raw"""
     Chimera(

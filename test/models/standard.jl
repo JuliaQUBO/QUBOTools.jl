@@ -49,7 +49,7 @@ function test_standard()
         sampleset_metadata,
     )
 
-    std_model = QUBOTools.StandardQUBOModel{V,U,T,QUBOTools.BoolDomain}(
+    std_model = QUBOTools.StandardQUBOModel{𝔹,V,T,U}(
         _linear_terms,
         _quadratic_terms;
         scale=scale,
@@ -88,7 +88,7 @@ function test_standard()
         @testset "Queries" verbose = true begin
             @test isnothing(QUBOTools.backend(std_model))
 
-            @test QUBOTools.domain(std_model) == QUBOTools.BoolDomain()
+            @test QUBOTools.domain(std_model) == 𝔹()
             @test QUBOTools.domain_name(std_model) == "Bool"
             @test QUBOTools.domain_size(std_model) == 2
 
@@ -113,7 +113,7 @@ function test_standard()
                 @test QUBOTools.id(model)              == QUBOTools.id(std_model)
             end
 
-            let model = QUBOTools.StandardQUBOModel{V,U,T,QUBOTools.BoolDomain}()
+            let model = QUBOTools.StandardQUBOModel{𝔹,V,T,U}()
                 copy!(model, std_model)
                 @test QUBOTools.linear_terms(model)    == QUBOTools.linear_terms(std_model)
                 @test QUBOTools.quadratic_terms(model) == QUBOTools.quadratic_terms(std_model)

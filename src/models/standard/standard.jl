@@ -1,9 +1,9 @@
 @doc raw"""
     StandardQUBOModel{
+        D <: VariableDomain,
         V <: Any,
-        U <: Integer,
         T <: Real,
-        D <: VariableDomain
+        U <: Integer
     } <: AbstractQUBOModel{D}
 
 The `StandardQUBOModel` was designed to work as a general for all implemented interfaces.
@@ -14,10 +14,10 @@ Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuM
 By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
 """ mutable struct StandardQUBOModel{
+    D<:VariableDomain,
     V<:Any,
-    U<:Integer,
     T<:Real,
-    D<:VariableDomain
+    U<:Integer
 } <: AbstractQUBOModel{D}
     # ~*~ Required data ~*~
     linear_terms::Dict{Int,T}
@@ -35,7 +35,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     # ~*~ Solutions ~*~
     sampleset::Union{SampleSet{T,U},Nothing}
 
-    function StandardQUBOModel{V,U,T,D}(
+    function StandardQUBOModel{D,V,T,U}(
         # ~*~ Required data ~*~
         linear_terms::Dict{Int,T},
         quadratic_terms::Dict{Tuple{Int,Int},T},
@@ -51,8 +51,8 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         metadata::Union{Dict{String,Any},Nothing}=nothing,
         # ~*~ Solutions ~*~
         sampleset::Union{SampleSet{T,U},Nothing}=nothing
-    ) where {V,U,T,D}
-        new{V,U,T,D}(
+    ) where {D,V,T,U}
+        new{D,V,T,U}(
             linear_terms,
             quadratic_terms,
             variable_map,
@@ -67,12 +67,12 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
-    function StandardQUBOModel{V,U,T,D}(
+    function StandardQUBOModel{D,V,T,U}(
         # ~*~ Required data ~*~
         _linear_terms::Dict{V,T},
         _quadratic_terms::Dict{Tuple{V,V},T};
         kws...
-    ) where {V,U,T,D}
+    ) where {D,V,T,U}
         # ~ What is happening now: There were many layers of validation
         #   before we got here. This call to `_normal_form` removes any re-
         #   dundancy by aggregating (i, j) and (j, i) terms and also ma-
@@ -92,7 +92,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
             variable_map,
         )
 
-        StandardQUBOModel{V,U,T,D}(
+        StandardQUBOModel{D,V,T,U}(
             linear_terms,
             quadratic_terms,
             variable_map,
@@ -101,8 +101,8 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
-    function StandardQUBOModel{V,U,T,D}(; kws...) where {V,U,T,D}
-        return StandardQUBOModel{V,U,T,D}(
+    function StandardQUBOModel{D,V,T,U}(; kws...) where {D,V,T,U}
+        return StandardQUBOModel{D,V,T,U}(
             Dict{V,T}(),
             Dict{Tuple{V,V},T}();
             kws...
@@ -117,27 +117,24 @@ function Base.empty!(model::StandardQUBOModel)
     empty!(model.variable_map)
     empty!(model.variable_inv)
     # ~*~ Attributes ~*~ #
-    model.scale = nothing
-    model.offset = nothing
-    model.id = nothing
-    model.version = nothing
+    model.scale       = nothing
+    model.offset      = nothing
+    model.id          = nothing
+    model.version     = nothing
     model.description = nothing
-    model.metadata = nothing
-    model.sampleset = nothing
+    model.metadata    = nothing
+    model.sampleset   = nothing
 
     return model
 end
 
 function Base.isempty(model::StandardQUBOModel)
-    return isempty(model.linear_terms) &&
-           isempty(model.quadratic_terms) &&
-           isempty(model.variable_map) &&
-           isempty(model.variable_inv) &&
-           isnothing(model.sampleset) || isempty(model.sampleset)
+    return isempty(model.variable_map) &&
+           isempty(model.variable_inv)
 end
 
-function Base.copy(model::StandardQUBOModel{V,U,T,D}) where {V,U,T,D}
-    StandardQUBOModel{V,U,T,D}(
+function Base.copy(model::StandardQUBOModel{D,V,T,U}) where {D,V,T,U}
+    StandardQUBOModel{D,V,T,U}(
         copy(model.linear_terms),
         copy(model.quadratic_terms),
         copy(model.variable_map),
@@ -153,10 +150,10 @@ function Base.copy(model::StandardQUBOModel{V,U,T,D}) where {V,U,T,D}
 end
 
 function QUBOTools._isvalidbridge(
-    source::StandardQUBOModel{V,U,T,D},
-    target::StandardQUBOModel{V,U,T,D};
+    source::StandardQUBOModel{D,V,T,U},
+    target::StandardQUBOModel{D,V,T,U};
     kws...
-) where {V,U,T,D}
+) where {D,V,T,U}
     flag = true
 
     if !isnothing(source.id) && !isnothing(target.id) && (source.id != target.id)
@@ -245,14 +242,14 @@ QUBOTools.variable_map(model::StandardQUBOModel) = model.variable_map
 QUBOTools.variable_inv(model::StandardQUBOModel) = model.variable_inv
 
 Base.convert(
-    ::Type{<:StandardQUBOModel{V,U,T,D}},
-    model::StandardQUBOModel{V,U,T,D}
-) where {V,U,T,D} = model # Short-circuit! Yeah!
+    ::Type{<:StandardQUBOModel{D,V,T,U}},
+    model::StandardQUBOModel{D,V,T,U}
+) where {D,V,T,U} = model # Short-circuit! Yeah!
 
 function Base.convert(
-    ::Type{<:StandardQUBOModel{V,U,T,B}},
-    model::StandardQUBOModel{V,U,T,A}
-) where {V,U,T,A,B}
+    ::Type{<:StandardQUBOModel{B,V,T,U}},
+    model::StandardQUBOModel{A,V,T,U}
+) where {A,B,V,T,U}
     _linear_terms, _quadratic_terms, offset = QUBOTools._swapdomain(
         A(),
         B(),
@@ -266,7 +263,7 @@ function Base.convert(
         _quadratic_terms,
     )
 
-    StandardQUBOModel{V,U,T,B}(
+    StandardQUBOModel{B,V,T,U}(
         linear_terms,
         quadratic_terms,
         copy(model.variable_map),
@@ -282,9 +279,9 @@ function Base.convert(
 end
 
 function Base.copy!(
-    target::StandardQUBOModel{V,U,T,D},
-    source::StandardQUBOModel{V,U,T,D},
-) where {V,U,T,D}
+    target::StandardQUBOModel{D,V,T,U},
+    source::StandardQUBOModel{D,V,T,U},
+) where {D,V,T,U}
     target.linear_terms = copy(source.linear_terms)
     target.quadratic_terms = copy(source.quadratic_terms)
     target.variable_map = copy(source.variable_map)
@@ -301,8 +298,8 @@ function Base.copy!(
 end
 
 function Base.copy!(
-    target::StandardQUBOModel{V,U,T,B},
-    source::StandardQUBOModel{V,U,T,A},
+    target::StandardQUBOModel{B,V,T,U},
+    source::StandardQUBOModel{A,V,T,U},
 ) where {V,U,T,A,B}
-    return copy!(target, convert(StandardQUBOModel{V,U,T,B}, source))
+    return copy!(target, convert(StandardQUBOModel{B,V,T,U}, source))
 end

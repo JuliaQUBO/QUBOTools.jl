@@ -1,4 +1,4 @@
-const QUBO_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
+const QUBO_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
 
 @doc raw"""
     QUBO{D}(

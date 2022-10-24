@@ -1,4 +1,4 @@
-const MINIZINC_BACKEND_TYPE{D} = StandardQUBOModel{Int,Int,Float64,D}
+const MINIZINC_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
 const MINIZINC_VAR_SYMBOL = "x"
 const MINIZINC_RE_COMMENT = r"^%(\s*.*)?$"
 const MINIZINC_RE_METADATA = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.+)$"
