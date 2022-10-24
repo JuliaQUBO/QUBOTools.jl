@@ -1,4 +1,4 @@
-@recipe function plot(ω::SampleSet{T}; kws...) where {T}
+@recipe function plot(ω::SampleSet{T}) where {T}
     title  --> "Solution Summary"
     xlabel --> "Energy"
     ylabel --> "Frequency"
