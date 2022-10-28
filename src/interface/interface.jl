@@ -94,6 +94,13 @@ For every key pair ``(i, j)`` holds that ``i < j``.
 """ function quadratic_terms end
 
 @doc raw"""
+    indices(model)::Vector{Int}
+
+Returns a sorted vector that matches the variable indices.
+It is equivalent to `variable_map.(model, variables(model))`
+""" function indices end
+
+@doc raw"""
     variables(model)::Vector
 
 Returns a sorted vector containing the model's variables.

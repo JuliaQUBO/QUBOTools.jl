@@ -25,6 +25,10 @@ function _explicit_linear_terms(
     )
 end
 
+function QUBOTools.indices(model::AbstractQUBOModel)
+    return collect(1:QUBOTools.domain_size(model))
+end
+
 function QUBOTools.variables(model::AbstractQUBOModel)
     variable_map = QUBOTools.variable_map(model)
 

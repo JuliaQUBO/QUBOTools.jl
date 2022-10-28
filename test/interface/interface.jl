@@ -79,6 +79,10 @@ function test_interface_data_access(bool_model, bool_samples, spin_model, spin_s
         @test QUBOTools.quadratic_terms(bool_model) == Dict{Tuple{Int,Int},Float64}((1, 2) => 2.0)
         @test QUBOTools.quadratic_terms(spin_model) == Dict{Tuple{Int,Int},Float64}((1, 2) => 0.5)
         
+        @test QUBOTools.indices(null_model) == Int[]
+        @test QUBOTools.indices(bool_model) == Int[1, 2]
+        @test QUBOTools.indices(spin_model) == Int[1, 2]
+
         @test QUBOTools.variables(null_model) == Symbol[]
         @test QUBOTools.variables(bool_model) == Symbol[:x, :y]
         @test QUBOTools.variables(spin_model) == Symbol[:x, :y]

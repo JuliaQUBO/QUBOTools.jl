@@ -19,6 +19,7 @@ QUBOTools.sampleset(model)             = QUBOTools.sampleset(QUBOTools.backend(m
 QUBOTools.linear_terms(model)          = QUBOTools.linear_terms(QUBOTools.backend(model))
 QUBOTools.explicit_linear_terms(model) = QUBOTools.explicit_linear_terms(QUBOTools.backend(model))
 QUBOTools.quadratic_terms(model)       = QUBOTools.quadratic_terms(QUBOTools.backend(model))
+QUBOTools.indices(model)               = QUBOTools.indices(QUBOTools.backend(model))
 QUBOTools.variables(model)             = QUBOTools.variables(QUBOTools.backend(model))
 QUBOTools.variable_set(model)          = QUBOTools.variable_set(QUBOTools.backend(model))
 QUBOTools.variable_map(model, args...) = QUBOTools.variable_map(QUBOTools.backend(model), args...)
