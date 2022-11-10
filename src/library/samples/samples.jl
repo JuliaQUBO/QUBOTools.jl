@@ -2,6 +2,7 @@ abstract type AbstractSampleSet{T<:Real, U<:Integer} end
 
 include("sample.jl")
 include("sampleset.jl")
+include("samplepool.jl")
 
 # ~*~ :: Metadata Validation :: ~*~ #
 const SAMPLESET_METADATA_SCHEMA = JSONSchema.Schema(
