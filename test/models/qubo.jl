@@ -16,7 +16,7 @@ function test_qubo(path::String, n::Integer)
                     temp_model = read(temp_path, QUBO)
                     @test temp_model isa QUBO{BoolDomain}
 
-                    @test QUBOTools._isvalidbridge(
+                    @test _isvalidbridge(
                         temp_model,
                         qubo_model,
                         QUBO{BoolDomain};

@@ -10,12 +10,12 @@ function test_bqpjson_qubist(path::String, n::Integer)
             @test qubs_model isa Qubist{SpinDomain}
             @test spin_model isa BQPJSON{SpinDomain}
 
-            @test QUBOTools._isvalidbridge(
+            @test _isvalidbridge(
                 convert(Qubist{SpinDomain}, spin_model),
                 qubs_model,
                 BQPJSON{SpinDomain},
             )
-            @test QUBOTools._isvalidbridge(
+            @test _isvalidbridge(
                 convert(BQPJSON{SpinDomain}, qubs_model),
                 spin_model,
                 Qubist{SpinDomain},

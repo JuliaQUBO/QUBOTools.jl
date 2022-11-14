@@ -1,61 +1,123 @@
+const QUBO_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
+
+@doc raw"""
+    QUBO{D}(
+        backend,
+        max_index,
+        num_diagonals,
+        num_elements
+    ) whre {D<:BoolDomain}
+
+### References
+[1] [qbsolv docs](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
+""" mutable struct QUBO{D<:BoolDomain} <: AbstractQUBOModel{D}
+    backend::QUBO_BACKEND_TYPE{D}
+    max_index::Int
+    num_diagonals::Int
+    num_elements::Int
+
+    function QUBO{D}(
+        backend::QUBO_BACKEND_TYPE{D};
+        max_index::Integer,
+        num_diagonals::Integer,
+        num_elements::Integer,
+    ) where {D}
+
+        new{D}(
+            backend,
+            max_index,
+            num_diagonals,
+            num_elements,
+        )
+    end
+
+    function QUBO{D}(
+        linear_terms::Dict{Int,Float64},
+        quadratic_terms::Dict{Tuple{Int,Int},Float64};
+        max_index::Integer,
+        num_diagonals::Integer,
+        num_elements::Integer,
+        kws...
+    ) where {D<:BoolDomain}
+        backend = QUBO_BACKEND_TYPE{D}(linear_terms, quadratic_terms; kws...)
+
+        QUBO{D}(
+            backend,
+            max_index=max_index,
+            num_diagonals=num_diagonals,
+            num_elements=num_elements,
+        )
+    end
+end
+
+# ~*~ QUBOTools API ~*~ #
+backend(model::QUBO) = model.backend
+model_name(::QUBO)   = "QUBO"
+
 function Base.write(io::IO, model::QUBO)
-    scale = QUBOTools.scale(model)
-    offset = QUBOTools.offset(model)
-    id = QUBOTools.id(model)
+    scale       = QUBOTools.scale(model)
+    offset      = QUBOTools.offset(model)
+    id          = QUBOTools.id(model)
     description = QUBOTools.description(model)
-    metadata = QUBOTools.metadata(model)
+    metadata    = QUBOTools.metadata(model)
+
+    io_buffer = IOBuffer()
 
     if !isnothing(scale)
-        println(io, "c scale : $(scale)")
+        println(io_buffer, "c scale : $(scale)")
     end
 
     if !isnothing(offset)
-        println(io, "c offset : $(offset)")
+        println(io_buffer, "c offset : $(offset)")
     end
 
     if !isnothing(id)
-        println(io, "c id : $(id)")
+        println(io_buffer, "c id : $(id)")
     end
 
     if !isnothing(description)
-        println(io, "c description : $(description)")
+        println(io_buffer, "c description : $(description)")
     end
 
     if !isnothing(metadata)
         for (k, v) in metadata
-            print(io, "c $(k) : ")
-            JSON.print(io, v)
-            println(io)
+            print(io_buffer, "c $(k) : ")
+            JSON.print(io_buffer, v)
+            println(io_buffer)
         end
     end
 
-    println(io, "p qubo 0 $(model.max_index) $(model.num_diagonals) $(model.num_elements)")
+    println(io_buffer, "p qubo 0 $(model.max_index) $(model.num_diagonals) $(model.num_elements)")
 
-    println(io, "c linear terms")
+    println(io_buffer, "c linear terms")
+    
     for (i, q) in QUBOTools.explicit_linear_terms(model)
-        println(io, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, i)) $(q)")
+        println(io_buffer, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, i)) $(q)")
     end
 
-    println(io, "c quadratic terms")
+    println(io_buffer, "c quadratic terms")
+
     for ((i, j), Q) in QUBOTools.quadratic_terms(model)
-        println(io, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, j)) $(Q)")
+        println(io_buffer, "$(QUBOTools.variable_inv(model, i)) $(QUBOTools.variable_inv(model, j)) $(Q)")
     end
+
+    return write(io, take!(io_buffer))
 end
 
 function Base.read(io::IO, ::Type{<:QUBO})
-    linear_terms = Dict{Int,Float64}()
+    linear_terms    = Dict{Int,Float64}()
     quadratic_terms = Dict{Tuple{Int,Int},Float64}()
 
-    scale = nothing
+    scale  = nothing
     offset = nothing
 
-    id = nothing
+    id          = nothing
     description = nothing
-    metadata = Dict{String,Any}()
+    metadata    = Dict{String,Any}()
 
-    max_index = nothing
+    max_index     = nothing
     num_diagonals = nothing
-    num_elements = nothing
+    num_elements  = nothing
 
     for line in strip.(readlines(io))
         if isempty(line)
@@ -96,9 +158,9 @@ function Base.read(io::IO, ::Type{<:QUBO})
         m = match(r"^p\s+qubo\s+([+-]?[0-9]+)\s+([+-]?[0-9]+)\s+([+-]?[0-9]+)\s+([+-]?[0-9]+)$", line)
 
         if !isnothing(m)
-            max_index = tryparse(Int, m[2])
+            max_index     = tryparse(Int, m[2])
             num_diagonals = tryparse(Int, m[3])
-            num_elements = tryparse(Int, m[4])
+            num_elements  = tryparse(Int, m[4])
             continue
         end
 
@@ -130,7 +192,7 @@ function Base.read(io::IO, ::Type{<:QUBO})
         QUBOcodec_error("Invalid problem header")
     end
 
-    QUBO{BoolDomain}(
+    return QUBO{BoolDomain}(
         linear_terms,
         quadratic_terms;
         scale=scale,

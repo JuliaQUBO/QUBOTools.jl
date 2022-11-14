@@ -1,4 +1,4 @@
-@recipe function plot(ω::SampleSet{T}) where {T}
+@recipe function plot(ω::AbstractSampleSet{T}) where {T}
     title  --> "Solution Summary"
     xlabel --> "Energy"
     ylabel --> "Frequency"
@@ -26,8 +26,8 @@
 
     # return (t, z)
 
-    x = [s.value for s in ω]
-    y = [s.reads for s in ω]
+    x = energy.(ω)
+    y = reads.(ω)
 
     return (x, y)
 end

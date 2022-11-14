@@ -1,3 +1,39 @@
+const QUBIST_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
+
+@doc raw"""
+    Qubist{D}(backend, sites, lines) where {D<:SpinDomain}
+
+""" mutable struct Qubist{D<:SpinDomain} <: AbstractQUBOModel{D}
+    backend::QUBIST_BACKEND_TYPE{D}
+    sites::Int
+    lines::Int
+
+    function Qubist{D}(
+        backend::QUBIST_BACKEND_TYPE{D};
+        sites::Integer,
+        lines::Integer,
+    ) where {D<:SpinDomain}
+        new{D}(backend, sites, lines)
+    end
+end
+
+function Qubist{D}(
+    linear_terms::Dict{Int,Float64},
+    quadratic_terms::Dict{Tuple{Int,Int},Float64};
+    sites::Integer,
+    lines::Integer,
+    kws...
+) where {D<:SpinDomain}
+    backend = QUBIST_BACKEND_TYPE{D}(linear_terms, quadratic_terms; kws...)
+    
+    Qubist{D}(backend, sites=sites, lines=lines)
+end
+
+Qubist(args...) = Qubist{SpinDomain}(args...)
+
+backend(model::Qubist) = model.backend
+model_name(::Qubist)   = "Qubist"
+
 function Base.write(io::IO, model::Qubist)
     println(io, "$(model.sites) $(model.lines)")
     for (i, h) in QUBOTools.explicit_linear_terms(model)

@@ -194,13 +194,20 @@ Returns Ising Model form from QUBO Model (Bool).
 
 # ~*~ Data queries ~*~ #
 @doc raw"""
-    state(model, index)
+    state(model, index::Integer)
 """ function state end
 
 @doc raw"""
     reads(model)
-    reads(model, index)
+    reads(model, index::Integer)
 """ function reads end
+
+@doc raw"""
+    value(model)
+    value(model, index::Integer)
+
+An alias for [`energy`](@ref).
+""" function value end
 
 @doc raw"""
     energy(model, state::Vector)
@@ -208,11 +215,11 @@ Returns Ising Model form from QUBO Model (Bool).
 
 This function aims to evaluate the energy of a given state under some QUBO Model.
 
-!!! info
-    Scale and offset factors are taken into account.
-
     energy(Q::Dict{Tuple{Int,Int},T}, state::Vector)
     energy(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, state::Vector)
+
+!!! info
+    Scale and offset factors are taken into account.
 """ function energy end
 
 # ~*~ Queries: sizes & density ~*~ #
@@ -268,12 +275,17 @@ where ``Q`` is the number of non-zero quadratic terms and ``N`` the number of va
 
 @doc raw"""
     adjacency(model)::Dict{Int,Set{Int}}
-    adjacency(model, i::Integer)::Set{Int}
-    adjacency(Q::Dict{Tuple{Int,Int},T})::Dict{Int,Set{Int}}
-    adjacency(Q::Dict{Tuple{Int,Int},T}, i::Integer)::Set{Int}
+    adjacency(G::Vector{Tuple{Int,Int}})::Dict{Int,Set{Int}}
+    adjacency(G::Set{Tuple{Int,Int}})::Dict{Int,Set{Int}}
+    adjacency(G::Dict{Tuple{Int,Int},T})::Dict{Int,Set{Int}}
 
 Computes the adjacency list representation for the quadratic terms of a given model.
-A mapping between the variable's index and the set of its neighbors is returned.
+A mapping between each variable index and the set of its neighbors is returned.
+
+    adjacency(model, k::Integer)::Set{Int}
+    adjacency(G::Vector{Tuple{Int,Int}}, k::Integer)::Set{Int}
+    adjacency(G::Set{Tuple{Int,Int}}, k::Integer)::Set{Int}
+    adjacency(G::Dict{Tuple{Int,Int},T}, k::Integer)::Set{Int}
 
 If a second parameter, an integer, is present, then the set of neighbors of that node is returned.
 
@@ -282,11 +294,24 @@ If a second parameter, an integer, is present, then the set of neighbors of that
     Thus, it is recommended that one stores the adjacency list for repeated access.
 """ function adjacency end
 
-# ~*~ Internal: bridge validation ~*~ #
 @doc raw"""
-    _isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
+    validate(model)::Bool
+    validate(ω::AbstractSampleSet)::Bool
 
-Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
-Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` calls.
+""" function validate end
 
-""" function _isvalidbridge end
+@doc raw"""
+    infer_model_type(path::String)::Type{M} where {M<:AbstractQUBOModel}
+
+Given a file path, tries to infer the type associated to a QUBO model format.
+
+    infer_model_type(ext::Symbol)::Type{M} where {M<:AbstractQUBOModel}
+
+Returns the type associated to a QUBO model format given a file extension.
+
+    infer_model_type(ext::Val{:json})::Type{M} where {M<:AbstractQUBOModel}
+    infer_model_type(ext::Val{:hfs})::Type{M} where {M<:AbstractQUBOModel}
+    infer_model_type(ext::Val{:mzn})::Type{M} where {M<:AbstractQUBOModel}
+    infer_model_type(ext::Val{:qh})::Type{M} where {M<:AbstractQUBOModel}
+    infer_model_type(ext::Val{:qubo})::Type{M} where {M<:AbstractQUBOModel}
+""" function infer_model_type end

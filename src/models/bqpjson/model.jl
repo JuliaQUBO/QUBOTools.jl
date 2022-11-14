@@ -1,3 +1,61 @@
+const BQPJSON_SCHEMA          = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "bqpjson.schema.json")))
+const BQPJSON_VERSION_LIST    = VersionNumber[v"1.0.0"]
+const BQPJSON_VERSION_LATEST  = BQPJSON_VERSION_LIST[end]
+const BQPJSON_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
+
+BQPJSON_VARIABLE_DOMAIN(::Type{<:BoolDomain}) = "boolean"
+BQPJSON_VARIABLE_DOMAIN(::Type{<:SpinDomain}) = "spin"
+
+BQPJSON_VALIDATE_DOMAIN(x::Integer, ::Type{<:BoolDomain}) = x == 0 || x == 1
+BQPJSON_VALIDATE_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = s == -1 || s == 1
+
+BQPJSON_SWAP_DOMAIN(x::Integer, ::Type{<:BoolDomain}) = (x == 1 ? 1 : -1)
+BQPJSON_SWAP_DOMAIN(s::Integer, ::Type{<:SpinDomain}) = (s == 1 ? 1 : 0)
+
+@doc raw"""
+    BQPJSON{D}(backend, solutions) where {D<:VariableDomain}
+
+Precise and detailed information found in the [bqpjson docs](https://bqpjson.readthedocs.io)
+""" mutable struct BQPJSON{D<:VariableDomain} <: AbstractQUBOModel{D}
+    backend::BQPJSON_BACKEND_TYPE{D}
+    solutions::Union{Vector,Nothing}
+
+    function BQPJSON{D}(
+        backend::BQPJSON_BACKEND_TYPE{D},
+        solutions::Union{Vector,Nothing}=nothing
+    ) where {D<:VariableDomain}
+        new{D}(backend, solutions)
+    end
+
+    function BQPJSON{D}(
+        linear_terms::Dict{Int,Float64},
+        quadratic_terms::Dict{Tuple{Int,Int},Float64};
+        solutions::Union{Vector,Nothing}=nothing,
+        kws...
+    ) where {D<:VariableDomain}
+        backend = BQPJSON_BACKEND_TYPE{D}(
+            linear_terms,
+            quadratic_terms;
+            kws...
+        )
+
+        return BQPJSON{D}(backend, solutions)
+    end
+end
+
+QUBOTools.backend(model::BQPJSON) = model.backend
+QUBOTools.model_name(::BQPJSON) = "BQPJSON"
+
+function QUBOTools.version(model::BQPJSON)
+    version = QUBOTools.version(QUBOTools.backend(model))
+
+    if !isnothing(version)
+        return version
+    else
+        return BQPJSON_VERSION_LATEST
+    end
+end
+
 function Base.read(io::IO, M::Type{<:BQPJSON})
     data = JSON.parse(io)
 
@@ -155,7 +213,7 @@ function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
     sort!(linear_terms; by=(lt) -> lt["id"])
     sort!(quadratic_terms; by=(qt) -> (qt["id_head"], qt["id_tail"]))
 
-    variable_ids = QUBOTools.variables(model)
+    variable_ids = variables(model)
 
     data = Dict{String,Any}(
         "id" => id,
@@ -190,15 +248,15 @@ function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
                     Dict{String,Any}(
                         "id" => i,
                         "value" => sample.state[j]
-                    ) for (i, j) in QUBOTools.variable_map(model)
+                    ) for (i, j) in variable_map(model)
                 ]
-                for _ = 1:sample.reads
+                for _ = 1:reads(sample)
                     push!(
                         solutions,
                         Dict{String,Any}(
                             "id" => (id += 1),
                             "assignment" => assignment,
-                            "evaluation" => sample.value,
+                            "evaluation" => energy(sample),
                         )
                     )
                 end
@@ -211,8 +269,7 @@ function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
     JSON.print(io, data)
 end
 
-function Base.convert(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A,B}
-    backend = convert(BQPJSON_BACKEND_TYPE{B}, model.backend)
+function bridge(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A,B}
     solutions = deepcopy(model.solutions)
 
     if !isnothing(solutions)
@@ -223,7 +280,7 @@ function Base.convert(::Type{<:BQPJSON{B}}, model::BQPJSON{A}) where {A,B}
         end
     end
 
-    BQPJSON{B}(backend; solutions=solutions)
+    return BQPJSON{B}(bridge(BQPJSON_BACKEND_TYPE{B}, backend(model)), solutions)
 end
 
 function Base.copy!(
@@ -234,7 +291,7 @@ function Base.copy!(
 
     target.solutions = deepcopy(source.solutions)
 
-    target
+    return target
 end
 
-QUBOTools.infer_model_type(::Val{:json}) = BQPJSON
+infer_model_type(::Val{:json}) = BQPJSON

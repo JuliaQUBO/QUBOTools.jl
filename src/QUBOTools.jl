@@ -6,6 +6,7 @@ using JSONSchema
 using SparseArrays
 using RecipesBase
 using Base: @propagate_inbounds
+using InteractiveUtils: subtypes
 
 # ~*~ Variable comparison ~*~ #
 @doc raw"""
@@ -30,7 +31,7 @@ export 𝔹, 𝕊
 export BoolDomain, SpinDomain
 
 # ~*~ Exports: Solution Interface ~*~ #
-export SampleSet, Sample
+export Sample, SampleSet, SamplePool
 
 # ~*~ Exports: Supported Model Formats ~*~ #
 export BQPJSON
@@ -39,29 +40,38 @@ export MiniZinc
 export Qubist
 export QUBO
 
+# ~*~ Interface definitions ~*~ #
+include("interface.jl")
+
+# ~*~ Fallback methods ~*~ #
+include("fallback.jl")
+
+# ~*~ Generic methods ~*~ #
+include("generic.jl")
+
 # ~*~ Package internal library ~*~ #
 include("library/error.jl")
 include("library/types.jl")
 include("library/tools.jl")
-include("library/samples/samples.jl")
+include("library/sampleset.jl")
 
-# ~*~ Interface definitions ~*~ #
-include("interface/interface.jl")
-
-# ~*~ Methods for the abstract model ~*~ #
-include("interface/abstract.jl")
-
-# ~*~ Fallback methods ~*~ #
-include("interface/fallback.jl")
-
-# ~*~ Concrete methods ~*~ #
-include("interface/concrete.jl")
-
-# ~*~ Model implementation ~*~ #
-include("models/models.jl")
+# ~*~ Model definitions ~*~ #
+include("models/abstract/model.jl")
+include("models/standard/model.jl")
+include("models/qubo/model.jl")
+include("models/bqpjson/model.jl")
+include("models/hfs/model.jl")
+include("models/minizinc/model.jl")
+include("models/qubist/model.jl")
 
 # ~*~ Bridges between formats ~*~ #
 include("bridges/bridges.jl")
+include("bridges/bqpjson.jl")
+include("bridges/hfs.jl")
+include("bridges/minizinc.jl")
+include("bridges/qubist.jl")
+include("bridges/qubo.jl")
+
 
 # ~*~ Analysis Tools ~*~ #
 include("analysis/interface.jl")

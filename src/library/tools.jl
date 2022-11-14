@@ -6,7 +6,11 @@ The keyword arguments are passed to `isapprox` calls.
 """ function _isapproxdict end
 
 function _isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
-    (length(x) == length(y)) && all(haskey(y, k) && isapprox(x[k], y[k]; kw...) for k in keys(x))
+    if length(x) == length(y)
+        return all(haskey(y, k) && isapprox(x[k], y[k]; kw...) for k in keys(x))
+    else
+        return false
+    end
 end
 
 """
@@ -28,20 +32,20 @@ function _swapdomain(
     quadratic_terms::Dict{Tuple{Int,Int},T},
     offset::Union{T,Nothing},
 ) where {T}
-    bool_offset = isnothing(offset) ? zero(T) : offset
-    bool_linear_terms = Dict{Int,T}()
+    bool_offset          = isnothing(offset) ? zero(T) : offset
+    bool_linear_terms    = Dict{Int,T}()
     bool_quadratic_terms = Dict{Tuple{Int,Int},T}()
 
     for (i, h) in linear_terms
-        bool_linear_terms[i] = get(bool_linear_terms, i, zero(T)) + 2h
         bool_offset -= h
+        bool_linear_terms[i] = get(bool_linear_terms, i, zero(T)) + 2h
     end
 
-    for ((i, j), Q) in quadratic_terms
-        bool_quadratic_terms[(i, j)] = get(bool_quadratic_terms, (i, j), zero(T)) + 4Q
-        bool_linear_terms[i] = get(bool_linear_terms, i, zero(T)) - 2Q
-        bool_linear_terms[j] = get(bool_linear_terms, j, zero(T)) - 2Q
-        bool_offset += Q
+    for ((i, j), J) in quadratic_terms
+        bool_offset += J
+        bool_linear_terms[i]         = get(bool_linear_terms, i, zero(T)) - 2J
+        bool_linear_terms[j]         = get(bool_linear_terms, j, zero(T)) - 2J
+        bool_quadratic_terms[(i, j)] = get(bool_quadratic_terms, (i, j), zero(T)) + 4J
     end
 
     return (bool_linear_terms, bool_quadratic_terms, bool_offset)
@@ -50,24 +54,24 @@ end
 function _swapdomain(
     ::BoolDomain,
     ::SpinDomain,
-    linear_terms::Dict{Int,T},
+    ) where {T}
     quadratic_terms::Dict{Tuple{Int,Int},T},
     offset::Union{T,Nothing}
-) where {T}
-    spin_offset = isnothing(offset) ? zero(T) : offset
-    spin_linear_terms = Dict{Int,T}()
+    linear_terms::Dict{Int,T},
+    spin_offset          = isnothing(offset) ? zero(T) : offset
+    spin_linear_terms    = Dict{Int,T}()
     spin_quadratic_terms = Dict{Tuple{Int,Int},T}()
 
     for (i, q) in linear_terms
-        spin_linear_terms[i] = get(spin_linear_terms, i, zero(T)) + q / 2
         spin_offset += q / 2
+        spin_linear_terms[i] = get(spin_linear_terms, i, zero(T)) + q / 2
     end
 
     for ((i, j), Q) in quadratic_terms
-        spin_quadratic_terms[(i, j)] = get(spin_quadratic_terms, (i, j), zero(T)) + Q / 4
-        spin_linear_terms[i] = get(spin_linear_terms, i, zero(T)) + Q / 4
-        spin_linear_terms[j] = get(spin_linear_terms, j, zero(T)) + Q / 4
         spin_offset += Q / 4
+        spin_linear_terms[i]         = get(spin_linear_terms, i, zero(T)) + Q / 4
+        spin_linear_terms[j]         = get(spin_linear_terms, j, zero(T)) + Q / 4
+        spin_quadratic_terms[(i, j)] = get(spin_quadratic_terms, (i, j), zero(T)) + Q / 4
     end
 
     return (spin_linear_terms, spin_quadratic_terms, spin_offset)
@@ -100,9 +104,9 @@ function _inv_terms(_linear_terms::Dict{Int,T}, _quadratic_terms::Dict{Tuple{Int
 end
 
 function _normal_form(_linear_terms::Dict{V,T}, _quadratic_terms::Dict{Tuple{V,V},T}) where {V,T}
-    linear_terms = Dict{V,T}()
+    linear_terms    = Dict{V,T}()
     quadratic_terms = Dict{Tuple{V,V},T}()
-    variable_set = Set{V}()
+    variable_set    = Set{V}()
 
     sizehint!(linear_terms, length(_linear_terms))
     sizehint!(quadratic_terms, length(_quadratic_terms))
@@ -157,33 +161,4 @@ function _build_mapping(variable_set::Set{V}) where {V}
     variable_inv = Dict{Int,V}(v => k for (k, v) in variable_map)
 
     return (variable_map, variable_inv)
-end
-
-@doc raw"""
-    infer_model_type(path::String)
-
-Given a file path, tries to infer the type associated to a QUBO model format.
-
-    infer_model_type(ext::Symbol)
-
-Returns the type associated to a QUBO model format given a file extension.
-""" function infer_model_type end
-
-function infer_model_type(path::String)
-    _, ext = splitext(path)
-
-    if !isempty(ext)
-        # Remove '.' from the beginning
-        extsym = Symbol(ext[2:end])
-
-        return infer_model_type(extsym)
-    else
-        error("Inference Error: Unable to infer model type without file extension")
-    end
-end
-
-infer_model_type(ext::Symbol) = QUBOTools.infer_model_type(Val(ext))
-
-function infer_model_type(::Val{X}) where {X}
-    error("Inference Error: Unable to infer model type from extension '$X'")
 end

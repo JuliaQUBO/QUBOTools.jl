@@ -32,6 +32,7 @@ QUBOTools.sampleset
 ```@docs
 QUBOTools.state
 QUBOTools.reads
+QUBOTools.value
 QUBOTools.energy
 ```
 
