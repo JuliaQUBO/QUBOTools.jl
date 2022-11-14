@@ -54,10 +54,10 @@ end
 function _swapdomain(
     ::BoolDomain,
     ::SpinDomain,
-    ) where {T}
-    quadratic_terms::Dict{Tuple{Int,Int},T},
-    offset::Union{T,Nothing}
     linear_terms::Dict{Int,T},
+    quadratic_terms::Dict{Tuple{Int,Int},T},
+    offset::Union{T,Nothing},
+    ) where {T}
     spin_offset          = isnothing(offset) ? zero(T) : offset
     spin_linear_terms    = Dict{Int,T}()
     spin_quadratic_terms = Dict{Tuple{Int,Int},T}()

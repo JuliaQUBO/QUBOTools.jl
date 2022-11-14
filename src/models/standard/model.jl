@@ -178,6 +178,12 @@ description(model::StandardQUBOModel) = model.description
 metadata(model::StandardQUBOModel)    = model.metadata
 sampleset(model::StandardQUBOModel)   = model.sampleset
 
+bridge(
+    ::Type{StandardQUBOModel{D,V,T,U}},
+    model::StandardQUBOModel{D,V,T,U},
+) where {D,V,T,U} = model # short-circuit
+
+
 function bridge(
     ::Type{StandardQUBOModel{B,V,T,U}},
     model::StandardQUBOModel{A,V,T,U},
