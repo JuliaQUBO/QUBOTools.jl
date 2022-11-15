@@ -117,7 +117,7 @@ function test_tools()
                            (2, 3) => -8.0,
         )
 
-        # ~ energy ~ #
+        # ~ value ~ #
         X = [
             [0, 0, 0] => 0.0,
             [1, 0, 0] => 1.0,
@@ -130,7 +130,7 @@ function test_tools()
         ]
 
         for (x, e) in X
-            @test QUBOTools.energy(Q, x) == e
+            @test QUBOTools.value(Q, x) == e
         end
 
         S = [
@@ -145,7 +145,7 @@ function test_tools()
         ]
 
         for (s, e) in S
-            @test QUBOTools.energy(h, J, s) == e
+            @test QUBOTools.value(h, J, s) == e
         end
 
         # ~ adjacency ~ #

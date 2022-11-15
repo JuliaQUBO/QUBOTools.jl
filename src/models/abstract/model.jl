@@ -261,11 +261,11 @@ function QUBOTools.reads(model::AbstractQUBOModel, index::Integer)
     return QUBOTools.reads(QUBOTools.sampleset(model), index)
 end
 
-function QUBOTools.energy(model::AbstractQUBOModel, index::Integer)
-    return QUBOTools.energy(QUBOTools.sampleset(model), index)
+function QUBOTools.value(model::AbstractQUBOModel, index::Integer)
+    return QUBOTools.value(QUBOTools.sampleset(model), index)
 end
 
-function QUBOTools.energy(model::AbstractQUBOModel, ψ::Vector{U}) where {U<:Integer}
+function QUBOTools.value(model::AbstractQUBOModel, ψ::Vector{U}) where {U<:Integer}
     α = QUBOTools.scale(model)
     e = QUBOTools.offset(model)
 

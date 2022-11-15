@@ -1,4 +1,4 @@
-function energy(
+function value(
     Q::AbstractMatrix{T},
     ψ::AbstractVector{U},
     α::T = one(T),
@@ -7,7 +7,7 @@ function energy(
     return α * (ψ' * Q * ψ + β)
 end
 
-function energy(
+function value(
     h::AbstractVector{T},
     J::AbstractMatrix{T},
     ψ::AbstractVector{U},
@@ -17,7 +17,7 @@ function energy(
     return α * (ψ' * J * ψ + h' * ψ + β)
 end
 
-function energy(
+function value(
     Q::Dict{Tuple{Int,Int},T},
     ψ::Vector{U},
     α::T = one(T),
@@ -32,7 +32,7 @@ function energy(
     return α * (e + β)
 end
 
-function energy(
+function value(
     h::Dict{Int,T},
     J::Dict{Tuple{Int,Int},T},
     ψ::Vector{U},
@@ -52,7 +52,7 @@ function energy(
     return α * (e + β)
 end
 
-function energy(
+function value(
     L::Vector{T},
     Q::Vector{T},
     u::Vector{Int},
@@ -351,5 +351,3 @@ infer_model_type(ext::Symbol) = infer_model_type(Val(ext))
 function infer_model_type(::Val{X}) where {X}
     error("Inference Error: Unable to infer model type from unknown extension '$X'")
 end
-
-@inline value(args...; kws...) = energy(args...; kws...)

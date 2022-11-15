@@ -152,8 +152,8 @@ function test_standard()
         #         # for x in [[0, 0], [0, 1], [1, 0], [1, 1]]
         #         #     s = 2x .- 1
 
-        #         #     bool_energy = QUBOTools.energy(x, bool_model)
-        #         #     spin_energy = QUBOTools.energy(s, spin_model)
+        #         #     bool_energy = QUBOTools.value(bool_model, x)
+        #         #     spin_energy = QUBOTools.value(spin_model, s)
 
         #         #     @test bool_energy == spin_energy
         #         # end

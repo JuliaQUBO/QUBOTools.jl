@@ -203,24 +203,24 @@ Returns Ising Model form from QUBO Model (Bool).
 """ function reads end
 
 @doc raw"""
-    value(model)
+    value(model, state::Vector)
     value(model, index::Integer)
-
-An alias for [`energy`](@ref).
-""" function value end
-
-@doc raw"""
-    energy(model, state::Vector)
-    energy(model, index::Integer)
 
 This function aims to evaluate the energy of a given state under some QUBO Model.
 
-    energy(Q::Dict{Tuple{Int,Int},T}, state::Vector)
-    energy(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, state::Vector)
+    value(Q::Dict{Tuple{Int,Int},T}, ψ::Vector{U}, α::T = one(T), β::T = zero(T)) where {T}
+    value(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, ψ::Vector{U}, α::T = one(T), β::T = zero(T)) where {T}
+
 
 !!! info
     Scale and offset factors are taken into account.
-""" function energy end
+""" function value end
+
+@doc raw"""
+    energy
+
+An alias for [`value`](@ref).
+""" const energy = value
 
 # ~*~ Queries: sizes & density ~*~ #
 @doc raw"""

@@ -31,8 +31,8 @@ QUBOTools.ising(model, args...) = QUBOTools.ising(backend(model), args...)
 
 # ~*~ Solution queries ~*~ #
 QUBOTools.state(model, args...)  = QUBOTools.state(backend(model), args...)
+QUBOTools.value(model, args...) = QUBOTools.value(backend(model), args...)
 QUBOTools.reads(model, args...)  = QUBOTools.reads(backend(model), args...)
-QUBOTools.energy(model, args...) = QUBOTools.energy(backend(model), args...)
 
 # ~*~ Data queries ~*~ #
 QUBOTools.domain_size(model)        = QUBOTools.domain_size(backend(model))

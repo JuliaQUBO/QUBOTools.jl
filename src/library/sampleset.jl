@@ -1,7 +1,16 @@
+swap_domain(::D, ::D, ψ::Vector{U}) where {D<:𝔻,U}                  = ψ
+swap_domain(::𝕊, ::𝔹, ψ::Vector{U}) where {U<:Integer}              = (ψ .+ 1) .÷ 2
+swap_domain(::𝔹, ::𝕊, ψ::Vector{U}) where {U<:Integer}              = (2 .* ψ) .- 1
+swap_domain(::D, ::D, Ψ::Vector{Vector{U}}) where {D<:𝔻,U<:Integer} = Ψ
+
+function swap_domain(a::A, b::B, Ψ::Vector{Vector{U}}) where {A<:𝔻,B<:𝔻,U<:Integer}
+    return swap_domain.(a, b, Ψ)
+end
+
 @doc raw"""
     Sample{T,U}(state::Vector{U}, value::T, reads::Integer) where{T,U}
 
-""" struct Sample{T<:Real,U<:Integer}
+""" struct Sample{T<:Real,U<:Integer} <: AbstractVector{U}
     state::Vector{U}
     value::T
     reads::Int
@@ -13,6 +22,10 @@ end
 
 Sample{T}(args...) where {T} = Sample{T,Int}(args...)
 Sample(args...)              = Sample{Float64}(args...)
+
+state(s::Sample) = s.state
+value(s::Sample) = s.value
+reads(s::Sample) = s.reads
 
 Base.:(==)(u::Sample{T,U}, v::Sample{T,U}) where {T,U} = state(u) == state(v)
 Base.:(<)(u::Sample{T,U}, v::Sample{T,U}) where {T,U}  = value(u) < value(v)
@@ -31,9 +44,10 @@ function Base.isless(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
     end
 end
 
-Base.length(x::Sample)               = length(state(x))
 Base.show(io::IO, s::Sample)         = join(io, ifelse.(state(s) .> 0, '↓', '↑'))
+Base.length(x::Sample)               = length(state(x))
 Base.getindex(s::Sample, i::Integer) = getindex(state(s), i)
+Base.collect(s::Sample)              = collect(state(s))
 
 @doc raw"""
     merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
@@ -91,11 +105,6 @@ function format(
 
     return (bits, data)
 end
-
-state(s::Sample)  = s.state
-value(s::Sample)  = s.value
-reads(s::Sample)  = s.reads
-energy(s::Sample) = value(s)
 
 @doc raw"""
     AbstractSampleSet{T<:real,U<:Integer}
@@ -173,25 +182,16 @@ function validate(ω::AbstractSampleSet)
     end
 end
 
-swap_domain(::D, ::D, ψ::Vector{U}) where {D<:𝔻,U<:Integer}         = ψ
-swap_domain(::𝕊, ::𝔹, ψ::Vector{U}) where {U<:Integer}              = (ψ .+ 1) .÷ 2
-swap_domain(::𝔹, ::𝕊, ψ::Vector{U}) where {U<:Integer}              = (2 .* ψ) .- 1
-swap_domain(::D, ::D, Ψ::Vector{Vector{U}}) where {D<:𝔻,U<:Integer} = Ψ
-swap_domain(::D, ::D, ω::AbstractSampleSet{T,U}) where {D<:𝔻,T,U}   = ω
-
-function swap_domain(::A, ::B, Ψ::Vector{Vector{U}}) where {A<:𝔻,B<:𝔻,U<:Integer}
-    return swap_domain.(A(), B(), Ψ)
-end
+swap_domain(::D, ::D, ω::AbstractSampleSet{T,U}) where {D<:𝔻,T,U} = ω
 
 function swap_domain(::A, ::B, s::Sample{T,U}) where {A<:𝔻,B<:𝔻,T,U}
-    return Sample{T,U}(swap_domain(A(), B(), state(s)), energy(s), reads(s))
+    return Sample{T,U}(swap_domain(A(), B(), state(s)), value(s), reads(s))
 end
 
-state(ω::AbstractSampleSet, i::Integer)  = state(ω[i])
-reads(ω::AbstractSampleSet)              = sum(reads.(ω))
-reads(ω::AbstractSampleSet, i::Integer)  = reads(ω[i])
-value(ω::AbstractSampleSet, i::Integer)  = value(ω[i])
-energy(ω::AbstractSampleSet, i::Integer) = value(ω, i)
+state(ω::AbstractSampleSet, i::Integer) = state(ω[i])
+value(ω::AbstractSampleSet, i::Integer) = value(ω[i])
+reads(ω::AbstractSampleSet, i::Integer) = reads(ω[i])
+reads(ω::AbstractSampleSet)             = sum(reads.(ω))
 
 @doc raw"""
     SampleSet{T,U}(
@@ -270,7 +270,7 @@ function SampleSet{T,U}(
 
     for i in eachindex(data)
         ψ = Ψ[i]
-        λ = energy(model, ψ)
+        λ = value(model, ψ)
 
         data[i] = Sample{T,U}(ψ, λ)
     end
@@ -338,10 +338,5 @@ Base.merge(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U}  = merge!(copy(ω
 metadata(ω::SampleSet) = ω.metadata
 
 function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
-    return SampleSet{T,U}(
-        ω.bits,
-        ω.size,
-        swap_domain.(A(), B(), ω),
-        deepcopy(metadata(ω))
-    )
+    return SampleSet{T,U}(ω.bits, ω.size, swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
 end

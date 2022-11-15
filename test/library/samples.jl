@@ -1,12 +1,9 @@
 struct SampleModel{T} end
 struct QUBOModel{T} <: QUBOTools.AbstractQUBOModel{T} end
 
-QUBOTools.energy(::SampleModel{T}, ::Any) where {T} = zero(T)
+QUBOTools.value(::SampleModel{T}, ::Any) where {T} = zero(T)
 
 function test_samples()
-    B = QUBOTools.BoolDomain
-    S = QUBOTools.SpinDomain
-
     @testset "States" begin
         ψ = [↑, ↓, ↑]
         Ψ = [0, 1, 0]
@@ -14,29 +11,29 @@ function test_samples()
         Φ = [1, 0, 1]
 
         # ~ Short Circuits ~ #
-        @test QUBOTools.swap_domain(S(), S(), ψ) == ψ
-        @test QUBOTools.swap_domain(S(), S(), ϕ) == ϕ
-        @test QUBOTools.swap_domain(S(), S(), Ψ) == Ψ
-        @test QUBOTools.swap_domain(S(), S(), Φ) == Φ
-        @test QUBOTools.swap_domain(B(), B(), ψ) == ψ
-        @test QUBOTools.swap_domain(B(), B(), ϕ) == ϕ
-        @test QUBOTools.swap_domain(B(), B(), Ψ) == Ψ
-        @test QUBOTools.swap_domain(B(), B(), Φ) == Φ
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝕊(), ψ) == ψ
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝕊(), ϕ) == ϕ
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝕊(), Ψ) == Ψ
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝕊(), Φ) == Φ
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝔹(), ψ) == ψ
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝔹(), ϕ) == ϕ
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝔹(), Ψ) == Ψ
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝔹(), Φ) == Φ
 
-        @test QUBOTools.swap_domain(S(), S(), [Φ, Ψ]) == [Φ, Ψ]
-        @test QUBOTools.swap_domain(S(), S(), [ϕ, ψ]) == [ϕ, ψ]
-        @test QUBOTools.swap_domain(B(), B(), [Φ, Ψ]) == [Φ, Ψ]
-        @test QUBOTools.swap_domain(B(), B(), [ϕ, ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝕊(), [Φ, Ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝕊(), [ϕ, ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝔹(), [Φ, Ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝔹(), [ϕ, ψ]) == [ϕ, ψ]
 
         # ~ State Conversion ~ #
-        @test QUBOTools.swap_domain(B(), S(), Φ) == ϕ
-        @test QUBOTools.swap_domain(B(), S(), Ψ) == ψ
-        @test QUBOTools.swap_domain(S(), B(), ϕ) == Φ
-        @test QUBOTools.swap_domain(S(), B(), ψ) == Ψ
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝕊(), Φ) == ϕ
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝕊(), Ψ) == ψ
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝔹(), ϕ) == Φ
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝔹(), ψ) == Ψ
 
         # ~ Multiple States Conversion ~ #
-        @test QUBOTools.swap_domain(B(), S(), [Φ, Ψ]) == [ϕ, ψ]
-        @test QUBOTools.swap_domain(S(), B(), [ϕ, ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝕊(), [Φ, Ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝔹(), [ϕ, ψ]) == [Φ, Ψ]
     end
 
     @testset "Samples" begin
@@ -242,30 +239,30 @@ function test_samples()
             @test_throws Exception QUBOTools.reads(spin_set, 0)
             @test_throws Exception QUBOTools.reads(spin_set, 5)
 
-            # ~ energy ~ #
-            @test QUBOTools.energy(bool_set, 1) == 1.0
-            @test QUBOTools.energy(bool_set, 2) == 2.0
-            @test QUBOTools.energy(bool_set, 3) == 3.0
-            @test QUBOTools.energy(bool_set, 4) == 4.0
+            # ~ value ~ #
+            @test QUBOTools.value(bool_set, 1) == 1.0
+            @test QUBOTools.value(bool_set, 2) == 2.0
+            @test QUBOTools.value(bool_set, 3) == 3.0
+            @test QUBOTools.value(bool_set, 4) == 4.0
 
-            @test_throws Exception QUBOTools.energy(bool_set, 0)
-            @test_throws Exception QUBOTools.energy(bool_set, 5)
+            @test_throws Exception QUBOTools.value(bool_set, 0)
+            @test_throws Exception QUBOTools.value(bool_set, 5)
 
-            @test QUBOTools.energy(spin_set, 1) == 1.0
-            @test QUBOTools.energy(spin_set, 2) == 2.0
-            @test QUBOTools.energy(spin_set, 3) == 3.0
-            @test QUBOTools.energy(spin_set, 4) == 4.0
+            @test QUBOTools.value(spin_set, 1) == 1.0
+            @test QUBOTools.value(spin_set, 2) == 2.0
+            @test QUBOTools.value(spin_set, 3) == 3.0
+            @test QUBOTools.value(spin_set, 4) == 4.0
 
-            @test_throws Exception QUBOTools.energy(spin_set, 0)
-            @test_throws Exception QUBOTools.energy(spin_set, 5)
+            @test_throws Exception QUBOTools.value(spin_set, 0)
+            @test_throws Exception QUBOTools.value(spin_set, 5)
 
             # ~ swap_domain ~ #
-            @test QUBOTools.swap_domain(S(), S(), bool_set) == bool_set
-            @test QUBOTools.swap_domain(B(), B(), bool_set) == bool_set
-            @test QUBOTools.swap_domain(S(), S(), spin_set) == spin_set
-            @test QUBOTools.swap_domain(B(), B(), spin_set) == spin_set
-            @test QUBOTools.swap_domain(B(), S(), bool_set) == spin_set
-            @test QUBOTools.swap_domain(S(), B(), spin_set) == bool_set
+            @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝕊(), bool_set) == bool_set
+            @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝔹(), bool_set) == bool_set
+            @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝕊(), spin_set) == spin_set
+            @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝔹(), spin_set) == spin_set
+            @test QUBOTools.swap_domain(QUBOTools.𝔹(), QUBOTools.𝕊(), bool_set) == spin_set
+            @test QUBOTools.swap_domain(QUBOTools.𝕊(), QUBOTools.𝔹(), spin_set) == bool_set
         end
     end
 end

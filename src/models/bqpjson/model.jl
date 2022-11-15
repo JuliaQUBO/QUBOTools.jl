@@ -256,7 +256,7 @@ function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}
                         Dict{String,Any}(
                             "id" => (id += 1),
                             "assignment" => assignment,
-                            "evaluation" => energy(sample),
+                            "evaluation" => value(sample),
                         )
                     )
                 end

@@ -26,7 +26,7 @@
 
     # return (t, z)
 
-    x = energy.(ω)
+    x = value.(ω)
     y = reads.(ω)
 
     return (x, y)
