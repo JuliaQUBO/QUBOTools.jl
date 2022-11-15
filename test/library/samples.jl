@@ -78,10 +78,9 @@ function test_samples()
             @test isempty(null_set.metadata)
             
             # ~ index ~ #
-            @test size(null_set) == (0, 1)
+            @test size(null_set) == (0,)
             @test size(null_set, 1) == length(null_set) == 0
             @test size(null_set, 2) == 1
-            @test size(null_set, 3) == 1
 
             @test_throws BoundsError null_set[begin]
             @test_throws BoundsError null_set[end]
@@ -104,7 +103,7 @@ function test_samples()
 
         @test_throws QUBOTools.SampleError QUBOTools.SampleSet{Float64,Int}(
             [
-                QUBOTools.Sample([0, 0], 0.0, 1),
+                QUBOTools.Sample([0, 0],    0.0, 1),
                 QUBOTools.Sample([0, 0, 1], 0.0, 1),
             ],
         )
@@ -134,10 +133,10 @@ function test_samples()
         )
 
         target_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([0, 0], 0.0,  3),
-            QUBOTools.Sample{Float64,Int}([1, 1], 1.0, 15),
-            QUBOTools.Sample{Float64,Int}([0, 1], 2.0,  7),
-            QUBOTools.Sample{Float64,Int}([1, 0], 4.0, 11),
+            QUBOTools.Sample([0, 0], 0.0,  3),
+            QUBOTools.Sample([1, 1], 1.0, 15),
+            QUBOTools.Sample([0, 1], 2.0,  7),
+            QUBOTools.Sample([1, 0], 4.0, 11),
         ]
 
         source_sampleset = QUBOTools.SampleSet{Float64,Int}(source_samples, metadata)
@@ -166,20 +165,20 @@ function test_samples()
             for (i, sample) in zip(1:length(model_set), model_set)
                 @test sample === model_set[i]
                 @test sample isa QUBOTools.Sample{Float64,Int}
-                @test sample.reads == 1
-                @test sample.value == 0.0
+                @test QUBOTools.reads(sample) == sample.reads == 1
+                @test QUBOTools.value(sample) == sample.value == 0.0
 
                 for j in eachindex(sample.state)
-                    @test model_set[i, j] == sample.state[j]
+                    @test model_set[i][j] == sample.state[j]
                 end
             end
         end
 
         bool_samples = QUBOTools.Sample{Float64,Int}[
-            QUBOTools.Sample{Float64,Int}([0, 0], 4.0, 1),
-            QUBOTools.Sample{Float64,Int}([0, 1], 3.0, 2),
-            QUBOTools.Sample{Float64,Int}([1, 0], 2.0, 3),
-            QUBOTools.Sample{Float64,Int}([1, 1], 1.0, 4),
+            QUBOTools.Sample([0, 0], 4.0, 1),
+            QUBOTools.Sample([0, 1], 3.0, 2),
+            QUBOTools.Sample([1, 0], 2.0, 3),
+            QUBOTools.Sample([1, 1], 1.0, 4),
         ]
 
         spin_samples = QUBOTools.Sample{Float64,Int}[
@@ -195,26 +194,16 @@ function test_samples()
                 QUBOTools.SampleSet(spin_samples),
             )
             # ~ index ~ #
-            @test size(bool_set) == (4, 2)
-            @test size(spin_set) == (4, 2)
+            @test size(bool_set) == (4,)
+            @test size(spin_set) == (4,)
             @test size(bool_set, 1) == length(bool_set) == 4
             @test size(spin_set, 1) == length(spin_set) == 4
-            @test size(bool_set, 2) == 2
-            @test size(spin_set, 2) == 2
-            @test size(bool_set, 3) == 1
-            @test size(spin_set, 3) == 1
+            @test size(bool_set, 2) == 1
+            @test size(spin_set, 2) == 1
             @test bool_set[begin] === bool_set[1]
             @test spin_set[begin] === spin_set[1]
             @test bool_set[end]   === bool_set[4]
             @test spin_set[end]   === spin_set[4]
-            @test bool_set[begin, begin] == bool_set[1, 1]
-            @test spin_set[begin, begin] == spin_set[1, 1]
-            @test bool_set[end, begin]   == bool_set[4, 1]
-            @test spin_set[end, begin]   == spin_set[4, 1]
-            @test bool_set[begin, end]   == bool_set[1, 2]
-            @test spin_set[begin, end]   == spin_set[1, 2]
-            @test bool_set[end,end]      == bool_set[4, 2]
-            @test spin_set[end,end]      == spin_set[4, 2]
 
             # ~ state ~ #
             @test QUBOTools.state(bool_set, 1) == [1, 1]
@@ -273,6 +262,8 @@ function test_samples()
             # ~ swap_domain ~ #
             @test QUBOTools.swap_domain(S(), S(), bool_set) == bool_set
             @test QUBOTools.swap_domain(B(), B(), bool_set) == bool_set
+            @test QUBOTools.swap_domain(S(), S(), spin_set) == spin_set
+            @test QUBOTools.swap_domain(B(), B(), spin_set) == spin_set
             @test QUBOTools.swap_domain(B(), S(), bool_set) == spin_set
             @test QUBOTools.swap_domain(S(), B(), spin_set) == bool_set
         end

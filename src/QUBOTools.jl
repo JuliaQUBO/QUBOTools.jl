@@ -31,7 +31,7 @@ export 𝔹, 𝕊
 export BoolDomain, SpinDomain
 
 # ~*~ Exports: Solution Interface ~*~ #
-export Sample, SampleSet, SamplePool
+export Sample, SampleSet
 
 # ~*~ Exports: Supported Model Formats ~*~ #
 export BQPJSON

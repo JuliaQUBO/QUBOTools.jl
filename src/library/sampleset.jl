@@ -14,24 +14,26 @@ end
 Sample{T}(args...) where {T} = Sample{T,Int}(args...)
 Sample(args...)              = Sample{Float64}(args...)
 
-Base.:(==)(u::Sample{T,U}, v::Sample{T,U}) where {T,U} = u.state == v.state
-Base.:(<)(u::Sample{T,U}, v::Sample{T,U}) where {T,U}  = u.value < v.value
+Base.:(==)(u::Sample{T,U}, v::Sample{T,U}) where {T,U} = state(u) == state(v)
+Base.:(<)(u::Sample{T,U}, v::Sample{T,U}) where {T,U}  = value(u) < value(v)
 
 function Base.isequal(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-    return isequal(u.reads, v.reads) &&
-           isequal(u.value, v.value) &&
-           isequal(u.state, v.state)
+    return isequal(reads(u), reads(v)) &&
+           isequal(value(u), value(v)) &&
+           isequal(state(u), state(v))
 end
 
 function Base.isless(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-    return isequal(u.value, v.value) ? isless(u.state, v.state) : isless(u.value, v.value)
+    if isequal(value(u), value(v))
+        return isless(state(u), state(v))
+    else
+        return isless(value(u), value(v))
+    end
 end
 
-Base.length(x::Sample) = length(x.state)
-
-Base.show(io::IO, s::Sample) = join(io, ifelse.(s.state .> 0, '↓', '↑');)
-
-Base.getindex(s::Sample, i::Integer) = s.state[i]
+Base.length(x::Sample)               = length(state(x))
+Base.show(io::IO, s::Sample)         = join(io, ifelse.(state(s) .> 0, '↓', '↑'))
+Base.getindex(s::Sample, i::Integer) = getindex(state(s), i)
 
 @doc raw"""
     merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
@@ -39,15 +41,26 @@ Base.getindex(s::Sample, i::Integer) = s.state[i]
 Assumes that `u == v`.
 """
 function Base.merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-    return Sample{T,U}(u.state, u.value, u.reads + v.reads)
+    return Sample{T,U}(state(u), value(u), reads(u) + reads(v))
 end
 
-function compress(samples::Vector{Sample{T,U}}) where {T,U}
-    bits  = nothing
-    cache = sizehint!(Dict{Vector{U},Sample{T,U}}(), length(samples))
+function format(
+    data::Vector{Sample{T,U}},
+    size::Union{Integer,Nothing} = nothing,
+) where {T,U}
+    if isempty(data)
+        if isnothing(size)
+            return (nothing, Sample{T,U}[])
+        else
+            return (nothing, sizehint!(Sample{T,U}[], size))
+        end
+    end
 
-    for sample::Sample{T,U} in samples
-        cached = get(cache, sample.state, nothing)
+    bits  = nothing
+    cache = sizehint!(Dict{Vector{U},Sample{T,U}}(), length(data))
+
+    for sample::Sample{T,U} in data
+        cached = get(cache, state(sample), nothing)
         merged = if isnothing(cached)
             if isnothing(bits)
                 bits = length(sample)
@@ -57,32 +70,44 @@ function compress(samples::Vector{Sample{T,U}}) where {T,U}
 
             sample
         else
-            if cached.value ≉ sample.value
+            if value(cached) != value(sample)
                 sample_error("Samples of the same state vector must have the same energy value")
             end
 
             merge(cached, sample)
         end
 
-        cache[merged.state] = merged
+        cache[state(merged)] = merged
     end
 
-    return collect(values(cache))
+    data = collect(values(cache))
+    data = if isnothing(size)
+        sort(data)
+    elseif length(data) > size
+        collect(partialsort(data, 1:size))
+    else
+        sizehint!(sort(data), size)
+    end
+
+    return (bits, data)
 end
 
-reads(s::Sample)  = s.reads
 state(s::Sample)  = s.state
-energy(s::Sample) = s.value
+value(s::Sample)  = s.value
+reads(s::Sample)  = s.reads
+energy(s::Sample) = value(s)
 
-abstract type AbstractSampleSet{T<:Real,U<:Integer} end
+@doc raw"""
+    AbstractSampleSet{T<:real,U<:Integer}
 
-Base.size(ω::AbstractSampleSet) = (size(ω, 1), size(ω, 2))
+An abstract sampleset is, by definition, an ordered set of samples.
+""" abstract type AbstractSampleSet{T<:Real,U<:Integer} <: AbstractVector{T} end
+
+Base.size(ω::AbstractSampleSet) = (size(ω, 1),)
 
 function Base.size(ω::AbstractSampleSet, axis::Integer)
     if axis == 1
         return length(ω)
-    elseif axis == 2 && !isempty(ω)
-        return length(ω[begin])
     else
         return 1
     end
@@ -162,18 +187,11 @@ function swap_domain(::A, ::B, s::Sample{T,U}) where {A<:𝔻,B<:𝔻,T,U}
     return Sample{T,U}(swap_domain(A(), B(), state(s)), energy(s), reads(s))
 end
 
-function swap_domain(::A, ::B, ω::AbstractSampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U<:Integer}
-    return SampleSet{T,U}(swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
-end
-
 state(ω::AbstractSampleSet, i::Integer)  = state(ω[i])
 reads(ω::AbstractSampleSet)              = sum(reads.(ω))
 reads(ω::AbstractSampleSet, i::Integer)  = reads(ω[i])
-energy(ω::AbstractSampleSet, i::Integer) = energy(ω[i])
-
-function Base.getindex(ω::AbstractSampleSet, i::Integer, j::Integer)
-    return getindex(getindex(ω, i), j)
-end
+value(ω::AbstractSampleSet, i::Integer)  = value(ω[i])
+energy(ω::AbstractSampleSet, i::Integer) = value(ω, i)
 
 @doc raw"""
     SampleSet{T,U}(
@@ -191,88 +209,103 @@ It was inspired by [1], with a few tweaks.
 ## References
 [1] https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet
 """ struct SampleSet{T,U} <: AbstractSampleSet{T,U}
+    bits::Union{Int,Nothing}
+    size::Union{Int,Nothing}
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
 
-    # ~ Empty SampleSet ~ #
-    function SampleSet{T,U}() where {T,U}
-        new{T,U}(Sample{T,U}[], Dict{String,Any}())
-    end
-
-    # ~ Default Constructor ~ #
     function SampleSet{T,U}(
-        samples::Vector{Sample{T,U}},
-        metadata::Union{Dict{String,Any},Nothing} = nothing,
+        bits::Union{Integer,Nothing},
+        size::Union{Integer,Nothing},
+        data::Vector{Sample{T,U}},
+        metadata::Dict{String,Any},
     ) where {T,U}
-        data = sort(compress(samples))
-
-        if isnothing(metadata)
-            metadata = Dict{String,Any}()
-        end
-
-        return new{T,U}(data, metadata)
+        return new{T,U}(bits, size, data, metadata)
     end
 end
 
 function SampleSet{T,U}(
-    model::Any,
-    states::Vector{Vector{U}},
+    size::Union{Integer,Nothing},
+    data::Vector{Sample{T,U}},
     metadata::Union{Dict{String,Any},Nothing} = nothing,
 ) where {T,U}
-    data = [Sample{T,U}(state, QUBOTools.energy(model, state)) for state in states]
+    if !isnothing(size) && size <= 0
+        throw(ArgumentError("'size' must be a positive integer or 'nothing'"))
+    end
+
+    bits, data = format(data, size)
+
+    data = if isnothing(size)
+        sort(data)
+    elseif length(data) <= size
+        sizehint!(sort(data), size)
+    else
+        collect(partialsort(data, 1:size))
+    end
+
+    if isnothing(metadata)
+        metadata = Dict{String,Any}()
+    end
+
+    return SampleSet{T,U}(bits, size, data, metadata)
+end
+
+function SampleSet{T,U}(size::Union{Integer,Nothing} = nothing) where {T,U}
+    return SampleSet{T,U}(size, Sample{T,U}[], Dict{String,Any}())
+end
+
+function SampleSet{T,U}(
+    data::Vector{Sample{T,U}},
+    metadata::Union{Dict{String,Any},Nothing} = nothing,
+) where {T,U}
+    return SampleSet{T,U}(nothing, data, metadata)
+end
+
+function SampleSet{T,U}(
+    model::Any,
+    Ψ::Vector{Vector{U}},
+    metadata::Union{Dict{String,Any},Nothing} = nothing,
+) where {T,U}
+    data = Vector{Sample{T,U}}(undef, length(Ψ))
+
+    for i in eachindex(data)
+        ψ = Ψ[i]
+        λ = energy(model, ψ)
+
+        data[i] = Sample{T,U}(ψ, λ)
+    end
 
     return SampleSet{T,U}(data, metadata)
 end
 
 SampleSet{T}(args...; kws...) where {T}  = SampleSet{T,Int}(args...; kws...)
 SampleSet(args...; kws...)               = SampleSet{Float64}(args...; kws...)
-Base.copy(ω::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(copy(ω.data), deepcopy(ω.metadata))
+Base.copy(ω::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(ω.bits, ω.size, copy(ω.data), deepcopy(ω.metadata))
 
 Base.:(==)(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = (ω.data == η.data)
 
 Base.length(ω::SampleSet)  = length(ω.data)
-Base.isempty(ω::SampleSet) = isempty(ω.data)
 Base.empty!(ω::SampleSet)  = empty!(ω.data)
+Base.isempty(ω::SampleSet) = isempty(ω.data)
 
+Base.collect(ω::SampleSet)              = collect(ω.data)
 Base.getindex(ω::SampleSet, i::Integer) = ω.data[i]
 
-metadata(ω::SampleSet) = ω.metadata
+function Base.append!(ω::SampleSet{T,U}, data::Vector{Sample{T,U}}) where {T,U}
+    for s in data
+        push!(ω, s)
+    end
 
-@doc raw"""
-""" struct SamplePool{T,U} <: AbstractSampleSet{T,U}
-    size::Int
-    data::Vector{Sample{T,U}}
-    metadata::Dict{String,Any}
+    return ω
+end
 
-    function SamplePool{T,U}(
-        size::Integer,
-        metadata::Union{Dict{String,Any},Nothing} = nothing,
-    ) where {T,U}
-        if isnothing(metadata)
-            metadata = Dict{String,Any}()
+function Base.push!(ω::SampleSet{T,U}, s::Sample{T,U}) where {T,U}
+    # Fast track
+    if value(s) > value(ω[end])
+        if length(ω) < ω.size
+            push!(ω.data, s)
         end
 
-        data = sizehint!(Sample{T,U}[], size)
-
-        return new{T,U}(size, data, metadata)
-    end
-end
-
-SamplePool{T}(args...; kws...) where {T} = SamplePool{T,Int}(args...; kws...)
-SamplePool(args...; kws...)              = SamplePool{Float64}(args...; kws...)
-
-Base.:(==)(ω::SamplePool{T,U}, η::SamplePool{T,U}) where {T,U} = (ω.data == η.data)
-
-Base.length(ω::SamplePool)               = length(ω.data)
-Base.getindex(ω::SamplePool, i::Integer) = ω.data[i]
-
-function Base.push!(ω::SamplePool{T,U}, ψ::Vector{U}, λ::T, r::Integer = 1) where {T,U}
-    push!(ω, Sample{T,U}(ψ, λ, r))
-end
-
-function Base.push!(ω::SamplePool{T,U}, s::Sample{T,U}) where {T,U}
-    # Fast track
-    if length(ω) == ω.size && energy(ω[end]) < energy(s) # full pool
         return ω
     end
 
@@ -281,7 +314,7 @@ function Base.push!(ω::SamplePool{T,U}, s::Sample{T,U}) where {T,U}
     j = last(r)
 
     for k = i:j
-        z = ω[k]
+        z = ω.data[k]
 
         if s == z
             ω.data[k] = merge(s, z)
@@ -290,21 +323,25 @@ function Base.push!(ω::SamplePool{T,U}, s::Sample{T,U}) where {T,U}
         end
     end
 
-    if length(ω) < ω.size
-        insert!(ω.data, i, s)
-    elseif s < ω[end]
-        pop!(insert!(ω.data, i, s))
+    insert!(ω.data, i, s)
+
+    if length(ω) > ω.size
+        pop!(ω.data)
     end
 
     return ω
 end
 
-SampleSet(ω::SamplePool{T,U}) where {T,U} = SampleSet{T,U}(ω.data, deepcopy(metadata(ω)))
+Base.merge!(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = append!(ω, collect(η))
+Base.merge(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U}  = merge!(copy(ω), η)
 
-function SamplePool(size::Integer, ω::SampleSet{T,U}) where {T,U}
-    η = SamplePool{T,U}(size, deepcopy(metadata(ω)))
+metadata(ω::SampleSet) = ω.metadata
 
-    push!(η, ω.data...)
-
-    return η
+function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
+    return SampleSet{T,U}(
+        ω.bits,
+        ω.size,
+        swap_domain.(A(), B(), ω),
+        deepcopy(metadata(ω))
+    )
 end

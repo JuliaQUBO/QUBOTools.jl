@@ -301,6 +301,11 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 """ function validate end
 
 @doc raw"""
+    format(data::Vector{Sample{T,U}}) where {T,U}
+    
+""" function format end
+
+@doc raw"""
     infer_model_type(path::String)::Type{M} where {M<:AbstractQUBOModel}
 
 Given a file path, tries to infer the type associated to a QUBO model format.
