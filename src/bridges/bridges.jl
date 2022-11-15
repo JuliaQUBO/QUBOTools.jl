@@ -2,6 +2,11 @@
     bridge(::Type{A}, ::B)::A where {A<:AbstractQUBOModel,B<:AbstractQUBOModel}
 """ function bridge end
 
+@doc raw"""
+    hasbridge(::Type{A}, ::Type{B})::Bool where {A<:AbstractQUBOModel,B<:AbstractQUBOModel} 
+
+Tells if there is a bridge from model type `B` to model type `A`.
+"""
 function hasbridge(::Type{A}, ::Type{B}) where {A<:AbstractQUBOModel,B<:AbstractQUBOModel}
     return hasmethod(bridge, (Type{A}, B))
 end
@@ -15,11 +20,11 @@ function bridges()
 
     for X in M, Y in M, A in D, B in D
         if supports_domain(X, A) && supports_domain(Y, B) && hasbridge(X{A}, Y{B})
-            if !haskey(G, X{A})
-                G[X{A}] = Set{Type}()
+            if !haskey(G, Y{B})
+                G[Y{B}] = Set{Type}()
             end
 
-            push!(G[X{A}], Y{B})
+            push!(G[Y{B}], X{A})
         end
     end
 
