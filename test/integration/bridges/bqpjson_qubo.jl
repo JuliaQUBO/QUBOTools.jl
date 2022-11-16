@@ -1,5 +1,5 @@
 function test_bqpjson_qubo(path::String, n::Integer)
-    @testset "BQPJSON ~ QUBO" begin
+    @testset "BQPJSON → QUBO" begin
         for i = 0:n
             qubo_path = QUBO_PATH(path, i)
             bool_path = BQPJSON_BOOL_PATH(path, i)
@@ -23,5 +23,9 @@ function test_bqpjson_qubo(path::String, n::Integer)
                 atol=BQPJSON_ATOL,
             )
         end
+    end
+
+    @testset "QUBO → BQPJSON" begin
+        
     end
 end

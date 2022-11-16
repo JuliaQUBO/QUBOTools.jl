@@ -1,6 +1,3 @@
-QUBIST_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "spin.qh")
-QUBIST_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "spin.temp.qh")
-
 function test_qubist(path::String, n::Integer)
     @testset "Qubist" verbose = true begin
         @testset "IO" begin

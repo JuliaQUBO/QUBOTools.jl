@@ -1,9 +1,12 @@
-function test_bqpjson_qubist(path::String, n::Integer)
-    @testset "BQPJSON ~ Qubist" begin
-        for i = 0:n
-            qubs_path = QUBIST_PATH(path, i)
-            spin_path = BQPJSON_SPIN_PATH(path, i)
+function test_bqpjson_qubist()
+    # Assets
+    test_cases = union(QUBIST_CASES, BQPJSON_CASES)
+    qubs_paths = QUBIST_PATHS.(test_cases)
+    spin_paths = BQPJSON_SPIN_PATH.(test_cases)
 
+
+    @testset "BQPJSON → Qubist" begin
+        for (qubs_path, spin_path) in zip(qubs_paths, spin_paths)
             qubs_model = read(qubs_path, Qubist)
             spin_model = read(spin_path, BQPJSON)
 
@@ -21,5 +24,9 @@ function test_bqpjson_qubist(path::String, n::Integer)
                 Qubist{SpinDomain},
             )
         end
+    end
+
+    @testset "Qubist → BQPJSON" begin
+
     end
 end

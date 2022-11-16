@@ -1,0 +1,10 @@
+const DATA_PATH = joinpath(@__DIR__, "..", "data")
+
+BQPJSON_BOOL_PATH(i::Integer)      = joinpath(DATA_PATH, @sprintf("%02d", i), "bool.json")
+BQPJSON_SPIN_PATH(i::Integer)      = joinpath(DATA_PATH, @sprintf("%02d", i), "spin.json")
+BQPJSON_BOOL_TEMP_PATH(i::Integer) = joinpath(DATA_PATH, @sprintf("%02d", i), "bool.temp.json")
+BQPJSON_SPIN_TEMP_PATH(i::Integer) = joinpath(DATA_PATH, @sprintf("%02d", i), "spin.temp.json")
+QUBIST_PATH(i::Integer)            = joinpath(DATA_PATH, @sprintf("%02d", i), "spin.qh")
+QUBIST_TEMP_PATH(i::Integer)       = joinpath(DATA_PATH, @sprintf("%02d", i), "spin.temp.qh")
+QUBO_PATH(i::Integer)              = joinpath(DATA_PATH, @sprintf("%02d", i), "bool.qubo")
+QUBO_TEMP_PATH(i::Integer)         = joinpath(DATA_PATH, @sprintf("%02d", i), "bool.temp.qubo")

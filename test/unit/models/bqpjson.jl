@@ -1,10 +1,5 @@
 const BQPJSON_ATOL = 1E-12
 
-BQPJSON_BOOL_PATH(path::String, i::Integer)      = joinpath(path, "data", @sprintf("%02d", i), "bool.json")
-BQPJSON_SPIN_PATH(path::String, i::Integer)      = joinpath(path, "data", @sprintf("%02d", i), "spin.json")
-BQPJSON_BOOL_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "bool.temp.json")
-BQPJSON_SPIN_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "spin.temp.json")
-
 function test_bqpjson(path::String, n::Integer)
     @testset "BQPJSON" verbose = true begin
         @testset "IO" verbose = true begin

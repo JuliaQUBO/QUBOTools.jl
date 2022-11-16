@@ -1,4 +1,3 @@
-# ~*~ Internal: bridge validation ~*~ #
 @doc raw"""
     _isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
 
@@ -8,23 +7,23 @@ Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` c
 """ function _isvalidbridge end
 
 function _isvalidbridge(
-    source::QUBOTools.Qubist{QUBOTools.SpinDomain},
-    target::QUBOTools.Qubist{QUBOTools.SpinDomain},
-    ::Type{QUBOTools.BQPJSON{QUBOTools.SpinDomain}};
+    source::QUBOTools.Qubist{𝕊},
+    target::QUBOTools.Qubist{𝕊},
+    ::Type{QUBOTools.BQPJSON{𝕊}};
     kws...,
 )
-    return _isvalidbridge(QUBOTools.backend(source), QUBOTools.backend(target); kws...)
+    return _isvalidbridge(backend(source), backend(target); kws...)
 end
 
 function _isvalidbridge(
-    source::QUBOTools.BQPJSON{QUBOTools.SpinDomain},
-    target::QUBOTools.BQPJSON{QUBOTools.SpinDomain},
+    source::QUBOTools.BQPJSON{𝕊},
+    target::QUBOTools.BQPJSON{𝕊},
     ::Type{QUBOTools.Qubist};
     kws...
 )
     return _isvalidbridge(
-        QUBOTools.backend(source),
-        QUBOTools.backend(target);
+        backend(source),
+        backend(target);
         kws...
     )
 end
@@ -36,8 +35,8 @@ function _isvalidbridge(
     kws...
 )
     return _isvalidbridge(
-        QUBOTools.backend(source),
-        QUBOTools.backend(target);
+        backend(source),
+        backend(target);
         kws...
     )
 end
@@ -49,8 +48,8 @@ function _isvalidbridge(
     kws...
 )
     return _isvalidbridge(
-        QUBOTools.backend(source),
-        QUBOTools.backend(target);
+        backend(source),
+        backend(target);
         kws...
     )
 end
@@ -97,8 +96,8 @@ function _isvalidbridge(
     # end
 
     if !_isvalidbridge(
-        QUBOTools.backend(source),
-        QUBOTools.backend(target);
+        backend(source),
+        backend(target);
         kws...
     )
         flag = false
@@ -114,8 +113,8 @@ function _isvalidbridge(
     kws...
 ) where {D<:QUBOTools.VariableDomain}
     return _isvalidbridge(
-        QUBOTools.backend(source),
-        QUBOTools.backend(target);
+        backend(source),
+        backend(target);
         kws...
     )
 end
@@ -139,8 +138,8 @@ function _isvalidbridge(
     end
 
     if !_isvalidbridge(
-        QUBOTools.backend(source),
-        QUBOTools.backend(target);
+        backend(source),
+        backend(target);
         kws...
     )
         flag = false
@@ -173,8 +172,8 @@ function _isvalidbridge(
     end
 
     if !_isvalidbridge(
-        QUBOTools.backend(source),
-        QUBOTools.backend(target);
+        backend(source),
+        backend(target);
         kws...
     )
         flag = false

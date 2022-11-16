@@ -1,6 +1,3 @@
-QUBO_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "bool.qubo")
-QUBO_TEMP_PATH(path::String, i::Integer) = joinpath(path, "data", @sprintf("%02d", i), "bool.temp.qubo")
-
 function test_qubo(path::String, n::Integer)
     @testset "QUBO" verbose = true begin
         @testset "IO" begin
