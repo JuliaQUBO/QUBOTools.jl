@@ -45,7 +45,8 @@ function Base.isless(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
 end
 
 Base.show(io::IO, s::Sample)         = join(io, ifelse.(state(s) .> 0, '↓', '↑'))
-Base.length(x::Sample)               = length(state(x))
+Base.length(s::Sample)               = length(state(s))
+Base.size(s::Sample)                 = (length(s),)
 Base.getindex(s::Sample, i::Integer) = getindex(state(s), i)
 Base.collect(s::Sample)              = collect(state(s))
 

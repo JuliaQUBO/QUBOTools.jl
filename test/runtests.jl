@@ -2,22 +2,20 @@ using Test
 using Printf
 using SparseArrays
 using QUBOTools
+import QUBOTools: ↑, ↓, 𝔹, 𝕊
+import QUBOTools: Sample, SampleSet, SampleError, sample_error
+import QUBOTools: CodecError, codec_error
+import QUBOTools: state, value, reads
 
 # ~*~ Include test functions ~*~
-include("library/library.jl")
-include("models/models.jl")
-include("bridges/bridges.jl")
-include("interface/interface.jl")
-include("analysis/analysis.jl")
+include("unit/unit.jl")
+include("integration/integration.jl")
 
-function test_main(path::String, n::Integer)
-    @testset "~*~*~ QUBOTools.jl ~*~*~" verbose = true begin
-        test_library()
-        test_interface()
-        test_models(path, n)
-        test_bridges(path, n)
-        test_analysis()
+function test_main()
+    @testset "◈ ◈ QUBOTools.jl Test Suite ◈ ◈" verbose = true begin
+        test_unit()
+        test_integration()
     end
 end
 
-test_main(@__DIR__, 2) # Here we go!
+test_main() # Here we go!
