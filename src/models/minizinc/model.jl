@@ -1,4 +1,4 @@
-const MINIZINC_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
+const MINIZINC_BACKEND_TYPE{D} = Standard{D}
 
 const MINIZINC_VAR_SYMBOL   = "x"
 const MINIZINC_RE_COMMENT   = r"^%(\s*.*)?$"
@@ -26,7 +26,6 @@ end
 function MiniZinc{D}(
     linear_terms::Dict{Int,Float64},
     quadratic_terms::Dict{Tuple{Int,Int},Float64},
-    variable_map::Dict{Int,Int},
     offset::Union{Float64,Nothing},
     scale::Union{Float64,Nothing},
     id::Union{Integer,Nothing},
@@ -35,13 +34,12 @@ function MiniZinc{D}(
 ) where {D<:VariableDomain}
     backend = MINIZINC_BACKEND_TYPE{D}(
         linear_terms,
-        quadratic_terms,
-        variable_map;
-        offset=offset,
-        scale=scale,
-        id=id,
-        description=description,
-        metadata=metadata
+        quadratic_terms;
+        offset      = offset,
+        scale       = scale,
+        id          = id,
+        description = description,
+        metadata    = metadata,
     )
 
     MiniZinc{D}(backend)
@@ -50,133 +48,137 @@ end
 backend(model::MiniZinc) = model.backend
 model_name(::MiniZinc)   = "MiniZinc"
 
-# function Base.read(io::IO, M::Type{<:MiniZinc})
-#     D = nothing
-#     id = nothing
-#     scale = nothing
-#     offset = nothing
-#     variables = Set{Int}()
-#     linear_terms = Dict{Int,Float64}()
-#     quadratic_terms = Dict{Tuple{Int,Int},Float64}()
-#     metadata = nothing
-#     description = nothing
+function Base.read(io::IO, ::Type{MiniZinc{D}}) where {D}
+    domain          = nothing
+    id              = nothing
+    scale           = nothing
+    offset          = nothing
+    variables       = Set{Int}()
+    linear_terms    = Dict{Int,Float64}()
+    quadratic_terms = Dict{Tuple{Int,Int},Float64}()
+    metadata        = nothing
+    description     = nothing
 
-#     for line in strip.(readlines(io))
-#         if isempty(line)
-#             continue # ~ skip
-#         end
+    for line in strip.(readlines(io))
+        if isempty(line)
+            continue # ~ skip
+        end
 
-#         # ~*~ Comments & Metadata ~*~ #
-#         m = match(MINIZINC_RE_COMMENT, line)
-#         if !isnothing(m)
-#             if isnothing(m[1])
-#                 continue # ~ comment
-#             end
+        # ~*~ Comments & Metadata ~*~ #
+        m = match(MINIZINC_RE_COMMENT, line)
+        if !isnothing(m)
+            if isnothing(m[1])
+                continue # ~ comment
+            end
 
-#             m = match(MINIZINC_RE_METADATA, strip(m[1]))
+            m = match(MINIZINC_RE_METADATA, strip(m[1]))
 
-#             if !isnothing(m)
-#                 key = string(m[1])
-#                 val = string(m[2])
+            if !isnothing(m)
+                key = string(m[1])
+                val = string(m[2])
 
-#                 if key == "id"
-#                     id = tryparse(Int, val)
-#                 elseif key == "description"
-#                     description = val
-#                 else
-#                     metadata[key] = JSON.parse(val)
-#                 end
-#             end
+                if key == "id"
+                    id = tryparse(Int, val)
+                elseif key == "description"
+                    description = val
+                else
+                    metadata[key] = JSON.parse(val)
+                end
+            end
 
-#             continue # ~ comment
-#         end
+            continue # ~ comment
+        end
 
-#         # ~*~ Domain Definition ~*~
-#         m = match(MINIZINC_RE_DOMAIN, line)
-#         if !isnothing(m)
-#             a = tryparse(Int, m[1])
-#             b = tryparse(Int, m[2])
+        # ~*~ Domain Definition ~*~
+        m = match(MINIZINC_RE_DOMAIN, line)
+        if !isnothing(m)
+            a = tryparse(Int, m[1])
+            b = tryparse(Int, m[2])
 
-#             Ω = if isnothing(a) || isnothing(b)
-#                 error("Error while parsing variable domain")
-#             else
-#                 Set{Int}([a, b])
-#             end
+            Ω = if isnothing(a) || isnothing(b)
+                error("Error while parsing variable domain")
+            else
+                Set{Int}([a, b])
+            end
 
-#             D = if Ω == Set{Int}([-1, 1])
-#                 SpinDomain
-#             elseif Ω == Set{Int}([0, 1])
-#                 BoolDomain
-#             else
-#                 error("Invalid variable set '$(Ω)'")
-#             end
+            domain = if Ω == Set{Int}([-1, 1])
+                SpinDomain
+            elseif Ω == Set{Int}([0, 1])
+                BoolDomain
+            else
+                error("Invalid variable set '$(Ω)'")
+            end
 
-#             continue
-#         end
+            continue
+        end
 
-#         # ~*~ Scale & Offset ~*~ #
-#         m = match(MINIZINC_RE_FACTOR, line)
-#         if !isnothing(m)
-#             var = string(m[1])
-#             val = string(m[2])
+        # ~*~ Scale & Offset ~*~ #
+        m = match(MINIZINC_RE_FACTOR, line)
+        
+        if !isnothing(m)
+            var = string(m[1])
+            val = string(m[2])
 
-#             if var == "scale"
-#                 scale = tryparse(Float64, val)
-#             elseif var == "offset"
-#                 scale = tryparse(Float64, val)
-#             end # ignore other constant definitions
+            if var == "scale"
+                scale = tryparse(Float64, val)
+            elseif var == "offset"
+                offset = tryparse(Float64, val)
+            end # ignore other constant definitions
 
-#             continue
-#         end
+            continue
+        end
 
-#         # ~*~ Variables ~*~
-#         m = match(MINIZINC_RE_VARIABLE, line)
-#         if !isnothing(m)
-#             var_id = tryparse(Int, m[1])
+        # ~*~ Variables ~*~
+        m = match(MINIZINC_RE_VARIABLE, line)
 
-#             if isnothing(var_id)
-#                 error("Error while parsing variable id")
-#             end
+        if !isnothing(m)
+            var_id = tryparse(Int, m[1])
 
-#             push!(variables, var_id)
+            if isnothing(var_id)
+                error("Error while parsing variable id")
+            end
 
-#             continue
-#         end
+            push!(variables, var_id)
 
-#         # ~*~ Objective Function ~*~
-#         m = match(MINIZINC_RE_OBJECTIVE, line)
-#         if !isnothing(m)
-#             objective_expr = string(m[1])
+            continue
+        end
 
-#             if objective_expr == "0"
-#                 continue # empty objective, empty terms
-#             end
+        # ~*~ Objective Function ~*~
+        m = match(MINIZINC_RE_OBJECTIVE, line)
+        
+        if !isnothing(m)
+            objective_expr = string(m[1])
 
-#             objective_terms = strip.(split(objective_expr, "+"))
+            if objective_expr == "0"
+                continue # empty objective, empty terms
+            end
 
-#             for term in objective_terms
-#                 @show term
-#             end
-#         end
+            objective_terms = strip.(split(objective_expr, "+"))
 
-#         # ~ Let it go...
-#     end
+            for term in objective_terms
+                @show term
+            end
+        end
 
-#     variable_map = Dict{Int,Int}(i => k for (k, i) in enumerate(collect(variables)))
+        # Let it go...
+    end
 
-#     model = MiniZinc{D}(
-#         linear_terms,
-#         quadratic_terms,
-#         variable_map,
-#         offset,
-#         scale,
-#         id,
-#         description,
-#         metadata,
-#     )
+    if isnothing(domain)
+        error("Undefined variable domain")
+    elseif domain != D
+        error("Variable domain mismatch")
+    end
 
-#     convert(M, model)
-# end
+    return MiniZinc{D}(
+        linear_terms,
+        quadratic_terms,
+        offset,
+        scale,
+        id,
+        description,
+        metadata,
+    )
+end
 
 function Base.write(io::IO, model::MiniZinc{D}) where {D<:VariableDomain}
     backend = model.backend
@@ -212,7 +214,7 @@ function Base.write(io::IO, model::MiniZinc{D}) where {D<:VariableDomain}
     end
     println(io, "%")
     mzn_var = Dict{Int,String}()
-    for i in 1:length(backend.variable_map)
+    for i = 1:length(backend.variable_map)
         xi = backend.variable_inv[i]
         mzn_var[xi] = "$(MINIZINC_VAR_SYMBOL)$(xi)"
         println(io, "var Domain: $(mzn_var[xi]);")
@@ -233,7 +235,10 @@ function Base.write(io::IO, model::MiniZinc{D}) where {D<:VariableDomain}
     println(io, "%")
     println(io, "solve minimize objective;")
     println(io, "%")
-    var_list = join((mzn_var[backend.variable_inv[i]] for i = 1:length(backend.variable_map)), ", ")
+    var_list = join(
+        (mzn_var[backend.variable_inv[i]] for i = 1:length(backend.variable_map)),
+        ", ",
+    )
     show_obj = if !isnothing(backend.offset) && !isnothing(backend.scale)
         """show(scale*(objective + offset)), " - ", show(objective)"""
     elseif !isnothing(backend.offset)

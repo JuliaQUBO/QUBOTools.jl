@@ -1,6 +1,6 @@
-function test_qubist_bridges()
+function test_bqpjson_bridges()
     # Assets
-    @testset "Qubist{𝕊}" verbose = true begin
+    @testset "BQPJSON{𝔹}" verbose = true begin
         @testset "→ BQPJSON{𝕊}" begin
             
         end

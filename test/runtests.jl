@@ -7,6 +7,7 @@ import QUBOTools: Sample, SampleSet, SampleError, sample_error
 import QUBOTools: CodecError, codec_error
 import QUBOTools: state, value, reads
 import QUBOTools: backend
+import QUBOTools: BQPJSON, HFS, MiniZinc, Qubist, QUBO
 
 # ~*~ Include test functions ~*~
 include("tools/tools.jl")

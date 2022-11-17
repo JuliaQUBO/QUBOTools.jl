@@ -34,6 +34,7 @@ export BoolDomain, SpinDomain
 export Sample, SampleSet
 
 # ~*~ Exports: Supported Model Formats ~*~ #
+export Standard
 export BQPJSON
 export HFS
 export MiniZinc

@@ -196,10 +196,8 @@ function bridge(
         model.offset,
     )
 
-    linear_terms, quadratic_terms, _ = QUBOTools._normal_form(
-        _linear_terms,
-        _quadratic_terms,
-    )
+    linear_terms, quadratic_terms, _ =
+        QUBOTools._normal_form(_linear_terms, _quadratic_terms)
 
     return StandardQUBOModel{B,V,T,U}(
         linear_terms,
@@ -241,3 +239,5 @@ function Base.copy!(
 ) where {A,B,V,T,U}
     return copy!(target, convert(StandardQUBOModel{B,V,T,U}, source))
 end
+
+const Standard{D} = StandardQUBOModel{D,Int,Float64,Int}
