@@ -1,21 +1,21 @@
-struct QUBOCodecError <: Exception
+struct CodecError <: Exception
     msg::Union{String,Nothing}
 
-    function QUBOCodecError(msg::Union{String,Nothing}=nothing)
+    function CodecError(msg::Union{String,Nothing}=nothing)
         new(msg)
     end
 end
 
-function Base.showerror(io::IO, e::QUBOCodecError)
+function Base.showerror(io::IO, e::CodecError)
     if isnothing(e.msg)
-        print(io, "QUBO Codec Error")
+        print(io, "Codec Error")
     else
-        print(io, "QUBO Codec Error: $(e.msg)")
+        print(io, "Codec Error: $(e.msg)")
     end
 end
 
 function codec_error(msg::Union{String,Nothing}=nothing)
-    throw(QUBOCodecError(msg))
+    throw(CodecError(msg))
 end
 
 struct SampleError <: Exception

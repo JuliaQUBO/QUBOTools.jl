@@ -1,8 +1,9 @@
-# -*- :: Domains :: -*- #
 @doc raw"""
     VariableDomain
 
 """ abstract type VariableDomain end
+
+const 𝔻 = VariableDomain
 
 Base.Broadcast.broadcastable(D::VariableDomain) = Ref(D)
 
@@ -16,6 +17,8 @@ s \in \lbrace{-1, 1}\rbrace
 
 const 𝕊 = SpinDomain
 
+Base.show(io::IO, ::Type{𝕊}) = print(io, "𝕊")
+
 @doc raw"""
     BoolDomain <: VariableDomain
 
@@ -26,7 +29,4 @@ x \in \lbrace{0, 1}\rbrace
 
 const 𝔹 = BoolDomain
 
-@doc raw"""
-    AbstractQUBOModel{D<:VariableDomain}
-    
-""" abstract type AbstractQUBOModel{D<:VariableDomain} end
+Base.show(io::IO, ::Type{𝔹}) = print(io, "𝔹")
