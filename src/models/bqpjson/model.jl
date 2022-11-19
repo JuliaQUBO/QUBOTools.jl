@@ -56,7 +56,7 @@ function QUBOTools.version(model::BQPJSON)
     end
 end
 
-function Base.read(io::IO, M::Type{<:BQPJSON})
+function Base.read(io::IO, ::Type{BQPJSON{D}}) where {D}
     data = JSON.parse(io)
 
     let report = JSONSchema.validate(BQPJSON_SCHEMA, data)
@@ -76,7 +76,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
 
     variable_domain = data["variable_domain"]
 
-    D = if variable_domain == "boolean"
+    domain = if variable_domain == "boolean"
         BoolDomain
     elseif variable_domain == "spin"
         SpinDomain
@@ -84,7 +84,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
         QUBOcodec_error("Inconsistent variable domain '$variable_domain'")
     end
 
-    scale = data["scale"]
+    scale  = data["scale"]
     offset = data["offset"]
 
     if scale < 0.0
@@ -151,8 +151,8 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
                     error("Invalid data: Unknown variable id '$j' in assignment")
                 elseif j ∈ var_ids
                     error("Invalid data: Duplicate variable id '$j' in assignment")
-                elseif !BQPJSON_VALIDATE_DOMAIN(v, D)
-                    error("Invalid data: Variable assignment '$value' out of domain")
+                elseif !BQPJSON_VALIDATE_DOMAIN(v, domain)
+                    error("Invalid data: Variable assignment '$v' out of domain")
                 end
 
                 push!(var_ids, j)
@@ -164,7 +164,7 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
         end
     end
 
-    model = BQPJSON{D}(
+    return BQPJSON{D}(
         linear_terms,
         quadratic_terms;
         scale=scale,
@@ -175,8 +175,6 @@ function Base.read(io::IO, M::Type{<:BQPJSON})
         metadata=metadata,
         solutions=solutions
     )
-
-    convert(M, model)
 end
 
 function Base.write(io::IO, model::BQPJSON{D}) where {D<:VariableDomain}

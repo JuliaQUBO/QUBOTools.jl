@@ -56,28 +56,4 @@ function test_bqpjson(path::String, n::Integer)
                 end
             end
         end
-
-        @testset "Bridges" verbose = true begin
-            @testset "SPIN ~ BOOL" begin
-                for i = 0:n
-                    bool_model = read(joinpath(path, "data", "0$(i)", "bool.json"), BQPJSON{BoolDomain})
-                    spin_model = read(joinpath(path, "data", "0$(i)", "spin.json"), BQPJSON{SpinDomain})
-
-                    @test _isvalidbridge(
-                        convert(BQPJSON{BoolDomain}, spin_model),
-                        bool_model,
-                        BQPJSON{SpinDomain};
-                        atol=BQPJSON_ATOL
-                    )
-
-                    @test _isvalidbridge(
-                        convert(BQPJSON{SpinDomain}, bool_model),
-                        spin_model,
-                        BQPJSON{BoolDomain};
-                        atol=BQPJSON_ATOL
-                    )
-                end
-            end
-        end
-    end
 end

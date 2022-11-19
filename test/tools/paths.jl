@@ -11,11 +11,11 @@ const TEST_DATA_PATH = Dict{Type,Function}(
 )
 
 const TEMP_DATA_PATH = Dict{Type,Function}(
-    BQPJSON{𝔹}  => (i::Integer) -> joinpath(DATA_PATH, @sprintf("%02d", i), "bool.temp.json"),
-    BQPJSON{𝕊}  => (i::Integer) -> joinpath(DATA_PATH, @sprintf("%02d", i), "spin.temp.json"),
-    HFS{𝔹}      => (i::Integer) -> joinpath(DATA_PATH, @sprintf("%02d", i), "bool.temp.hfs"),
-    MiniZinc{𝔹} => (i::Integer) -> joinpath(DATA_PATH, @sprintf("%02d", i), "bool.temp.mzn"),
-    MiniZinc{𝕊} => (i::Integer) -> joinpath(DATA_PATH, @sprintf("%02d", i), "spin.temp.mzn"),
-    Qubist{𝕊}   => (i::Integer) -> joinpath(DATA_PATH, @sprintf("%02d", i), "spin.temp.qh"),
-    QUBO{𝔹}     => (i::Integer) -> joinpath(DATA_PATH, @sprintf("%02d", i), "bool.temp.qubo"),
+    BQPJSON{𝔹}  => (i::Integer) -> joinpath(tempdir(), @sprintf("%02d.bool.temp.json", i)),
+    BQPJSON{𝕊}  => (i::Integer) -> joinpath(tempdir(), @sprintf("%02d.spin.temp.json", i)),
+    HFS{𝔹}      => (i::Integer) -> joinpath(tempdir(), @sprintf("%02d.bool.temp.hfs", i)),
+    MiniZinc{𝔹} => (i::Integer) -> joinpath(tempdir(), @sprintf("%02d.bool.temp.mzn", i)),
+    MiniZinc{𝕊} => (i::Integer) -> joinpath(tempdir(), @sprintf("%02d.spin.temp.mzn", i)),
+    Qubist{𝕊}   => (i::Integer) -> joinpath(tempdir(), @sprintf("%02d.spin.temp.qh", i)),
+    QUBO{𝔹}     => (i::Integer) -> joinpath(tempdir(), @sprintf("%02d.bool.temp.qubo", i)),
 )

@@ -3,7 +3,6 @@ function test_standard()
     V = Symbol
     U = Int
     T = Float64
-    D = BoolDomain
 
     # ~*~ Data ~*~ #
     _linear_terms    = Dict{Symbol,Float64}(:x => 1.0, :y => 1.0)

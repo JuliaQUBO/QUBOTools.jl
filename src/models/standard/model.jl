@@ -66,7 +66,8 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     function StandardQUBOModel{D,V,T,U}(
         # ~*~ Required data ~*~
         _linear_terms::Dict{V,T},
-        _quadratic_terms::Dict{Tuple{V,V},T};
+        _quadratic_terms::Dict{Tuple{V,V},T},
+        _variable_set::Union{Set{V},Nothing} = nothing;
         kws...,
     ) where {D,V,T,U}
         # ~ What is happening now: There were many layers of validation
@@ -78,7 +79,13 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         _linear_terms, _quadratic_terms, variable_set =
             QUBOTools._normal_form(_linear_terms, _quadratic_terms)
 
-        variable_map, variable_inv = QUBOTools._build_mapping(variable_set)
+        if isnothing(_variable_set)
+            _variable_set = variable_set
+        elseif !issubset(variable_set, _variable_set)
+            error("'variable_set' is not a subset of '_variable_set'")
+        end
+
+        variable_map, variable_inv = QUBOTools._build_mapping(_variable_set)
 
         linear_terms, quadratic_terms =
             QUBOTools._map_terms(_linear_terms, _quadratic_terms, variable_map)

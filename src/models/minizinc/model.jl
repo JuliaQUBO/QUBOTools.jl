@@ -5,7 +5,8 @@ const MINIZINC_RE_COMMENT   = r"^%(\s*.*)?$"
 const MINIZINC_RE_METADATA  = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.+)$"
 const MINIZINC_RE_DOMAIN    = r"^set of int\s*:\s*Domain\s*=\s*\{\s*([+-]?[0-9]+)\s*,\s*([+-]?[0-9]+)\s*\}\s*;$"
 const MINIZINC_RE_FACTOR    = r"^float\s*:\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([+-]?([0-9]*[.])?[0-9]+)\s*;$"
-const MINIZINC_RE_VARIABLE  = r"^var\s+Domain\s*:\s*" * MINIZINC_VAR_SYMBOL * r"([0-9]+)\s*;$"
+const MINIZINC_RE_VAR       = r"^" * MINIZINC_VAR_SYMBOL * r"([0-9]+)$"
+const MINIZINC_RE_VAR_DEF   = r"^var\s+Domain\s*:\s*" * MINIZINC_VAR_SYMBOL * r"([0-9]+)\s*;$"
 const MINIZINC_RE_OBJECTIVE = r"^var\s+float\s*:\s*objective\s*=\s*(.+);$"
 
 MINIZINC_DEFAULT_OFFSET(::Nothing)       = 0.0
@@ -26,6 +27,7 @@ end
 function MiniZinc{D}(
     linear_terms::Dict{Int,Float64},
     quadratic_terms::Dict{Tuple{Int,Int},Float64},
+    variable_set::Set{Int},
     offset::Union{Float64,Nothing},
     scale::Union{Float64,Nothing},
     id::Union{Integer,Nothing},
@@ -34,7 +36,8 @@ function MiniZinc{D}(
 ) where {D<:VariableDomain}
     backend = MINIZINC_BACKEND_TYPE{D}(
         linear_terms,
-        quadratic_terms;
+        quadratic_terms,
+        variable_set;
         offset      = offset,
         scale       = scale,
         id          = id,
@@ -53,7 +56,7 @@ function Base.read(io::IO, ::Type{MiniZinc{D}}) where {D}
     id              = nothing
     scale           = nothing
     offset          = nothing
-    variables       = Set{Int}()
+    variable_set       = Set{Int}()
     linear_terms    = Dict{Int,Float64}()
     quadratic_terms = Dict{Tuple{Int,Int},Float64}()
     metadata        = nothing
@@ -129,7 +132,7 @@ function Base.read(io::IO, ::Type{MiniZinc{D}}) where {D}
         end
 
         # ~*~ Variables ~*~
-        m = match(MINIZINC_RE_VARIABLE, line)
+        m = match(MINIZINC_RE_VAR_DEF, line)
 
         if !isnothing(m)
             var_id = tryparse(Int, m[1])
@@ -138,7 +141,7 @@ function Base.read(io::IO, ::Type{MiniZinc{D}}) where {D}
                 error("Error while parsing variable id")
             end
 
-            push!(variables, var_id)
+            push!(variable_set, var_id)
 
             continue
         end
@@ -153,10 +156,46 @@ function Base.read(io::IO, ::Type{MiniZinc{D}}) where {D}
                 continue # empty objective, empty terms
             end
 
-            objective_terms = strip.(split(objective_expr, "+"))
+            objective_terms = strip.(split(objective_expr, '+'))
 
             for term in objective_terms
-                @show term
+                term_atoms = strip.(split(term, "*"))
+
+                coef = 1.0
+                var1 = nothing
+                var2 = nothing
+
+                for atom in term_atoms
+                    m = match(MINIZINC_RE_VAR, atom)
+
+                    if !isnothing(m) # variable
+                        var_id = tryparse(Int, m[1])
+
+                        if isnothing(var_id)
+                            error("Error while parsing variable id")
+                        elseif var_id ∉ variable_set
+                            error("Unknown variable '$var_id'")
+                        end
+
+                        if isnothing(var1)
+                            var1 = var_id
+                        elseif isnothing(var2)
+                            var2 = var_id
+                        else
+                            error("Terms should be at most quadratic")
+                        end
+                    else
+                        coef *= parse(Float64, atom)
+                    end
+                end
+
+                if isnothing(var1)
+                    error("Constant terms are not allowed in objective function")
+                elseif isnothing(var2)
+                    linear_terms[var1] = get(linear_terms, var1, 0.0) + coef
+                else
+                    quadratic_terms[(var1, var2)] = get(quadratic_terms, (var1, var2), 0.0) + coef
+                end
             end
         end
 
@@ -172,6 +211,7 @@ function Base.read(io::IO, ::Type{MiniZinc{D}}) where {D}
     return MiniZinc{D}(
         linear_terms,
         quadratic_terms,
+        variable_set,
         offset,
         scale,
         id,
@@ -204,14 +244,10 @@ function Base.write(io::IO, model::MiniZinc{D}) where {D<:VariableDomain}
     elseif D <: SpinDomain
         println(io, "set of int: Domain = {-1,1};")
     else
-        error("Error: Invalid variable domain '$D'")
+        error("Error: Unknown variable domain '$D'")
     end
-    if !isnothing(backend.offset)
-        println(io, "float: offset = $(backend.offset);")
-    end
-    if !isnothing(backend.scale)
-        println(io, "float: scale = $(backend.scale);")
-    end
+    println(io, "float: scale = $(scale(model));")
+    println(io, "float: offset = $(offset(model));")
     println(io, "%")
     mzn_var = Dict{Int,String}()
     for i = 1:length(backend.variable_map)

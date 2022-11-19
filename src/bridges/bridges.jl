@@ -11,20 +11,19 @@ function hasbridge(::Type{A}, ::Type{B}) where {A<:AbstractQUBOModel,B<:Abstract
     return hasmethod(bridge, (Type{A}, B))
 end
 
+models() = [m{d} for m in subtypes(AbstractQUBOModel), d in subtypes(VariableDomain) if m{<:d} <: m]
+
 function bridges()
     G = Dict{Type,Set{Type}}()
-    M = subtypes(AbstractQUBOModel)
-    D = subtypes(VariableDomain)
+    M = models()
 
-    supports_domain(_M, _D) = (_M{<:_D} <: _M)
-
-    for X in M, Y in M, A in D, B in D
-        if supports_domain(X, A) && supports_domain(Y, B) && hasbridge(X{A}, Y{B})
-            if !haskey(G, Y{B})
-                G[Y{B}] = Set{Type}()
+    for X in M, Y in M
+        if hasbridge(X, Y)
+            if !haskey(G, Y)
+                G[Y] = Set{Type}()
             end
 
-            push!(G[Y{B}], X{A})
+            push!(G[Y], X)
         end
     end
 
