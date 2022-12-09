@@ -332,22 +332,3 @@ function ising(Q::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
 
     return (h, J, α, β)
 end
-
-function infer_model_type(path::String)
-    _, pathext = splitext(path)
-
-    if isempty(pathext)
-        error("Inference Error: Unable to infer model type since file extension is missing")
-    else
-        # Remove '.' from the start:
-        ext = Symbol(pathext[2:end])
-
-        return infer_model_type(ext)
-    end
-end
-
-infer_model_type(ext::Symbol) = infer_model_type(Val(ext))
-
-function infer_model_type(::Val{X}) where {X}
-    error("Inference Error: Unable to infer model type from unknown extension '$X'")
-end

@@ -108,13 +108,13 @@ flowchart TD;
 ```
 
 ## Backend
-The `AbstractQUBOModel{D}` abstract type is defined, where `D <: VariableDomain`.
+The `AbstractModel{D}` abstract type is defined, where `D <: VariableDomain`.
 Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \mathbb{B} = \lbrace 0, 1 \rbrace$ and $s \in \lbrace -1, 1 \rbrace$.
 Conversion between domains follows the identity
 
 $$s = 2x - 1$$
 
-**QUBOTools.jl** also exports the ``StandardQUBOModel{S, U, T, D} <: AbstractQUBOModel{D}`` type, designed to work as a powerful standard backend for all other models.
+**QUBOTools.jl** also exports the ``StandardQUBOModel{S, U, T, D} <: AbstractModel{D}`` type, designed to work as a powerful standard backend for all other models.
 Here, `S <: Any` plays the role of variable indexing type and usually defaults to `Int`.
 It is followed by `U <: Integer`, used to store sampled states of type `Vector{U}`.
 

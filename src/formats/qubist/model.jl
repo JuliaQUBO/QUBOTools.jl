@@ -3,7 +3,7 @@ const QUBIST_BACKEND_TYPE{D} = StandardQUBOModel{D,Int,Float64,Int}
 @doc raw"""
     Qubist{D}(backend, sites, lines) where {D<:SpinDomain}
 
-""" mutable struct Qubist{D<:SpinDomain} <: AbstractQUBOModel{D}
+""" mutable struct Qubist{D<:SpinDomain} <: AbstractModel{D}
     backend::QUBIST_BACKEND_TYPE{D}
     sites::Int
     lines::Int

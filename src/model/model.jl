@@ -1,20 +1,19 @@
 @doc raw"""
-    StandardQUBOModel{
+    Model{
         D <: VariableDomain,
         V <: Any,
         T <: Real,
         U <: Integer
-    } <: AbstractQUBOModel{D}
+    } <: AbstractModel{D}
 
-The `StandardQUBOModel` was designed to work as a general for all implemented interfaces.
+The `Model` was designed to work as a general for all implemented interfaces.
 It is intended to be the core engine behind the target codecs.
 
 ## MathOptInterface/JuMP
 Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
 By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
-""" mutable struct StandardQUBOModel{D<:VariableDomain,V<:Any,T<:Real,U<:Integer} <:
-                   AbstractQUBOModel{D}
+""" mutable struct Model{D<:VariableDomain,V<:Any,T<:Real,U<:Integer} <: AbstractModel{D}
     # ~*~ Required data ~*~
     linear_terms::Dict{Int,T}
     quadratic_terms::Dict{Tuple{Int,Int},T}
@@ -31,7 +30,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     # ~*~ Solutions ~*~
     sampleset::Union{SampleSet{T,U},Nothing}
 
-    function StandardQUBOModel{D,V,T,U}(
+    function Model{D,V,T,U}(
         # ~*~ Required data ~*~
         linear_terms::Dict{Int,T},
         quadratic_terms::Dict{Tuple{Int,Int},T},
@@ -63,7 +62,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         )
     end
 
-    function StandardQUBOModel{D,V,T,U}(
+    function Model{D,V,T,U}(
         # ~*~ Required data ~*~
         _linear_terms::Dict{V,T},
         _quadratic_terms::Dict{Tuple{V,V},T},
@@ -90,33 +89,27 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         linear_terms, quadratic_terms =
             QUBOTools._map_terms(_linear_terms, _quadratic_terms, variable_map)
 
-        StandardQUBOModel{D,V,T,U}(
-            linear_terms,
-            quadratic_terms,
-            variable_map,
-            variable_inv;
-            kws...,
-        )
+        Model{D,V,T,U}(linear_terms, quadratic_terms, variable_map, variable_inv; kws...)
     end
 
-    function StandardQUBOModel{D,V,T,U}(; kws...) where {D,V,T,U}
-        return StandardQUBOModel{D,V,T,U}(Dict{V,T}(), Dict{Tuple{V,V},T}(); kws...)
+    function Model{D,V,T,U}(; kws...) where {D,V,T,U}
+        return Model{D,V,T,U}(Dict{V,T}(), Dict{Tuple{V,V},T}(); kws...)
     end
 end
 
-function StandardQUBOModel{D,V,T}(args...; kws...) where {D,V,T}
-    return StandardQUBOModel{D,V,T,Int}(args...; kws...)
+function Model{D,V,T}(args...; kws...) where {D,V,T}
+    return Model{D,V,T,Int}(args...; kws...)
 end
 
-function StandardQUBOModel{D,V}(args...; kws...) where {D,V}
-    return StandardQUBOModel{D,V,Float64}(args...; kws...)
+function Model{D,V}(args...; kws...) where {D,V}
+    return Model{D,V,Float64,Int}(args...; kws...)
 end
 
-function StandardQUBOModel{D}(args...; kws...) where {D}
-    return StandardQUBOModel{D,Int}(args...; kws...)
+function Model{D}(args...; kws...) where {D}
+    return Model{D,Int,Float64,Int}(args...; kws...)
 end
 
-function Base.empty!(model::StandardQUBOModel)
+function Base.empty!(model::Model)
     # ~*~ Structures ~*~ #
     empty!(model.linear_terms)
     empty!(model.quadratic_terms)
@@ -135,12 +128,12 @@ function Base.empty!(model::StandardQUBOModel)
     return model
 end
 
-function Base.isempty(model::StandardQUBOModel)
+function Base.isempty(model::Model)
     return isempty(model.variable_map) && isempty(model.variable_inv)
 end
 
-function Base.copy(model::StandardQUBOModel{D,V,T,U}) where {D,V,T,U}
-    return StandardQUBOModel{D,V,T,U}(
+function Base.copy(model::Model{D,V,T,U}) where {D,V,T,U}
+    return Model{D,V,T,U}(
         copy(model.linear_terms),
         copy(model.quadratic_terms),
         copy(model.variable_map),
@@ -156,9 +149,9 @@ function Base.copy(model::StandardQUBOModel{D,V,T,U}) where {D,V,T,U}
 end
 
 # This is important to avoid infinite recursion on fallback implementations
-backend(::StandardQUBOModel) = nothing
+backend(::Model) = nothing
 
-function QUBOTools.scale(model::StandardQUBOModel{<:Any,<:Any,T,<:Any}) where {T}
+function QUBOTools.scale(model::Model{<:Any,<:Any,T,<:Any}) where {T}
     if isnothing(model.scale)
         return one(T)
     else
@@ -166,7 +159,7 @@ function QUBOTools.scale(model::StandardQUBOModel{<:Any,<:Any,T,<:Any}) where {T
     end
 end
 
-function QUBOTools.offset(model::StandardQUBOModel{<:Any,<:Any,T,<:Any}) where {T}
+function QUBOTools.offset(model::Model{<:Any,<:Any,T,<:Any}) where {T}
     if isnothing(model.offset)
         return zero(T)
     else
@@ -174,57 +167,18 @@ function QUBOTools.offset(model::StandardQUBOModel{<:Any,<:Any,T,<:Any}) where {
     end
 end
 
-linear_terms(model::StandardQUBOModel)    = model.linear_terms
-quadratic_terms(model::StandardQUBOModel) = model.quadratic_terms
-variable_map(model::StandardQUBOModel)    = model.variable_map
-variable_inv(model::StandardQUBOModel)    = model.variable_inv
+linear_terms(model::Model)    = model.linear_terms
+quadratic_terms(model::Model) = model.quadratic_terms
+variable_map(model::Model)    = model.variable_map
+variable_inv(model::Model)    = model.variable_inv
 
-id(model::StandardQUBOModel)          = model.id
-version(model::StandardQUBOModel)     = model.version
-description(model::StandardQUBOModel) = model.description
-metadata(model::StandardQUBOModel)    = model.metadata
-sampleset(model::StandardQUBOModel)   = model.sampleset
+id(model::Model)          = model.id
+version(model::Model)     = model.version
+description(model::Model) = model.description
+metadata(model::Model)    = model.metadata
+sampleset(model::Model)   = model.sampleset
 
-bridge(
-    ::Type{StandardQUBOModel{D,V,T,U}},
-    model::StandardQUBOModel{D,V,T,U},
-) where {D,V,T,U} = model # short-circuit
-
-
-function bridge(
-    ::Type{StandardQUBOModel{B,V,T,U}},
-    model::StandardQUBOModel{A,V,T,U},
-) where {A,B,V,T,U}
-    _linear_terms, _quadratic_terms, offset = QUBOTools._swapdomain(
-        A(),
-        B(),
-        model.linear_terms,
-        model.quadratic_terms,
-        model.offset,
-    )
-
-    linear_terms, quadratic_terms, _ =
-        QUBOTools._normal_form(_linear_terms, _quadratic_terms)
-
-    return StandardQUBOModel{B,V,T,U}(
-        linear_terms,
-        quadratic_terms,
-        copy(model.variable_map),
-        copy(model.variable_inv);
-        scale       = model.scale,
-        offset      = offset,
-        id          = model.id,
-        version     = model.version,
-        description = model.description,
-        metadata    = deepcopy(model.metadata),
-        sampleset   = model.sampleset,
-    )
-end
-
-function Base.copy!(
-    target::StandardQUBOModel{D,V,T,U},
-    source::StandardQUBOModel{D,V,T,U},
-) where {D,V,T,U}
+function Base.copy!(target::Model{D,V,T,U}, source::Model{D,V,T,U}) where {D,V,T,U}
     target.linear_terms    = copy(source.linear_terms)
     target.quadratic_terms = copy(source.quadratic_terms)
     target.variable_map    = copy(source.variable_map)
@@ -240,11 +194,6 @@ function Base.copy!(
     return target
 end
 
-function Base.copy!(
-    target::StandardQUBOModel{B,V,T,U},
-    source::StandardQUBOModel{A,V,T,U},
-) where {A,B,V,T,U}
-    return copy!(target, convert(StandardQUBOModel{B,V,T,U}, source))
+function Base.copy!(target::Model{B,V,T,U}, source::Model{A,V,T,U}) where {A,B,V,T,U}
+    return copy!(target, convert(Model{B,V,T,U}, source))
 end
-
-const Standard{D} = StandardQUBOModel{D,Int,Float64,Int}

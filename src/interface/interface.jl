@@ -1,13 +1,50 @@
 """ /src/interface/data.jl @ QUBOTools.jl
 
     This file contains iterfaces for data access within QUBO's format system.
-    
-    It also contains a few ones for executing queries on models.
 """
 
 @doc raw"""
-    backend(model)::AbstractQUBOModel
-    backend(model::AbstractQUBOModel)::AbstractQUBOModel
+    VariableDomain
+
+""" abstract type VariableDomain end
+
+const 𝔻 = VariableDomain
+
+Base.Broadcast.broadcastable(D::VariableDomain) = Ref(D)
+
+@doc raw"""
+    SpinDomain <: VariableDomain
+
+```math
+s \in \lbrace{-1, 1}\rbrace
+```
+""" struct SpinDomain <: VariableDomain end
+
+const 𝕊 = SpinDomain
+
+Base.show(io::IO, ::Type{𝕊}) = print(io, "𝕊")
+
+@doc raw"""
+    BoolDomain <: VariableDomain
+
+```math
+x \in \lbrace{0, 1}\rbrace
+```
+""" struct BoolDomain <: VariableDomain end
+
+const 𝔹 = BoolDomain
+
+Base.show(io::IO, ::Type{𝔹}) = print(io, "𝔹")
+
+
+@doc raw"""
+    AbstractModel{D<:VariableDomain}
+    
+""" abstract type AbstractModel{D<:VariableDomain} end
+
+@doc raw"""
+    backend(model)::AbstractModel
+    backend(model::AbstractModel)::AbstractModel
 
 Retrieves the model's backend.
 Implementing this function allows one to profit from fallback implementations of the other methods.
@@ -120,31 +157,31 @@ Returns the set of variables of a given model.
 """ function variable_map end
 
 @doc raw"""
-    variable_inv(model)::Dict{Int,V} where {V}
-    variable_inv(model, i::Integer)::V where {V}
+variable_inv(model)::Dict{Int,V} where {V}
+variable_inv(model, i::Integer)::V where {V}
 
-    """ function variable_inv end
+""" function variable_inv end
 
 # ~*~ Model's Normal Forms ~*~ #
 @doc raw"""
-    qubo(model::AbstractQUBOModel{<:BoolDomain})
-    qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
+    qubo(model::AbstractModel{<:BoolDomain})
+    qubo(model::AbstractModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
 
 Returns sparse dictionary representation.
 
-    qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
+    qubo(model::AbstractModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
 
 Returns sparse vector quadruple (linear, quadratic, lower index & upper index).
 
-    qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
+    qubo(model::AbstractModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
 
 Returns dense matrix representation.
 
-    qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
+    qubo(model::AbstractModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
 
 Returns sparse matrix representation.
 
-    qubo(model::AbstractQUBOModel{<:SpinDomain}, args...)
+    qubo(model::AbstractModel{<:SpinDomain}, args...)
 
 Returns QUBO form from Ising Model (Spin).
 
@@ -159,24 +196,24 @@ Returns QUBO form from Ising Model (Spin).
 """ function qubo end
 
 @doc raw"""
-    ising(model::AbstractQUBOModel{<:SpinDomain})
-    ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{<:Dict}, T::Type = Float64))
+    ising(model::AbstractModel{<:SpinDomain})
+    ising(model::AbstractModel{<:SpinDomain}, ::Type{<:Dict}, T::Type = Float64))
 
 Returns sparce dictionary representation
 
-    ising(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
+    ising(model::AbstractModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
 
 Returns sparse vector quadruple (linear, quadratic, lower index & upper index).
 
-    ising(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
+    ising(model::AbstractModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
 
 Returns dense matrix representation.
 
-    ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
+    ising(model::AbstractModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
 
 Returns sparce matrix representation
 
-    ising(model::AbstractQUBOModel{<:BoolDomain}, args...)
+    ising(model::AbstractModel{<:BoolDomain}, args...)
 
 Returns Ising Model form from QUBO Model (Bool).
 
@@ -306,17 +343,17 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 """ function format end
 
 @doc raw"""
-    infer_model_type(path::String)::Type{M} where {M<:AbstractQUBOModel}
+    infer_model_type(path::String)::Type{M} where {M<:AbstractModel}
 
 Given a file path, tries to infer the type associated to a QUBO model format.
 
-    infer_model_type(ext::Symbol)::Type{M} where {M<:AbstractQUBOModel}
+    infer_model_type(ext::Symbol)::Type{M} where {M<:AbstractModel}
 
 Returns the type associated to a QUBO model format given a file extension.
 
-    infer_model_type(ext::Val{:json})::Type{M} where {M<:AbstractQUBOModel}
-    infer_model_type(ext::Val{:hfs})::Type{M} where {M<:AbstractQUBOModel}
-    infer_model_type(ext::Val{:mzn})::Type{M} where {M<:AbstractQUBOModel}
-    infer_model_type(ext::Val{:qh})::Type{M} where {M<:AbstractQUBOModel}
-    infer_model_type(ext::Val{:qubo})::Type{M} where {M<:AbstractQUBOModel}
+    infer_model_type(ext::Val{:json})::Type{M} where {M<:AbstractModel}
+    infer_model_type(ext::Val{:hfs})::Type{M} where {M<:AbstractModel}
+    infer_model_type(ext::Val{:mzn})::Type{M} where {M<:AbstractModel}
+    infer_model_type(ext::Val{:qh})::Type{M} where {M<:AbstractModel}
+    infer_model_type(ext::Val{:qubo})::Type{M} where {M<:AbstractModel}
 """ function infer_model_type end

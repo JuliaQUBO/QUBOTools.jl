@@ -42,37 +42,25 @@ export Qubist
 export QUBO
 
 # ~*~ Interface definitions ~*~ #
-include("interface.jl")
+include("interface/interface.jl")
 
 # ~*~ Fallback methods ~*~ #
-include("fallback.jl")
+include("interface/fallback.jl")
 
 # ~*~ Generic methods ~*~ #
-include("generic.jl")
+include("interface/generic.jl")
 
 # ~*~ Package internal library ~*~ #
 include("library/error.jl")
-include("library/types.jl")
 include("library/tools.jl")
 include("library/sampleset.jl")
 
 # ~*~ Model definitions ~*~ #
-include("models/abstract/model.jl")
-include("models/standard/model.jl")
-include("models/qubo/model.jl")
-include("models/bqpjson/model.jl")
-include("models/hfs/model.jl")
-include("models/minizinc/model.jl")
-include("models/qubist/model.jl")
+include("model/model.jl")
+include("model/abstract.jl")
 
-# ~*~ Bridges between formats ~*~ #
-include("bridges/bridges.jl")
-include("bridges/bqpjson.jl")
-include("bridges/hfs.jl")
-include("bridges/minizinc.jl")
-include("bridges/qubist.jl")
-include("bridges/qubo.jl")
-
+# ~*~ Format definitions ~*~ #
+include("formats/formats.jl")
 
 # ~*~ Analysis Tools ~*~ #
 include("analysis/interface.jl")

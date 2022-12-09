@@ -1,20 +1,13 @@
-@doc raw"""
-    AbstractQUBOModel{D<:VariableDomain}
-    
-""" abstract type AbstractQUBOModel{D<:VariableDomain} end
+model_name(::M) where {M<:AbstractModel} = "QUBO Model"
 
-validate(::AbstractQUBOModel) = true
-
-model_name(::M) where {M<:AbstractQUBOModel} = string(M)
-
-domain(::AbstractQUBOModel{D}) where {D} = D()
+domain(::AbstractModel{D}) where {D} = D()
 domain_name(::BoolDomain)                = "Bool"
 domain_name(::SpinDomain)                = "Spin"
-domain_name(model::AbstractQUBOModel)    = domain_name(domain(model))
+domain_name(model::AbstractModel)    = domain_name(domain(model))
 
-Base.isempty(model::AbstractQUBOModel) = isempty(variable_map(model))
+Base.isempty(model::AbstractModel) = isempty(variable_map(model))
 
-function explicit_linear_terms(model::AbstractQUBOModel)
+function explicit_linear_terms(model::AbstractModel)
     return _explicit_linear_terms(
         linear_terms(model),
         variable_inv(model)
@@ -31,19 +24,19 @@ function _explicit_linear_terms(
     )
 end
 
-function indices(model::AbstractQUBOModel)
+function indices(model::AbstractModel)
     return collect(1:domain_size(model))
 end
 
-function variables(model::AbstractQUBOModel)
+function variables(model::AbstractModel)
     return sort(collect(keys(variable_map(model))); lt=varcmp)
 end
 
-function variable_set(model::AbstractQUBOModel)
+function variable_set(model::AbstractModel)
     return Set(keys(variable_map(model)))
 end
 
-function variable_map(model::AbstractQUBOModel, v)
+function variable_map(model::AbstractModel, v)
     variable_map = QUBOTools.variable_map(model)
 
     if haskey(variable_map, v)
@@ -53,7 +46,7 @@ function variable_map(model::AbstractQUBOModel, v)
     end
 end
 
-function variable_inv(model::AbstractQUBOModel, i::Integer)
+function variable_inv(model::AbstractModel, i::Integer)
     variable_inv = QUBOTools.variable_inv(model)
 
     if haskey(variable_inv, i)
@@ -64,9 +57,9 @@ function variable_inv(model::AbstractQUBOModel, i::Integer)
 end
 
 # ~*~ Model's Normal Forms ~*~ #
-qubo(model::AbstractQUBOModel{<:BoolDomain}) = qubo(model, Dict)
+qubo(model::AbstractModel{<:BoolDomain}) = qubo(model, Dict)
 
-function qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
+function qubo(model::AbstractModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
     n = domain_size(model)
     m = quadratic_size(model)
 
@@ -88,7 +81,7 @@ function qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Dict}, T::Type = Fl
     return (Q, α, β)
 end
 
-function qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
+function qubo(model::AbstractModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
     n = domain_size(model)
     m = quadratic_size(model)
 
@@ -113,7 +106,7 @@ function qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Vector}, T::Type = 
     return (L, Q, u, v, α, β)
 end
 
-function qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
+function qubo(model::AbstractModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
     n = domain_size(model)
 
     Q = zeros(T, n, n)
@@ -132,7 +125,7 @@ function qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{Matrix}, T::Type = 
     return (Q, α, β)
 end
 
-function qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
+function qubo(model::AbstractModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
     n = domain_size(model)
 
     Q = spzeros(T, n, n)
@@ -151,13 +144,13 @@ function qubo(model::AbstractQUBOModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T
     return (Q, α, β)
 end
 
-function qubo(model::AbstractQUBOModel{<:SpinDomain}, args...)
+function qubo(model::AbstractModel{<:SpinDomain}, args...)
     return qubo(ising(model, args...)...)
 end
 
-ising(model::AbstractQUBOModel) = ising(model, Dict, Float64)
+ising(model::AbstractModel) = ising(model, Dict, Float64)
 
-function ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Dict}, T::Type = Float64)
+function ising(model::AbstractModel{<:SpinDomain}, ::Type{Dict}, T::Type = Float64)
     n = domain_size(model)
     m = quadratic_size(model)
 
@@ -178,7 +171,7 @@ function ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Dict}, T::Type = F
     return (h, J, α, β)
 end
 
-function ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Vector}, T::Type = Float64)
+function ising(model::AbstractModel{<:SpinDomain}, ::Type{Vector}, T::Type = Float64)
     n = domain_size(model)
     m = quadratic_size(model)
 
@@ -204,7 +197,7 @@ function ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Vector}, T::Type =
     return (h, J, u, v, α, β)
 end
 
-function ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Matrix}, T::Type = Float64)
+function ising(model::AbstractModel{<:SpinDomain}, ::Type{Matrix}, T::Type = Float64)
     n = domain_size(model)
 
     h = zeros(T, n)
@@ -224,7 +217,7 @@ function ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{Matrix}, T::Type =
     return (h, J, α, β)
 end
 
-function ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
+function ising(model::AbstractModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
     n = domain_size(model)
 
     h = spzeros(T, n)
@@ -244,28 +237,28 @@ function ising(model::AbstractQUBOModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, 
     return (h, J, α, β)
 end
 
-function ising(model::AbstractQUBOModel{<:BoolDomain}, args...)
+function ising(model::AbstractModel{<:BoolDomain}, args...)
     return ising(qubo(model, args...)...)
 end
 
 # ~*~ Data queries ~*~ #
-function QUBOTools.state(model::AbstractQUBOModel, index::Integer)
+function QUBOTools.state(model::AbstractModel, index::Integer)
     return QUBOTools.state(QUBOTools.sampleset(model), index)
 end
 
-function QUBOTools.reads(model::AbstractQUBOModel)
+function QUBOTools.reads(model::AbstractModel)
     return QUBOTools.reads(QUBOTools.sampleset(model))
 end
 
-function QUBOTools.reads(model::AbstractQUBOModel, index::Integer)
+function QUBOTools.reads(model::AbstractModel, index::Integer)
     return QUBOTools.reads(QUBOTools.sampleset(model), index)
 end
 
-function QUBOTools.value(model::AbstractQUBOModel, index::Integer)
+function QUBOTools.value(model::AbstractModel, index::Integer)
     return QUBOTools.value(QUBOTools.sampleset(model), index)
 end
 
-function QUBOTools.value(model::AbstractQUBOModel, ψ::Vector{U}) where {U<:Integer}
+function QUBOTools.value(model::AbstractModel, ψ::Vector{U}) where {U<:Integer}
     α = QUBOTools.scale(model)
     e = QUBOTools.offset(model)
 
@@ -281,11 +274,11 @@ function QUBOTools.value(model::AbstractQUBOModel, ψ::Vector{U}) where {U<:Inte
 end
 
 # ~*~ Queries: sizes & density ~*~ #
-QUBOTools.domain_size(model::AbstractQUBOModel)    = length(QUBOTools.variable_map(model))
-QUBOTools.linear_size(model::AbstractQUBOModel)    = length(QUBOTools.linear_terms(model))
-QUBOTools.quadratic_size(model::AbstractQUBOModel) = length(QUBOTools.quadratic_terms(model))
+QUBOTools.domain_size(model::AbstractModel)    = length(QUBOTools.variable_map(model))
+QUBOTools.linear_size(model::AbstractModel)    = length(QUBOTools.linear_terms(model))
+QUBOTools.quadratic_size(model::AbstractModel) = length(QUBOTools.quadratic_terms(model))
 
-function QUBOTools.density(model::AbstractQUBOModel)
+function QUBOTools.density(model::AbstractModel)
     n = QUBOTools.domain_size(model)
 
     if n == 0
@@ -298,7 +291,7 @@ function QUBOTools.density(model::AbstractQUBOModel)
     end
 end
 
-function QUBOTools.linear_density(model::AbstractQUBOModel)
+function QUBOTools.linear_density(model::AbstractModel)
     n = QUBOTools.domain_size(model)
 
     if n == 0
@@ -310,7 +303,7 @@ function QUBOTools.linear_density(model::AbstractQUBOModel)
     end
 end
 
-function QUBOTools.quadratic_density(model::AbstractQUBOModel)
+function QUBOTools.quadratic_density(model::AbstractModel)
     n = QUBOTools.domain_size(model)
 
     if n <= 1
@@ -322,7 +315,7 @@ function QUBOTools.quadratic_density(model::AbstractQUBOModel)
     end
 end
 
-function QUBOTools.adjacency(model::AbstractQUBOModel)
+function QUBOTools.adjacency(model::AbstractModel)
     n = QUBOTools.domain_size(model)
     A = Dict{Int,Set{Int}}(i => Set{Int}() for i = 1:n)
 
@@ -334,7 +327,7 @@ function QUBOTools.adjacency(model::AbstractQUBOModel)
     return A
 end
 
-function QUBOTools.adjacency(model::AbstractQUBOModel, k::Integer)
+function QUBOTools.adjacency(model::AbstractModel, k::Integer)
     A = Set{Int}()
 
     for (i, j) in keys(QUBOTools.quadratic_terms(model))
@@ -349,57 +342,32 @@ function QUBOTools.adjacency(model::AbstractQUBOModel, k::Integer)
 end
 
 # ~*~ Internal: bridge validation ~*~ #
-function Base.show(io::IO, model::AbstractQUBOModel)
-    if !isempty(model)
-        print(
-            io,
-            """
-            $(QUBOTools.model_name(model)) Model:
-            $(QUBOTools.domain_size(model)) variables [$(QUBOTools.domain_name(model))]
 
-            Density:
-            linear    ~ $(@sprintf("%0.2f", 100.0 * QUBOTools.linear_density(model)))%
-            quadratic ~ $(@sprintf("%0.2f", 100.0 * QUBOTools.quadratic_density(model)))%
-            total     ~ $(@sprintf("%0.2f", 100.0 * QUBOTools.density(model)))%
-            """
-        )
-    else
-        print(
-            io,
-            """
-            $(QUBOTools.model_name(model)) Model:
-            $(QUBOTools.domain_size(model)) variables [$(QUBOTools.domain_name(model))]
-
-            The model is empty
-            """
-        )
-    end
-end
 
 # ~*~ I/O ~*~ #
-function Base.read(::IO, M::Type{<:AbstractQUBOModel})
+function Base.read(::IO, M::Type{<:AbstractModel})
     QUBOTools.codec_error("'Base.read' not implemented for model of type '$(M)'")
 end
 
-function Base.read(path::AbstractString, M::Type{<:AbstractQUBOModel})
+function Base.read(path::AbstractString, M::Type{<:AbstractModel})
     open(path, "r") do io
         return read(io, M)
     end
 end
 
-function Base.write(::IO, model::AbstractQUBOModel)
+function Base.write(::IO, model::AbstractModel)
     QUBOTools.codec_error("'Base.write' not implemented for model of type '$(typeof(model))'")
 end
 
-function Base.write(path::AbstractString, model::AbstractQUBOModel)
+function Base.write(path::AbstractString, model::AbstractModel)
     open(path, "w") do io
         return write(io, model)
     end
 end
 
-bridge(::Type{M}, model::M) where {M<:AbstractQUBOModel} = model
+bridge(::Type{M}, model::M) where {M<:AbstractModel} = model
 
-function Base.convert(::Type{A}, model::B) where {A<:AbstractQUBOModel,B<:AbstractQUBOModel}
+function Base.convert(::Type{A}, model::B) where {A<:AbstractModel,B<:AbstractModel}
     if hasbridge(A, B)
         return bridge(A, model)
     else
@@ -407,13 +375,40 @@ function Base.convert(::Type{A}, model::B) where {A<:AbstractQUBOModel,B<:Abstra
     end
 end
 
-function Base.copy!(::M, ::M) where {M<:AbstractQUBOModel}
+function Base.copy!(::M, ::M) where {M<:AbstractModel}
     QUBOTools.codec_error("'Base.copy!' not implemented for copying '$M' models in-place")
 end
 
 function Base.copy!(
     target::X,
     source::Y,
-) where {X<:AbstractQUBOModel,Y<:AbstractQUBOModel}
+) where {X<:AbstractModel,Y<:AbstractModel}
     copy!(target, convert(X, source))
+end
+
+function Base.show(io::IO, model::AbstractModel)
+    if !isempty(model)
+        print(
+            io,
+            """
+            $(model_name(model)):
+            $(domain_size(model)) variables [$(domain_name(model))]
+
+            Density:
+            linear    ~ $(@sprintf("%0.2f", 100.0 * linear_density(model)))%
+            quadratic ~ $(@sprintf("%0.2f", 100.0 * quadratic_density(model)))%
+            total     ~ $(@sprintf("%0.2f", 100.0 * density(model)))%
+            """
+        )
+    else
+        print(
+            io,
+            """
+            $(model_name(model)) Model:
+            $(domain_size(model)) variables [$(domain_name(model))]
+
+            The model is empty
+            """
+        )
+    end
 end

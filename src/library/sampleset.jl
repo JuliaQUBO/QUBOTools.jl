@@ -80,13 +80,13 @@ function format(
             if isnothing(bits)
                 bits = length(sample)
             elseif bits != length(sample)
-                sample_error("All samples must have states of equal length")
+                sampling_error("All samples must have states of equal length")
             end
 
             sample
         else
             if value(cached) != value(sample)
-                sample_error("Samples of the same state vector must have the same energy value")
+                sampling_error("Samples of the same state vector must have the same energy value")
             end
 
             merge(cached, sample)

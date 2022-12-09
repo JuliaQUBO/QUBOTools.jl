@@ -1,5 +1,5 @@
 @doc raw"""
-    _isvalidbridge(source::M, target::M, ::Type{<:AbstractQUBOModel}; kws...) where M <: AbstractQUBOModel
+    _isvalidbridge(source::M, target::M, ::Type{<:AbstractModel}; kws...) where M <: AbstractModel
 
 Checks if the `source` model is equivalent to the `target` reference modulo the given origin type.
 Key-word arguments `kws...` are passed to interal `isapprox(::T, ::T; kws...)` calls.
@@ -57,9 +57,9 @@ end
 _isvalidbridge(
     source::M,
     target::M,
-    ::Type{<:QUBOTools.AbstractQUBOModel};
+    ::Type{<:QUBOTools.AbstractModel};
     kws...
-) where {M<:QUBOTools.AbstractQUBOModel} = true
+) where {M<:QUBOTools.AbstractModel} = true
 
 function _isvalidbridge(
     source::BQPJSON{B},

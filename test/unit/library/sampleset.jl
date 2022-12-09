@@ -1,5 +1,5 @@
 struct SampleModel{T} end
-struct QUBOModel{T} <: QUBOTools.AbstractQUBOModel{T} end
+struct QUBOModel{T} <: QUBOTools.AbstractModel{T} end
 
 value(::SampleModel{T}, ::Any) where {T} = zero(T)
 
@@ -101,13 +101,13 @@ function test_samples()
             @test ω isa SampleSet{Float64,Int}
         end
 
-        @test_throws SampleError SampleSet(
+        @test_throws SamplingError SampleSet(
             [
                 Sample([0, 0],    0.0, 1),
                 Sample([0, 0, 1], 0.0, 1),
             ],
         )
-        @test_throws SampleError SampleSet(
+        @test_throws SamplingError SampleSet(
             [
                 Sample([0, 0], 0.0, 1),
                 Sample([0, 0], 0.1, 1),

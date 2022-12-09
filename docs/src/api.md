@@ -38,7 +38,7 @@ QUBOTools.reads
 
 ### Models
 ```@docs
-QUBOTools.AbstractQUBOModel
+QUBOTools.AbstractModel
 QUBOTools.StandardQUBOModel
 QUBOTools.model_name
 QUBOTools.infer_model_type

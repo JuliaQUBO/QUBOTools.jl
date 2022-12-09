@@ -79,7 +79,7 @@ There is an edge from ``v_p`` to ``v_q`` if at least one of the following holds:
 end
 
 function Chimera(
-    model::AbstractQUBOModel,
+    model::AbstractModel,
     chimera_cell_size::Union{Integer,Nothing}=nothing,
     chimera_degree::Union{Integer,Nothing}=nothing,
     chimera_precision::Union{Integer,Nothing}=nothing,
@@ -198,7 +198,7 @@ end
     HFS{BoolDomain}(backend, chimera)
 
 This format offers a description for the setup of chimera graphs.
-""" mutable struct HFS{D<:BoolDomain} <: AbstractQUBOModel{D}
+""" mutable struct HFS{D<:BoolDomain} <: AbstractModel{D}
     backend::HFS_BACKEND_TYPE{D}
     chimera::Chimera
 

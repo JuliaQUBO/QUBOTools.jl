@@ -18,22 +18,22 @@ function codec_error(msg::Union{String,Nothing}=nothing)
     throw(CodecError(msg))
 end
 
-struct SampleError <: Exception
+struct SamplingError <: Exception
     msg::Union{String,Nothing}
 
-    function SampleError(msg::Union{String,Nothing}=nothing)
+    function SamplingError(msg::Union{String,Nothing}=nothing)
         new(msg)
     end
 end
 
-function Base.showerror(io::IO, e::SampleError)
+function Base.showerror(io::IO, e::SamplingError)
     if isnothing(e.msg)
-        print(io, "Sample Error")
+        print(io, "Sampling Error")
     else
-        print(io, "Sample Error: $(e.msg)")
+        print(io, "Sampling Error: $(e.msg)")
     end
 end
 
-function sample_error(msg::Union{String,Nothing}=nothing)
-    throw(SampleError(msg))
+function sampling_error(msg::Union{String,Nothing}=nothing)
+    throw(SamplingError(msg))
 end
