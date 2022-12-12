@@ -13,6 +13,10 @@ const 𝔻 = VariableDomain
 Base.Broadcast.broadcastable(D::VariableDomain) = Ref(D)
 
 @doc raw"""
+    UnknownDomain <: VariableDomain
+""" struct UnknownDomain <: VariableDomain end
+
+@doc raw"""
     SpinDomain <: VariableDomain
 
 ```math
@@ -21,8 +25,6 @@ s \in \lbrace{-1, 1}\rbrace
 """ struct SpinDomain <: VariableDomain end
 
 const 𝕊 = SpinDomain
-
-Base.show(io::IO, ::Type{𝕊}) = print(io, "𝕊")
 
 @doc raw"""
     BoolDomain <: VariableDomain
@@ -34,13 +36,21 @@ x \in \lbrace{0, 1}\rbrace
 
 const 𝔹 = BoolDomain
 
-Base.show(io::IO, ::Type{𝔹}) = print(io, "𝔹")
-
-
 @doc raw"""
     AbstractModel{D<:VariableDomain}
     
 """ abstract type AbstractModel{D<:VariableDomain} end
+
+@doc raw"""
+""" abstract type AbstractFormat{D<:VariableDomain} end
+
+@doc raw"""
+    infer_format(::AbstractString)::AbstractFormat
+    infer_format(::Symbol)::AbstractFormat
+    infer_format(::Symbol, ::Symbol)::AbstractFormat
+
+Given a file path, tries to infer the type associated to a QUBO model format.
+""" function infer_format end
 
 @doc raw"""
     backend(model)::AbstractModel
@@ -341,19 +351,3 @@ If a second parameter, an integer, is present, then the set of neighbors of that
     format(data::Vector{Sample{T,U}}) where {T,U}
     
 """ function format end
-
-@doc raw"""
-    infer_model_type(path::String)::Type{M} where {M<:AbstractModel}
-
-Given a file path, tries to infer the type associated to a QUBO model format.
-
-    infer_model_type(ext::Symbol)::Type{M} where {M<:AbstractModel}
-
-Returns the type associated to a QUBO model format given a file extension.
-
-    infer_model_type(ext::Val{:json})::Type{M} where {M<:AbstractModel}
-    infer_model_type(ext::Val{:hfs})::Type{M} where {M<:AbstractModel}
-    infer_model_type(ext::Val{:mzn})::Type{M} where {M<:AbstractModel}
-    infer_model_type(ext::Val{:qh})::Type{M} where {M<:AbstractModel}
-    infer_model_type(ext::Val{:qubo})::Type{M} where {M<:AbstractModel}
-""" function infer_model_type end

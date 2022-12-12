@@ -345,45 +345,23 @@ end
 
 
 # ~*~ I/O ~*~ #
-function Base.read(::IO, M::Type{<:AbstractModel})
-    QUBOTools.codec_error("'Base.read' not implemented for model of type '$(M)'")
+function Base.read(source::Any, fmt::AbstractFormat)
+    return read_model(source, fmt)
 end
 
-function Base.read(path::AbstractString, M::Type{<:AbstractModel})
-    open(path, "r") do io
-        return read(io, M)
-    end
+function Base.read!(source::Any, model::AbstractModel, fmt::AbstractFormat)
+    return read_model!(source, model, fmt)
 end
 
-function Base.write(::IO, model::AbstractModel)
-    QUBOTools.codec_error("'Base.write' not implemented for model of type '$(typeof(model))'")
-end
-
-function Base.write(path::AbstractString, model::AbstractModel)
-    open(path, "w") do io
-        return write(io, model)
-    end
-end
-
-bridge(::Type{M}, model::M) where {M<:AbstractModel} = model
-
-function Base.convert(::Type{A}, model::B) where {A<:AbstractModel,B<:AbstractModel}
-    if hasbridge(A, B)
-        return bridge(A, model)
-    else
-        return chain(A, model)
-    end
-end
-
-function Base.copy!(::M, ::M) where {M<:AbstractModel}
-    QUBOTools.codec_error("'Base.copy!' not implemented for copying '$M' models in-place")
+function Base.write(target::Any, model::AbstractModel, fmt::AbstractFormat)
+    return write_model(target, model, fmt)
 end
 
 function Base.copy!(
     target::X,
     source::Y,
 ) where {X<:AbstractModel,Y<:AbstractModel}
-    copy!(target, convert(X, source))
+    return copy!(target, convert(X, source))
 end
 
 function Base.show(io::IO, model::AbstractModel)

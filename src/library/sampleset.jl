@@ -24,6 +24,7 @@ Sample{T}(args...) where {T} = Sample{T,Int}(args...)
 Sample(args...)              = Sample{Float64}(args...)
 
 state(s::Sample) = s.state
+state(s::Sample, i::Integer) = s.state[i]
 value(s::Sample) = s.value
 reads(s::Sample) = s.reads
 
@@ -189,10 +190,11 @@ function swap_domain(::A, ::B, s::Sample{T,U}) where {A<:𝔻,B<:𝔻,T,U}
     return Sample{T,U}(swap_domain(A(), B(), state(s)), value(s), reads(s))
 end
 
-state(ω::AbstractSampleSet, i::Integer) = state(ω[i])
-value(ω::AbstractSampleSet, i::Integer) = value(ω[i])
-reads(ω::AbstractSampleSet, i::Integer) = reads(ω[i])
-reads(ω::AbstractSampleSet)             = sum(reads.(ω))
+state(ω::AbstractSampleSet, i::Integer)             = state(ω[i])
+state(ω::AbstractSampleSet, i::Integer, j::Integer) = state(ω[i], j)
+value(ω::AbstractSampleSet, i::Integer)             = value(ω[i])
+reads(ω::AbstractSampleSet, i::Integer)             = reads(ω[i])
+reads(ω::AbstractSampleSet)                         = sum(reads.(ω))
 
 @doc raw"""
     SampleSet{T,U}(
