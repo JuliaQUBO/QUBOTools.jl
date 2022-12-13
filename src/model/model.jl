@@ -109,7 +109,7 @@ function Model{D}(args...; kws...) where {D}
     return Model{D,Int,Float64,Int}(args...; kws...)
 end
 
-function Base.empty!(model::Model)
+function Base.empty!(model::Model{D,V,T,U}) where {D,V,T,U}
     # ~*~ Structures ~*~ #
     empty!(model.linear_terms)
     empty!(model.quadratic_terms)

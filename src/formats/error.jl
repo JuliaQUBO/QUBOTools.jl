@@ -33,3 +33,9 @@ end
 function syntax_error(msg::Union{String,Nothing} = nothing)
     throw(SyntaxError(msg))
 end
+
+function syntax_warning(msg::String)
+    @warn "Syntax Warning: $msg"
+
+    return nothing
+end

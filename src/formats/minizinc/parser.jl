@@ -5,7 +5,7 @@ function _parse_line!(fmt::MiniZinc, data::Dict{Symbol,Any}, line::AbstractStrin
     _parse_variable!(fmt, data, line)  && return nothing
     _parse_objective!(fmt, data, line) && return nothing
 
-    syntax_error("'$line'")
+    syntax_warning("'$line'")
 end
 
 function _parse_comment!(fmt::MiniZinc, data::Dict{Symbol,Any}, line::AbstractString)
@@ -24,7 +24,7 @@ function _parse_comment!(fmt::MiniZinc, data::Dict{Symbol,Any}, line::AbstractSt
     return _parse_metadata!(fmt, data, content)
 end
 
-function parse_metadata!(::MiniZinc, data::Dict{Symbol,Any}, content::AbstractString)
+function _parse_metadata!(::MiniZinc, data::Dict{Symbol,Any}, content::AbstractString)
     m = match(_MINIZINC_RE_METADATA, content)
 
     if isnothing(m)
@@ -122,9 +122,7 @@ function _parse_objective!(::MiniZinc, data::Dict{Symbol,Any}, line::AbstractStr
         return true
     end
 
-    objective_terms = strip.(split(objective_expr, '+'))
-
-    for term in objective_terms
+    for term in strip.(split(objective_expr, '+'))
         term_atoms = strip.(split(term, "*"))
 
         coef = 1.0
@@ -139,7 +137,7 @@ function _parse_objective!(::MiniZinc, data::Dict{Symbol,Any}, line::AbstractStr
 
                 if isnothing(var_id)
                     error("Error while parsing variable id")
-                elseif var_id ∉ variable_set
+                elseif var_id ∉ data[:variable_set]
                     error("Unknown variable '$var_id'")
                 end
 

@@ -54,7 +54,7 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
     end
 
     if !isnothing(data[:sampleset])
-        id = 0
+        sol_id = 0
 
         solutions = Dict{String,Any}[]
 
@@ -70,7 +70,7 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
                 push!(
                     solutions,
                     Dict{String,Any}(
-                        "id"         => (id += 1),
+                        "id"         => (sol_id += 1),
                         "assignment" => assignment,
                         "evaluation" => value(sample),
                     )
@@ -78,10 +78,10 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
             end
         end
 
-        data["solutions"] = solutions
+        json_data["solutions"] = solutions
     end
 
-    JSON.print(io, data)
+    JSON.print(io, json_data)
 
     return nothing
 end

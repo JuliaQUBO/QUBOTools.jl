@@ -1,19 +1,17 @@
-struct Model
+struct ModelWrapper
     backend::Any
 end
 
-QUBOTools.backend(m::Model) = m.backend
+QUBOTools.backend(m::ModelWrapper) = m.backend
 
 function test_interface_setup(bool_model, spin_model, null_model)
     @testset "Setup" begin
-        @test QUBOTools.backend(null_model) isa QUBOTools.StandardQUBOModel
-        @test QUBOTools.backend(bool_model) isa QUBOTools.StandardQUBOModel
-        @test QUBOTools.backend(spin_model) isa QUBOTools.StandardQUBOModel
+        @test QUBOTools.backend(null_model) isa QUBOTools.Model
+        @test QUBOTools.backend(bool_model) isa QUBOTools.Model
+        @test QUBOTools.backend(spin_model) isa QUBOTools.Model
         @test isempty(QUBOTools.backend(null_model))
         @test !isempty(QUBOTools.backend(bool_model))
         @test !isempty(QUBOTools.backend(spin_model))
-        @test QUBOTools.validate(QUBOTools.backend(bool_model))
-        @test QUBOTools.validate(QUBOTools.backend(spin_model))
     end
 
     return nothing
@@ -21,8 +19,8 @@ end
 
 function test_interface_data_access(bool_model, bool_samples, spin_model, spin_samples, null_model)
     @testset "Data Access" begin
-        @test QUBOTools.model_name(bool_model) == "QUBOTools.StandardQUBOModel{𝔹, $Symbol, $Float64, $Int}"
-        @test QUBOTools.model_name(spin_model) == "QUBOTools.StandardQUBOModel{𝕊, $Symbol, $Float64, $Int}"
+        @test QUBOTools.model_name(bool_model) == "QUBO Model"
+        @test QUBOTools.model_name(spin_model) == "QUBO Model"
         
         @test QUBOTools.domain(bool_model) == QUBOTools.BoolDomain()
         @test QUBOTools.domain(spin_model) == QUBOTools.SpinDomain()
@@ -46,9 +44,9 @@ function test_interface_data_access(bool_model, bool_samples, spin_model, spin_s
         @test QUBOTools.version(bool_model) == v"0.1.0"
         @test QUBOTools.version(spin_model) == v"0.2.0"
 
-        @test QUBOTools.description(null_model) == "This is a Null Model"
-        @test QUBOTools.description(bool_model) == "This is a Bool Model"
-        @test QUBOTools.description(spin_model) == "This is a Spin Model"
+        @test QUBOTools.description(null_model) == "This is a Null ModelWrapper"
+        @test QUBOTools.description(bool_model) == "This is a Bool ModelWrapper"
+        @test QUBOTools.description(spin_model) == "This is a Spin ModelWrapper"
 
         @test QUBOTools.metadata(null_model) == Dict{String,Any}(
             "meta" => "data",
@@ -388,13 +386,13 @@ function test_interface()
     bool_samples = [QUBOTools.Sample(s...) for s in zip(bool_states, values, reads)]
     spin_samples = [QUBOTools.Sample(s...) for s in zip(spin_states, values, reads)]
 
-    null_model = Model(
-        QUBOTools.StandardQUBOModel{𝔹,V,T,U}(
+    null_model = ModelWrapper(
+        QUBOTools.Model{𝔹,V,T,U}(
             Dict{V,T}(),
             Dict{Tuple{V,V},T}();
             id = 0,
             version = v"0.0.0",
-            description = "This is a Null Model",
+            description = "This is a Null ModelWrapper",
             metadata = Dict{String,Any}(
                 "meta" => "data",
                 "type" => "null",
@@ -402,15 +400,15 @@ function test_interface()
         )
     )
 
-    bool_model = Model(
-        QUBOTools.StandardQUBOModel{𝔹,V,T,U}(
+    bool_model = ModelWrapper(
+        QUBOTools.Model{𝔹,V,T,U}(
             Dict{V,T}(:x => 1.0, :y => -1.0),
             Dict{Tuple{V,V},T}((:x, :y) => 2.0);
             scale       = 2.0,
             offset      = 1.0,
             id          = 1,
             version     = v"0.1.0",
-            description = "This is a Bool Model",
+            description = "This is a Bool ModelWrapper",
             metadata    = Dict{String,Any}(
                 "meta" => "data",
                 "type" => "bool",
@@ -419,15 +417,15 @@ function test_interface()
         ),
     )
 
-    spin_model = Model(
-        QUBOTools.StandardQUBOModel{𝕊,V,T,U}(
+    spin_model = ModelWrapper(
+        QUBOTools.Model{𝕊,V,T,U}(
             Dict{V,T}(:x => 1.0),
             Dict{Tuple{V,V},T}((:x, :y) => 0.5);
             scale       = 2.0,
             offset      = 1.5,
             id          = 2,
             version     = v"0.2.0",
-            description = "This is a Spin Model",
+            description = "This is a Spin ModelWrapper",
             metadata    = Dict{String,Any}(
                 "meta" => "data",
                 "type" => "spin",

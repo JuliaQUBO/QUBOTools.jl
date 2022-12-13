@@ -8,6 +8,17 @@ include("minizinc/format.jl")
 include("qubist/format.jl")
 include("qubo/format.jl")
 
+function domains()
+    return Type[dom for dom in subtypes(VariableDomain) if dom !== UnknownDomain]
+end
+
+function formats()
+    domain_list = domains()
+    format_list = subtypes(AbstractFormat)
+
+    return Type[fmt{dom} for fmt in format_list, dom in domain_list if (fmt{<:dom} <: fmt)]
+end
+
 function infer_format(path::AbstractString)
     pieces = reverse(split(basename(path), "."))
 

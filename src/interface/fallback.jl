@@ -42,6 +42,3 @@ QUBOTools.density(model)            = QUBOTools.density(backend(model))
 QUBOTools.linear_density(model)     = QUBOTools.linear_density(backend(model))
 QUBOTools.quadratic_density(model)  = QUBOTools.quadratic_density(backend(model))
 QUBOTools.adjacency(model, args...) = QUBOTools.adjacency(backend(model), args...)
-
-# ~*~ Validation ~*~ #
-QUBOTools.validate(model) = QUBOTools.validate(backend(model))

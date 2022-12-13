@@ -10,6 +10,12 @@
 
 const 𝔻 = VariableDomain
 
+@doc raw"""
+    domains()
+
+Returns the list of available known variable domains.
+""" function domains end
+
 Base.Broadcast.broadcastable(D::VariableDomain) = Ref(D)
 
 @doc raw"""
@@ -43,6 +49,12 @@ const 𝔹 = BoolDomain
 
 @doc raw"""
 """ abstract type AbstractFormat{D<:VariableDomain} end
+
+@doc raw"""
+    formats()
+
+Returns a list containing all available QUBO file formats.
+""" function formats end
 
 @doc raw"""
     infer_format(::AbstractString)::AbstractFormat
