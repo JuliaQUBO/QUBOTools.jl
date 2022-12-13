@@ -1,6 +1,6 @@
 function test_tools()
     @testset "Tools" begin
-        _linear_terms = Dict{Symbol,Float64}(
+        L̄ = Dict{Symbol,Float64}(
             :x => 0.5,
             :y => 1.0,
             :z => 2.0,
@@ -9,7 +9,7 @@ function test_tools()
             :γ => 1.0,
         )
 
-        _quadratic_terms = Dict{Tuple{Symbol,Symbol},Float64}(
+        Q̄ = Dict{Tuple{Symbol,Symbol},Float64}(
             (:x, :x) => 0.5,
             (:x, :y) => 1.0,
             (:x, :z) => 2.0,
@@ -23,34 +23,37 @@ function test_tools()
             (:α, :β) => -0.5,
         )
 
-        _linear_terms, _quadratic_terms, variable_set = QUBOTools._normal_form(
-            _linear_terms,
-            _quadratic_terms
-        )
+        L̄, Q̄, variable_set = QUBOTools._normal_form(L̄, Q̄)
 
         variable_map, variable_inv = QUBOTools._build_mapping(variable_set)
 
-        linear_terms, quadratic_terms = QUBOTools._map_terms(
-            _linear_terms,
-            _quadratic_terms,
-            variable_map,
-        )
+        L, Q = QUBOTools._map_terms(L̄, Q̄, variable_map)
 
         @test variable_map == Dict{Symbol,Int}(
-            :w => 1, :x => 2, :y => 3, :z => 4,
-            :α => 5, :β => 6, :γ => 7, :ξ => 8,
+            :w => 1,
+            :x => 2,
+            :y => 3,
+            :z => 4,
+            :α => 5,
+            :β => 6,
+            :γ => 7,
+            :ξ => 8,
         )
 
         @test variable_inv == Dict{Int,Symbol}(
-            1 => :w, 2 => :x, 3 => :y, 4 => :z,
-            5 => :α, 6 => :β, 7 => :γ, 8 => :ξ,
+            1 => :w,
+            2 => :x,
+            3 => :y,
+            4 => :z,
+            5 => :α,
+            6 => :β,
+            7 => :γ,
+            8 => :ξ,
         )
 
-        @test linear_terms == Dict{Int,Float64}(
-            1 => -0.25, 2 => 1.0, 3 => 1.0, 4 => 2.0,
-        )
+        @test L == Dict{Int,Float64}(1 => -0.25, 2 => 1.0, 3 => 1.0, 4 => 2.0)
 
-        @test quadratic_terms == Dict{Tuple{Int,Int},Float64}(
+        @test Q == Dict{Tuple{Int,Int},Float64}(
             (2, 3) => 1.0,
             (2, 4) => 2.0,
             (1, 2) => 3.0,
@@ -58,18 +61,10 @@ function test_tools()
             (1, 4) => -2.0,
         )
 
-        __linear_terms, __quadratic_terms = QUBOTools._inv_terms(
-            linear_terms,
-            quadratic_terms,
-            variable_inv,
-        )
+        __linear_terms, __quadratic_terms = QUBOTools._inv_terms(L, Q, variable_inv)
 
-        @test __linear_terms == Dict{Symbol,Float64}(
-            :x => 1.0,
-            :y => 1.0,
-            :z => 2.0,
-            :w => -0.25,
-        )
+        @test __linear_terms ==
+              Dict{Symbol,Float64}(:x => 1.0, :y => 1.0, :z => 2.0, :w => -0.25)
 
         @test __quadratic_terms == Dict{Tuple{Symbol,Symbol},Float64}(
             (:x, :y) => 1.0,
@@ -80,48 +75,43 @@ function test_tools()
         )
 
         # ~*~ Type inference ~*~ #
-        @test QUBOTools.infer_format(:bool, :json)     isa QUBOTools.BQPJSON{𝔹}
+        @test QUBOTools.infer_format(:bool, :json) isa QUBOTools.BQPJSON{𝔹}
         @test QUBOTools.infer_format("file.bool.json") isa QUBOTools.BQPJSON{𝔹}
 
-        @test QUBOTools.infer_format(:spin, :json)     isa QUBOTools.BQPJSON{𝕊}
+        @test QUBOTools.infer_format(:spin, :json) isa QUBOTools.BQPJSON{𝕊}
         @test QUBOTools.infer_format("file.spin.json") isa QUBOTools.BQPJSON{𝕊}
 
-        @test QUBOTools.infer_format(:hfs)       isa QUBOTools.HFS{𝔹}
+        @test QUBOTools.infer_format(:hfs) isa QUBOTools.HFS{𝔹}
         @test QUBOTools.infer_format("file.hfs") isa QUBOTools.HFS{𝔹}
 
-        @test QUBOTools.infer_format(:bool, :mzn)     isa QUBOTools.MiniZinc{𝔹}
+        @test QUBOTools.infer_format(:bool, :mzn) isa QUBOTools.MiniZinc{𝔹}
         @test QUBOTools.infer_format("file.bool.mzn") isa QUBOTools.MiniZinc{𝔹}
 
-        @test QUBOTools.infer_format(:spin, :mzn)     isa QUBOTools.MiniZinc{𝕊}
+        @test QUBOTools.infer_format(:spin, :mzn) isa QUBOTools.MiniZinc{𝕊}
         @test QUBOTools.infer_format("file.spin.mzn") isa QUBOTools.MiniZinc{𝕊}
 
-        @test QUBOTools.infer_format(:qh)       isa QUBOTools.Qubist{𝕊}
+        @test QUBOTools.infer_format(:qh) isa QUBOTools.Qubist{𝕊}
         @test QUBOTools.infer_format("file.qh") isa QUBOTools.Qubist{𝕊}
 
-        @test QUBOTools.infer_format(:qubo)       isa QUBOTools.QUBO{𝔹}
+        @test QUBOTools.infer_format(:qubo) isa QUBOTools.QUBO{𝔹}
         @test QUBOTools.infer_format("file.qubo") isa QUBOTools.QUBO{𝔹}
-    
+
         @test_throws Exception QUBOTools.infer_format(:xyz)
         @test_throws Exception QUBOTools.infer_format("file")
     end
 
     @testset "Raw Model Queries" begin
         Q = Dict{Tuple{Int,Int},Float64}(
-            (1, 1) => 1.0, (1, 2) => 1.0, (1, 3) => 1.0,
-                           (2, 2) => 1.0, 
-                                          (3, 3) => 1.0,
+            (1, 1) => 1.0,
+            (1, 2) => 1.0,
+            (1, 3) => 1.0,
+            (2, 2) => 1.0,
+            (3, 3) => 1.0, 
         )
 
-        h = Dict{Int,Float64}(
-            1 => 1.0,
-            2 => 0.0,
-            3 => -1.0,
-        )
+        h = Dict{Int,Float64}(1 => 1.0, 2 => 0.0, 3 => -1.0)
 
-        J = Dict{Tuple{Int,Int},Float64}(
-            (1, 2) => 2.0, (1, 3) => -4.0,
-                           (2, 3) => -8.0,
-        )
+        J = Dict{Tuple{Int,Int},Float64}((1, 2) => 2.0, (1, 3) => -4.0, (2, 3) => -8.0)
 
         # ~ value ~ #
         X = [
