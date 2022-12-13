@@ -16,7 +16,7 @@ function formats()
     domain_list = domains()
     format_list = subtypes(AbstractFormat)
 
-    return Type[fmt{dom} for fmt in format_list, dom in domain_list if (fmt{<:dom} <: fmt)]
+    return Type[fmt{dom} for dom in domain_list, fmt in format_list if (fmt{<:dom} <: fmt)]
 end
 
 function infer_format(path::AbstractString)

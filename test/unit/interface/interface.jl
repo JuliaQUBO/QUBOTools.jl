@@ -154,7 +154,7 @@ function test_interface_data_access(bool_model, bool_samples, spin_model, spin_s
 end
 
 function test_interface_dict_normal_forms(bool_model, spin_model)
-    @testset "Dict" begin
+    @testset "▷ Dict" begin
         # -*- :: QUBO :: -*- #
         Q̄ = Dict{Tuple{Int,Int},Float64}(
             (1, 1) => 1.0, (1, 2) =>  2.0,
@@ -188,7 +188,7 @@ function test_interface_dict_normal_forms(bool_model, spin_model)
 end
 
 function test_interface_vector_normal_forms(bool_model, spin_model)
-    @testset "Vector" begin
+    @testset "▷ Vector" begin
         # -*- :: QUBO :: -*- #
         L̄ = [1.0, -1.0]
         Q̄ = [2.0]
@@ -220,7 +220,7 @@ function test_interface_vector_normal_forms(bool_model, spin_model)
 end
 
 function test_interface_matrix_normal_forms(bool_model, spin_model)
-    @testset "Matrix" begin
+    @testset "▷ Matrix" begin
         # -*- :: QUBO :: -*- #
         Q̄ = [1.0 2.0; 0.0 -1.0]
         ᾱ = 2.0
@@ -247,7 +247,7 @@ function test_interface_matrix_normal_forms(bool_model, spin_model)
 end
 
 function test_interface_sparse_normal_forms(bool_model, spin_model)
-    @testset "Sparse" begin
+    @testset "▷ Sparse" begin
         # -*- :: QUBO :: -*- #
         Q̄ = sparse([1.0 2.0; 0.0 -1.0])
         ᾱ = 2.0

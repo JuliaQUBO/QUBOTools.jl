@@ -15,7 +15,7 @@ function test_formats()
         for fmt in format_list
             test_cases = TEST_CASES[fmt]
 
-            @testset "$(fmt)" begin
+            @testset "▷ $(fmt)" begin
                 for i in test_cases
                     test_data_path = TEST_DATA_PATH[fmt](i)
                     temp_data_path = TEMP_DATA_PATH[fmt](i)

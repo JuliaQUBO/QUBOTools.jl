@@ -22,6 +22,8 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     # ~*~ Factors ~*~
     scale::T
     offset::T
+    # ~*~ Sense ~*~
+    sense::Symbol
     # ~*~ Metadata ~*~
     id::Union{Int,Nothing}
     version::Union{VersionNumber,Nothing}
@@ -39,6 +41,8 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         # ~*~ Factors ~*~
         scale::Union{T,Nothing} = nothing,
         offset::Union{T,Nothing} = nothing,
+        # ~*~ Sense ~*~
+        sense::Union{Symbol,Nothing} = nothing,
         # ~*~ Metadata ~*~
         id::Union{Integer,Nothing} = nothing,
         version::Union{VersionNumber,Nothing} = nothing,
@@ -54,6 +58,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
             variable_inv,
             something(scale, one(T)),
             something(offset, zero(T)),
+            something(sense, :min),
             id,
             version,
             description,
@@ -119,6 +124,7 @@ function Base.empty!(model::Model{D,V,T,U}) where {D,V,T,U}
     # ~*~ Attributes ~*~ #
     model.scale       = one(T)
     model.offset      = zero(T)
+    model.sense       = :min
     model.id          = nothing
     model.version     = nothing
     model.description = nothing
@@ -138,8 +144,9 @@ function Base.copy(model::Model{D,V,T,U}) where {D,V,T,U}
         copy(model.quadratic_terms),
         copy(model.variable_map),
         copy(model.variable_inv);
-        offset      = model.offset,
         scale       = model.scale,
+        offset      = model.offset,
+        sense       = model.sense,
         id          = model.id,
         version     = model.version,
         description = model.description,
@@ -150,6 +157,7 @@ end
 
 scale(model::Model)  = model.scale
 offset(model::Model) = model.offset
+sense(model::Model)  = model.sense
 
 linear_terms(model::Model)    = model.linear_terms
 quadratic_terms(model::Model) = model.quadratic_terms

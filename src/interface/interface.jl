@@ -101,33 +101,38 @@ Returns a new object, switching its domain from `source` to `target`.
 """ function swap_domain end
 
 @doc raw"""
-    offset(model)::T where {T <: Real}
-
-""" function offset end
-
-@doc raw"""
-    scale(model)::T where {T <: Real}
+    scale(model)
 
 """ function scale end
 
 @doc raw"""
-    id(model)::Integer
+    offset(model)
+
+""" function offset end
+
+@doc raw"""
+    sense(model)::Symbol
+
+""" function sense end
+
+@doc raw"""
+    id(model)
 """ function id end
 
 @doc raw"""
-    version(model)::Union{VersionNumber, Nothing}
+    version(model)
 """ function version end
 
 @doc raw"""
-    description(model)::Union{String, Nothing}
+    description(model)
 """ function description end
 
 @doc raw"""
-    metadata(model)::Dict{String, Any}
+    metadata(model)
 """ function metadata end
 
 @doc raw"""
-    sampleset(model)::QUBOTools.SampleSet
+    sampleset(model)
 """ function sampleset end
 
 @doc raw"""

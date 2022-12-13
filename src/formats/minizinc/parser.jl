@@ -4,6 +4,7 @@ function _parse_line!(fmt::MiniZinc, data::Dict{Symbol,Any}, line::AbstractStrin
     _parse_factor!(fmt, data, line)    && return nothing
     _parse_variable!(fmt, data, line)  && return nothing
     _parse_objective!(fmt, data, line) && return nothing
+    _parse_sense!(fmt, data, line)     && return nothing
 
     syntax_warning("'$line'")
 end
@@ -167,6 +168,26 @@ function _parse_objective!(::MiniZinc, data::Dict{Symbol,Any}, line::AbstractStr
     return true
 end
 
+function _parse_sense!(::MiniZinc, data::Dict{Symbol,Any}, line::AbstractString)
+    m = match(_MINIZINC_RE_SENSE, line)
+
+    if isnothing(m)
+        return false    
+    end
+
+    data[:mzn_sense] = string(m[1])
+
+    if data[:mzn_sense] == "minimize"
+        data[:sense] = :min
+    elseif data[:mzn_sense] == "maximize"
+        data[:sense] = :max
+    else
+        format_error("Invalid optimization sense '$(data[:mzn_sense])")
+    end
+
+    return true
+end
+
 function read_model(io::IO, fmt::MiniZinc{D}) where {D}
     data = Dict{Symbol,Any}(
         :domain          => nothing,
@@ -178,6 +199,7 @@ function read_model(io::IO, fmt::MiniZinc{D}) where {D}
         :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
         :metadata        => nothing,
         :description     => nothing,
+        :sense           => nothing,
     )
 
     for line in strip.(readlines(io))

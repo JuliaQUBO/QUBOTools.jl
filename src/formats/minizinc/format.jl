@@ -6,6 +6,7 @@ const _MINIZINC_RE_FACTOR    = r"^float\s*:\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([+
 const _MINIZINC_RE_VAR       = r"^" * _MINIZINC_VAR_SYMBOL * r"([0-9]+)$"
 const _MINIZINC_RE_VAR_DEF   = r"^var\s+Domain\s*:\s*" * _MINIZINC_VAR_SYMBOL * r"([0-9]+)\s*;$"
 const _MINIZINC_RE_OBJECTIVE = r"^var\s+float\s*:\s*objective\s*=\s*(.+);$"
+const _MINIZINC_RE_SENSE     = r"^solve (minimize|maximize) objective;$"
 
 @doc raw"""
 """ struct MiniZinc{D} <: AbstractFormat{D} end
