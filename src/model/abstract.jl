@@ -341,9 +341,6 @@ function QUBOTools.adjacency(model::AbstractModel, k::Integer)
     return A
 end
 
-# ~*~ Internal: bridge validation ~*~ #
-
-
 # ~*~ I/O ~*~ #
 function Base.read(source::Any, fmt::AbstractFormat)
     return read_model(source, fmt)
@@ -365,13 +362,18 @@ function Base.copy!(
 end
 
 function Base.show(io::IO, model::AbstractModel)
+    print(
+        io,
+        """
+        $(model_name(model)):
+        $(domain_size(model)) variables [$(domain_name(model))]
+        """
+    )
+
     if !isempty(model)
         print(
             io,
             """
-            $(model_name(model)):
-            $(domain_size(model)) variables [$(domain_name(model))]
-
             Density:
             linear    ~ $(@sprintf("%0.2f", 100.0 * linear_density(model)))%
             quadratic ~ $(@sprintf("%0.2f", 100.0 * quadratic_density(model)))%
@@ -382,9 +384,6 @@ function Base.show(io::IO, model::AbstractModel)
         print(
             io,
             """
-            $(model_name(model)) Model:
-            $(domain_size(model)) variables [$(domain_name(model))]
-
             The model is empty
             """
         )
