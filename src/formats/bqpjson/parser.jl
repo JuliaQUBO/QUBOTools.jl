@@ -1,7 +1,7 @@
 function _parse_version!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{String,Any})
     bqpjson_version = VersionNumber(json_data["version"])
 
-    if bqpjson_version !== BQPJSON_VERSION_LATEST
+    if bqpjson_version !== _BQPJSON_VERSION_LATEST
         codec_error("Outdated BQPJSON version '$bqpjson_version'")
     end
 
@@ -98,7 +98,7 @@ function _parse_solutions!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{St
                 format_error("Unknown variable id '$j' in assignment")
             elseif j ∈ var_ids
                 format_error("Duplicate variable id '$j' in assignment")
-            elseif !BQPJSON_VALIDATE_DOMAIN(v, data[:domain])
+            elseif !_BQPJSON_VALIDATE_DOMAIN(v, data[:domain])
                 format_error("Variable assignment '$v' out of domain")
             end
 
@@ -117,7 +117,7 @@ end
 
 function read_model(io::IO, fmt::BQPJSON{D}) where {D}
     json_data = JSON.parse(io)
-    report    = JSONSchema.validate(BQPJSON_SCHEMA, json_data)
+    report    = JSONSchema.validate(_BQPJSON_SCHEMA, json_data)
     
     if !isnothing(report)
         codec_error("Schema violation:\n$(report)")
@@ -151,6 +151,10 @@ function read_model(io::IO, fmt::BQPJSON{D}) where {D}
         sampleset   = data[:sampleset],
     )
 
-    return convert(StandardModel{D}, model)
+    if D === UnknownDomain
+        return model
+    else
+        return convert(StandardModel{D}, model)
+    end
 end
 

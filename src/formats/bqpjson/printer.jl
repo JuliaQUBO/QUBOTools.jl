@@ -1,3 +1,7 @@
+function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{UnknownDomain}) where {D}
+    return write_model(io, model, BQPJSON{D}())
+end
+
 function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:VariableDomain}
     data = Dict{Symbol,Any}(
         :linear_terms    => Dict{String,Any}[],

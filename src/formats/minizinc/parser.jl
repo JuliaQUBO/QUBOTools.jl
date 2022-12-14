@@ -221,5 +221,9 @@ function read_model(io::IO, fmt::MiniZinc{D}) where {D}
         metadata    = data[:metadata],
     )
 
-    return convert(StandardModel{D}, model)
+    if D === UnknownDomain
+        return model
+    else
+        return convert(StandardModel{D}, model)
+    end
 end

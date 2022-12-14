@@ -60,18 +60,7 @@ function Base.merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
     return Sample{T,U}(state(u), value(u), reads(u) + reads(v))
 end
 
-function format(
-    data::Vector{Sample{T,U}},
-    size::Union{Integer,Nothing} = nothing,
-) where {T,U}
-    if isempty(data)
-        if isnothing(size)
-            return (nothing, Sample{T,U}[])
-        else
-            return (nothing, sizehint!(Sample{T,U}[], size))
-        end
-    end
-
+function format(data::Vector{Sample{T,U}}) where {T,U}
     bits  = nothing
     cache = sizehint!(Dict{Vector{U},Sample{T,U}}(), length(data))
 
@@ -96,16 +85,7 @@ function format(
         cache[state(merged)] = merged
     end
 
-    data = collect(values(cache))
-    data = if isnothing(size)
-        sort(data)
-    elseif length(data) > size
-        collect(partialsort(data, 1:size))
-    else
-        sizehint!(sort(data), size)
-    end
-
-    return (bits, data)
+    return (bits, sort(collect(values(cache))))
 end
 
 @doc raw"""
@@ -169,12 +149,12 @@ function Base.show(io::IO, ω::S) where {S<:AbstractSampleSet}
 end
 
 # ~*~ :: Metadata Validation :: ~*~ #
-const SAMPLESET_METADATA_PATH   = joinpath(@__DIR__, "sampleset.schema.json")
-const SAMPLESET_METADATA_DATA   = JSON.parsefile(SAMPLESET_METADATA_PATH)
-const SAMPLESET_METADATA_SCHEMA = JSONSchema.Schema(SAMPLESET_METADATA_DATA)
+const _SAMPLESET_METADATA_PATH   = joinpath(@__DIR__, "sampleset.schema.json")
+const _SAMPLESET_METADATA_DATA   = JSON.parsefile(_SAMPLESET_METADATA_PATH)
+const _SAMPLESET_METADATA_SCHEMA = JSONSchema.Schema(_SAMPLESET_METADATA_DATA)
 
 function validate(ω::AbstractSampleSet)
-    report = JSONSchema.validate(SAMPLESET_METADATA_SCHEMA, metadata(ω))
+    report = JSONSchema.validate(_SAMPLESET_METADATA_SCHEMA, metadata(ω))
 
     if !isnothing(report)
         @warn report
@@ -213,55 +193,33 @@ It was inspired by [1], with a few tweaks.
 [1] https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet
 """ struct SampleSet{T,U} <: AbstractSampleSet{T,U}
     bits::Union{Int,Nothing}
-    size::Union{Int,Nothing}
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
 
     function SampleSet{T,U}(
         bits::Union{Integer,Nothing},
-        size::Union{Integer,Nothing},
         data::Vector{Sample{T,U}},
         metadata::Dict{String,Any},
     ) where {T,U}
-        return new{T,U}(bits, size, data, metadata)
+        return new{T,U}(bits, data, metadata)
     end
 end
 
 function SampleSet{T,U}(
-    size::Union{Integer,Nothing},
     data::Vector{Sample{T,U}},
     metadata::Union{Dict{String,Any},Nothing} = nothing,
 ) where {T,U}
-    if !isnothing(size) && size <= 0
-        throw(ArgumentError("'size' must be a positive integer or 'nothing'"))
-    end
-
-    bits, data = format(data, size)
-
-    data = if isnothing(size)
-        sort(data)
-    elseif length(data) <= size
-        sizehint!(sort(data), size)
-    else
-        collect(partialsort(data, 1:size))
-    end
+    bits, data = format(data)
 
     if isnothing(metadata)
         metadata = Dict{String,Any}()
     end
 
-    return SampleSet{T,U}(bits, size, data, metadata)
+    return SampleSet{T,U}(bits, data, metadata)
 end
 
-function SampleSet{T,U}(size::Union{Integer,Nothing} = nothing) where {T,U}
-    return SampleSet{T,U}(size, Sample{T,U}[], Dict{String,Any}())
-end
-
-function SampleSet{T,U}(
-    data::Vector{Sample{T,U}},
-    metadata::Union{Dict{String,Any},Nothing} = nothing,
-) where {T,U}
-    return SampleSet{T,U}(nothing, data, metadata)
+function SampleSet{T,U}() where {T,U}
+    return SampleSet{T,U}(Sample{T,U}[], Dict{String,Any}())
 end
 
 function SampleSet{T,U}(
@@ -283,7 +241,7 @@ end
 
 SampleSet{T}(args...; kws...) where {T}  = SampleSet{T,Int}(args...; kws...)
 SampleSet(args...; kws...)               = SampleSet{Float64}(args...; kws...)
-Base.copy(ω::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(ω.bits, ω.size, copy(ω.data), deepcopy(ω.metadata))
+Base.copy(ω::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(ω.bits, copy(ω.data), deepcopy(ω.metadata))
 
 Base.:(==)(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = (ω.data == η.data)
 
@@ -294,52 +252,8 @@ Base.isempty(ω::SampleSet) = isempty(ω.data)
 Base.collect(ω::SampleSet)              = collect(ω.data)
 Base.getindex(ω::SampleSet, i::Integer) = ω.data[i]
 
-function Base.append!(ω::SampleSet{T,U}, data::Vector{Sample{T,U}}) where {T,U}
-    for s in data
-        push!(ω, s)
-    end
-
-    return ω
-end
-
-function Base.push!(ω::SampleSet{T,U}, s::Sample{T,U}) where {T,U}
-    # Fast track
-    if value(s) > value(ω[end])
-        if length(ω) < ω.size
-            push!(ω.data, s)
-        end
-
-        return ω
-    end
-
-    r = searchsorted(ω.data, s)
-    i = first(r)
-    j = last(r)
-
-    for k = i:j
-        z = ω.data[k]
-
-        if s == z
-            ω.data[k] = merge(s, z)
-
-            return ω
-        end
-    end
-
-    insert!(ω.data, i, s)
-
-    if length(ω) > ω.size
-        pop!(ω.data)
-    end
-
-    return ω
-end
-
-Base.merge!(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = append!(ω, collect(η))
-Base.merge(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U}  = merge!(copy(ω), η)
-
 metadata(ω::SampleSet) = ω.metadata
 
 function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
-    return SampleSet{T,U}(ω.bits, ω.size, swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
+    return SampleSet{T,U}(ω.bits, swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
 end

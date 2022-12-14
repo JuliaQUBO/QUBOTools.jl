@@ -221,8 +221,8 @@ function Base.copy!(target::Model{D,V,T,U}, source::Model{D,V,T,U}) where {D,V,T
     return target
 end
 
-function Base.copy!(target::Model{B,V,T,U}, source::Model{A,V,T,U}) where {A,B,V,T,U}
-    return copy!(target, convert(Model{B,V,T,U}, source))
+function Base.copy!(target::Model{Y,V,T,U}, source::Model{X,V,T,U}) where {X,Y,V,T,U}
+    return copy!(target, convert(Model{Y,V,T,U}, source))
 end
 
 function Base.convert(::Type{Model{Y,V,T,U}}, model::Model{X,V,T,U}) where {X,Y,V,T,U}
