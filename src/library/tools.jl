@@ -3,7 +3,8 @@
 
 Tells if two dictionaries have the same keys and approximate values for those keys.
 The keyword arguments are passed to `isapprox` calls.
-""" function _isapproxdict end
+"""
+function _isapproxdict end
 
 function _isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
     if length(x) == length(y)
@@ -13,97 +14,93 @@ function _isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
     end
 end
 
-"""
-    _swapdomain(
-        source::Type,
-        target::Type,
-        linear_terms::Dict{Int,T},
-        quadratic_terms::Dict{Tuple{Int,Int},T},
-        offset::Union{T,Nothing}
-    ) where {T}
-
-Swaps the variable domain of a model, recalculating its coefficients.
-""" function _swapdomain end
-
-function _swapdomain(
-    ::SpinDomain,
-    ::BoolDomain,
-    linear_terms::Dict{Int,T},
-    quadratic_terms::Dict{Tuple{Int,Int},T},
-    offset::Union{T,Nothing},
+function swap_domain(
+    ::𝕊,
+    ::𝔹,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    ᾱ::Union{T,Nothing} = nothing,
+    β̄::Union{T,Nothing} = nothing,
 ) where {T}
-    bool_offset          = isnothing(offset) ? zero(T) : offset
-    bool_linear_terms    = Dict{Int,T}()
-    bool_quadratic_terms = Dict{Tuple{Int,Int},T}()
+    coalesce()
+    α = something(ᾱ, one(T))
+    β = something(β̄, zero(T))
+    L = sizehint!(Dict{Int,T}(), length(L̄))
+    Q = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q̄))
 
-    for (i, h) in linear_terms
-        bool_offset -= h
-        bool_linear_terms[i] = get(bool_linear_terms, i, zero(T)) + 2h
+    for (i, c) in L̄
+        β -= c
+        L[i] = get(L, i, zero(T)) + 2c
     end
 
-    for ((i, j), J) in quadratic_terms
-        bool_offset += J
-        bool_linear_terms[i]         = get(bool_linear_terms, i, zero(T)) - 2J
-        bool_linear_terms[j]         = get(bool_linear_terms, j, zero(T)) - 2J
-        bool_quadratic_terms[(i, j)] = get(bool_quadratic_terms, (i, j), zero(T)) + 4J
+    for ((i, j), c) in Q̄
+        β         += c
+        L[i]      = get(L, i, zero(T)) - 2c
+        L[j]      = get(L, j, zero(T)) - 2c
+        Q[(i, j)] = get(Q, (i, j), zero(T)) + 4c
     end
 
-    return (bool_linear_terms, bool_quadratic_terms, bool_offset)
+    return (L, Q, α, β)
 end
 
-function _swapdomain(
-    ::BoolDomain,
-    ::SpinDomain,
-    linear_terms::Dict{Int,T},
-    quadratic_terms::Dict{Tuple{Int,Int},T},
-    offset::Union{T,Nothing},
-    ) where {T}
-    spin_offset          = isnothing(offset) ? zero(T) : offset
-    spin_linear_terms    = Dict{Int,T}()
-    spin_quadratic_terms = Dict{Tuple{Int,Int},T}()
+function swap_domain(
+    ::𝔹,
+    ::𝕊,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    ᾱ::Union{T,Nothing} = nothing,
+    β̄::Union{T,Nothing} = nothing,
+) where {T}
+    α = something(ᾱ, one(T))
+    β = something(β̄, zero(T))
+    L = sizehint!(Dict{Int,T}(), length(L̄))
+    Q = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q̄))
 
-    for (i, q) in linear_terms
-        spin_offset += q / 2
-        spin_linear_terms[i] = get(spin_linear_terms, i, zero(T)) + q / 2
+    for (i, c) in L̄
+        β += c / 2
+        L[i] = get(L, i, zero(T)) + c / 2
     end
 
-    for ((i, j), Q) in quadratic_terms
-        spin_offset += Q / 4
-        spin_linear_terms[i]         = get(spin_linear_terms, i, zero(T)) + Q / 4
-        spin_linear_terms[j]         = get(spin_linear_terms, j, zero(T)) + Q / 4
-        spin_quadratic_terms[(i, j)] = get(spin_quadratic_terms, (i, j), zero(T)) + Q / 4
+    for ((i, j), c) in Q̄
+        β         += c / 4
+        L[i]      = get(L, i, zero(T)) + c / 4
+        L[j]      = get(L, j, zero(T)) + c / 4
+        Q[(i, j)] = get(Q, (i, j), zero(T)) + c / 4
     end
 
-    return (spin_linear_terms, spin_quadratic_terms, spin_offset)
+    return (L, Q, α, β)
 end
 
-function _map_terms(_linear_terms::Dict{S,T}, _quadratic_terms::Dict{Tuple{S,S},T}, variable_map::Dict{S,Int}) where {S,T}
-    linear_terms = Dict{Int,T}(
-        variable_map[i] => l
-        for (i, l) in _linear_terms
-    )
+function _map_terms(
+    _linear_terms::Dict{S,T},
+    _quadratic_terms::Dict{Tuple{S,S},T},
+    variable_map::Dict{S,Int},
+) where {S,T}
+    linear_terms = Dict{Int,T}(variable_map[i] => l for (i, l) in _linear_terms)
     quadratic_terms = Dict{Tuple{Int,Int},T}(
-        (variable_map[i], variable_map[j]) => q
-        for ((i, j), q) in _quadratic_terms
+        (variable_map[i], variable_map[j]) => q for ((i, j), q) in _quadratic_terms
     )
 
     return (linear_terms, quadratic_terms)
 end
 
-function _inv_terms(_linear_terms::Dict{Int,T}, _quadratic_terms::Dict{Tuple{Int,Int},T}, variable_inv::Dict{Int,S}) where {S,T}
-    linear_terms = Dict{S,T}(
-        variable_inv[i] => l
-        for (i, l) in _linear_terms
-    )
+function _inv_terms(
+    _linear_terms::Dict{Int,T},
+    _quadratic_terms::Dict{Tuple{Int,Int},T},
+    variable_inv::Dict{Int,S},
+) where {S,T}
+    linear_terms = Dict{S,T}(variable_inv[i] => l for (i, l) in _linear_terms)
     quadratic_terms = Dict{Tuple{S,S},T}(
-        (variable_inv[i], variable_inv[j]) => q
-        for ((i, j), q) in _quadratic_terms
+        (variable_inv[i], variable_inv[j]) => q for ((i, j), q) in _quadratic_terms
     )
 
     return (linear_terms, quadratic_terms)
 end
 
-function _normal_form(_linear_terms::Dict{V,T}, _quadratic_terms::Dict{Tuple{V,V},T}) where {V,T}
+function _normal_form(
+    _linear_terms::Dict{V,T},
+    _quadratic_terms::Dict{Tuple{V,V},T},
+) where {V,T}
     linear_terms    = Dict{V,T}()
     quadratic_terms = Dict{Tuple{V,V},T}()
     variable_set    = Set{V}()
@@ -156,9 +153,44 @@ end
 
 function _build_mapping(variable_set::Set{V}) where {V}
     variable_map = Dict{V,Int}(
-        v => k for (k, v) in enumerate(sort(collect(variable_set); lt=varcmp))
+        v => k for (k, v) in enumerate(sort(collect(variable_set); lt = varcmp))
     )
     variable_inv = Dict{Int,V}(v => k for (k, v) in variable_map)
 
     return (variable_map, variable_inv)
+end
+
+function domains()
+    return Type[dom for dom in subtypes(VariableDomain) if dom !== UnknownDomain]
+end
+
+function formats()
+    domain_list = domains()
+    format_list = subtypes(AbstractFormat)
+
+    return Type[fmt{dom} for dom in domain_list, fmt in format_list if (fmt{<:dom} <: fmt)]
+end
+
+function infer_format(path::AbstractString)
+    pieces = reverse(split(basename(path), "."))
+
+    if length(pieces) == 1
+        format_error("Unable to infer QUBO format from file without an extension")
+    else
+        format_hint, domain_hint, _... = pieces
+    end
+
+    return infer_format(Symbol(domain_hint), Symbol(format_hint))
+end
+
+function infer_format(domain_hint::Symbol, format_hint::Symbol)
+    return infer_format(Val(domain_hint), Val(format_hint))
+end
+
+function infer_format(::Val, format_hint::Val)
+    return infer_format(format_hint)
+end
+
+function infer_format(format_hint::Symbol)
+    return infer_format(Val(format_hint))
 end

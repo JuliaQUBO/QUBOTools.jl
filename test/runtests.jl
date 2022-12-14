@@ -3,8 +3,11 @@ using Printf
 using SparseArrays
 using QUBOTools
 import QUBOTools: ↑, ↓, 𝔹, 𝕊
-import QUBOTools: Sample, SampleSet, SampleError, sample_error
+import QUBOTools: Sample, SampleSet
 import QUBOTools: CodecError, codec_error
+import QUBOTools: SamplingError, sampling_error
+import QUBOTools: FormatError, format_error
+import QUBOTools: SyntaxError, syntax_error
 import QUBOTools: state, value, reads
 import QUBOTools: backend
 import QUBOTools: BQPJSON, HFS, MiniZinc, Qubist, QUBO

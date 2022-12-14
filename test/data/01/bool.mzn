@@ -14,5 +14,3 @@ float: offset = 0.0;
 var float: objective = 1.3*x2 + -0.7*x6;
 
 solve minimize objective;
-
-output [show(scale*(objective + offset)), " - ", show(objective)];

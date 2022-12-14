@@ -48,7 +48,7 @@ function test_standard()
         sampleset_metadata,
     )
 
-    std_model = QUBOTools.StandardQUBOModel{𝔹,V,T,U}(
+    std_model = QUBOTools.Model{𝔹,V,T,U}(
         _linear_terms,
         _quadratic_terms;
         scale=scale,
@@ -85,8 +85,6 @@ function test_standard()
         end
 
         @testset "Queries" verbose = true begin
-            @test isnothing(QUBOTools.backend(std_model))
-
             @test QUBOTools.domain(std_model) == 𝔹()
             @test QUBOTools.domain_name(std_model) == "Bool"
             @test QUBOTools.domain_size(std_model) == 2
@@ -112,7 +110,7 @@ function test_standard()
                 @test QUBOTools.id(model)              == QUBOTools.id(std_model)
             end
 
-            let model = QUBOTools.StandardQUBOModel{𝔹,V,T,U}()
+            let model = QUBOTools.Model{𝔹,V,T,U}()
                 copy!(model, std_model)
                 @test QUBOTools.linear_terms(model)    == QUBOTools.linear_terms(std_model)
                 @test QUBOTools.quadratic_terms(model) == QUBOTools.quadratic_terms(std_model)
@@ -134,7 +132,7 @@ function test_standard()
         # @testset "Bridges" verbose = true begin
         #     @testset "BOOL -> SPIN" verbose = true begin
         #         # spin_model = convert(
-        #         #     QUBOTools.StandardQUBOModel{Symbol,Float64,Int,QUBOTools.SpinDomain},
+        #         #     QUBOTools.Model{Symbol,Float64,Int,QUBOTools.SpinDomain},
         #         #     bool_model,
         #         # )
 
