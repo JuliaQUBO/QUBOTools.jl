@@ -43,7 +43,6 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
 
     json_data = Dict{String,Any}(
         "id"              => data[:id],
-        "version"         => string(data[:version]),
         "variable_domain" => data[:variable_domain],
         "linear_terms"    => data[:linear_terms],
         "quadratic_terms" => data[:quadratic_terms],
@@ -52,6 +51,12 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
         "scale"           => data[:scale],
         "metadata"        => data[:metadata],
     )
+
+    if isnothing(data[:version])
+        json_data["version"] = string(v"0.1.0")
+    else
+        json_data["version"] = string(data[:nothing])
+    end
 
     if !isnothing(data[:description])
         json_data["description"] = data[:description]
