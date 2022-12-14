@@ -53,7 +53,7 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
     )
 
     if isnothing(data[:version])
-        json_data["version"] = string(v"0.1.0")
+        json_data["version"] = string(_BQPJSON_VERSION_LATEST)
     else
         json_data["version"] = string(data[:nothing])
     end
