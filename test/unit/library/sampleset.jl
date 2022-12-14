@@ -68,7 +68,7 @@ function test_samples()
             @test !isequal(s, Sample([0, 1], 2.0, 3))
             @test !isequal(s, Sample([0, 1], 1.0, 2))
 
-            @test sprint(show, s) == "↑↓"
+            @test sprint(print, s) == "↑↓"
         end
     end
 
