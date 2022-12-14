@@ -31,9 +31,9 @@ qubo(model, args...)  = qubo(backend(model), args...)
 ising(model, args...) = ising(backend(model), args...)
 
 # ~*~ Solution queries ~*~ #
-state(model, args...)  = state(backend(model), args...)
+state(model, args...) = state(backend(model), args...)
 value(model, args...) = value(backend(model), args...)
-reads(model, args...)  = reads(backend(model), args...)
+reads(model, args...) = reads(backend(model), args...)
 
 # ~*~ Data queries ~*~ #
 domain_size(model)        = domain_size(backend(model))

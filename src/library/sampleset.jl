@@ -170,6 +170,10 @@ function swap_domain(::A, ::B, s::Sample{T,U}) where {A<:𝔻,B<:𝔻,T,U}
     return Sample{T,U}(swap_domain(A(), B(), state(s)), value(s), reads(s))
 end
 
+function swap_sense(s::Sample{T,U}) where {T,U}
+    return Sample{T,U}(state(s), -value(s), reads(s))
+end
+
 state(ω::AbstractSampleSet, i::Integer)             = state(ω[i])
 state(ω::AbstractSampleSet, i::Integer, j::Integer) = state(ω[i], j)
 value(ω::AbstractSampleSet, i::Integer)             = value(ω[i])
@@ -256,4 +260,8 @@ metadata(ω::SampleSet) = ω.metadata
 
 function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
     return SampleSet{T,U}(ω.bits, swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
+end
+
+function swap_sense(ω::SampleSet{T,U}) where {T,U}
+    return SampleSet{T,U}(ω.bits, swap_sense.(ω), deepcopy(metadata(ω)))
 end
