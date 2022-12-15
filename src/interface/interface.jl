@@ -44,10 +44,29 @@ const 𝔹 = BoolDomain
 
 @doc raw"""
     AbstractModel{D<:VariableDomain}
-    
+
+Represents an abstract QUBO Model and should support most of the queries made available
+by `QUBOTools`.
+
+## Example
+A common use case is to build wrappers around the [`Model`](@ref) concrete type:
+
+```julia
+struct ModelWrapper{D} <: AbstractModel{D}
+    model::Model{D,Int,Float64,Int}
+    attrs::Dict{String,Any}
+end
+
+QUBOTools.backend(mw::ModelWrapper) = mw.model
+```
+
+As shown in the example above, implementing a method for the [`backend`](@ref) function
+gives access to most fallback implementations.
 """ abstract type AbstractModel{D<:VariableDomain} end
 
 @doc raw"""
+    AbstractFormat{D<:VariableDomain}
+
 """ abstract type AbstractFormat{D<:VariableDomain} end
 
 @doc raw"""
@@ -168,7 +187,9 @@ Reveses the sign of the objective value.
 """ function metadata end
 
 @doc raw"""
-    sampleset(model)
+    sampleset(model)::SampleSet
+
+Returns the [`SampleSet`](@ref) stored in a model.
 """ function sampleset end
 
 @doc raw"""
@@ -294,12 +315,16 @@ Returns Ising Model form from QUBO Model (Bool).
 
 # ~*~ Data queries ~*~ #
 @doc raw"""
-    state(model, index::Integer)
+    state(model, i::Integer)
+
+Returns the state vector corresponding to the ``i``-th solution on the model's sampleset.
 """ function state end
 
 @doc raw"""
     reads(model)
-    reads(model, index::Integer)
+    reads(model, i::Integer)
+
+Returns the read frequency of the ``i``-th solution on the model's sampleset.
 """ function reads end
 
 @doc raw"""

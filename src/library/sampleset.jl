@@ -194,7 +194,7 @@ It was inspired by [1], with a few tweaks.
     It is optimized to support queries over the solution set.
 
 ## References
-[1] https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet
+[1] [ocean docs](https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet)
 """ struct SampleSet{T,U} <: AbstractSampleSet{T,U}
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
