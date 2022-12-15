@@ -217,17 +217,17 @@ function swap_sense(model::Model{D,V,T,U}) where {D,V,T,U}
 end
 
 function Base.copy!(target::Model{D,V,T,U}, source::Model{D,V,T,U}) where {D,V,T,U}
-    target.linear_terms    = copy(source.linear_terms)
-    target.quadratic_terms = copy(source.quadratic_terms)
-    target.variable_map    = copy(source.variable_map)
-    target.variable_inv    = copy(source.variable_inv)
-    target.scale           = source.scale
-    target.offset          = source.offset
-    target.id              = source.id
-    target.version         = source.version
-    target.description     = source.description
-    target.metadata        = deepcopy(source.metadata)
-    target.sampleset       = source.sampleset
+    target.linear_terms    = copy(linear_terms(source))
+    target.quadratic_terms = copy(quadratic_terms(source))
+    target.variable_map    = copy(variable_map(source))
+    target.variable_inv    = copy(variable_inv(source))
+    target.scale           = scale(source)
+    target.offset          = offset(source)
+    target.id              = id(source)
+    target.version         = version(source)
+    target.description     = description(source)
+    target.metadata        = deepcopy(metadata(source))
+    target.sampleset       = copy(sampleset(source))
 
     return target
 end

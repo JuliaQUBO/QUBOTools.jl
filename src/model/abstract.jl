@@ -362,30 +362,60 @@ function Base.copy!(
 end
 
 function Base.show(io::IO, model::AbstractModel)
-    print(
+    s = sense(model) === Min ? "Min" : "Max"
+
+    println(
         io,
         """
-        $(model_name(model)):
-        $(domain_size(model)) variables [$(domain_name(model))]
+        $(model_name(model)) [$(s), $(domain_name(model))]
+        ▷ Variables ……… $(domain_size(model))  
         """
     )
 
-    if !isempty(model)
-        print(
+    if isempty(model)
+        println(
+            io,
+            """
+            The model is empty.
+            """
+        )
+
+        return nothing
+    else
+        println(
             io,
             """
             Density:
-            linear    ~ $(@sprintf("%0.2f", 100.0 * linear_density(model)))%
-            quadratic ~ $(@sprintf("%0.2f", 100.0 * quadratic_density(model)))%
-            total     ~ $(@sprintf("%0.2f", 100.0 * density(model)))%
-            """
-        )
-    else
-        print(
-            io,
-            """
-            The model is empty
+            ▷ Linear ……………… $(@sprintf("%0.2f", 100.0 * linear_density(model)))%
+            ▷ Quadratic ……… $(@sprintf("%0.2f", 100.0 * quadratic_density(model)))%
+            ▷ Total ………………… $(@sprintf("%0.2f", 100.0 * density(model)))%
             """
         )
     end
+
+    if isempty(sampleset(model))
+        print(
+            io,
+            """
+            There are no solutions available.
+            """
+        )
+
+        return nothing
+    else
+        ω = sampleset(model)
+        n = length(ω)
+        z = sense(model) === Min ? value(ω[begin]) : value(ω[end])
+
+        print(
+            io,
+            """
+            Solutions:
+            ▷ Samples …………… $(n)
+            ▷ Best value …… $(z)
+            """
+        )
+    end
+
+    return nothing
 end
