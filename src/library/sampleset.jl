@@ -257,9 +257,9 @@ Base.getindex(ω::SampleSet, i::Integer) = ω.data[i]
 metadata(ω::SampleSet) = ω.metadata
 
 function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
-    return SampleSet{T,U}(swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
+    return SampleSet{T,U}(Vector{U}.(swap_domain.(A(), B(), ω)), deepcopy(metadata(ω)))
 end
 
 function swap_sense(ω::SampleSet{T,U}) where {T,U}
-    return SampleSet{T,U}(swap_sense.(ω), deepcopy(metadata(ω)))
+    return SampleSet{T,U}(Vector{U}.(swap_sense.(ω)), deepcopy(metadata(ω)))
 end
