@@ -184,24 +184,18 @@ function swap_domain(::X, ::Y, model::Model{X,V,T,U}) where {X,Y,V,T,U}
         offset(model),
     )
 
-    ω = sampleset(model)
-
-    if isnothing(ω)
-        η = nothing
-    else
-        η = swap_domain(X(), Y(), sampleset(model))
-    end
-
     return Model{Y,V,T,U}(
         L,
-        Q;
+        Q,
+        copy(variable_map(model)),
+        copy(variable_inv(model));
         scale       = α,
         offset      = β,
         id          = id(model),
         version     = version(model),
         description = description(model),
         metadata    = metadata(model),
-        sampleset   = η,
+        sampleset   = swap_domain(X(), Y(), sampleset(model)),
     )
 end
 
