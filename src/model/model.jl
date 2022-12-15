@@ -30,7 +30,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     description::Union{String,Nothing}
     metadata::Union{Dict{String,Any},Nothing}
     # ~*~ Solutions ~*~
-    sampleset::Union{SampleSet{T,U},Nothing}
+    sampleset::SampleSet{T,U}
 
     function Model{D,V,T,U}(
         # ~*~ Required data ~*~
@@ -63,7 +63,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
             version,
             description,
             metadata,
-            sampleset,
+            something(sampleset, SampleSet{T,U}()),
         )
     end
 end
@@ -129,7 +129,7 @@ function Base.empty!(model::Model{D,V,T,U}) where {D,V,T,U}
     model.version     = nothing
     model.description = nothing
     model.metadata    = nothing
-    model.sampleset   = nothing
+    model.sampleset   = SampleSet{T,U}()
 
     return model
 end

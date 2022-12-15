@@ -61,7 +61,7 @@ function test_interface_data_access(bool_model, bool_samples, spin_model, spin_s
             "type" => "spin",
         )
 
-        @test QUBOTools.sampleset(null_model) === nothing
+        @test QUBOTools.sampleset(null_model) == SampleSet()
         @test QUBOTools.sampleset(bool_model) == QUBOTools.SampleSet(bool_samples)
         @test QUBOTools.sampleset(spin_model) == QUBOTools.SampleSet(spin_samples)
 
