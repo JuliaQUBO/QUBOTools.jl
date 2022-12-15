@@ -1,5 +1,3 @@
-
-
 function test_swap_sense()
     T = Float64
 
@@ -32,8 +30,6 @@ function test_swap_sense()
     )
 
     @test QUBOTools.swap_sense(dict2) == swapped_dict2
-
-
 end
 
 function test_generic()

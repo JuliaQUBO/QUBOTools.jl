@@ -205,8 +205,8 @@ function swap_domain(::X, ::Y, model::Model{X,V,T,U}) where {X,Y,V,T,U}
     )
 end
 
-function swap_sense(::Val{s}, model::Model{D,V,T,U}) where {D,V,T,U,s}
-    if s === sense(model)
+function swap_sense(target::Sense, model::Model{D,V,T,U}) where {D,V,T,U}
+    if sense(model) === target
         return model
     else
         return Model{D,V,T,U}(
@@ -214,7 +214,7 @@ function swap_sense(::Val{s}, model::Model{D,V,T,U}) where {D,V,T,U,s}
             swap_sense(quadratic_terms(model));
             scale       = scale(model),
             offset      = -offset(model),
-            sense       = s,
+            sense       = target,
             id          = id(model),
             version     = version(model),
             description = description(model),
