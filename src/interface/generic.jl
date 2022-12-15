@@ -333,8 +333,22 @@ function ising(Q::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
     return (h, J, α, β)
 end
 
-swap_sense(::Nothing)                            = nothing
-swap_sense(target::Symbol, model::AbstractModel) = swap_sense(Sense(target), model)
+swap_sense(::Nothing)                              = nothing
+swap_sense(s::Sense) = s === Min ? Max  : Min
+swap_sense(target::Symbol, x::Any)                 = swap_sense(Sense(target), x)
+swap_sense(source::Symbol, target::Symbol, x::Any) = swap_sense(Sense(source), Sense(target), x)
+
+function swap_sense(target::Sense, x::Any)
+    return swap_sense(sense(x), target, x)
+end
+
+function swap_sense(source::Sense, target::Sense, x::Any)
+    if source === target
+        return x
+    else
+        return swap_sense(x)
+    end
+end
 
 function swap_sense(L::Dict{Int,T}) where {T}
     return Dict{Int,T}(i => -c for (i, c) in L)

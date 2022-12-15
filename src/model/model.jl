@@ -205,25 +205,21 @@ function swap_domain(::X, ::Y, model::Model{X,V,T,U}) where {X,Y,V,T,U}
     )
 end
 
-function swap_sense(target::Sense, model::Model{D,V,T,U}) where {D,V,T,U}
-    if sense(model) === target
-        return model
-    else
-        return Model{D,V,T,U}(
-            swap_sense(linear_terms(model)),
-            swap_sense(quadratic_terms(model)), 
-            copy(variable_map(model)),
-            copy(variable_inv(model));
-            scale       = scale(model),
-            offset      = -offset(model),
-            sense       = target,
-            id          = id(model),
-            version     = version(model),
-            description = description(model),
-            metadata    = deepcopy(metadata(model)),
-            sampleset   = swap_sense(sampleset(model)),
-        )
-    end
+function swap_sense(model::Model{D,V,T,U}) where {D,V,T,U}
+    return Model{D,V,T,U}(
+        swap_sense(linear_terms(model)),
+        swap_sense(quadratic_terms(model)), 
+        copy(variable_map(model)),
+        copy(variable_inv(model));
+        scale       = scale(model),
+        offset      = -offset(model),
+        sense       = swap_sense(sense(model)),
+        id          = id(model),
+        version     = version(model),
+        description = description(model),
+        metadata    = deepcopy(metadata(model)),
+        sampleset   = swap_sense(sampleset(model)),
+    )
 end
 
 function Base.copy!(target::Model{D,V,T,U}, source::Model{D,V,T,U}) where {D,V,T,U}
