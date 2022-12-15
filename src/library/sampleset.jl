@@ -194,7 +194,7 @@ It was inspired by [1], with a few tweaks.
     It is optimized to support queries over the solution set.
 
 ## References
-[1] https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet
+[1] [ocean docs](https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet)
 """ struct SampleSet{T,U} <: AbstractSampleSet{T,U}
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
@@ -254,12 +254,15 @@ Base.isempty(ω::SampleSet) = isempty(ω.data)
 Base.collect(ω::SampleSet)              = collect(ω.data)
 Base.getindex(ω::SampleSet, i::Integer) = ω.data[i]
 
+Base.iterate(ω::SampleSet)             = iterate(ω.data)
+Base.iterate(ω::SampleSet, i::Integer) = iterate(ω.data, i)
+
 metadata(ω::SampleSet) = ω.metadata
 
 function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
-    return SampleSet{T,U}(swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
+    return SampleSet{T,U}(Vector{Sample{T,U}}(swap_domain.(A(), B(), ω)), deepcopy(metadata(ω)))
 end
 
 function swap_sense(ω::SampleSet{T,U}) where {T,U}
-    return SampleSet{T,U}(swap_sense.(ω), deepcopy(metadata(ω)))
+    return SampleSet{T,U}(Vector{Sample{T,U}}(swap_sense.(ω)), deepcopy(metadata(ω)))
 end
