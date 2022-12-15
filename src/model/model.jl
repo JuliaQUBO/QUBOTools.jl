@@ -23,7 +23,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     scale::T
     offset::T
     # ~*~ Sense ~*~
-    sense::Symbol
+    sense::Sense
     # ~*~ Metadata ~*~
     id::Union{Int,Nothing}
     version::Union{VersionNumber,Nothing}
@@ -42,7 +42,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         scale::Union{T,Nothing} = nothing,
         offset::Union{T,Nothing} = nothing,
         # ~*~ Sense ~*~
-        sense::Union{Symbol,Nothing} = nothing,
+        sense::Union{Sense,Symbol,Nothing} = nothing,
         # ~*~ Metadata ~*~
         id::Union{Integer,Nothing} = nothing,
         version::Union{VersionNumber,Nothing} = nothing,
@@ -58,7 +58,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
             variable_inv,
             something(scale, one(T)),
             something(offset, zero(T)),
-            something(sense, :min),
+            Sense(something(sense, :min)),
             id,
             version,
             description,
@@ -124,7 +124,7 @@ function Base.empty!(model::Model{D,V,T,U}) where {D,V,T,U}
     # ~*~ Attributes ~*~ #
     model.scale       = one(T)
     model.offset      = zero(T)
-    model.sense       = :min
+    model.sense       = Sense(:min)
     model.id          = nothing
     model.version     = nothing
     model.description = nothing
@@ -203,6 +203,27 @@ function swap_domain(::X, ::Y, model::Model{X,V,T,U}) where {X,Y,V,T,U}
         metadata    = metadata(model),
         sampleset   = η,
     )
+end
+
+function swap_sense(target::Sense, model::Model{D,V,T,U}) where {D,V,T,U}
+    if sense(model) === target
+        return model
+    else
+        return Model{D,V,T,U}(
+            swap_sense(linear_terms(model)),
+            swap_sense(quadratic_terms(model)), 
+            copy(variable_map(model)),
+            copy(variable_inv(model));
+            scale       = scale(model),
+            offset      = -offset(model),
+            sense       = target,
+            id          = id(model),
+            version     = version(model),
+            description = description(model),
+            metadata    = deepcopy(metadata(model)),
+            sampleset   = swap_sense(sampleset(model)),
+        )
+    end
 end
 
 function Base.copy!(target::Model{D,V,T,U}, source::Model{D,V,T,U}) where {D,V,T,U}

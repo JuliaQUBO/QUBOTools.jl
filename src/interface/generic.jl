@@ -332,3 +332,14 @@ function ising(Q::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
 
     return (h, J, α, β)
 end
+
+swap_sense(::Nothing)                            = nothing
+swap_sense(target::Symbol, model::AbstractModel) = swap_sense(Sense(target), model)
+
+function swap_sense(L::Dict{Int,T}) where {T}
+    return Dict{Int,T}(i => -c for (i, c) in L)
+end
+
+function swap_sense(Q::Dict{Tuple{Int,Int},T}) where {T}
+    return Dict{Tuple{Int,Int},T}(ij => -c for (ij, c) in Q)
+end

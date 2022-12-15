@@ -92,10 +92,10 @@ Returns a string representing the variable domain.
 """ function domain_name end
 
 @doc raw"""
-    swap_domain(source, target, model)
-    swap_domain(source, target, state)
-    swap_domain(source, target, states)
-    swap_domain(source, target, sampleset)
+    swap_domain(target, model::AbstractModel)
+    swap_domain(source, target, ψ::Vector{U})
+    swap_domain(source, target, Ψ::Vector{Vector{U}})
+    swap_domain(source, target, ω::SampleSet)
 
 Returns a new object, switching its domain from `source` to `target`.
 """ function swap_domain end
@@ -110,10 +110,46 @@ Returns a new object, switching its domain from `source` to `target`.
 
 """ function offset end
 
+@enum Sense begin
+    Min
+    Max
+end
+
+function QUBOTools.Sense(s::Symbol)
+    if s === :min
+        return Min
+    elseif s === :max
+        return Max
+    else
+        error("Unknown optimization sense '$s'")
+    end
+end
+
+QUBOTools.Sense(s::Sense) = s
+
 @doc raw"""
-    sense(model)::Symbol
+    sense(model)::Sense
 
 """ function sense end
+
+@doc raw"""
+    swap_sense(target::Sense, model::AbstractModel)
+    swap_sense(target::Symbol, model::AbstractModel)
+
+```math
+\begin{array}{ll}
+    \min_{s} \alpha [f(s) + \beta] &\equiv \max_{s} -\alpha [f(s) + \beta] \\
+                                   &\equiv \max_{s} \alpha [-f(s) - \beta] \\
+\end{array}
+```
+
+The linear terms, quadratic terms and constant offset of a model have its signs reversed.
+
+    swap_sense(s::Sample)
+    swap_sense(ω::SampleSet)
+
+Reveses the sign of the objective value.
+""" function swap_sense end
 
 @doc raw"""
     id(model)
