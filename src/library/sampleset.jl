@@ -254,6 +254,9 @@ Base.isempty(ω::SampleSet) = isempty(ω.data)
 Base.collect(ω::SampleSet)              = collect(ω.data)
 Base.getindex(ω::SampleSet, i::Integer) = ω.data[i]
 
+Base.iterate(ω::SampleSet)             = iterate(ω.data)
+Base.iterate(ω::SampleSet, i::Integer) = iterate(ω.data, i)
+
 metadata(ω::SampleSet) = ω.metadata
 
 function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
