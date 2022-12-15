@@ -35,7 +35,7 @@ To read and write QUBO models one is expected to use the `Base.read`/`Base.write
 # File Path
 fpath = joinpath(@__DIR__, "data", "problem.json")
 
-model = read(fpath, BQPJSON)
+model = read(fpath, BQPJSON())
 ```
 
 ## Data Access
@@ -55,14 +55,14 @@ QUBOTools.quadratic_terms(model)
 
 ## Conversion between File Formats
 One of the main functionalities of this package is to allow fast conversion from a QUBO file format to another.
-As a design choice, *QUBOTools* leverages the `Base.convert` interface to perform this task.
+Achieving this is as simple as writing the loaded model but providing a different specification:
 
 ```@example manual
-qubo_model = convert(QUBO, model)
+write("problem.qubo", model, QUBO())
 ```
 
-It can also be used to switch between variable domains:
+It can also be used to switch between variable domains while keeping the file format unchanged:
 
 ```@example manual
-spin_model = convert(BQPJSON{SpinDomain}, model)
+write("problem.qubo", model, BQPJSON{SpinDomain}())
 ```

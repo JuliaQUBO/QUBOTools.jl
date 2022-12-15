@@ -17,9 +17,12 @@ QUBOTools.varcmp
 QUBOTools.VariableDomain
 QUBOTools.BoolDomain
 QUBOTools.SpinDomain
+QUBOTools.UnknownDomain
 QUBOTools.domain
 QUBOTools.domain_name
 QUBOTools.swap_domain
+QUBOTools.sense
+QUBOTools.swap_sense
 ```
 
 ### Solution Interface
@@ -39,9 +42,10 @@ QUBOTools.reads
 ### Models
 ```@docs
 QUBOTools.AbstractModel
-QUBOTools.StandardQUBOModel
+QUBOTools.Model
 QUBOTools.model_name
-QUBOTools.infer_model_type
+QUBOTools.AbstractFormat
+QUBOTools.infer_format
 ```
 
 ## Data Access

@@ -114,7 +114,7 @@ function test_samples()
             ],
         )
         # ~*~ Merge & Sort ~*~#
-        source_ω = Sample{Float64,Int}[
+        u = Sample{Float64,Int}[
             Sample([0, 0], 0.0, 1),
             Sample([0, 0], 0.0, 2),
             Sample([0, 1], 2.0, 3),
@@ -125,6 +125,13 @@ function test_samples()
             Sample([1, 1], 1.0, 8),
         ]
 
+        v = Sample{Float64,Int}[
+            Sample([0, 0], 0.0,  3),
+            Sample([1, 1], 1.0, 15),
+            Sample([0, 1], 2.0,  7),
+            Sample([1, 0], 4.0, 11),
+        ]
+
         metadata = Dict{String,Any}(
             "time" => Dict{String,Any}("total" => 10.0),
             "origin" => "quantum",
@@ -132,27 +139,20 @@ function test_samples()
                 ["presolve", "decomposition", "binary quadratic polytope cuts"],
         )
 
-        target_ω = Sample{Float64,Int}[
-            Sample([0, 0], 0.0,  3),
-            Sample([1, 1], 1.0, 15),
-            Sample([0, 1], 2.0,  7),
-            Sample([1, 0], 4.0, 11),
-        ]
+        ω = SampleSet(u, metadata)
+        η = SampleSet(v)
 
-        source_ω = SampleSet{Float64,Int}(source_ω, metadata)
+        @test ω == η
 
-        let target_ω = SampleSet{Float64,Int}(target_ω)
-            @test source_ω == target_ω
-        end
-
-        let target_ω = copy(source_ω)
-            @test source_ω == target_ω
-            @test target_ω.metadata == metadata
+        let θ = copy(ω)
+            @test θ == ω
+            @test QUBOTools.metadata(ω) == metadata
 
             # Ensure metadata was deepcopied
             metadata["origin"] = "monte carlo"
 
-            @test target_ω.metadata != metadata
+            @test QUBOTools.metadata(ω) == metadata
+            @test QUBOTools.metadata(θ) != metadata
         end
 
         # ~*~ Model constructor ~*~ #

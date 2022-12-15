@@ -85,7 +85,7 @@ function format(data::Vector{Sample{T,U}}) where {T,U}
         cache[state(merged)] = merged
     end
 
-    return (bits, sort(collect(values(cache))))
+    return sort(collect(values(cache)))
 end
 
 @doc raw"""
@@ -196,34 +196,25 @@ It was inspired by [1], with a few tweaks.
 ## References
 [1] https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet
 """ struct SampleSet{T,U} <: AbstractSampleSet{T,U}
-    bits::Union{Int,Nothing}
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
 
     function SampleSet{T,U}(
-        bits::Union{Integer,Nothing},
         data::Vector{Sample{T,U}},
-        metadata::Dict{String,Any},
+        metadata::Union{Dict{String,Any},Nothing} = nothing,
     ) where {T,U}
-        return new{T,U}(bits, data, metadata)
-    end
-end
+        data = format(data)
 
-function SampleSet{T,U}(
-    data::Vector{Sample{T,U}},
-    metadata::Union{Dict{String,Any},Nothing} = nothing,
-) where {T,U}
-    bits, data = format(data)
+        if isnothing(metadata)
+            metadata = Dict{String,Any}()
+        end
 
-    if isnothing(metadata)
-        metadata = Dict{String,Any}()
+        return new{T,U}(data, metadata)
     end
 
-    return SampleSet{T,U}(bits, data, metadata)
-end
-
-function SampleSet{T,U}() where {T,U}
-    return SampleSet{T,U}(Sample{T,U}[], Dict{String,Any}())
+    function SampleSet{T,U}() where {T,U}
+        return new{T,U}(Sample{T,U}[], Dict{String,Any}())
+    end
 end
 
 function SampleSet{T,U}(
@@ -245,7 +236,14 @@ end
 
 SampleSet{T}(args...; kws...) where {T}  = SampleSet{T,Int}(args...; kws...)
 SampleSet(args...; kws...)               = SampleSet{Float64}(args...; kws...)
-Base.copy(ω::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(ω.bits, copy(ω.data), deepcopy(ω.metadata))
+Base.copy(ω::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(copy(ω.data), deepcopy(ω.metadata))
+
+function Base.copy!(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U}
+    copy!(ω.data, η.data)
+    copy!(ω.metadata, deepcopy(η.metadata))
+
+    return ω
+end
 
 Base.:(==)(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = (ω.data == η.data)
 
@@ -259,9 +257,9 @@ Base.getindex(ω::SampleSet, i::Integer) = ω.data[i]
 metadata(ω::SampleSet) = ω.metadata
 
 function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
-    return SampleSet{T,U}(ω.bits, swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
+    return SampleSet{T,U}(swap_domain.(A(), B(), ω), deepcopy(metadata(ω)))
 end
 
 function swap_sense(ω::SampleSet{T,U}) where {T,U}
-    return SampleSet{T,U}(ω.bits, swap_sense.(ω), deepcopy(metadata(ω)))
+    return SampleSet{T,U}(swap_sense.(ω), deepcopy(metadata(ω)))
 end
