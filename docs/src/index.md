@@ -30,15 +30,11 @@ where ``J \in \mathbb{R}^{n \times n}`` is upper triangular and ``\mathbf{h} \in
 QUBOTools.jl is avaible through Julia's General Registry:
 
 ```julia-repl
-julia> ]add QUBOTools
+julia> import Pkg
+
+julia> Pkg.add("QUBOTools")
 
 julia> using QUBOTools
-```
-
-You might also be interested in the latest development version:
-
-```julia-repl
-julia> ]add QUBOTools#main
 ```
 
 ## Objectives
