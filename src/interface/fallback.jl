@@ -5,6 +5,8 @@ This file contains fallback implementations by calling the model's backend.
 This allows for external models to define a QUBOTools-based backend and profit from these queries.
 """
 
+frontend(model) = backend(model)
+
 # ~*~ Data access ~*~ #
 model_name(model)            = model_name(backend(model))
 domain(model)                = domain(backend(model))

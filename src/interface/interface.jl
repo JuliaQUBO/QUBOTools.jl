@@ -84,6 +84,14 @@ Given a file path, tries to infer the type associated to a QUBO model format.
 """ function infer_format end
 
 @doc raw"""
+    frontend(model)::AbstractModel
+    frontend(model::AbstractModel)::AbstractModel
+
+Retrieves the model's backend.
+Implementing this function allows one to profit from fallback implementations of the other methods.
+""" function frontend end
+
+@doc raw"""
     backend(model)::AbstractModel
     backend(model::AbstractModel)::AbstractModel
 
