@@ -18,11 +18,11 @@ function write_model(io::IO, model::AbstractModel{D}, fmt::Qubist{D}) where {D}
     _print_header(io, data, fmt)
 
     for (i, h) in linear_terms(model)
-        println(io, "$(variable_inv(model, i)) $(variable_inv(model, i)) $(h)")
+        println(io, "$(i) $(i) $(h)")
     end
 
     for ((i, j), J) in quadratic_terms(model)
-        println(io, "$(variable_inv(model, i)) $(variable_inv(model, j)) $(J)")
+        println(io, "$(i) $(j) $(J)")
     end
 
     return nothing

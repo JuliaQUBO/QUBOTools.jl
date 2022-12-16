@@ -71,8 +71,8 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
             assignment = Dict{String,Any}[
                 Dict{String,Any}(
                     "id"    => i,
-                    "value" => state(s, j)
-                ) for (i, j) in variable_map(model)
+                    "value" => state(s, i),
+                ) for i in values(variable_map(model))
             ]
 
             for _ = 1:reads(s)
