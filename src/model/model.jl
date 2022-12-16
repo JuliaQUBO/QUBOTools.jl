@@ -144,14 +144,14 @@ function Base.copy(model::Model{D,V,T,U}) where {D,V,T,U}
         copy(model.quadratic_terms),
         copy(model.variable_map),
         copy(model.variable_inv);
-        scale       = model.scale,
-        offset      = model.offset,
-        sense       = model.sense,
-        id          = model.id,
-        version     = model.version,
-        description = model.description,
-        metadata    = deepcopy(model.metadata),
-        sampleset   = model.sampleset,
+        scale       = scale(model),
+        offset      = offset(model),
+        sense       = sense(model),
+        id          = id(model),
+        version     = version(model),
+        description = description(model),
+        metadata    = deepcopy(metadata(model)),
+        sampleset   = copy(sampleset(model)),
     )
 end
 
@@ -191,6 +191,7 @@ function swap_domain(::X, ::Y, model::Model{X,V,T,U}) where {X,Y,V,T,U}
         copy(variable_inv(model));
         scale       = α,
         offset      = β,
+        sense       = sense(model),
         id          = id(model),
         version     = version(model),
         description = description(model),

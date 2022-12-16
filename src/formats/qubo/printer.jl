@@ -70,14 +70,14 @@ function write_model(io::IO, model::AbstractModel{D}, fmt::QUBO{D}) where {D}
 
     !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
 
-    for (i, l) in explicit_linear_terms(model)
-        println(io, "$(variable_inv(model, i)) $(variable_inv(model, i)) $(l)")
+    for (i, l) in linear_terms(model)
+        println(io, "$(i) $(i) $(l)")
     end
 
     !isnothing(fmt.comment) && println(io, "$(fmt.comment) quadratic terms")
 
     for ((i, j), q) in quadratic_terms(model)
-        println(io, "$(variable_inv(model, i)) $(variable_inv(model, j)) $(q)")
+        println(io, "$(i) $(j) $(q)")
     end
 
     return nothing

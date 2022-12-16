@@ -84,6 +84,14 @@ Given a file path, tries to infer the type associated to a QUBO model format.
 """ function infer_format end
 
 @doc raw"""
+    frontend(model)::AbstractModel
+    frontend(model::AbstractModel)::AbstractModel
+
+Retrieves the model's backend.
+Implementing this function allows one to profit from fallback implementations of the other methods.
+""" function frontend end
+
+@doc raw"""
     backend(model)::AbstractModel
     backend(model::AbstractModel)::AbstractModel
 
@@ -427,5 +435,11 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 
 @doc raw"""
     format(data::Vector{Sample{T,U}}) where {T,U}
-    
+    format(
+        source_sense::Sense,
+        source_domain::VariableDomain,
+        target_sense::Sense,
+        target_domain::VariableDomain,
+        x::Any
+    )
 """ function format end

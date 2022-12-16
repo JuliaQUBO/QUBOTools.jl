@@ -334,7 +334,7 @@ function ising(Q::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
 end
 
 swap_sense(::Nothing)                              = nothing
-swap_sense(s::Sense) = s === Min ? Max  : Min
+swap_sense(s::Sense)                               = s === Min ? Max : Min
 swap_sense(target::Symbol, x::Any)                 = swap_sense(Sense(target), x)
 swap_sense(source::Symbol, target::Symbol, x::Any) = swap_sense(Sense(source), Sense(target), x)
 
@@ -356,4 +356,18 @@ end
 
 function swap_sense(Q::Dict{Tuple{Int,Int},T}) where {T}
     return Dict{Tuple{Int,Int},T}(ij => -c for (ij, c) in Q)
+end
+
+function format(
+    source_sense::Sense,
+    source_domain::VariableDomain,
+    target_sense::Sense,
+    target_domain::VariableDomain,
+    x::Any,
+)
+    return swap_sense(
+        source_sense,
+        target_sense,
+        swap_domain(source_domain, target_domain, x),
+    )
 end
