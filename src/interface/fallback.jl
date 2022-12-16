@@ -45,3 +45,7 @@ density(model)            = density(backend(model))
 linear_density(model)     = linear_density(backend(model))
 quadratic_density(model)  = quadratic_density(backend(model))
 adjacency(model, args...) = adjacency(backend(model), args...)
+
+# ~*~ File I/O ~*~ #
+write_model(io, model, args...) = write_model(io, backend(model), args...)
+read_model!(io, model, args...) = read_model!(io, backend(model), args...)
