@@ -435,5 +435,11 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 
 @doc raw"""
     format(data::Vector{Sample{T,U}}) where {T,U}
-    
+    format(
+        source_sense::Sense,
+        source_domain::VariableDomain,
+        target_sense::Sense,
+        target_domain::VariableDomain,
+        x::Any
+    )
 """ function format end
