@@ -54,7 +54,7 @@ function _print_metadata(io::IO, ::QUBO, data::Dict{Symbol,Any}, comment::String
 end
 
 function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, style::Symbol)
-    return _print_entries(io, fmt, data, Val(style)
+    return _print_entries(io, fmt, data, Val(style))
 end
 
 function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Any)
