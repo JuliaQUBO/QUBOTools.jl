@@ -53,6 +53,42 @@ function _print_metadata(io::IO, ::QUBO, data::Dict{Symbol,Any}, comment::String
     return nothing
 end
 
+function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, style::Symbol)
+    return _print_entries(io, fmt, data, Val(style)
+end
+
+function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Any)
+    !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
+
+    for (i, l) in linear_terms(model)
+        println(io, "$(i) $(i) $(l)")
+    end
+
+    !isnothing(fmt.comment) && println(io, "$(fmt.comment) quadratic terms")
+
+    for ((i, j), q) in quadratic_terms(model)
+        println(io, "$(i) $(j) $(q)")
+    end
+
+    return nothing
+end
+
+function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Val{:mqlib})
+    !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
+
+    for (i, l) in linear_terms(model)
+        println(io, "$(i) $(i) $(l)")
+    end
+
+    !isnothing(fmt.comment) && println(io, "$(fmt.comment) quadratic terms")
+
+    for ((i, j), q) in quadratic_terms(model)
+        println(io, "$(i) $(j) $(q/2)")
+    end
+
+    return nothing
+end
+
 function write_model(io::IO, model::AbstractModel{D}, fmt::QUBO{D}) where {D}
     data = Dict{Symbol,Any}(
         :scale          => scale(model),
@@ -67,18 +103,7 @@ function write_model(io::IO, model::AbstractModel{D}, fmt::QUBO{D}) where {D}
 
     _print_metadata(io, fmt, data, fmt.comment)
     _print_header(io, fmt, data, fmt.style)
-
-    !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
-
-    for (i, l) in linear_terms(model)
-        println(io, "$(i) $(i) $(l)")
-    end
-
-    !isnothing(fmt.comment) && println(io, "$(fmt.comment) quadratic terms")
-
-    for ((i, j), q) in quadratic_terms(model)
-        println(io, "$(i) $(j) $(q)")
-    end
-
+    _print_entries(io, fmt, data, fmt.style)
+    
     return nothing
 end
