@@ -1,12 +1,16 @@
 function _parse_line!(fmt::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
-    _parse_entry!(fmt, data, line)                && return nothing
+    _parse_entry!(fmt, data, line, fmt.style)     && return nothing
     _parse_comment!(fmt, data, line, fmt.comment) && return nothing
     _parse_header!(fmt, data, line, fmt.style)    && return nothing
 
     syntax_error("$line")
 end
 
-function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
+function _parse_entry!(fmt::QUBO, data::Dict{Symbol,Any}, line::AbstractString, style::Symbol)
+    return _parse_entry!(fmt, data, line, Val(style))
+end
+
+function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::Any)
     m = match(r"^([0-9]+) ([0-9]+) ([+-]?([0-9]*[.])?[0-9]+)$", line)
 
     if isnothing(m)
@@ -27,6 +31,32 @@ function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
     else
         Q         = data[:quadratic_terms]
         Q[(i, j)] = get(Q, (i, j), 0.0) + c
+    end
+
+    return true
+end
+
+function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::Val{:mqlib})
+    m = match(r"^([0-9]+) ([0-9]+) ([+-]?([0-9]*[.])?[0-9]+)$", line)
+
+    if isnothing(m)
+        return false
+    end
+    
+    i = tryparse(Int, m[1])
+    j = tryparse(Int, m[2])
+    c = tryparse(Float64, m[3])
+
+    if isnothing(i) || isnothing(j) || isnothing(c)
+        syntax_error("")
+    end
+
+    if i == j
+        L    = data[:linear_terms]
+        L[i] = get(L, i, 0.0) + c
+    else
+        Q         = data[:quadratic_terms]
+        Q[(i, j)] = get(Q, (i, j), 0.0) + 2c
     end
 
     return true

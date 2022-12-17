@@ -60,13 +60,13 @@ end
 function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Any)
     !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
 
-    for (i, l) in linear_terms(model)
+    for (i, l) in data[:linear_terms]
         println(io, "$(i) $(i) $(l)")
     end
 
     !isnothing(fmt.comment) && println(io, "$(fmt.comment) quadratic terms")
 
-    for ((i, j), q) in quadratic_terms(model)
+    for ((i, j), q) in data[:quadratic_terms]
         println(io, "$(i) $(j) $(q)")
     end
 
@@ -76,13 +76,13 @@ end
 function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Val{:mqlib})
     !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
 
-    for (i, l) in linear_terms(model)
+    for (i, l) in data[:linear_terms]
         println(io, "$(i) $(i) $(l)")
     end
 
     !isnothing(fmt.comment) && println(io, "$(fmt.comment) quadratic terms")
 
-    for ((i, j), q) in quadratic_terms(model)
+    for ((i, j), q) in data[:quadratic_terms]
         println(io, "$(i) $(j) $(q/2)")
     end
 
@@ -91,14 +91,16 @@ end
 
 function write_model(io::IO, model::AbstractModel{D}, fmt::QUBO{D}) where {D}
     data = Dict{Symbol,Any}(
-        :scale          => scale(model),
-        :offset         => offset(model),
-        :id             => id(model),
-        :description    => description(model),
-        :metadata       => metadata(model),
-        :domain_size    => domain_size(model),
-        :linear_size    => linear_size(model),
-        :quadratic_size => quadratic_size(model),
+        :linear_terms    => linear_terms(model),
+        :quadratic_terms => quadratic_terms(model),
+        :linear_size     => linear_size(model),
+        :quadratic_size  => quadratic_size(model),
+        :scale           => scale(model),
+        :offset          => offset(model),
+        :id              => id(model),
+        :description     => description(model),
+        :metadata        => metadata(model),
+        :domain_size     => domain_size(model),
     )
 
     _print_metadata(io, fmt, data, fmt.comment)
