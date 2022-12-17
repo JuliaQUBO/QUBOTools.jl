@@ -46,16 +46,16 @@ where $J \in \mathbb{R}^{n \times n}$ is triangular and $\mathbf{h} \in \mathbb{
 
 ### Installation
 ```julia
-julia> import Pkg; Pkg.add("QUBOTools")
+julia> import Pkg
 
-julia> using QUBOTools
+julia> Pkg.add("QUBOTools")
 ```
 
 ### Basic Usage
 ```julia
-julia> model = read("problem.json", BQPJSON)
+julia> using QUBOTools
 
-julia> model = convert(QUBO, model)
+julia> model = QUBOTools.read_model("problem.json")
 
 julia> write("problem.qubo", model)
 ```
@@ -74,7 +74,7 @@ A brief explanation about it can be found in [qbsolv](https://github.com/arconde
 ### [Qubist](/docs/models/Qubist.md) `rw`
 This is the simplest of all current supported formats.
 
-### [MiniZinc](/docs/models/MiniZinc.md) `w`
+### [MiniZinc](/docs/models/MiniZinc.md) `rw`
 [MiniZinc](https://www.minizinc.org) is a constraint modelling language that can be used as input for many solvers.
 
 ### [HFS](/docs/models/HFS.md) `w`
