@@ -4,70 +4,20 @@
 """
 
 @doc raw"""
-    VariableDomain
-
-""" abstract type VariableDomain end
-
-const 𝔻 = VariableDomain
-
-@doc raw"""
-    domains()
-
-Returns the list of available known variable domains.
-""" function domains end
-
-Base.Broadcast.broadcastable(D::VariableDomain) = Ref(D)
-
-@doc raw"""
-    UnknownDomain <: VariableDomain
-""" struct UnknownDomain <: VariableDomain end
-
-@doc raw"""
-    SpinDomain <: VariableDomain
-
-```math
-s \in \lbrace{-1, 1}\rbrace
-```
-""" struct SpinDomain <: VariableDomain end
-
-const 𝕊 = SpinDomain
-
-@doc raw"""
-    BoolDomain <: VariableDomain
-
-```math
-x \in \lbrace{0, 1}\rbrace
-```
-""" struct BoolDomain <: VariableDomain end
-
-const 𝔹 = BoolDomain
-
-@doc raw"""
-    AbstractModel{D<:VariableDomain}
+    AbstractModel{V,T}
 
 Represents an abstract QUBO Model and should support most of the queries made available
 by `QUBOTools`.
-
-## Example
-A common use case is to build wrappers around the [`Model`](@ref) concrete type:
-
-```julia
-struct ModelWrapper{D} <: AbstractModel{D}
-    model::Model{D,Int,Float64,Int}
-    attrs::Dict{String,Any}
-end
-
-QUBOTools.backend(mw::ModelWrapper) = mw.model
 ```
 
 As shown in the example above, implementing a method for the [`backend`](@ref) function
 gives access to most fallback implementations.
-""" abstract type AbstractModel{D<:VariableDomain} end
+""" abstract type AbstractModel{V,T} end
 
 @doc raw"""
-    AbstractFormat{D<:VariableDomain}
+    AbstractFormat
 
-""" abstract type AbstractFormat{D<:VariableDomain} end
+""" abstract type AbstractFormat end
 
 @doc raw"""
     formats()
@@ -106,11 +56,52 @@ Implementing this function allows one to profit from fallback implementations of
 Returns a string representing the model type.
 """ function model_name end
 
+@enum Domain begin
+    BoolDomain
+    SpinDomain
+end
+
 @doc raw"""
-    domain(model)::VariableDomain
+    Domain
+
+""" Domain
+
+const 𝔻 = Domain
+
+Base.Broadcast.broadcastable(D::Domain) = Ref(D)
+
+@doc raw"""
+    SpinDomain <: Domain
+
+```math
+s \in \lbrace{-1, 1}\rbrace
+```
+""" SpinDomain
+
+const 𝕊 = SpinDomain
+
+@doc raw"""
+    BoolDomain <: Domain
+
+```math
+x \in \lbrace{0, 1}\rbrace
+```
+""" BoolDomain
+
+const 𝔹 = BoolDomain
+
+@doc raw"""
+    domain(model::AbstractModel)::Domain
+    domain(fmt::AbstractFormat)::Domain
 
 Returns the singleton representing the variable domain of a given model.
 """ function domain end
+
+@doc raw"""
+    domains()
+
+Returns the list of available known variable domains.
+""" function domains end
 
 @doc raw"""
     domain_name(model)::String
@@ -172,8 +163,8 @@ QUBOTools.Sense(s::Sense) = s
 
 The linear terms, quadratic terms and constant offset of a model have its signs reversed.
 
-    swap_sense(s::Sample)
-    swap_sense(ω::SampleSet)
+    swap_sense(s::Sample)::Sample
+    swap_sense(ω::SampleSet)::SampleSet
 
 Reveses the sign of the objective value.
 """ function swap_sense end
@@ -437,9 +428,9 @@ If a second parameter, an integer, is present, then the set of neighbors of that
     format(data::Vector{Sample{T,U}}) where {T,U}
     format(
         source_sense::Sense,
-        source_domain::VariableDomain,
+        source_domain::Domain,
         target_sense::Sense,
-        target_domain::VariableDomain,
+        target_domain::Domain,
         x::Any
     )
 """ function format end

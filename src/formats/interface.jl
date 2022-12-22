@@ -35,6 +35,6 @@ function write_model(path::AbstractString, model::AbstractModel, fmt::AbstractFo
     end
 end
 
-function write_model(io::IO, model::AbstractModel{X}, fmt::AbstractFormat{Y}) where {X,Y}
-    return write_model(io, swap_domain(X(), Y(), model), fmt)
+function write_model(io::IO, model::AbstractModel, fmt::AbstractFormat)
+    return nothing
 end

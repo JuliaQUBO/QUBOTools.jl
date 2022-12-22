@@ -6,14 +6,14 @@
 
 ### References
 [1] [qbsolv docs](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
-""" struct QUBO{D<:𝔹} <: AbstractFormat{D}
+""" struct QUBO <: AbstractFormat
     style::Union{Symbol,Nothing}
     comment::Union{String,Nothing}
 
-    function QUBO{D}(;
+    function QUBO(;
         style::Union{Symbol,Nothing} = :dwave,
         comment::Union{String,Nothing} = nothing,
-    ) where {D}
+    )
         if !isnothing(style) && isnothing(comment)
             if style === :dwave
                 comment = "c"
@@ -24,11 +24,11 @@
             end
         end
 
-        return new{D}(style, comment)
+        return new(style, comment)
     end
 end
 
-QUBO(args...; kws...) = QUBO{𝔹}(args...; kws...)
+domain(::QUBO) = BoolDomain
 
 infer_format(::Val{:qubo}) = QUBO()
 

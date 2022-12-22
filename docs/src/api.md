@@ -14,7 +14,7 @@ QUBOTools.varcmp
 
 ### Variable Domains
 ```@docs
-QUBOTools.VariableDomain
+QUBOTools.Domain
 QUBOTools.BoolDomain
 QUBOTools.SpinDomain
 QUBOTools.UnknownDomain

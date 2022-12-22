@@ -1,10 +1,9 @@
 @doc raw"""
     Model{
-        D <: VariableDomain,
         V <: Any,
         T <: Real,
         U <: Integer
-    } <: AbstractModel{D}
+    } <: AbstractModel{V,T}
 
 The `Model` was designed to work as a general for all implemented interfaces.
 It is intended to be the core engine behind the target codecs.
@@ -13,7 +12,7 @@ It is intended to be the core engine behind the target codecs.
 Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
 By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
-""" mutable struct Model{D<:VariableDomain,V<:Any,T<:Real,U<:Integer} <: AbstractModel{D}
+""" mutable struct Model{V<:Any,T<:Real,U<:Integer} <: AbstractModel{V,T}
     # ~*~ Required data ~*~
     linear_terms::Dict{Int,T}
     quadratic_terms::Dict{Tuple{Int,Int},T}
@@ -22,8 +21,9 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     # ~*~ Factors ~*~
     scale::T
     offset::T
-    # ~*~ Sense ~*~
+    # ~*~ Sense & Domain ~*~
     sense::Sense
+    domain::Union{Domain,Nothing}
     # ~*~ Metadata ~*~
     id::Union{Int,Nothing}
     version::Union{VersionNumber,Nothing}
@@ -32,57 +32,65 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     # ~*~ Solutions ~*~
     sampleset::SampleSet{T,U}
 
-    function Model{D,V,T,U}(
+    function Model{V,T,U}(
         # ~*~ Required data ~*~
         linear_terms::Dict{Int,T},
         quadratic_terms::Dict{Tuple{Int,Int},T},
         variable_map::Dict{V,Int},
         variable_inv::Dict{Int,V};
         # ~*~ Factors ~*~
-        scale::Union{T,Nothing} = nothing,
+        scale::Union{T,Nothing}  = nothing,
         offset::Union{T,Nothing} = nothing,
-        # ~*~ Sense ~*~
-        sense::Union{Sense,Symbol,Nothing} = nothing,
+        # ~*~ Sense & Domain ~*~
+        sense::Union{Sense,Symbol,Nothing}   = nothing,
+        domain::Union{Domain,Symbol,Nothing} = nothing,
         # ~*~ Metadata ~*~
-        id::Union{Integer,Nothing} = nothing,
-        version::Union{VersionNumber,Nothing} = nothing,
-        description::Union{String,Nothing} = nothing,
+        id::Union{Integer,Nothing}                = nothing,
+        version::Union{VersionNumber,Nothing}     = nothing,
+        description::Union{String,Nothing}        = nothing,
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         # ~*~ Solutions ~*~
         sampleset::Union{SampleSet{T,U},Nothing} = nothing,
-    ) where {D,V,T,U}
-        new{D,V,T,U}(
+    ) where {V,T,U}
+        scale     = isnothing(scale) ? one(T) : scale
+        offset    = isnothing(offset) ? zero(T) : offset
+        sense     = isnothing(sense) ? Sense(:min) : Sense(sense)
+        domain    = isnothing(domain) ? nothing : Domain(domain)
+        sampleset = isnothing(sampleset) ? SampleSet{T,U}() : sampleset
+
+        return new{V,T,U}(
             linear_terms,
             quadratic_terms,
             variable_map,
             variable_inv,
-            something(scale, one(T)),
-            something(offset, zero(T)),
-            Sense(something(sense, :min)),
+            scale,
+            offset,
+            sense,
+            domain,
             id,
             version,
             description,
             metadata,
-            something(sampleset, SampleSet{T,U}()),
+            sampleset,
         )
     end
 end
 
-function Model{D,V,T,U}(
+function Model{V,T,U}(
     # ~*~ Required data ~*~
     _linear_terms::Dict{V,T},
     _quadratic_terms::Dict{Tuple{V,V},T},
     _variable_set::Union{Set{V},Nothing} = nothing;
     kws...,
-) where {D,V,T,U}
+) where {V,T,U}
     # ~ What is happening now: There were many layers of validation
-    #   before we got here. This call to `_normal_form` removes any re-
-    #   dundancy by aggregating (i, j) and (j, i) terms and also ma-
-    #   king "quadratic" terms with i == j  into linear ones. Also,
-    #   zeros are removed, improving sparsity in this last step.
+    #   before we got here. This call to `_normal_form` removes any
+    #   redundancy by aggregating (i, j) and (j, i) terms and also 
+    #   making "quadratic" terms with i == j  into linear ones.
+    #   Also, zeros are removed, improving sparsity in this last step.
     # ~ New objects are created not to disturb the original ones.
     _linear_terms, _quadratic_terms, variable_set =
-        QUBOTools._normal_form(_linear_terms, _quadratic_terms)
+        _normal_form(_linear_terms, _quadratic_terms)
 
     if isnothing(_variable_set)
         _variable_set = variable_set
@@ -90,31 +98,28 @@ function Model{D,V,T,U}(
         error("'variable_set' is not a subset of '_variable_set'")
     end
 
-    variable_map, variable_inv = QUBOTools._build_mapping(_variable_set)
+    variable_map, variable_inv = _build_mapping(_variable_set)
 
     linear_terms, quadratic_terms =
-        QUBOTools._map_terms(_linear_terms, _quadratic_terms, variable_map)
+        _map_terms(_linear_terms, _quadratic_terms, variable_map)
 
-    return Model{D,V,T,U}(linear_terms, quadratic_terms, variable_map, variable_inv; kws...)
+    return Model{V,T,U}(linear_terms, quadratic_terms, variable_map, variable_inv; kws...)
 end
 
-function Model{D,V,T,U}(; kws...) where {D,V,T,U}
-    return Model{D,V,T,U}(Dict{V,T}(), Dict{Tuple{V,V},T}(); kws...)
+# ~*~ Empty Constructor ~*~ #
+function Model{V,T,U}(; kws...) where {V,T,U}
+    return Model{V,T,U}(Dict{V,T}(), Dict{Tuple{V,V},T}(); kws...)
 end
 
-function Model{D,V,T}(args...; kws...) where {D,V,T}
-    return Model{D,V,T,Int}(args...; kws...)
+function Model{V,T}(args...; kws...) where {V,T}
+    return Model{V,T,Int}(args...; kws...)
 end
 
-function Model{D,V}(args...; kws...) where {D,V}
-    return Model{D,V,Float64,Int}(args...; kws...)
+function Model{V}(args...; kws...) where {V}
+    return Model{V,Float64,Int}(args...; kws...)
 end
 
-function Model{D}(args...; kws...) where {D}
-    return Model{D,Int,Float64,Int}(args...; kws...)
-end
-
-function Base.empty!(model::Model{D,V,T,U}) where {D,V,T,U}
+function Base.empty!(model::Model{V,T,U}) where {V,T,U}
     # ~*~ Structures ~*~ #
     empty!(model.linear_terms)
     empty!(model.quadratic_terms)
@@ -125,6 +130,7 @@ function Base.empty!(model::Model{D,V,T,U}) where {D,V,T,U}
     model.scale       = one(T)
     model.offset      = zero(T)
     model.sense       = Sense(:min)
+    model.domain      = nothing
     model.id          = nothing
     model.version     = nothing
     model.description = nothing
@@ -138,15 +144,16 @@ function Base.isempty(model::Model)
     return isempty(model.variable_map) && isempty(model.variable_inv)
 end
 
-function Base.copy(model::Model{D,V,T,U}) where {D,V,T,U}
-    return Model{D,V,T,U}(
-        copy(model.linear_terms),
-        copy(model.quadratic_terms),
-        copy(model.variable_map),
-        copy(model.variable_inv);
+function Base.copy(model::Model{V,T,U}) where {V,T,U}
+    return Model{V,T,U}(
+        copy(linear_terms(model)),
+        copy(quadratic_terms(model)),
+        copy(variable_map(model)),
+        copy(variable_inv(model));
         scale       = scale(model),
         offset      = offset(model),
         sense       = sense(model),
+        domain      = domain(model),
         id          = id(model),
         version     = version(model),
         description = description(model),
@@ -170,21 +177,19 @@ description(model::Model) = model.description
 metadata(model::Model)    = model.metadata
 sampleset(model::Model)   = model.sampleset
 
-function swap_domain(::D, ::D, model::Model{D}) where {D<:VariableDomain}
-    return model
-end
+function swap_domain(target::Domain, model::Model{V,T,U}) where {V,T,U}
+    source = domain(model)
 
-function swap_domain(::X, ::Y, model::Model{X,V,T,U}) where {X,Y,V,T,U}
     L, Q, α, β = swap_domain(
-        X(),
-        Y(),
+        source,
+        target,
         linear_terms(model),
         quadratic_terms(model),
         scale(model),
         offset(model),
     )
 
-    return Model{Y,V,T,U}(
+    return Model{V,T,U}(
         L,
         Q,
         copy(variable_map(model)),
@@ -192,23 +197,25 @@ function swap_domain(::X, ::Y, model::Model{X,V,T,U}) where {X,Y,V,T,U}
         scale       = α,
         offset      = β,
         sense       = sense(model),
+        domain      = target,
         id          = id(model),
         version     = version(model),
         description = description(model),
         metadata    = metadata(model),
-        sampleset   = swap_domain(X(), Y(), sampleset(model)),
+        sampleset   = swap_domain(source, target, sampleset(model)),
     )
 end
 
-function swap_sense(model::Model{D,V,T,U}) where {D,V,T,U}
-    return Model{D,V,T,U}(
+function swap_sense(model::Model{V,T,U}) where {V,T,U}
+    return Model{V,T,U}(
         swap_sense(linear_terms(model)),
-        swap_sense(quadratic_terms(model)), 
+        swap_sense(quadratic_terms(model)),
         copy(variable_map(model)),
         copy(variable_inv(model));
         scale       = scale(model),
         offset      = -offset(model),
         sense       = swap_sense(sense(model)),
+        domain      = domain(model),
         id          = id(model),
         version     = version(model),
         description = description(model),
@@ -217,13 +224,15 @@ function swap_sense(model::Model{D,V,T,U}) where {D,V,T,U}
     )
 end
 
-function Base.copy!(target::Model{D,V,T,U}, source::Model{D,V,T,U}) where {D,V,T,U}
+function Base.copy!(target::Model{V,T,U}, source::Model{V,T,U}) where {V,T,U}
     target.linear_terms    = copy(linear_terms(source))
     target.quadratic_terms = copy(quadratic_terms(source))
     target.variable_map    = copy(variable_map(source))
     target.variable_inv    = copy(variable_inv(source))
     target.scale           = scale(source)
     target.offset          = offset(source)
+    target.sense           = sense(source)
+    target.domain          = domain(source)
     target.id              = id(source)
     target.version         = version(source)
     target.description     = description(source)
@@ -233,12 +242,4 @@ function Base.copy!(target::Model{D,V,T,U}, source::Model{D,V,T,U}) where {D,V,T
     return target
 end
 
-function Base.copy!(target::Model{Y,V,T,U}, source::Model{X,V,T,U}) where {X,Y,V,T,U}
-    return copy!(target, convert(Model{Y,V,T,U}, source))
-end
-
-function Base.convert(::Type{Model{Y,V,T,U}}, model::Model{X,V,T,U}) where {X,Y,V,T,U}
-    return swap_domain(X(), Y(), model)
-end
-
-const StandardModel{D} = Model{D,Int,Float64,Int}
+const StandardModel = Model{Int,Float64,Int}

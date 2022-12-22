@@ -1,104 +1,106 @@
 model_name(::M) where {M<:AbstractModel} = "QUBO Model"
 
-domain(::AbstractModel{D}) where {D} = D()
-domain_name(::BoolDomain)                = "Bool"
-domain_name(::SpinDomain)                = "Spin"
-domain_name(model::AbstractModel)    = domain_name(domain(model))
+domain_name(dom::Domain)          = domain_name(Val(dom))
+domain_name(::Val{BoolDomain})    = "Bool"
+domain_name(::Val{SpinDomain})    = "Spin"
+domain_name(model::AbstractModel) = domain_name(domain(model))
 
 Base.isempty(model::AbstractModel) = isempty(variable_map(model))
 
-function explicit_linear_terms(model::AbstractModel)
-    return _explicit_linear_terms(
-        linear_terms(model),
-        variable_inv(model)
-    )
-end
+function explicit_linear_terms(model::AbstractModel{V,T}) where {V,T}
+    L = linear_terms(model)
 
-function _explicit_linear_terms(
-    linear_terms::Dict{Int,T},
-    variable_inv::Dict{Int},
-) where {T}
-    merge(
-        Dict{Int,T}(i => zero(T) for i in keys(variable_inv)),
-        linear_terms,
-    )
+    return Dict{Int,T}(i => get(L, i, zero(T)) for i = 1:domain_size(model))
 end
 
 function indices(model::AbstractModel)
     return collect(1:domain_size(model))
 end
 
-function variables(model::AbstractModel)
-    return sort(collect(keys(variable_map(model))); lt=varcmp)
+function variables(model::AbstractModel{V,T}) where {V,T}
+    return V[variable_inv(model, i) for i = 1:domain_size(model)]
 end
 
 function variable_set(model::AbstractModel)
     return Set(keys(variable_map(model)))
 end
 
-function variable_map(model::AbstractModel, v)
-    variable_map = QUBOTools.variable_map(model)
+function variable_map(model::AbstractModel{V,T}, v::V) where {V,T}
+    mapping = variable_map(model)
 
-    if haskey(variable_map, v)
-        return variable_map[v]
+    if haskey(mapping, v)
+        return mapping[v]
     else
         error("Variable '$v' does not belong to the model")
     end
 end
 
 function variable_inv(model::AbstractModel, i::Integer)
-    variable_inv = QUBOTools.variable_inv(model)
+    mapping = variable_inv(model)
 
-    if haskey(variable_inv, i)
-        return variable_inv[i]
+    if haskey(mapping, i)
+        return mapping[i]
     else
         error("Variable index '$i' does not belong to the model")
     end
 end
 
 # ~*~ Model's Normal Forms ~*~ #
-qubo(model::AbstractModel{<:BoolDomain}) = qubo(model, Dict)
-
-function qubo(model::AbstractModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
+function qubo(model::AbstractModel, type::Type = Dict)
     n = domain_size(model)
-    m = quadratic_size(model)
 
-    Q = Dict{Tuple{Int,Int},T}()
+    L, Q, α, β = swap_domain(
+        domain(model),
+        Domain(:bool),
+        linear_terms(model),
+        quadratic_terms(model),
+        scale(model),
+        offset(model),
+    )
 
-    α::T = scale(model)
-    β::T = offset(model)
+    return qubo(type, n, L, Q, α, β)
+end
 
-    sizehint!(Q, m + n)
+function qubo(
+    ::Type{Dict},
+    ::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
+    Q = sizehint!(Dict{Tuple{Int,Int},T}(), length(L̄) + length(Q̄))
 
-    for (i, qi) in explicit_linear_terms(model)
+    for (i, qi) in L̄
         Q[i, i] = qi
     end
 
-    for ((i, j), Qij) in quadratic_terms(model)
+    for ((i, j), Qij) in Q̄
         Q[i, j] = Qij
     end
 
     return (Q, α, β)
 end
 
-function qubo(model::AbstractModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
-    n = domain_size(model)
-    m = quadratic_size(model)
-
+function qubo(
+    ::Type{Vector},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
     L = zeros(T, n)
-    Q = Vector{T}(undef, m)
-    u = Vector{Int}(undef, m)
-    v = Vector{Int}(undef, m)
+    Q = Vector{T}(undef, length(Q̄))
+    u = Vector{Int}(undef, length(Q̄))
+    v = Vector{Int}(undef, length(Q̄))
 
-    α::T = scale(model)
-    β::T = offset(model)
-
-    for (i, l) in linear_terms(model)
-        L[i] = l
+    for (i, c) in L̄
+        L[i] = c
     end
 
-    for (k, ((i, j), q)) in enumerate(quadratic_terms(model))
-        Q[k] = q
+    for (k, ((i, j), c)) in enumerate(Q̄)
+        Q[k] = c
         u[k] = i
         v[k] = j
     end
@@ -106,90 +108,104 @@ function qubo(model::AbstractModel{<:BoolDomain}, ::Type{Vector}, T::Type = Floa
     return (L, Q, u, v, α, β)
 end
 
-function qubo(model::AbstractModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
-    n = domain_size(model)
-
+function qubo(
+    ::Type{Matrix},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
     Q = zeros(T, n, n)
 
-    α::T = scale(model)
-    β::T = offset(model)
-
-    for (i, l) in linear_terms(model)
-        Q[i, i] = l
+    for (i, c) in L̄
+        Q[i, i] = c
     end
 
-    for ((i, j), q) in quadratic_terms(model)
-        Q[i, j] = q
+    for ((i, j), c) in Q̄
+        Q[i, j] = c
     end
 
     return (Q, α, β)
 end
 
-function qubo(model::AbstractModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
-    n = domain_size(model)
-
+function qubo(
+    ::Type{SparseMatrixCSC},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
     Q = spzeros(T, n, n)
 
-    α::T = scale(model)
-    β::T = offset(model)
-
-    for (i, l) in linear_terms(model)
-        Q[i, i] = l
+    for (i, c) in L̄
+        Q[i, i] = c
     end
 
-    for ((i, j), q) in quadratic_terms(model)
-        Q[i, j] = q
+    for ((i, j), c) in Q̄
+        Q[i, j] = c
     end
 
     return (Q, α, β)
 end
 
-function qubo(model::AbstractModel{<:SpinDomain}, args...)
-    return qubo(ising(model, args...)...)
+function ising(model::AbstractModel, type::Type = Dict)
+    n = domain_size(model)
+
+    L, Q, α, β = swap_domain(
+        domain(model),
+        Domain(:spin),
+        linear_terms(model),
+        quadratic_terms(model),
+        scale(model),
+        offset(model),
+    )
+
+    return ising(type, n, L, Q, α, β)
 end
 
-ising(model::AbstractModel) = ising(model, Dict, Float64)
+function ising(
+    ::Type{Dict},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
+    h = sizehint!(Dict{Int,T}(), length(L̄))
+    J = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q̄))
 
-function ising(model::AbstractModel{<:SpinDomain}, ::Type{Dict}, T::Type = Float64)
-    n = domain_size(model)
-    m = quadratic_size(model)
-
-    h = Dict{Int,T}()
-    J = Dict{Tuple{Int,Int},T}()
-
-    α::T = scale(model)
-    β::T = offset(model)
-
-    for (i, hi) in explicit_linear_terms(model)
-        h[i] = hi
+    for (i, c) in L̄
+        h[i] = c
     end
 
-    for ((i, j), Jij) in quadratic_terms(model)
-        J[i, j] = Jij
+    for ((i, j), c) in Q̄
+        J[i, j] = c
     end
 
     return (h, J, α, β)
 end
 
-function ising(model::AbstractModel{<:SpinDomain}, ::Type{Vector}, T::Type = Float64)
-    n = domain_size(model)
-    m = quadratic_size(model)
-
+function ising(
+    ::Type{Vector},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
     h = zeros(T, n)
-    J = Vector{T}(undef, m)
-    u = Vector{Int}(undef, m)
-    v = Vector{Int}(undef, m)
+    J = Vector{T}(undef, length(Q̄))
+    u = Vector{Int}(undef, length(Q̄))
+    v = Vector{Int}(undef, length(Q̄))
 
-    α::T = scale(model)
-    β::T = offset(model)
-
-
-    for (i, hi) in linear_terms(model)
-        h[i] = hi
+    for (i, c) in L̄
+        h[i] = c
     end
 
-    for (k, ((i, j), q)) in enumerate(quadratic_terms(model))
-        J[k] = q
+    for (k, ((i, j), c)) in enumerate(Q̄)
+        J[k] = c
         u[k] = i
         v[k] = j
     end
@@ -197,76 +213,76 @@ function ising(model::AbstractModel{<:SpinDomain}, ::Type{Vector}, T::Type = Flo
     return (h, J, u, v, α, β)
 end
 
-function ising(model::AbstractModel{<:SpinDomain}, ::Type{Matrix}, T::Type = Float64)
-    n = domain_size(model)
-
+function ising(
+    ::Type{Matrix},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
     h = zeros(T, n)
     J = zeros(T, n, n)
 
-    α::T = scale(model)
-    β::T = offset(model)
-
-    for (i, hi) in linear_terms(model)
-        h[i] = hi
+    for (i, c) in L̄
+        h[i] = c
     end
 
-    for ((i, j), Jij) in quadratic_terms(model)
-        J[i, j] = Jij
+    for ((i, j), c) in Q̄
+        J[i, j] = c
     end
 
     return (h, J, α, β)
 end
 
-function ising(model::AbstractModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
-    n = domain_size(model)
-
+function ising(
+    ::Type{SparseMatrixCSC},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
     h = spzeros(T, n)
     J = spzeros(T, n, n)
 
-    α::T = scale(model)
-    β::T = offset(model)
-
-    for (i, hi) in linear_terms(model)
-        h[i] = hi
+    for (i, c) in L̄
+        h[i] = c
     end
 
-    for ((i, j), Jij) in quadratic_terms(model)
-        J[i, j] = Jij
+    for ((i, j), c) in Q̄
+        J[i, j] = c
     end
 
     return (h, J, α, β)
 end
 
-function ising(model::AbstractModel{<:BoolDomain}, args...)
-    return ising(qubo(model, args...)...)
-end
-
 # ~*~ Data queries ~*~ #
-function QUBOTools.state(model::AbstractModel, index::Integer)
-    return QUBOTools.state(QUBOTools.sampleset(model), index)
+function state(model::AbstractModel, index::Integer)
+    return state(sampleset(model), index)
 end
 
-function QUBOTools.reads(model::AbstractModel)
-    return QUBOTools.reads(QUBOTools.sampleset(model))
+function reads(model::AbstractModel)
+    return reads(sampleset(model))
 end
 
-function QUBOTools.reads(model::AbstractModel, index::Integer)
-    return QUBOTools.reads(QUBOTools.sampleset(model), index)
+function reads(model::AbstractModel, index::Integer)
+    return reads(sampleset(model), index)
 end
 
-function QUBOTools.value(model::AbstractModel, index::Integer)
-    return QUBOTools.value(QUBOTools.sampleset(model), index)
+function value(model::AbstractModel, index::Integer)
+    return value(sampleset(model), index)
 end
 
-function QUBOTools.value(model::AbstractModel, ψ::Vector{U}) where {U<:Integer}
-    α = QUBOTools.scale(model)
-    e = QUBOTools.offset(model)
+function value(model::AbstractModel, ψ::Vector{U}) where {U<:Integer}
+    α = scale(model)
+    e = offset(model)
 
-    for (i, l) in QUBOTools.linear_terms(model)
+    for (i, l) in linear_terms(model)
         e += ψ[i] * l
     end
 
-    for ((i, j), q) in QUBOTools.quadratic_terms(model)
+    for ((i, j), q) in quadratic_terms(model)
         e += ψ[i] * ψ[j] * q
     end
 
@@ -274,52 +290,52 @@ function QUBOTools.value(model::AbstractModel, ψ::Vector{U}) where {U<:Integer}
 end
 
 # ~*~ Queries: sizes & density ~*~ #
-QUBOTools.domain_size(model::AbstractModel)    = length(QUBOTools.variable_map(model))
-QUBOTools.linear_size(model::AbstractModel)    = length(QUBOTools.linear_terms(model))
-QUBOTools.quadratic_size(model::AbstractModel) = length(QUBOTools.quadratic_terms(model))
+domain_size(model::AbstractModel)    = length(variable_map(model))
+linear_size(model::AbstractModel)    = length(linear_terms(model))
+quadratic_size(model::AbstractModel) = length(quadratic_terms(model))
 
-function QUBOTools.density(model::AbstractModel)
-    n = QUBOTools.domain_size(model)
-
-    if n == 0
-        return NaN
-    else
-        l = QUBOTools.linear_size(model)
-        q = QUBOTools.quadratic_size(model)
-
-        return (2 * q + l) / (n * n)
-    end
-end
-
-function QUBOTools.linear_density(model::AbstractModel)
-    n = QUBOTools.domain_size(model)
+function density(model::AbstractModel)
+    n = domain_size(model)
 
     if n == 0
         return NaN
     else
-        l = QUBOTools.linear_size(model)
+        ls = linear_size(model)
+        qs = quadratic_size(model)
 
-        return l / n
+        return (2 * qs + ls) / (n * n)
     end
 end
 
-function QUBOTools.quadratic_density(model::AbstractModel)
-    n = QUBOTools.domain_size(model)
+function linear_density(model::AbstractModel)
+    n = domain_size(model)
+
+    if n == 0
+        return NaN
+    else
+        ls = linear_size(model)
+
+        return ls / n
+    end
+end
+
+function quadratic_density(model::AbstractModel)
+    n = domain_size(model)
 
     if n <= 1
         return NaN
     else
-        q = QUBOTools.quadratic_size(model)
+        qs = quadratic_size(model)
 
-        return (2 * q) / (n * (n - 1))
+        return (2 * qs) / (n * (n - 1))
     end
 end
 
-function QUBOTools.adjacency(model::AbstractModel)
-    n = QUBOTools.domain_size(model)
+function adjacency(model::AbstractModel)
+    n = domain_size(model)
     A = Dict{Int,Set{Int}}(i => Set{Int}() for i = 1:n)
 
-    for (i, j) in keys(QUBOTools.quadratic_terms(model))
+    for (i, j) in keys(quadratic_terms(model))
         push!(A[i], j)
         push!(A[j], i)
     end
@@ -327,10 +343,10 @@ function QUBOTools.adjacency(model::AbstractModel)
     return A
 end
 
-function QUBOTools.adjacency(model::AbstractModel, k::Integer)
+function adjacency(model::AbstractModel, k::Integer)
     A = Set{Int}()
 
-    for (i, j) in keys(QUBOTools.quadratic_terms(model))
+    for (i, j) in keys(quadratic_terms(model))
         if i == k
             push!(A, j)
         elseif j == k
@@ -342,34 +358,37 @@ function QUBOTools.adjacency(model::AbstractModel, k::Integer)
 end
 
 # ~*~ I/O ~*~ #
-function Base.read(source::Any, fmt::AbstractFormat)
+function Base.read(source::Union{IO,AbstractString}, fmt::AbstractFormat)
     return read_model(source, fmt)
 end
 
-function Base.read!(source::Any, model::AbstractModel, fmt::AbstractFormat)
+function Base.read!(
+    source::Union{IO,AbstractString},
+    model::AbstractModel,
+    fmt::AbstractFormat,
+)
     return read_model!(source, model, fmt)
 end
 
-function Base.write(target::Any, model::AbstractModel, fmt::AbstractFormat)
+function Base.write(
+    target::Union{IO,AbstractString},
+    model::AbstractModel,
+    fmt::AbstractFormat,
+)
     return write_model(target, model, fmt)
 end
 
-function Base.copy!(
-    target::X,
-    source::Y,
-) where {X<:AbstractModel,Y<:AbstractModel}
+function Base.copy!(target::X, source::Y) where {X<:AbstractModel,Y<:AbstractModel}
     return copy!(target, convert(X, source))
 end
 
 function Base.show(io::IO, model::AbstractModel)
-    s = sense(model) === Min ? "Min" : "Max"
-
     println(
         io,
         """
-        $(model_name(model)) [$(s), $(domain_name(model))]
+        $(model_name(model)) [$(sense(model)), $(domain(model))]
         ▷ Variables ……… $(domain_size(model))  
-        """
+        """,
     )
 
     if isempty(model)
@@ -377,7 +396,7 @@ function Base.show(io::IO, model::AbstractModel)
             io,
             """
             The model is empty.
-            """
+            """,
         )
 
         return nothing
@@ -389,7 +408,7 @@ function Base.show(io::IO, model::AbstractModel)
             ▷ Linear ……………… $(@sprintf("%0.2f", 100.0 * linear_density(model)))%
             ▷ Quadratic ……… $(@sprintf("%0.2f", 100.0 * quadratic_density(model)))%
             ▷ Total ………………… $(@sprintf("%0.2f", 100.0 * density(model)))%
-            """
+            """,
         )
     end
 
@@ -398,7 +417,7 @@ function Base.show(io::IO, model::AbstractModel)
             io,
             """
             There are no solutions available.
-            """
+            """,
         )
 
         return nothing
@@ -413,7 +432,7 @@ function Base.show(io::IO, model::AbstractModel)
             Solutions:
             ▷ Samples …………… $(n)
             ▷ Best value …… $(z)
-            """
+            """,
         )
     end
 

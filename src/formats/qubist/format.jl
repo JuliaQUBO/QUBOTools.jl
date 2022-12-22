@@ -1,9 +1,9 @@
 @doc raw"""
     Qubist{D<:SpinDomain}
 
-""" struct Qubist{D<:𝕊} <: AbstractFormat{D} end
+""" struct Qubist <: AbstractFormat end
 
-Qubist(args...; kws...) = Qubist{𝕊}(args...; kws...)
+domain(::Qubist) = SpinDomain
 
 infer_format(::Val{:qh}) = Qubist()
 

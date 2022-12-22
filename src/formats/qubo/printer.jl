@@ -89,7 +89,7 @@ function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Val{:mqlib}
     return nothing
 end
 
-function write_model(io::IO, model::AbstractModel{D}, fmt::QUBO{D}) where {D}
+function write_model(io::IO, model::AbstractModel, fmt::QUBO)
     data = Dict{Symbol,Any}(
         :linear_terms    => linear_terms(model),
         :quadratic_terms => quadratic_terms(model),

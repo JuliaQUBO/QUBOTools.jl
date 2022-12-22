@@ -188,7 +188,7 @@ function _parse_sense!(::MiniZinc, data::Dict{Symbol,Any}, line::AbstractString)
     return true
 end
 
-function read_model(io::IO, fmt::MiniZinc{D}) where {D}
+function read_model(io::IO, fmt::MiniZinc)
     data = Dict{Symbol,Any}(
         :domain          => nothing,
         :id              => nothing,

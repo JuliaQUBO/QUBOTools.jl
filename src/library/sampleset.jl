@@ -1,10 +1,18 @@
-swap_domain(::D, ::D, ψ::Vector{U}) where {D<:𝔻,U}                  = ψ
-swap_domain(::𝕊, ::𝔹, ψ::Vector{U}) where {U<:Integer}              = (ψ .+ 1) .÷ 2
-swap_domain(::𝔹, ::𝕊, ψ::Vector{U}) where {U<:Integer}              = (2 .* ψ) .- 1
-swap_domain(::D, ::D, Ψ::Vector{Vector{U}}) where {D<:𝔻,U<:Integer} = Ψ
+function swap_domain(source::Domain, target::Domain, ψ::Vector{U}) where {U<:Integer}
+    if source === target
+        return copy(ψ)
+    elseif source === 𝕊 && target === 𝔹
+        return (ψ .+ 1) .÷ 2
+    elseif source === 𝔹 && target === 𝕊
+        return (2 .* ψ) .- 1
+    else
+        error("There's no valid conversion between '$source' and '$target'")
+    end
+end
 
-function swap_domain(a::A, b::B, Ψ::Vector{Vector{U}}) where {A<:𝔻,B<:𝔻,U<:Integer}
-    return swap_domain.(a, b, Ψ)
+ 
+function swap_domain(source::Domain, target::Domain, Ψ::Vector{Vector{U}}) where {U<:Integer}
+    return swap_domain.(source, target, Ψ)
 end
 
 @doc raw"""

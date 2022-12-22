@@ -10,14 +10,21 @@ _BQPJSON_VALIDATE_DOMAIN(x::Integer, ::Type{BoolDomain}) = (x == 0) || (x == 1)
 _BQPJSON_VALIDATE_DOMAIN(s::Integer, ::Type{SpinDomain}) = (s == ↑) || (s == ↓)
 
 @doc raw"""
-    BQPJSON{D}() where {D<:VariableDomain}
+    BQPJSON{D}() where {D<:Domain}
 
 Precise and detailed information found in the [bqpjson docs](https://bqpjson.readthedocs.io)
-""" struct BQPJSON{D} <: AbstractFormat{D} end
+""" struct BQPJSON <: AbstractFormat
+    domain::Union{Domain,Nothing}
 
-infer_format(::Val{:json})               = BQPJSON{UnknownDomain}()
-infer_format(::Val{:bool}, ::Val{:json}) = BQPJSON{BoolDomain}()
-infer_format(::Val{:spin}, ::Val{:json}) = BQPJSON{SpinDomain}()
+    BQPJSON(domain::Union{Symbol,Domain}) = new(Domain(domain))
+    BQPJSON(domain::Nothing = nothing)    = new(domain)
+end
+
+domain(fmt::BQPJSON) = fmt.domain
+
+infer_format(::Val{:json})               = BQPJSON()
+infer_format(::Val{:bool}, ::Val{:json}) = BQPJSON(BoolDomain())
+infer_format(::Val{:spin}, ::Val{:json}) = BQPJSON(SpinDomain())
 
 include("parser.jl")
 include("printer.jl")

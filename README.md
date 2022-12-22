@@ -108,7 +108,7 @@ flowchart TD;
 ```
 
 ## Backend
-The `AbstractModel{D}` abstract type is defined, where `D <: VariableDomain`.
+The `AbstractModel{D}` abstract type is defined, where `D <: Domain`.
 Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \mathbb{B} = \lbrace 0, 1 \rbrace$ and $s \in \lbrace -1, 1 \rbrace$.
 Conversion between domains follows the identity
 

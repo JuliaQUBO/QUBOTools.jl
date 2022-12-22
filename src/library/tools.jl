@@ -15,37 +15,8 @@ function _isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
 end
 
 function swap_domain(
-    ::𝕊,
-    ::𝔹,
-    L̄::Dict{Int,T},
-    Q̄::Dict{Tuple{Int,Int},T},
-    ᾱ::Union{T,Nothing} = nothing,
-    β̄::Union{T,Nothing} = nothing,
-) where {T}
-    coalesce()
-    α = something(ᾱ, one(T))
-    β = something(β̄, zero(T))
-    L = sizehint!(Dict{Int,T}(), length(L̄))
-    Q = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q̄))
-
-    for (i, c) in L̄
-        β -= c
-        L[i] = get(L, i, zero(T)) + 2c
-    end
-
-    for ((i, j), c) in Q̄
-        β         += c
-        L[i]      = get(L, i, zero(T)) - 2c
-        L[j]      = get(L, j, zero(T)) - 2c
-        Q[(i, j)] = get(Q, (i, j), zero(T)) + 4c
-    end
-
-    return (L, Q, α, β)
-end
-
-function swap_domain(
-    ::𝔹,
-    ::𝕊,
+    source::Domain,
+    target::Domain,
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
     ᾱ::Union{T,Nothing} = nothing,
@@ -56,16 +27,35 @@ function swap_domain(
     L = sizehint!(Dict{Int,T}(), length(L̄))
     Q = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q̄))
 
-    for (i, c) in L̄
-        β += c / 2
-        L[i] = get(L, i, zero(T)) + c / 2
-    end
+    if source === target
+        copy!(L, L̄)
+        copy!(Q, Q̄)
+    elseif source === SpinDomain && target === BoolDomain
+        for (i, c) in L̄
+            β -= c
+            L[i] = get(L, i, zero(T)) + 2c
+        end
 
-    for ((i, j), c) in Q̄
-        β         += c / 4
-        L[i]      = get(L, i, zero(T)) + c / 4
-        L[j]      = get(L, j, zero(T)) + c / 4
-        Q[(i, j)] = get(Q, (i, j), zero(T)) + c / 4
+        for ((i, j), c) in Q̄
+            β         += c
+            L[i]      = get(L, i, zero(T)) - 2c
+            L[j]      = get(L, j, zero(T)) - 2c
+            Q[(i, j)] = get(Q, (i, j), zero(T)) + 4c
+        end
+    elseif source === BoolDomain && target === SpinDomain
+        for (i, c) in L̄
+            β += c / 2
+            L[i] = get(L, i, zero(T)) + c / 2
+        end
+    
+        for ((i, j), c) in Q̄
+            β         += c / 4
+            L[i]      = get(L, i, zero(T)) + c / 4
+            L[j]      = get(L, j, zero(T)) + c / 4
+            Q[(i, j)] = get(Q, (i, j), zero(T)) + c / 4
+        end
+    else
+        error("There's no valid conversion between '$source' and '$target'")
     end
 
     return (L, Q, α, β)
@@ -161,7 +151,7 @@ function _build_mapping(variable_set::Set{V}) where {V}
 end
 
 function domains()
-    return Type[dom for dom in subtypes(VariableDomain) if dom !== UnknownDomain]
+    return Type[dom for dom in subtypes(Domain) if dom !== UnknownDomain]
 end
 
 function formats()
