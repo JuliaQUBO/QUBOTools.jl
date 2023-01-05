@@ -165,7 +165,7 @@ function swap_domain(source::Domain, target::Domain)
 end
 
 function format(source::AbstractModel, target::AbstractModel, data::Any)
-    return format(sense(source), domain(source), sense(target), domain(target), data::Any)
+    return format(sense(source), domain(source), sense(target), domain(target), data)
 end
 
 function format(
@@ -178,4 +178,120 @@ function format(
     return data |> (
         swap_sense(source_sense, target_sense) ∘ swap_domain(source_domain, target_domain)
     )
+end
+
+function supports(::Type{F}, ::Nothing) where {F<:AbstractFormat}
+    return true
+end
+
+function supports(::Type{F}, dom::Domain) where {F<:AbstractFormat}
+    return false
+end
+
+function unsupported_domain_error(::Type{F}, dom::Domain) where {F<:AbstractFormat}
+    format_error("Format '$F' lacks support for '$dom' domain")
+end
+
+function assert_supports(::Type{F}, ::Nothing) where {F<:AbstractFormat}
+    return nothing
+end
+
+function assert_supports(::Type{F}, dom::Domain) where {F<:AbstractFormat}
+    supports(F, dom) || unsupported_domain_error(F, dom)
+
+    return nothing
+end
+
+function assert_supports(::Type{F}, sty::Style) where {F<:AbstractFormat}
+    supports(F, sty) || unsupported_style_error(F, sty)
+
+    return nothing
+end
+
+function domain_types()
+    return Type[Nothing; subtypes(Domain)]
+end
+
+function domains()
+    return Union{Domain,Nothing}[dom() for dom in domain_types()]
+end
+
+function style_types()
+    return Type[Nothing; subtypes(Style)]
+end
+
+function styles()
+    return Union{Style,Nothing}[sty() for sty in style_types()]
+end
+
+function format_types()
+    return subtypes(AbstractFormat)
+end
+
+function formats()
+    return [
+        fmt(dom, sty)
+        for fmt in format_types()
+        for dom in domains()
+        for sty in styles()
+        if supports(fmt, dom) && supports(fmt, sty)
+    ]
+end
+
+function infer_format(path::AbstractString)
+    pieces = reverse(split(basename(path), "."))
+
+    if length(pieces) == 1
+        format_error("Unable to infer QUBO format from file without an extension")
+    else
+        format_hint, domain_hint, _... = pieces
+    end
+
+    return infer_format(Symbol(domain_hint), Symbol(format_hint))
+end
+
+function infer_format(domain_hint::Symbol, format_hint::Symbol)
+    return infer_format(Val(domain_hint), Val(format_hint))
+end
+
+function infer_format(::Val, format_hint::Val)
+    return infer_format(format_hint)
+end
+
+function infer_format(format_hint::Symbol)
+    return infer_format(Val(format_hint))
+end
+
+function style(::AbstractFormat)
+    return nothing
+end
+
+function read_model(path::AbstractString, fmt::AbstractFormat = infer_format(path))
+    return open(path, "r") do fp
+        return read_model(fp, fmt)
+    end
+end
+
+function read_model!(path::AbstractString, model::AbstractModel, fmt::AbstractFormat = infer_format(path))
+    return open(path, "r") do fp
+        return read_model!(fp, model, fmt)
+    end
+end
+
+function read_model!(io::IO, model::AbstractModel, fmt::AbstractFormat)
+    return copy!(model, read_model(io, fmt))
+end
+
+function write_model(path::AbstractString, model::AbstractModel, fmt::AbstractFormat = infer_format(path))
+    open(path, "w") do fp
+        write_model(fp, model, fmt)
+    end
+end
+
+function write_model(io::IO, model::AbstractModel, fmt::AbstractFormat)
+    return nothing
+end
+
+function Base.show(io::IO, fmt::F) where {F<:AbstractFormat}
+    return print(io, "$F($(domain(fmt)),$(style(fmt)))")
 end

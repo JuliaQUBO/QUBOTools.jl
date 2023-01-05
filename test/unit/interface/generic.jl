@@ -49,11 +49,12 @@ function test_swap_sense()
     bool_samples1 = [QUBOTools.Sample(s...) for s in zip(bool_states, values, reads)]
     bool_samples2 = [QUBOTools.Sample(s...) for s in zip(bool_states, -values, reads)]
 
-    model1 = QUBOTools.Model{𝔹,V,T,U}(
+    model1 = QUBOTools.Model{V,T,U}(
             Dict{V,T}(:x => 1.0, :y => -1.0),
             Dict{Tuple{V,V},T}((:x, :y) => 2.0);
             scale       = 2.0,
             offset      = 1.0,
+            domain      = 𝔹,
             id          = 1,
             version     = v"0.1.0",
             description = "This is a Bool ModelWrapper",

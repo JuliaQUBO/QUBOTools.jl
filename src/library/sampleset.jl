@@ -1,15 +1,13 @@
 function swap_domain(source::Domain, target::Domain, ψ::Vector{U}) where {U<:Integer}
     if source === target
         return copy(ψ)
-    elseif source === 𝕊 && target === 𝔹
-        return (ψ .+ 1) .÷ 2
-    elseif source === 𝔹 && target === 𝕊
-        return (2 .* ψ) .- 1
     else
-        error("There's no valid conversion between '$source' and '$target'")
+        return swap_domain(Val(source), Val(target), ψ)
     end
 end
 
+swap_domain(::Val{𝔹}, ::Val{𝕊}, ψ::Vector{U}) where {U<:Integer} = (2 .* ψ) .- 1
+swap_domain(::Val{𝕊}, ::Val{𝔹}, ψ::Vector{U}) where {U<:Integer} = (ψ .+ 1) .÷ 2
  
 function swap_domain(source::Domain, target::Domain, Ψ::Vector{Vector{U}}) where {U<:Integer}
     return swap_domain.(source, target, Ψ)
@@ -172,10 +170,8 @@ function validate(ω::AbstractSampleSet)
     end
 end
 
-swap_domain(::D, ::D, ω::AbstractSampleSet{T,U}) where {D<:𝔻,T,U} = ω
-
-function swap_domain(::A, ::B, s::Sample{T,U}) where {A<:𝔻,B<:𝔻,T,U}
-    return Sample{T,U}(swap_domain(A(), B(), state(s)), value(s), reads(s))
+function swap_domain(source::Domain, target::Domain, s::Sample{T,U}) where {T,U}
+    return Sample{T,U}(swap_domain(source, target, state(s)), value(s), reads(s))
 end
 
 function swap_sense(s::Sample{T,U}) where {T,U}
@@ -267,10 +263,16 @@ Base.iterate(ω::SampleSet, i::Integer) = iterate(ω.data, i)
 
 metadata(ω::SampleSet) = ω.metadata
 
-function swap_domain(::A, ::B, ω::SampleSet{T,U}) where {A<:𝔻,B<:𝔻,T,U}
-    return SampleSet{T,U}(Vector{Sample{T,U}}(swap_domain.(A(), B(), ω)), deepcopy(metadata(ω)))
+function swap_domain(source::Domain, target::Domain, ω::SampleSet{T,U}) where {T,U}
+    return SampleSet{T,U}(
+        Vector{Sample{T,U}}(swap_domain.(source, target, ω)),
+        deepcopy(metadata(ω)),
+    )
 end
 
 function swap_sense(ω::SampleSet{T,U}) where {T,U}
-    return SampleSet{T,U}(Vector{Sample{T,U}}(swap_sense.(ω)), deepcopy(metadata(ω)))
+    return SampleSet{T,U}(
+        Vector{Sample{T,U}}(swap_sense.(ω)),
+        deepcopy(metadata(ω)),
+    )
 end

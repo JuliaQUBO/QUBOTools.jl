@@ -48,16 +48,17 @@ function test_standard()
         sampleset_metadata,
     )
 
-    std_model = QUBOTools.Model{𝔹,V,T,U}(
+    std_model = QUBOTools.Model{V,T,U}(
         _linear_terms,
         _quadratic_terms;
-        scale=scale,
-        offset=offset,
-        id=id,
-        version=version,
-        description=description,
-        metadata=metadata,
-        sampleset=sampleset
+        scale       = scale,
+        offset      = offset,
+        domain      = 𝔹,
+        id          = id,
+        version     = version,
+        description = description,
+        metadata    = metadata,
+        sampleset   = sampleset
     )
 
     @testset "Standard" verbose = true begin
@@ -85,17 +86,16 @@ function test_standard()
         end
 
         @testset "Queries" verbose = true begin
-            @test QUBOTools.domain(std_model) == 𝔹()
+            @test QUBOTools.domain(std_model)      == 𝔹
             @test QUBOTools.domain_name(std_model) == "Bool"
             @test QUBOTools.domain_size(std_model) == 2
 
-            @test QUBOTools.linear_size(std_model) == 2
+            @test QUBOTools.linear_size(std_model)    == 2
             @test QUBOTools.quadratic_size(std_model) == 1
 
-            @test QUBOTools.linear_density(std_model) ≈ 1.0
+            @test QUBOTools.linear_density(std_model)    ≈ 1.0
             @test QUBOTools.quadratic_density(std_model) ≈ 1.0
-
-            @test QUBOTools.density(std_model) ≈ 1.0
+            @test QUBOTools.density(std_model)           ≈ 1.0
         end
 
         @testset "Copy" verbose = true begin
@@ -110,7 +110,7 @@ function test_standard()
                 @test QUBOTools.id(model)              == QUBOTools.id(std_model)
             end
 
-            let model = QUBOTools.Model{𝔹,V,T,U}()
+            let model = QUBOTools.Model{V,T,U}()
                 copy!(model, std_model)
                 @test QUBOTools.linear_terms(model)    == QUBOTools.linear_terms(std_model)
                 @test QUBOTools.quadratic_terms(model) == QUBOTools.quadratic_terms(std_model)

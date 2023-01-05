@@ -12,9 +12,14 @@ const _MINIZINC_RE_SENSE     = r"^solve (minimize|maximize) objective;$"
 """ struct MiniZinc <: AbstractFormat
     domain::Union{Domain,Nothing}
 
-    MiniZinc(domain::Union{Symbol,Domain}) = Domain(domain)
+    MiniZinc(domain::Union{Symbol,Domain}) = new(Domain(domain))
     MiniZinc(domain::Nothing = nothing)    = new(domain)
 end
+
+domain(fmt::MiniZinc) = fmt.domain
+
+supports_domain(::Type{MiniZinc}, ::Val{BoolDomain}) = true
+supports_domain(::Type{MiniZinc}, ::Val{SpinDomain}) = true
 
 infer_format(::Val{:mzn})               = MiniZinc()
 infer_format(::Val{:spin}, ::Val{:mzn}) = MiniZinc(SpinDomain)

@@ -20,6 +20,34 @@ gives access to most fallback implementations.
 """ abstract type AbstractFormat end
 
 @doc raw"""
+    Style
+
+""" abstract type Style end
+
+@doc raw"""
+    DWaveStyle <: Style
+
+""" struct DWaveStyle <: Style end
+
+@doc raw"""
+    MQLibStyle <: Style
+
+""" struct MQLibStyle <: Style end
+
+Style(sty::Style)    = sty
+Style(sty::Symbol)   = Style(Val(sty))
+Style(::Val{:dwave}) = DWaveStyle() 
+Style(::Val{:mqlib}) = MQLibStyle()
+
+@doc raw"""
+    style(::AbstractFormat)::Style
+""" function style end
+
+@doc raw"""
+    supports_style(::AbstractFormat)::Bool
+""" function supports_style end
+
+@doc raw"""
     formats()
 
 Returns a list containing all available QUBO file formats.
@@ -56,39 +84,37 @@ Implementing this function allows one to profit from fallback implementations of
 Returns a string representing the model type.
 """ function model_name end
 
-@enum Domain begin
-    BoolDomain
-    SpinDomain
-end
-
 @doc raw"""
     Domain
 
-""" Domain
-
-const 𝔻 = Domain
-
-Base.Broadcast.broadcastable(D::Domain) = Ref(D)
-
-@doc raw"""
-    SpinDomain <: Domain
-
-```math
-s \in \lbrace{-1, 1}\rbrace
-```
-""" SpinDomain
-
-const 𝕊 = SpinDomain
+""" abstract type Domain end
 
 @doc raw"""
     BoolDomain <: Domain
 
 ```math
-x \in \lbrace{0, 1}\rbrace
+x \in \mathbb{B} = \lbrace{0, 1}\rbrace
 ```
-""" BoolDomain
+""" struct BoolDomain <: Domain end
 
-const 𝔹 = BoolDomain
+const 𝔹 = BoolDomain()
+
+@doc raw"""
+    SpinDomain <: Domain
+
+```math
+s \in \mathbb{S} = \lbrace{-1, 1}\rbrace
+```
+""" struct SpinDomain <: Domain end
+
+const 𝕊 = SpinDomain()
+
+QUBOTools.Domain(dom::Domain)  = dom
+QUBOTools.Domain(dom::Symbol)  = Domain(Val(dom))
+QUBOTools.Domain(::Val{:bool}) = 𝔹
+QUBOTools.Domain(::Val{:spin}) = 𝕊
+
+Base.Broadcast.broadcastable(dom::Domain) = Ref(dom)
 
 @doc raw"""
     domain(model::AbstractModel)::Domain
@@ -96,6 +122,10 @@ const 𝔹 = BoolDomain
 
 Returns the singleton representing the variable domain of a given model.
 """ function domain end
+
+@doc raw"""
+    supports_domain(::Type{<:AbstractFormat}, ::Domain)
+""" function supports_domain end
 
 @doc raw"""
     domains()
@@ -128,22 +158,20 @@ Returns a new object, switching its domain from `source` to `target`.
 
 """ function offset end
 
-@enum Sense begin
-    Min
-    Max
-end
+abstract type Sense end
 
-function QUBOTools.Sense(s::Symbol)
-    if s === :min
-        return Min
-    elseif s === :max
-        return Max
-    else
-        error("Unknown optimization sense '$s'")
-    end
-end
+struct MinSense <: Sense end
 
-QUBOTools.Sense(s::Sense) = s
+const Min = MinSense()
+
+struct MaxSense <: Sense end
+
+const Max = MaxSense()
+
+Sense(s::Sense)    = s
+Sense(s::Symbol)   = Sense(Val(s))
+Sense(::Val{:min}) = Min
+Sense(::Val{:max}) = Max
 
 @doc raw"""
     sense(model)::Sense
@@ -434,3 +462,27 @@ If a second parameter, an integer, is present, then the set of neighbors of that
         x::Any
     )
 """ function format end
+
+@doc raw"""
+    read_model(::AbstractString)
+    read_model(::AbstractString, ::AbstractFormat)
+""" function read_model end
+
+@doc raw"""
+    read_model!(::AbstractModel, ::AbstractString)
+""" function read_model! end
+
+@doc raw"""
+    supports_read(::Type{F}) where {F<:AbstractFormat}
+ """ function supports_read end
+
+ @doc raw"""
+    write_model(::AbstractString, ::AbstractModel)
+    write_model(::AbstractString, ::AbstractModel, ::AbstractFormat)
+    write_model(::IO, ::AbstractModel, ::AbstractFormat)
+
+""" function write_model end
+
+@doc raw"""
+    supports_read(::Type{F}) where {F<:AbstractFormat}
+""" function supports_write end

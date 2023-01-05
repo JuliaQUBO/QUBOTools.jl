@@ -52,10 +52,10 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         # ~*~ Solutions ~*~
         sampleset::Union{SampleSet{T,U},Nothing} = nothing,
     ) where {V,T,U}
-        scale     = isnothing(scale) ? one(T) : scale
-        offset    = isnothing(offset) ? zero(T) : offset
-        sense     = isnothing(sense) ? Sense(:min) : Sense(sense)
-        domain    = isnothing(domain) ? nothing : Domain(domain)
+        scale     = isnothing(scale)     ? one(T)           : scale
+        offset    = isnothing(offset)    ? zero(T)          : offset
+        sense     = isnothing(sense)     ? Sense(:min)      : Sense(sense)
+        domain    = isnothing(domain)    ? nothing          : Domain(domain)
         sampleset = isnothing(sampleset) ? SampleSet{T,U}() : sampleset
 
         return new{V,T,U}(
@@ -165,6 +165,7 @@ end
 scale(model::Model)  = model.scale
 offset(model::Model) = model.offset
 sense(model::Model)  = model.sense
+domain(model::Model) = model.domain
 
 linear_terms(model::Model)    = model.linear_terms
 quadratic_terms(model::Model) = model.quadratic_terms

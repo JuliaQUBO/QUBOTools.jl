@@ -47,7 +47,7 @@ function swap_domain(
             β += c / 2
             L[i] = get(L, i, zero(T)) + c / 2
         end
-    
+
         for ((i, j), c) in Q̄
             β         += c / 4
             L[i]      = get(L, i, zero(T)) + c / 4
@@ -148,39 +148,4 @@ function _build_mapping(variable_set::Set{V}) where {V}
     variable_inv = Dict{Int,V}(v => k for (k, v) in variable_map)
 
     return (variable_map, variable_inv)
-end
-
-function domains()
-    return Type[dom for dom in subtypes(Domain) if dom !== UnknownDomain]
-end
-
-function formats()
-    domain_list = domains()
-    format_list = subtypes(AbstractFormat)
-
-    return Type[fmt{dom} for dom in domain_list, fmt in format_list if (fmt{<:dom} <: fmt)]
-end
-
-function infer_format(path::AbstractString)
-    pieces = reverse(split(basename(path), "."))
-
-    if length(pieces) == 1
-        format_error("Unable to infer QUBO format from file without an extension")
-    else
-        format_hint, domain_hint, _... = pieces
-    end
-
-    return infer_format(Symbol(domain_hint), Symbol(format_hint))
-end
-
-function infer_format(domain_hint::Symbol, format_hint::Symbol)
-    return infer_format(Val(domain_hint), Val(format_hint))
-end
-
-function infer_format(::Val, format_hint::Val)
-    return infer_format(format_hint)
-end
-
-function infer_format(format_hint::Symbol)
-    return infer_format(Val(format_hint))
 end

@@ -13,6 +13,7 @@ import QUBOTools: backend
 import QUBOTools: BQPJSON, HFS, MiniZinc, Qubist, QUBO
 
 # ~*~ Include test functions ~*~
+include("assets/assets.jl")
 include("tools/tools.jl")
 include("unit/unit.jl")
 include("integration/integration.jl")

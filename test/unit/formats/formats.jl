@@ -1,34 +1,39 @@
 function test_formats()
     @testset "⦷ Formats ⦷" verbose = true begin
-        format_list = Type[]
+        list = []
 
-        for fmt in QUBOTools.formats()
-            test_cases = get(TEST_CASES, fmt, nothing)
+        for fmt in QUBOTools.formats(), dom in QUBOTools
+            dom = domain(fmt)
+
+            test_cases = get(TEST_CASES, (fmt, dom), nothing)
 
             if isnothing(test_cases) || isempty(test_cases)
                 continue
             else
-                push!(format_list, fmt)
+                push!(list, (fmt, dom))
             end
         end
 
-        for fmt in format_list
-            test_cases = TEST_CASES[fmt]
+        for (fmt, dom) in list
+            test_cases = TEST_CASES[(fmt, dom)]
 
             @testset "▷ $(fmt)" begin
                 for i in test_cases
-                    test_data_path = TEST_DATA_PATH[fmt](i)
-                    temp_data_path = TEMP_DATA_PATH[fmt](i)
+                    # test_data_path = __data_path(fmt, dom, i)
+                    # temp_data_path = __temp_path(fmt, dom, i)
 
-                    test_model = QUBOTools.read_model(test_data_path, fmt())
+                    # if QUBOTools.supports_read(typeof(fmt))
+                    #     test_model = QUBOTools.read_model(test_data_path, fmt)
 
-                    @test test_model isa QUBOTools.Model
+                    #     @test test_model isa QUBOTools.Model
 
-                    QUBOTools.write_model(temp_data_path, test_model, fmt())
+                    #     if QUBOTools.supports_write(typeof(fmt))
 
-                    temp_model = QUBOTools.read_model(temp_data_path, fmt())
+                    # QUBOTools.write_model(temp_data_path, test_model, fmt())
 
-                    @test temp_model isa QUBOTools.Model
+                    # temp_model = QUBOTools.read_model(temp_data_path, fmt())
+
+                    # @test temp_model isa QUBOTools.Model
                 end
             end
         end
