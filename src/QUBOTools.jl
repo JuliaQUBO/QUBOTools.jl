@@ -10,16 +10,16 @@ using InteractiveUtils: subtypes
 
 # ~*~ Variable comparison ~*~ #
 @doc raw"""
-    varcmp(x::V, y::V) where {V}
+    varlt(x::V, y::V) where {V}
 
 This function exists to define an arbitrary ordering for a given type and was created to address [1].
 There is no predefined comparison between instances MOI's `VariableIndex` type.
 [1] https://github.com/jump-dev/MathOptInterface.jl/issues/1985
-""" function varcmp end
+""" function varlt end
 
-varcmp(x::V, y::V) where {V} = isless(x, y)
+varlt(x::V, y::V) where {V} = isless(x, y)
 
-const ≺ = varcmp # \prec[tab]
+const ≺ = varlt # \prec[tab]
 const ↑ = -1     # \uparrow[tab]
 const ↓ = +1     # \downarrow[tab]
 

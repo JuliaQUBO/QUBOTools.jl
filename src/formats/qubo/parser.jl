@@ -156,6 +156,7 @@ function read_model(io::IO, fmt::QUBO)
         data[:quadratic_terms];
         scale       = data[:scale],
         offset      = data[:offset],
+        domain      = domain(fmt),
         id          = data[:id],
         description = data[:description],
         metadata    = data[:metadata],

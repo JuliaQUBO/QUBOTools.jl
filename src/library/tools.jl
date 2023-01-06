@@ -176,7 +176,7 @@ function _build_mapping(variable_set::Set{V}) where {V}
     variable_map = sizehint!(Dict{V,Int}(), length(variable_set))
     variable_inv = sizehint!(Dict{Int,V}(), length(variable_map))
 
-    for (k, v) in enumerate(sort!(collect(variable_set); lt = varcmp))
+    for (k, v) in enumerate(sort!(collect(variable_set); lt = varlt))
         variable_map[v] = k
         variable_inv[k] = v
     end

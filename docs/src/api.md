@@ -9,7 +9,7 @@ QUBOTools.backend
 
 ### Variable System
 ```@docs
-QUBOTools.varcmp
+QUBOTools.varlt
 ```
 
 ### Variable Domains

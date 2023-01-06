@@ -140,6 +140,9 @@ function format(
 end
 
 # -* Sense *- #
+Base.show(io::IO, ::MinSense) = print(io, "Min")
+Base.show(io::IO, ::MaxSense) = print(io, "Max")
+
 swap_sense(::Nothing) = nothing
 
 swap_sense(::MaxSense) = Min
@@ -222,6 +225,9 @@ end
 
 
 # -* Domain *- #
+Base.show(io::IO, ::BoolDomain) = print(io, "𝔹")
+Base.show(io::IO, ::SpinDomain) = print(io, "𝕊")
+
 function domain_name(::BoolDomain)
     return "Bool"
 end
