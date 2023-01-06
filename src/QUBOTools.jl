@@ -48,7 +48,7 @@ include("interface/interface.jl")
 include("interface/fallback.jl")
 
 # ~*~ Generic methods ~*~ #
-include("interface/generic.jl")
+include("interface/generic/generic.jl")
 
 # ~*~ Package internal library ~*~ #
 include("library/error.jl")

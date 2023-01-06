@@ -1,10 +1,5 @@
 model_name(::M) where {M<:AbstractModel} = "QUBO Model"
 
-domain_name(dom::Domain)          = domain_name(Val(dom))
-domain_name(::Val{BoolDomain})    = "Bool"
-domain_name(::Val{SpinDomain})    = "Spin"
-domain_name(model::AbstractModel) = domain_name(domain(model))
-
 Base.isempty(model::AbstractModel) = isempty(variable_map(model))
 
 function explicit_linear_terms(model::AbstractModel{V,T}) where {V,T}
@@ -49,7 +44,7 @@ end
 function qubo(model::AbstractModel, type::Type = Dict)
     n = domain_size(model)
 
-    L, Q, α, β = swap_domain(
+    L, Q, α, β = cast(
         domain(model),
         Domain(:bool),
         linear_terms(model),
@@ -153,7 +148,7 @@ end
 function ising(model::AbstractModel, type::Type = Dict)
     n = domain_size(model)
 
-    L, Q, α, β = swap_domain(
+    L, Q, α, β = cast(
         domain(model),
         Domain(:spin),
         linear_terms(model),
@@ -437,4 +432,13 @@ function Base.show(io::IO, model::AbstractModel)
     end
 
     return nothing
+end
+
+# -* Casting Fallback *- #
+function cast(target::Sense, model::AbstractModel)
+    return cast(sense(model), target, model)
+end
+
+function cast(target::Domain, model::AbstractModel)
+    return cast(domain(model), target, model)
 end

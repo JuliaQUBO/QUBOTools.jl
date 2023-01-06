@@ -24,7 +24,7 @@ function read_model(io::IO, fmt::BQPJSON)
 
     target_domain = something(domain(fmt), data[:domain])
 
-    L, Q, α, β = swap_domain(
+    L, Q, α, β = cast(
         data[:domain],
         target_domain,
         data[:linear_terms],

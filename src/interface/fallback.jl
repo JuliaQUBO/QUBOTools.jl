@@ -26,7 +26,6 @@ end
 # ~*~ Data access ~*~ #
 model_name(model)            = model_name(backend(model))
 domain(model)                = domain(backend(model))
-domain_name(model)           = domain_name(backend(model))
 scale(model)                 = scale(backend(model))
 offset(model)                = offset(backend(model))
 sense(model)                 = sense(backend(model))

@@ -178,9 +178,9 @@ function _parse_sense!(::MiniZinc, data::Dict{Symbol,Any}, line::AbstractString)
     data[:mzn_sense] = string(m[1])
 
     if data[:mzn_sense] == "minimize"
-        data[:sense] = :min
+        data[:sense] = Sense(:min)
     elseif data[:mzn_sense] == "maximize"
-        data[:sense] = :max
+        data[:sense] = Sense(:max)
     else
         format_error("Invalid optimization sense '$(data[:mzn_sense])")
     end
@@ -212,7 +212,7 @@ function read_model(io::IO, fmt::MiniZinc)
 
     target_domain = something(domain(fmt), data[:domain])
 
-    L, Q, α, β = swap_domain(
+    L, Q, α, β = cast(
         data[:domain],
         target_domain,
         data[:linear_terms],
@@ -227,6 +227,8 @@ function read_model(io::IO, fmt::MiniZinc)
         data[:variable_set];
         scale       = α,
         offset      = β,
+        sense       = data[:sense],
+        domain      = target_domain,
         id          = data[:id],
         description = data[:description],
         metadata    = data[:metadata],

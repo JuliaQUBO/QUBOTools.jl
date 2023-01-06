@@ -19,10 +19,12 @@ QUBOTools.BoolDomain
 QUBOTools.SpinDomain
 QUBOTools.UnknownDomain
 QUBOTools.domain
-QUBOTools.domain_name
-QUBOTools.swap_domain
 QUBOTools.sense
-QUBOTools.swap_sense
+```
+
+### Frame Casting
+```@docs
+QUBOTools.cast
 ```
 
 ### Solution Interface

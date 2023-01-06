@@ -25,21 +25,6 @@ gives access to most fallback implementations.
 """ abstract type Style end
 
 @doc raw"""
-    DWaveStyle <: Style
-
-""" struct DWaveStyle <: Style end
-
-@doc raw"""
-    MQLibStyle <: Style
-
-""" struct MQLibStyle <: Style end
-
-Style(sty::Style)    = sty
-Style(sty::Symbol)   = Style(Val(sty))
-Style(::Val{:dwave}) = DWaveStyle() 
-Style(::Val{:mqlib}) = MQLibStyle()
-
-@doc raw"""
     style(::AbstractFormat)::Style
 """ function style end
 
@@ -90,33 +75,6 @@ Returns a string representing the model type.
 """ abstract type Domain end
 
 @doc raw"""
-    BoolDomain <: Domain
-
-```math
-x \in \mathbb{B} = \lbrace{0, 1}\rbrace
-```
-""" struct BoolDomain <: Domain end
-
-const 𝔹 = BoolDomain()
-
-@doc raw"""
-    SpinDomain <: Domain
-
-```math
-s \in \mathbb{S} = \lbrace{-1, 1}\rbrace
-```
-""" struct SpinDomain <: Domain end
-
-const 𝕊 = SpinDomain()
-
-QUBOTools.Domain(dom::Domain)  = dom
-QUBOTools.Domain(dom::Symbol)  = Domain(Val(dom))
-QUBOTools.Domain(::Val{:bool}) = 𝔹
-QUBOTools.Domain(::Val{:spin}) = 𝕊
-
-Base.Broadcast.broadcastable(dom::Domain) = Ref(dom)
-
-@doc raw"""
     domain(model::AbstractModel)::Domain
     domain(fmt::AbstractFormat)::Domain
 
@@ -134,21 +92,6 @@ Returns the list of available known variable domains.
 """ function domains end
 
 @doc raw"""
-    domain_name(model)::String
-
-Returns a string representing the variable domain.
-""" function domain_name end
-
-@doc raw"""
-    swap_domain(target, model::AbstractModel)
-    swap_domain(source, target, ψ::Vector{U})
-    swap_domain(source, target, Ψ::Vector{Vector{U}})
-    swap_domain(source, target, ω::SampleSet)
-
-Returns a new object, switching its domain from `source` to `target`.
-""" function swap_domain end
-
-@doc raw"""
     scale(model)
 
 """ function scale end
@@ -160,42 +103,10 @@ Returns a new object, switching its domain from `source` to `target`.
 
 abstract type Sense end
 
-struct MinSense <: Sense end
-
-const Min = MinSense()
-
-struct MaxSense <: Sense end
-
-const Max = MaxSense()
-
-Sense(s::Sense)    = s
-Sense(s::Symbol)   = Sense(Val(s))
-Sense(::Val{:min}) = Min
-Sense(::Val{:max}) = Max
-
 @doc raw"""
     sense(model)::Sense
 
 """ function sense end
-
-@doc raw"""
-    swap_sense(target::Sense, model::AbstractModel)
-    swap_sense(target::Symbol, model::AbstractModel)
-
-```math
-\begin{array}{ll}
-    \min_{s} \alpha [f(s) + \beta] &\equiv \max_{s} -\alpha [f(s) + \beta] \\
-                                   &\equiv \max_{s} \alpha [-f(s) - \beta] \\
-\end{array}
-```
-
-The linear terms, quadratic terms and constant offset of a model have its signs reversed.
-
-    swap_sense(s::Sample)::Sample
-    swap_sense(ω::SampleSet)::SampleSet
-
-Reveses the sign of the objective value.
-""" function swap_sense end
 
 @doc raw"""
     id(model)
@@ -454,14 +365,45 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 
 @doc raw"""
     format(data::Vector{Sample{T,U}}) where {T,U}
-    format(
+""" function format end
+
+@doc raw"""
+    cast(
         source_sense::Sense,
         source_domain::Domain,
         target_sense::Sense,
         target_domain::Domain,
         x::Any
     )
-""" function format end
+
+    cast(::S, ::S, model::AbstractModel) where {S<:Sense}
+    cast(::S1, ::S2, model::AbstractModel) where {S1<:Sense,S2<:Sense}
+
+Recasting the sense of a model preserves its meaning:
+
+```math
+\begin{array}{ll}
+    \min_{s} \alpha [f(s) + \beta] &\equiv \max_{s} -\alpha [f(s) + \beta] \\
+                                   &\equiv \max_{s} \alpha [-f(s) - \beta] \\
+\end{array}
+```
+
+The linear terms, quadratic terms and constant offset of a model have its signs reversed.
+
+    cast(::S, ::S, s::Sample) where {S<:Sense}
+    cast(::Sense, ::Sense, s::Sample) where {S1<:Sense,S2<:Sense}
+    cast(::S, ::S, ω::SampleSet) where {S<:Sense}
+    cast(::Sense, ::Sense, ω::SampleSet) where {S1<:Sense,S2<:Sense}
+
+    cast(target, model::AbstractModel)
+    cast(source, target, ψ::Vector{U})
+    cast(source, target, Ψ::Vector{Vector{U}})
+    cast(source, target, ω::SampleSet)
+
+Returns a new object, switching its domain from `source` to `target`.
+
+Reverses the sign of the objective value.
+""" function cast end
 
 @doc raw"""
     read_model(::AbstractString)

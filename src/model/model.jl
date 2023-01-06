@@ -52,10 +52,10 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         # ~*~ Solutions ~*~
         sampleset::Union{SampleSet{T,U},Nothing} = nothing,
     ) where {V,T,U}
-        scale     = isnothing(scale)     ? one(T)           : scale
-        offset    = isnothing(offset)    ? zero(T)          : offset
-        sense     = isnothing(sense)     ? Sense(:min)      : Sense(sense)
-        domain    = isnothing(domain)    ? nothing          : Domain(domain)
+        scale     = isnothing(scale) ? one(T) : scale
+        offset    = isnothing(offset) ? zero(T) : offset
+        sense     = isnothing(sense) ? Sense(:min) : Sense(sense)
+        domain    = isnothing(domain) ? nothing : Domain(domain)
         sampleset = isnothing(sampleset) ? SampleSet{T,U}() : sampleset
 
         return new{V,T,U}(
@@ -178,10 +178,8 @@ description(model::Model) = model.description
 metadata(model::Model)    = model.metadata
 sampleset(model::Model)   = model.sampleset
 
-function swap_domain(target::Domain, model::Model{V,T,U}) where {V,T,U}
-    source = domain(model)
-
-    L, Q, α, β = swap_domain(
+function cast(source::Domain, target::Domain, model::Model{V,T,U}) where {V,T,U}
+    L, Q, α, β = cast(
         source,
         target,
         linear_terms(model),
@@ -203,25 +201,34 @@ function swap_domain(target::Domain, model::Model{V,T,U}) where {V,T,U}
         version     = version(model),
         description = description(model),
         metadata    = metadata(model),
-        sampleset   = swap_domain(source, target, sampleset(model)),
+        sampleset   = cast(source, target, sampleset(model)),
     )
 end
 
-function swap_sense(model::Model{V,T,U}) where {V,T,U}
+function cast(source::Sense, target::Sense, model::Model{V,T,U}) where {V,T,U}
+    L, Q, α, β = cast(
+        source,
+        target,
+        linear_terms(model),
+        quadratic_terms(model),
+        scale(model),
+        offset(model),
+    )
+    
     return Model{V,T,U}(
-        swap_sense(linear_terms(model)),
-        swap_sense(quadratic_terms(model)),
+        L,
+        Q,
         copy(variable_map(model)),
         copy(variable_inv(model));
-        scale       = scale(model),
-        offset      = -offset(model),
-        sense       = swap_sense(sense(model)),
+        scale       = α,
+        offset      = β,
+        sense       = target,
         domain      = domain(model),
         id          = id(model),
         version     = version(model),
         description = description(model),
         metadata    = deepcopy(metadata(model)),
-        sampleset   = swap_sense(sampleset(model)),
+        sampleset   = cast(source, target, sampleset(model)),
     )
 end
 

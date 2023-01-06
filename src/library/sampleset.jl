@@ -1,16 +1,12 @@
-function swap_domain(source::Domain, target::Domain, ψ::Vector{U}) where {U<:Integer}
-    if source === target
-        return copy(ψ)
-    else
-        return swap_domain(Val(source), Val(target), ψ)
-    end
+function cast(::D, ::D, ψ::Vector{U}) where {D<:Domain,U<:Integer}
+    return copy(ψ)
 end
 
-swap_domain(::Val{𝔹}, ::Val{𝕊}, ψ::Vector{U}) where {U<:Integer} = (2 .* ψ) .- 1
-swap_domain(::Val{𝕊}, ::Val{𝔹}, ψ::Vector{U}) where {U<:Integer} = (ψ .+ 1) .÷ 2
- 
-function swap_domain(source::Domain, target::Domain, Ψ::Vector{Vector{U}}) where {U<:Integer}
-    return swap_domain.(source, target, Ψ)
+cast(::BoolDomain, ::SpinDomain, ψ::Vector{U}) where {U<:Integer} = (2 .* ψ) .- 1
+cast(::SpinDomain, ::BoolDomain, ψ::Vector{U}) where {U<:Integer} = (ψ .+ 1) .÷ 2
+
+function cast(source::Domain, target::Domain, Ψ::Vector{Vector{U}}) where {U<:Integer}
+    return cast.(source, target, Ψ)
 end
 
 @doc raw"""
@@ -82,7 +78,9 @@ function format(data::Vector{Sample{T,U}}) where {T,U}
             sample
         else
             if value(cached) != value(sample)
-                sampling_error("Samples of the same state vector must have the same energy value")
+                sampling_error(
+                    "Samples of the same state vector must have the same energy value",
+                )
             end
 
             merge(cached, sample)
@@ -92,6 +90,18 @@ function format(data::Vector{Sample{T,U}}) where {T,U}
     end
 
     return sort(collect(values(cache)))
+end
+
+function cast(source::Domain, target::Domain, s::Sample{T,U}) where {T,U}
+    return Sample{T,U}(cast(source, target, state(s)), value(s), reads(s))
+end
+
+function cast(::S, ::S, s::Sample{T,U}) where {S<:Sense,T,U}
+    return Sample{T,U}(state(s), value(s), reads(s))
+end
+
+function cast(::S1, ::S2, s::Sample{T,U}) where {S1<:Sense,S2<:Sense,T,U}
+    return Sample{T,U}(state(s), -value(s), reads(s))
 end
 
 @doc raw"""
@@ -168,14 +178,6 @@ function validate(ω::AbstractSampleSet)
     else
         return true
     end
-end
-
-function swap_domain(source::Domain, target::Domain, s::Sample{T,U}) where {T,U}
-    return Sample{T,U}(swap_domain(source, target, state(s)), value(s), reads(s))
-end
-
-function swap_sense(s::Sample{T,U}) where {T,U}
-    return Sample{T,U}(state(s), -value(s), reads(s))
 end
 
 state(ω::AbstractSampleSet, i::Integer)             = state(ω[i])
@@ -263,16 +265,16 @@ Base.iterate(ω::SampleSet, i::Integer) = iterate(ω.data, i)
 
 metadata(ω::SampleSet) = ω.metadata
 
-function swap_domain(source::Domain, target::Domain, ω::SampleSet{T,U}) where {T,U}
+function cast(source::Domain, target::Domain, ω::SampleSet{T,U}) where {T,U}
     return SampleSet{T,U}(
-        Vector{Sample{T,U}}(swap_domain.(source, target, ω)),
+        Vector{Sample{T,U}}(cast.(source, target, ω)),
         deepcopy(metadata(ω)),
     )
 end
 
-function swap_sense(ω::SampleSet{T,U}) where {T,U}
+function cast(source::Sense, target::Sense, ω::SampleSet{T,U}) where {T,U}
     return SampleSet{T,U}(
-        Vector{Sample{T,U}}(swap_sense.(ω)),
+        Vector{Sample{T,U}}(cast.(source, target, ω)),
         deepcopy(metadata(ω)),
     )
 end

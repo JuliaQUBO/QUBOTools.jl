@@ -25,9 +25,6 @@ function test_interface_data_access(bool_model, bool_samples, spin_model, spin_s
         @test QUBOTools.domain(bool_model) == BoolDomain()
         @test QUBOTools.domain(spin_model) == SpinDomain()
         
-        @test QUBOTools.domain_name(bool_model) == "Bool"
-        @test QUBOTools.domain_name(spin_model) == "Spin"
-        
         @test QUBOTools.scale(null_model) == 1.0
         @test QUBOTools.scale(bool_model) == 2.0
         @test QUBOTools.scale(spin_model) == 2.0
