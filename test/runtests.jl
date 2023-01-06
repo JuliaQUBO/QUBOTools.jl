@@ -1,7 +1,9 @@
 using Test
 using Printf
 using SparseArrays
+using RecipesBase
 using QUBOTools
+
 import QUBOTools: ↑, ↓, 𝔹, 𝕊
 import QUBOTools: Sample, SampleSet
 import QUBOTools: CodecError, codec_error
