@@ -2,11 +2,7 @@ function _print_header(::IO, ::QUBO, ::Dict{Symbol,Any}, ::Nothing)
     return nothing
 end
 
-function _print_header(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, style::Symbol)
-    return _print_header(io, fmt, data, Val(style))
-end
-
-function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::Val{:dwave})
+function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::DWaveStyle)
     domain_size    = data[:domain_size]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
@@ -16,7 +12,7 @@ function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::Val{:dwave})
     return nothing
 end
 
-function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::Val{:mqlib})
+function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::MQLibStyle)
     domain_size    = data[:domain_size]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
@@ -53,11 +49,7 @@ function _print_metadata(io::IO, ::QUBO, data::Dict{Symbol,Any}, comment::String
     return nothing
 end
 
-function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, style::Symbol)
-    return _print_entries(io, fmt, data, Val(style))
-end
-
-function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Any)
+function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Union{DWaveStyle,Nothing})
     !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
 
     for (i, l) in data[:linear_terms]
@@ -73,7 +65,7 @@ function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Any)
     return nothing
 end
 
-function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Val{:mqlib})
+function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::MQLibStyle)
     !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
 
     for (i, l) in data[:linear_terms]
@@ -104,8 +96,8 @@ function write_model(io::IO, model::AbstractModel, fmt::QUBO)
     )
 
     _print_metadata(io, fmt, data, fmt.comment)
-    _print_header(io, fmt, data, fmt.style)
-    _print_entries(io, fmt, data, fmt.style)
+    _print_header(io, fmt, data, style(fmt))
+    _print_entries(io, fmt, data, style(fmt))
     
     return nothing
 end

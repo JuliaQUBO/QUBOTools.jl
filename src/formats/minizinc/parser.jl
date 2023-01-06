@@ -63,9 +63,9 @@ function _parse_domain!(::MiniZinc, data::Dict{Symbol,Any}, line::AbstractString
     Ω = Set{Int}([a, b])
 
     if Ω == Set{Int}([-1, 1])
-        data[:domain] = SpinDomain
+        data[:domain] = SpinDomain()
     elseif Ω == Set{Int}([0, 1])
-        data[:domain] = BoolDomain
+        data[:domain] = BoolDomain()
     else
         syntax_error("Invalid variable set '$(Ω)'")
     end
@@ -210,20 +210,25 @@ function read_model(io::IO, fmt::MiniZinc)
         _parse_line!(fmt, data, line)
     end
 
-    model = StandardModel{data[:domain]}(
+    target_domain = something(domain(fmt), data[:domain])
+
+    L, Q, α, β = swap_domain(
+        data[:domain],
+        target_domain,
         data[:linear_terms],
         data[:quadratic_terms],
+        data[:scale],
+        data[:offset],
+    )
+
+    return StandardModel(
+        L,
+        Q,
         data[:variable_set];
-        scale       = data[:scale],
-        offset      = data[:offset],
+        scale       = α,
+        offset      = β,
         id          = data[:id],
         description = data[:description],
         metadata    = data[:metadata],
     )
-
-    if D === UnknownDomain
-        return model
-    else
-        return convert(StandardModel{D}, model)
-    end
 end

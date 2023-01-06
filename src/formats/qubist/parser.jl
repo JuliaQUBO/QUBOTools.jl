@@ -69,5 +69,5 @@ function read_model(io::IO, fmt::Qubist)
         _parse_line!(fmt, data, line)
     end
 
-    return Model{SpinDomain}(data[:linear_terms], data[:quadratic_terms])
+    return StandardModel(data[:linear_terms], data[:quadratic_terms])
 end

@@ -8,24 +8,21 @@ This format offers a description for the setup of chimera graphs.
     chimera_degree::Union{Int,Nothing}
 
     function HFS(
-        dom::Domain                           = BoolDomain(),
-        sty::Union{Style,Nothing}             = nothing;
+        dom::BoolDomain                       = BoolDomain(),
+        sty::Nothing                          = nothing;
         chimera_cell_size::Union{Int,Nothing} = nothing,
         chimera_precision::Union{Int,Nothing} = nothing,
         chimera_degree::Union{Int,Nothing}    = nothing,
     )
-        supports_style(HFS, sty) || unsupported_style_error(HFS, sty)
-        supports_domain(HFS, dom) || unsupported_domain_error(HFS, dom)
-
         return new(chimera_cell_size, chimera_precision, chimera_degree)
     end
 end
 
-domain(::HFS) = BoolDomain
+domain(::HFS) = BoolDomain()
 
 supports_domain(::Type{HFS}, ::BoolDomain) = true
 
-infer_format(::Val{:hfs}) = HFS()
+infer_format(::Val{:hfs}) = HFS(𝔹, nothing)
 
 include("chimera.jl")
 include("parser.jl")

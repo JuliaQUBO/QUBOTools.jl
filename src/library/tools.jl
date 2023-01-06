@@ -19,8 +19,8 @@ function swap_domain(
     ::D,
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
-    ᾱ::T = one(T),
-    β̄::T = zero(T),
+    α::T = one(T),
+    β::T = zero(T),
 ) where {D<:Domain,T}
     L = copy(L̄)
     Q = copy(Q̄)
@@ -177,8 +177,8 @@ function _build_mapping(variable_set::Set{V}) where {V}
     variable_inv = sizehint!(Dict{Int,V}(), length(variable_map))
 
     for (k, v) in enumerate(sort!(collect(variable_set); lt = varcmp))
-        variable_map[k] = v
-        variable_inv[v] = k
+        variable_map[v] = k
+        variable_inv[k] = v
     end
 
     return (variable_map, variable_inv)

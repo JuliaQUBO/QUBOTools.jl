@@ -7,39 +7,39 @@
 ### References
 [1] [qbsolv docs](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
 """ struct QUBO <: AbstractFormat
-    style::Union{Symbol,Nothing}
+    style::Union{DWaveStyle,MQLibStyle,Nothing}
     comment::Union{String,Nothing}
 
     function QUBO(
-        dom::Domain                      = BoolDomain();
-        sty::Union{Style,Symbol,Nothing} = :dwave,
-        comment::Union{String,Nothing}   = nothing,
+        dom::BoolDomain                           = BoolDomain(),
+        sty::Union{DWaveStyle,MQLibStyle,Nothing} = DWaveStyle();
+        comment::Union{String,Nothing}            = nothing,
     )
-        supports_style(QUBO, dom) || unsupported_style_error(QUBO, dom)
-        supports_domain(QUBO, dom) || unsupported_domain_error(QUBO, dom)
-
-        if !isnothing(style) && isnothing(comment)
-            if style === :dwave
+        if !isnothing(sty) && isnothing(comment)
+            if sty === DWaveStyle()
                 comment = "c"
-            elseif style === :mqlib
+            elseif sty === MQLibStyle()
                 comment = "#"
-            else
-                format_error("Unknown QUBO File style '$style'")
             end
         end
 
-        return new(style, comment)
+        return new(sty, comment)
     end
 end
 
-domain(::QUBO) = BoolDomain
+domain(::QUBO) = BoolDomain()
 
-supports_domain(::Type{QUBO}, ::Val{BoolDomain}) = true
+supports_domain(::Type{QUBO}, ::BoolDomain) = true
 
-infer_format(::Val{:qubo})                 = QUBO()
-infer_format(::Val{:dwave}, ::Val{:qubo})  = QUBO(; style = :dwave)
-infer_format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO(; style = :dwave)
-infer_format(::Val{:mqlib}, ::Val{:qubo})  = QUBO(; style = :mqlib)
+style(fmt::QUBO) = fmt.style
+
+supports_style(::Type{QUBO}, ::DWaveStyle) = true
+supports_style(::Type{QUBO}, ::MQLibStyle) = true
+
+infer_format(::Val{:qubo})                 = QUBO(𝔹, nothing)
+infer_format(::Val{:dwave}, ::Val{:qubo})  = QUBO(𝔹, Style(:dwave))
+infer_format(::Val{:mqlib}, ::Val{:qubo})  = QUBO(𝔹, Style(:mqlib))
+infer_format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO(𝔹, Style(:dwave))
 
 include("parser.jl")
 include("printer.jl")

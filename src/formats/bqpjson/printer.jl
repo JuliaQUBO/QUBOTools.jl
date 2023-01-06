@@ -6,7 +6,7 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
         :scale           => scale(model),
         :id              => id(model),
         :version         => version(model),
-        :variable_domain => _BQPJSON_VARIABLE_DOMAIN(D),
+        :variable_domain => _BQPJSON_VARIABLE_DOMAIN(domain(model)),
         :variable_ids    => variables(model),
         :description     => description(model),
         :metadata        => metadata(model),
@@ -86,7 +86,7 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
         json_data["solutions"] = solutions
     end
 
-    JSON.print(io, json_data)
+    JSON.print(io, json_data, fmt.indent)
 
     return nothing
 end

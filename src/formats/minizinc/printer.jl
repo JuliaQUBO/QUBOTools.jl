@@ -16,19 +16,13 @@ function _print_metadata(io::IO, ::MiniZinc, data::Dict{Symbol,Any})
     return nothing
 end
 
-function _print_domain(io::IO, fmt::MiniZinc)
-    _print_domain(io, fmt, Val(domain(fmt)))
-
-    return nothing
-end
-
-function _print_domain(io::IO, ::MiniZinc, ::Val{BoolDomain})
+function _print_domain(io::IO, ::MiniZinc, ::BoolDomain)
     println(io, "set of int: Domain = {0,1};")
 
     return nothing
 end
 
-function _print_domain(io::IO, ::MiniZinc, ::Val{SpinDomain})
+function _print_domain(io::IO, ::MiniZinc, ::SpinDomain)
     println(io, "set of int: Domain = {-1,1};")
 
     return nothing
@@ -87,7 +81,7 @@ function write_model(io::IO, model::AbstractModel, fmt::MiniZinc)
     )
 
     _print_metadata(io, fmt, data)
-    _print_domain(io, fmt)
+    _print_domain(io, fmt, domain(fmt))
     _print_variables!(io, fmt, data)
     _print_objective!(io, fmt, data)
 

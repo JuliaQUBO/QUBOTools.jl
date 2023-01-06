@@ -123,10 +123,35 @@ end
 adjacency(G::Set{Tuple{Int,Int}}, k::Integer)  = adjacency(collect(G), k)
 adjacency(G::Dict{Tuple{Int,Int}}, k::Integer) = adjacency(collect(keys(G)), k)
 
-swap_sense(::Nothing)                              = nothing
-swap_sense(s::Sense)                               = s === Min ? Max : Min
-swap_sense(target::Symbol, x::Any)                 = swap_sense(Sense(target), x)
-swap_sense(source::Symbol, target::Symbol, x::Any) = swap_sense(Sense(source), Sense(target), x)
+function format(source::AbstractModel, target::AbstractModel, data::Any)
+    return format(sense(source), domain(source), sense(target), domain(target), data)
+end
+
+function format(
+    source_sense::Sense,
+    source_domain::Domain,
+    target_sense::Sense,
+    target_domain::Domain,
+    data::Any,
+)
+    return data |> (
+        swap_sense(source_sense, target_sense) ∘ swap_domain(source_domain, target_domain)
+    )
+end
+
+# -* Sense *- #
+swap_sense(::Nothing) = nothing
+
+swap_sense(::MaxSense) = Min
+swap_sense(::MinSense) = Max
+
+function swap_sense(target::Symbol, x::Any)                
+    return swap_sense(Sense(target), x)
+end
+
+function swap_sense(source::Symbol, target::Symbol, x::Any)
+    return swap_sense(Sense(source), Sense(target), x)
+end
 
 function swap_sense(target::Sense, x::Any)
     return swap_sense(sense(x), target, x)
@@ -156,74 +181,7 @@ function swap_sense(source::Sense, target::Sense)
     end
 end
 
-function swap_domain(source::Domain, target::Domain)
-    if source === target
-        return identity
-    else
-        return (x) -> swap_domain(source, target, x)
-    end
-end
-
-function format(source::AbstractModel, target::AbstractModel, data::Any)
-    return format(sense(source), domain(source), sense(target), domain(target), data)
-end
-
-function format(
-    source_sense::Sense,
-    source_domain::Domain,
-    target_sense::Sense,
-    target_domain::Domain,
-    data::Any,
-)
-    return data |> (
-        swap_sense(source_sense, target_sense) ∘ swap_domain(source_domain, target_domain)
-    )
-end
-
-function supports(::Type{F}, ::Nothing) where {F<:AbstractFormat}
-    return true
-end
-
-function supports(::Type{F}, dom::Domain) where {F<:AbstractFormat}
-    return false
-end
-
-function unsupported_domain_error(::Type{F}, dom::Domain) where {F<:AbstractFormat}
-    format_error("Format '$F' lacks support for '$dom' domain")
-end
-
-function assert_supports(::Type{F}, ::Nothing) where {F<:AbstractFormat}
-    return nothing
-end
-
-function assert_supports(::Type{F}, dom::Domain) where {F<:AbstractFormat}
-    supports(F, dom) || unsupported_domain_error(F, dom)
-
-    return nothing
-end
-
-function assert_supports(::Type{F}, sty::Style) where {F<:AbstractFormat}
-    supports(F, sty) || unsupported_style_error(F, sty)
-
-    return nothing
-end
-
-function domain_types()
-    return Type[Nothing; subtypes(Domain)]
-end
-
-function domains()
-    return Union{Domain,Nothing}[dom() for dom in domain_types()]
-end
-
-function style_types()
-    return Type[Nothing; subtypes(Style)]
-end
-
-function styles()
-    return Union{Style,Nothing}[sty() for sty in style_types()]
-end
-
+# -* Format *- #
 function format_types()
     return subtypes(AbstractFormat)
 end
@@ -234,7 +192,7 @@ function formats()
         for fmt in format_types()
         for dom in domains()
         for sty in styles()
-        if supports(fmt, dom) && supports(fmt, sty)
+        if supports_domain(fmt, dom) && supports_style(fmt, sty)
     ]
 end
 
@@ -262,8 +220,64 @@ function infer_format(format_hint::Symbol)
     return infer_format(Val(format_hint))
 end
 
+
+# -* Domain *- #
+function domain_name(::BoolDomain)
+    return "Bool"
+end
+
+function domain_name(::SpinDomain)
+    return "Spin"
+end
+
+function domain_types()
+    return Type[Nothing; subtypes(Domain)]
+end
+
+function domains()
+    return Union{Domain,Nothing}[dom() for dom in domain_types()]
+end
+
+function supports_domain(::Type{F}, ::Nothing) where {F<:AbstractFormat}
+    return false
+end
+
+function supports_domain(::Type{F}, ::Domain) where {F<:AbstractFormat}
+    return false
+end
+
+function swap_domain(source::Domain, target::Domain)
+    if source === target
+        return identity
+    else
+        return (x) -> swap_domain(source, target, x)
+    end
+end
+
+# -* Style *- #
+function supports_style(::Type{F}, ::Nothing) where {F<:AbstractFormat}
+    return true
+end
+
+function supports_style(::Type{F}, ::Style) where {F<:AbstractFormat}
+    return false
+end
+
+function style_types()
+    return Type[Nothing; subtypes(Style)]
+end
+
+function styles()
+    return Union{Style,Nothing}[sty() for sty in style_types()]
+end
+
 function style(::AbstractFormat)
     return nothing
+end
+
+# -* I/O *- #
+function Base.show(io::IO, fmt::F) where {F<:AbstractFormat}
+    return print(io, "$F($(domain(fmt)),$(style(fmt)))")
 end
 
 function read_model(path::AbstractString, fmt::AbstractFormat = infer_format(path))
@@ -286,12 +300,4 @@ function write_model(path::AbstractString, model::AbstractModel, fmt::AbstractFo
     open(path, "w") do fp
         write_model(fp, model, fmt)
     end
-end
-
-function write_model(io::IO, model::AbstractModel, fmt::AbstractFormat)
-    return nothing
-end
-
-function Base.show(io::IO, fmt::F) where {F<:AbstractFormat}
-    return print(io, "$F($(domain(fmt)),$(style(fmt)))")
 end

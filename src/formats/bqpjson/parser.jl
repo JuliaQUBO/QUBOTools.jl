@@ -33,7 +33,7 @@ function read_model(io::IO, fmt::BQPJSON)
         data[:offset],
     )
 
-    model = StandardModel(
+    return StandardModel(
         L,
         Q;
         scale       = α,
@@ -46,12 +46,6 @@ function read_model(io::IO, fmt::BQPJSON)
         metadata    = data[:metadata],
         sampleset   = data[:sampleset],
     )
-
-    if D === UnknownDomain
-        return model
-    else
-        return convert(StandardModel{D}, model)
-    end
 end
 
 function _parse_version!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{String,Any})
@@ -70,9 +64,9 @@ function _parse_domain!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{Strin
     bqpjson_domain = json_data["variable_domain"]
 
     if bqpjson_domain == "boolean"
-        data[:domain] = BoolDomain
+        data[:domain] = BoolDomain()
     elseif bqpjson_domain == "spin"
-        data[:domain] = SpinDomain
+        data[:domain] = SpinDomain()
     else
         codec_error("Inconsistent variable domain '$variable_domain'")
     end
