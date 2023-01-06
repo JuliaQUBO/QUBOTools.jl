@@ -8,7 +8,7 @@ function _print_header(io::IO, data::Dict{Symbol,Any}, ::Qubist)
     return nothing
 end
 
-function write_model(io::IO, model::AbstractModel{D}, fmt::Qubist{D}) where {D}
+function write_model(io::IO, model::AbstractModel, fmt::Qubist)
     data = Dict{Symbol,Any}(
         :domain_size    => domain_size(model),
         :linear_size    => linear_size(model),

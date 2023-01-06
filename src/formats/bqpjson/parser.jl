@@ -1,3 +1,53 @@
+function read_model(io::IO, fmt::BQPJSON)
+    json_data = JSON.parse(io)
+    report    = JSONSchema.validate(_BQPJSON_SCHEMA, json_data)
+
+    if !isnothing(report)
+        codec_error("Schema violation:\n$(report)")
+    end
+
+    data = Dict{Symbol,Any}(
+        :id              => json_data["id"],
+        :scale           => json_data["scale"],
+        :offset          => json_data["offset"],
+        :variable_set    => Set{Int}(json_data["variable_ids"]),
+        :linear_terms    => Dict{Int,Float64}(),
+        :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
+        :description     => get(json_data, "description", nothing),
+        :metadata        => deepcopy(json_data["metadata"]),
+    )
+
+    _parse_version!(fmt, data, json_data)
+    _parse_domain!(fmt, data, json_data)
+    _parse_terms!(fmt, data, json_data)
+    _parse_solutions!(fmt, data, json_data)
+
+    target_domain = something(domain(fmt), data[:domain])
+
+    L, Q, α, β = swap_domain(
+        data[:domain],
+        target_domain,
+        data[:linear_terms],
+        data[:quadratic_terms],
+        data[:scale],
+        data[:offset],
+    )
+
+    return StandardModel(
+        L,
+        Q;
+        scale       = α,
+        offset      = β,
+        sense       = Sense(:min),
+        domain      = target_domain,
+        id          = data[:id],
+        version     = data[:version],
+        description = data[:description],
+        metadata    = data[:metadata],
+        sampleset   = data[:sampleset],
+    )
+end
+
 function _parse_version!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{String,Any})
     bqpjson_version = VersionNumber(json_data["version"])
 
@@ -14,9 +64,9 @@ function _parse_domain!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{Strin
     bqpjson_domain = json_data["variable_domain"]
 
     if bqpjson_domain == "boolean"
-        data[:domain] = BoolDomain
+        data[:domain] = BoolDomain()
     elseif bqpjson_domain == "spin"
-        data[:domain] = SpinDomain
+        data[:domain] = SpinDomain()
     else
         codec_error("Inconsistent variable domain '$variable_domain'")
     end
@@ -110,51 +160,7 @@ function _parse_solutions!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{St
         end
     end
 
-    data[:sampleset] = SampleSet{Float64,Int}(samples)
+    data[:sampleset] = SampleSet{Float64,Int}(samples, solution_metadata)
 
     return nothing
 end
-
-function read_model(io::IO, fmt::BQPJSON{D}) where {D}
-    json_data = JSON.parse(io)
-    report    = JSONSchema.validate(_BQPJSON_SCHEMA, json_data)
-    
-    if !isnothing(report)
-        codec_error("Schema violation:\n$(report)")
-    end
-    
-    data = Dict{Symbol,Any}(
-        :id               => json_data["id"],
-        :scale            => json_data["scale"],
-        :offset           => json_data["offset"],
-        :variable_set     => Set{Int}(json_data["variable_ids"]),
-        :linear_terms     => Dict{Int,Float64}(),
-        :quadratic_terms  => Dict{Tuple{Int,Int},Float64}(),
-        :description      => get(json_data, "description", nothing),
-        :metadata         => deepcopy(json_data["metadata"]),
-    )
-
-    _parse_version!(fmt, data, json_data)
-    _parse_domain!(fmt, data, json_data)
-    _parse_terms!(fmt, data, json_data)
-    _parse_solutions!(fmt, data, json_data)
-
-    model = StandardModel{data[:domain]}(
-        data[:linear_terms],
-        data[:quadratic_terms];
-        scale       = data[:scale],
-        offset      = data[:offset],
-        id          = data[:id],
-        version     = data[:version],
-        description = data[:description],
-        metadata    = data[:metadata],
-        sampleset   = data[:sampleset],
-    )
-
-    if D === UnknownDomain
-        return model
-    else
-        return convert(StandardModel{D}, model)
-    end
-end
-

@@ -4,70 +4,48 @@
 """
 
 @doc raw"""
-    VariableDomain
-
-""" abstract type VariableDomain end
-
-const 𝔻 = VariableDomain
-
-@doc raw"""
-    domains()
-
-Returns the list of available known variable domains.
-""" function domains end
-
-Base.Broadcast.broadcastable(D::VariableDomain) = Ref(D)
-
-@doc raw"""
-    UnknownDomain <: VariableDomain
-""" struct UnknownDomain <: VariableDomain end
-
-@doc raw"""
-    SpinDomain <: VariableDomain
-
-```math
-s \in \lbrace{-1, 1}\rbrace
-```
-""" struct SpinDomain <: VariableDomain end
-
-const 𝕊 = SpinDomain
-
-@doc raw"""
-    BoolDomain <: VariableDomain
-
-```math
-x \in \lbrace{0, 1}\rbrace
-```
-""" struct BoolDomain <: VariableDomain end
-
-const 𝔹 = BoolDomain
-
-@doc raw"""
-    AbstractModel{D<:VariableDomain}
+    AbstractModel{V,T}
 
 Represents an abstract QUBO Model and should support most of the queries made available
 by `QUBOTools`.
-
-## Example
-A common use case is to build wrappers around the [`Model`](@ref) concrete type:
-
-```julia
-struct ModelWrapper{D} <: AbstractModel{D}
-    model::Model{D,Int,Float64,Int}
-    attrs::Dict{String,Any}
-end
-
-QUBOTools.backend(mw::ModelWrapper) = mw.model
 ```
 
 As shown in the example above, implementing a method for the [`backend`](@ref) function
 gives access to most fallback implementations.
-""" abstract type AbstractModel{D<:VariableDomain} end
+""" abstract type AbstractModel{V,T} end
 
 @doc raw"""
-    AbstractFormat{D<:VariableDomain}
+    AbstractFormat
 
-""" abstract type AbstractFormat{D<:VariableDomain} end
+""" abstract type AbstractFormat end
+
+@doc raw"""
+    Style
+
+""" abstract type Style end
+
+@doc raw"""
+    DWaveStyle <: Style
+
+""" struct DWaveStyle <: Style end
+
+@doc raw"""
+    MQLibStyle <: Style
+
+""" struct MQLibStyle <: Style end
+
+Style(sty::Style)    = sty
+Style(sty::Symbol)   = Style(Val(sty))
+Style(::Val{:dwave}) = DWaveStyle() 
+Style(::Val{:mqlib}) = MQLibStyle()
+
+@doc raw"""
+    style(::AbstractFormat)::Style
+""" function style end
+
+@doc raw"""
+    supports_style(::AbstractFormat)::Bool
+""" function supports_style end
 
 @doc raw"""
     formats()
@@ -107,10 +85,53 @@ Returns a string representing the model type.
 """ function model_name end
 
 @doc raw"""
-    domain(model)::VariableDomain
+    Domain
+
+""" abstract type Domain end
+
+@doc raw"""
+    BoolDomain <: Domain
+
+```math
+x \in \mathbb{B} = \lbrace{0, 1}\rbrace
+```
+""" struct BoolDomain <: Domain end
+
+const 𝔹 = BoolDomain()
+
+@doc raw"""
+    SpinDomain <: Domain
+
+```math
+s \in \mathbb{S} = \lbrace{-1, 1}\rbrace
+```
+""" struct SpinDomain <: Domain end
+
+const 𝕊 = SpinDomain()
+
+QUBOTools.Domain(dom::Domain)  = dom
+QUBOTools.Domain(dom::Symbol)  = Domain(Val(dom))
+QUBOTools.Domain(::Val{:bool}) = 𝔹
+QUBOTools.Domain(::Val{:spin}) = 𝕊
+
+Base.Broadcast.broadcastable(dom::Domain) = Ref(dom)
+
+@doc raw"""
+    domain(model::AbstractModel)::Domain
+    domain(fmt::AbstractFormat)::Domain
 
 Returns the singleton representing the variable domain of a given model.
 """ function domain end
+
+@doc raw"""
+    supports_domain(::Type{<:AbstractFormat}, ::Domain)
+""" function supports_domain end
+
+@doc raw"""
+    domains()
+
+Returns the list of available known variable domains.
+""" function domains end
 
 @doc raw"""
     domain_name(model)::String
@@ -137,22 +158,20 @@ Returns a new object, switching its domain from `source` to `target`.
 
 """ function offset end
 
-@enum Sense begin
-    Min
-    Max
-end
+abstract type Sense end
 
-function QUBOTools.Sense(s::Symbol)
-    if s === :min
-        return Min
-    elseif s === :max
-        return Max
-    else
-        error("Unknown optimization sense '$s'")
-    end
-end
+struct MinSense <: Sense end
 
-QUBOTools.Sense(s::Sense) = s
+const Min = MinSense()
+
+struct MaxSense <: Sense end
+
+const Max = MaxSense()
+
+Sense(s::Sense)    = s
+Sense(s::Symbol)   = Sense(Val(s))
+Sense(::Val{:min}) = Min
+Sense(::Val{:max}) = Max
 
 @doc raw"""
     sense(model)::Sense
@@ -172,8 +191,8 @@ QUBOTools.Sense(s::Sense) = s
 
 The linear terms, quadratic terms and constant offset of a model have its signs reversed.
 
-    swap_sense(s::Sample)
-    swap_sense(ω::SampleSet)
+    swap_sense(s::Sample)::Sample
+    swap_sense(ω::SampleSet)::SampleSet
 
 Reveses the sign of the objective value.
 """ function swap_sense end
@@ -437,9 +456,33 @@ If a second parameter, an integer, is present, then the set of neighbors of that
     format(data::Vector{Sample{T,U}}) where {T,U}
     format(
         source_sense::Sense,
-        source_domain::VariableDomain,
+        source_domain::Domain,
         target_sense::Sense,
-        target_domain::VariableDomain,
+        target_domain::Domain,
         x::Any
     )
 """ function format end
+
+@doc raw"""
+    read_model(::AbstractString)
+    read_model(::AbstractString, ::AbstractFormat)
+""" function read_model end
+
+@doc raw"""
+    read_model!(::AbstractModel, ::AbstractString)
+""" function read_model! end
+
+@doc raw"""
+    supports_read(::Type{F}) where {F<:AbstractFormat}
+ """ function supports_read end
+
+ @doc raw"""
+    write_model(::AbstractString, ::AbstractModel)
+    write_model(::AbstractString, ::AbstractModel, ::AbstractFormat)
+    write_model(::IO, ::AbstractModel, ::AbstractFormat)
+
+""" function write_model end
+
+@doc raw"""
+    supports_read(::Type{F}) where {F<:AbstractFormat}
+""" function supports_write end

@@ -6,11 +6,7 @@ function _parse_line!(fmt::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
     syntax_error("$line")
 end
 
-function _parse_entry!(fmt::QUBO, data::Dict{Symbol,Any}, line::AbstractString, style::Symbol)
-    return _parse_entry!(fmt, data, line, Val(style))
-end
-
-function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::Any)
+function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::Union{DWaveStyle,Nothing})
     m = match(r"^([0-9]+) ([0-9]+) ([+-]?([0-9]*[.])?[0-9]+)$", line)
 
     if isnothing(m)
@@ -36,7 +32,7 @@ function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::A
     return true
 end
 
-function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::Val{:mqlib})
+function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::MQLibStyle)
     m = match(r"^([0-9]+) ([0-9]+) ([+-]?([0-9]*[.])?[0-9]+)$", line)
 
     if isnothing(m)
@@ -62,11 +58,11 @@ function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::V
     return true
 end
 
-function _parse_header!(fmt::QUBO, data::Dict{Symbol,Any}, line::AbstractString, style::Symbol)
-    return _parse_header!(fmt, data, line, Val(style))
+function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::Nothing)
+    return false
 end
 
-function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::Val{:dwave})
+function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::DWaveStyle)
     m = match(r"^p qubo ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)$", line)
 
     if isnothing(m)
@@ -80,7 +76,7 @@ function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::
     return true
 end
 
-function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::Val{:mqlib})
+function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::MQLibStyle)
     m = match(r"^([0-9]+) ([0-9]+)$", line)
 
     if isnothing(m)
@@ -155,11 +151,12 @@ function read_model(io::IO, fmt::QUBO)
         _parse_line!(fmt, data, line)
     end
 
-    return Model{BoolDomain,Int,Float64,Int}(
+    return StandardModel(
         data[:linear_terms],
         data[:quadratic_terms];
         scale       = data[:scale],
         offset      = data[:offset],
+        domain      = domain(fmt),
         id          = data[:id],
         description = data[:description],
         metadata    = data[:metadata],

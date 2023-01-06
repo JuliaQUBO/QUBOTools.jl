@@ -15,57 +15,66 @@ function _isapproxdict(x::Dict{K,T}, y::Dict{K,T}; kw...) where {K,T<:Real}
 end
 
 function swap_domain(
-    ::𝕊,
-    ::𝔹,
+    ::D,
+    ::D,
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
-    ᾱ::Union{T,Nothing} = nothing,
-    β̄::Union{T,Nothing} = nothing,
+    α::T = one(T),
+    β::T = zero(T),
+) where {D<:Domain,T}
+    L = copy(L̄)
+    Q = copy(Q̄)
+
+    return (L, Q, α, β)
+end
+
+function swap_domain(
+    ::SpinDomain,
+    ::BoolDomain,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T = one(T),
+    β::T = zero(T),
 ) where {T}
-    coalesce()
-    α = something(ᾱ, one(T))
-    β = something(β̄, zero(T))
     L = sizehint!(Dict{Int,T}(), length(L̄))
     Q = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q̄))
 
     for (i, c) in L̄
-        β -= c
         L[i] = get(L, i, zero(T)) + 2c
+        β    -= c
     end
 
     for ((i, j), c) in Q̄
-        β         += c
+        Q[(i, j)] = get(Q, (i, j), zero(T)) + 4c
         L[i]      = get(L, i, zero(T)) - 2c
         L[j]      = get(L, j, zero(T)) - 2c
-        Q[(i, j)] = get(Q, (i, j), zero(T)) + 4c
+        β         += c
     end
 
     return (L, Q, α, β)
 end
 
 function swap_domain(
-    ::𝔹,
-    ::𝕊,
+    ::BoolDomain,
+    ::SpinDomain,
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
-    ᾱ::Union{T,Nothing} = nothing,
-    β̄::Union{T,Nothing} = nothing,
+    α::T = one(T),
+    β::T = zero(T),
 ) where {T}
-    α = something(ᾱ, one(T))
-    β = something(β̄, zero(T))
     L = sizehint!(Dict{Int,T}(), length(L̄))
     Q = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q̄))
 
     for (i, c) in L̄
-        β += c / 2
         L[i] = get(L, i, zero(T)) + c / 2
+        β    += c / 2
     end
 
     for ((i, j), c) in Q̄
-        β         += c / 4
+        Q[(i, j)] = get(Q, (i, j), zero(T)) + c / 4
         L[i]      = get(L, i, zero(T)) + c / 4
         L[j]      = get(L, j, zero(T)) + c / 4
-        Q[(i, j)] = get(Q, (i, j), zero(T)) + c / 4
+        β         += c / 4
     end
 
     return (L, Q, α, β)
@@ -76,10 +85,16 @@ function _map_terms(
     _quadratic_terms::Dict{Tuple{S,S},T},
     variable_map::Dict{S,Int},
 ) where {S,T}
-    linear_terms = Dict{Int,T}(variable_map[i] => l for (i, l) in _linear_terms)
-    quadratic_terms = Dict{Tuple{Int,Int},T}(
-        (variable_map[i], variable_map[j]) => q for ((i, j), q) in _quadratic_terms
-    )
+    linear_terms    = sizehint!(Dict{Int,T}(), length(_linear_terms))
+    quadratic_terms = sizehint!(Dict{Tuple{Int,Int},T}(), length(_quadratic_terms))
+
+    for (i, l) in _linear_terms
+        linear_terms[variable_map[i]] = l
+    end
+
+    for ((i, j), c) in _quadratic_terms
+        quadratic_terms[(variable_map[i], variable_map[j])] = c
+    end
 
     return (linear_terms, quadratic_terms)
 end
@@ -89,10 +104,16 @@ function _inv_terms(
     _quadratic_terms::Dict{Tuple{Int,Int},T},
     variable_inv::Dict{Int,S},
 ) where {S,T}
-    linear_terms = Dict{S,T}(variable_inv[i] => l for (i, l) in _linear_terms)
-    quadratic_terms = Dict{Tuple{S,S},T}(
-        (variable_inv[i], variable_inv[j]) => q for ((i, j), q) in _quadratic_terms
-    )
+    linear_terms    = sizehint!(Dict{S,T}(), length(_linear_terms))
+    quadratic_terms = sizehint!(Dict{Tuple{S,S},T}(), length(_quadratic_terms))
+
+    for (i, c) in _linear_terms
+        linear_terms[variable_inv[i]] = c
+    end
+
+    for ((i, j), c) in _quadratic_terms
+        quadratic_terms[(variable_inv[i], variable_inv[j])] = c
+    end
 
     return (linear_terms, quadratic_terms)
 end
@@ -152,45 +173,13 @@ function _normal_form(
 end
 
 function _build_mapping(variable_set::Set{V}) where {V}
-    variable_map = Dict{V,Int}(
-        v => k for (k, v) in enumerate(sort(collect(variable_set); lt = varcmp))
-    )
-    variable_inv = Dict{Int,V}(v => k for (k, v) in variable_map)
+    variable_map = sizehint!(Dict{V,Int}(), length(variable_set))
+    variable_inv = sizehint!(Dict{Int,V}(), length(variable_map))
 
-    return (variable_map, variable_inv)
-end
-
-function domains()
-    return Type[dom for dom in subtypes(VariableDomain) if dom !== UnknownDomain]
-end
-
-function formats()
-    domain_list = domains()
-    format_list = subtypes(AbstractFormat)
-
-    return Type[fmt{dom} for dom in domain_list, fmt in format_list if (fmt{<:dom} <: fmt)]
-end
-
-function infer_format(path::AbstractString)
-    pieces = reverse(split(basename(path), "."))
-
-    if length(pieces) == 1
-        format_error("Unable to infer QUBO format from file without an extension")
-    else
-        format_hint, domain_hint, _... = pieces
+    for (k, v) in enumerate(sort!(collect(variable_set); lt = varlt))
+        variable_map[v] = k
+        variable_inv[k] = v
     end
 
-    return infer_format(Symbol(domain_hint), Symbol(format_hint))
-end
-
-function infer_format(domain_hint::Symbol, format_hint::Symbol)
-    return infer_format(Val(domain_hint), Val(format_hint))
-end
-
-function infer_format(::Val, format_hint::Val)
-    return infer_format(format_hint)
-end
-
-function infer_format(format_hint::Symbol)
-    return infer_format(Val(format_hint))
+    return (variable_map, variable_inv)
 end

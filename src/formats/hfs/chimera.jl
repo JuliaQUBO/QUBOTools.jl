@@ -76,16 +76,16 @@ There is an edge from ``v_p`` to ``v_q`` if at least one of the following holds:
     end
 end
 
-function Chimera(model::AbstractModel{D}, fmt::HFS{D}) where {D}
+function Chimera(model::AbstractModel, fmt::HFS)
     return Chimera(model, fmt.chimera_cell_size, fmt.chimera_degree, fmt.chimera_precision)
 end
 
 function Chimera(
-    model::AbstractModel{D},
+    model::AbstractModel,
     chimera_cell_size::Union{Integer,Nothing} = nothing,
     chimera_degree::Union{Integer,Nothing} = nothing,
     chimera_precision::Union{Integer,Nothing} = nothing,
-) where {D}
+)
     variable_set    = QUBOTools.variable_set(model)
     linear_terms    = QUBOTools.linear_terms(model)
     quadratic_terms = QUBOTools.quadratic_terms(model)

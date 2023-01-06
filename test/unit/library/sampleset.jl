@@ -1,5 +1,6 @@
 struct SampleModel{T} end
-struct QUBOModel{T} <: QUBOTools.AbstractModel{T} end
+
+struct QUBOModel{V,T} <: QUBOTools.AbstractModel{V,T} end
 
 value(::SampleModel{T}, ::Any) where {T} = zero(T)
 
@@ -12,29 +13,29 @@ function test_samples()
 
     @testset "States" begin
         # ~ Short Circuits ~ #
-        @test QUBOTools.swap_domain(𝕊(), 𝕊(), ψ) == ψ
-        @test QUBOTools.swap_domain(𝕊(), 𝕊(), ϕ) == ϕ
-        @test QUBOTools.swap_domain(𝕊(), 𝕊(), Ψ) == Ψ
-        @test QUBOTools.swap_domain(𝕊(), 𝕊(), Φ) == Φ
-        @test QUBOTools.swap_domain(𝔹(), 𝔹(), ψ) == ψ
-        @test QUBOTools.swap_domain(𝔹(), 𝔹(), ϕ) == ϕ
-        @test QUBOTools.swap_domain(𝔹(), 𝔹(), Ψ) == Ψ
-        @test QUBOTools.swap_domain(𝔹(), 𝔹(), Φ) == Φ
+        @test QUBOTools.swap_domain(𝕊, 𝕊, ψ) == ψ
+        @test QUBOTools.swap_domain(𝕊, 𝕊, ϕ) == ϕ
+        @test QUBOTools.swap_domain(𝕊, 𝕊, Ψ) == Ψ
+        @test QUBOTools.swap_domain(𝕊, 𝕊, Φ) == Φ
+        @test QUBOTools.swap_domain(𝔹, 𝔹, ψ) == ψ
+        @test QUBOTools.swap_domain(𝔹, 𝔹, ϕ) == ϕ
+        @test QUBOTools.swap_domain(𝔹, 𝔹, Ψ) == Ψ
+        @test QUBOTools.swap_domain(𝔹, 𝔹, Φ) == Φ
 
-        @test QUBOTools.swap_domain(𝕊(), 𝕊(), [Φ, Ψ]) == [Φ, Ψ]
-        @test QUBOTools.swap_domain(𝕊(), 𝕊(), [ϕ, ψ]) == [ϕ, ψ]
-        @test QUBOTools.swap_domain(𝔹(), 𝔹(), [Φ, Ψ]) == [Φ, Ψ]
-        @test QUBOTools.swap_domain(𝔹(), 𝔹(), [ϕ, ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(𝕊, 𝕊, [Φ, Ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(𝕊, 𝕊, [ϕ, ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(𝔹, 𝔹, [Φ, Ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(𝔹, 𝔹, [ϕ, ψ]) == [ϕ, ψ]
 
         # ~ State Conversion ~ #
-        @test QUBOTools.swap_domain(𝔹(), 𝕊(), Φ) == ϕ
-        @test QUBOTools.swap_domain(𝔹(), 𝕊(), Ψ) == ψ
-        @test QUBOTools.swap_domain(𝕊(), 𝔹(), ϕ) == Φ
-        @test QUBOTools.swap_domain(𝕊(), 𝔹(), ψ) == Ψ
+        @test QUBOTools.swap_domain(𝔹, 𝕊, Φ) == ϕ
+        @test QUBOTools.swap_domain(𝔹, 𝕊, Ψ) == ψ
+        @test QUBOTools.swap_domain(𝕊, 𝔹, ϕ) == Φ
+        @test QUBOTools.swap_domain(𝕊, 𝔹, ψ) == Ψ
 
         # ~ Multiple States Conversion ~ #
-        @test QUBOTools.swap_domain(𝔹(), 𝕊(), [Φ, Ψ]) == [ϕ, ψ]
-        @test QUBOTools.swap_domain(𝕊(), 𝔹(), [ϕ, ψ]) == [Φ, Ψ]
+        @test QUBOTools.swap_domain(𝔹, 𝕊, [Φ, Ψ]) == [ϕ, ψ]
+        @test QUBOTools.swap_domain(𝕊, 𝔹, [ϕ, ψ]) == [Φ, Ψ]
     end
 
     @testset "Samples" begin
@@ -260,12 +261,12 @@ function test_samples()
             @test_throws Exception value(spin_set, 5)
 
             # ~ swap_domain ~ #
-            @test QUBOTools.swap_domain(𝕊(), 𝕊(), bool_set) == bool_set
-            @test QUBOTools.swap_domain(𝔹(), 𝔹(), bool_set) == bool_set
-            @test QUBOTools.swap_domain(𝕊(), 𝕊(), spin_set) == spin_set
-            @test QUBOTools.swap_domain(𝔹(), 𝔹(), spin_set) == spin_set
-            @test QUBOTools.swap_domain(𝔹(), 𝕊(), bool_set) == spin_set
-            @test QUBOTools.swap_domain(𝕊(), 𝔹(), spin_set) == bool_set
+            @test QUBOTools.swap_domain(𝕊, 𝕊, bool_set) == bool_set
+            @test QUBOTools.swap_domain(𝔹, 𝔹, bool_set) == bool_set
+            @test QUBOTools.swap_domain(𝕊, 𝕊, spin_set) == spin_set
+            @test QUBOTools.swap_domain(𝔹, 𝔹, spin_set) == spin_set
+            @test QUBOTools.swap_domain(𝔹, 𝕊, bool_set) == spin_set
+            @test QUBOTools.swap_domain(𝕊, 𝔹, spin_set) == bool_set
         end
     end
 end

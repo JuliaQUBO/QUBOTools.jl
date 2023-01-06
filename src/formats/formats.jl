@@ -1,6 +1,3 @@
-include("error.jl")
-include("interface.jl")
-
 # ~ Supported Formats ~ #
 include("bqpjson/format.jl")
 include("hfs/format.jl")

@@ -1,4 +1,4 @@
-function write_model(io::IO, model::AbstractModel{D}, fmt::HFS{D}) where {D}
+function write_model(io::IO, model::AbstractModel, fmt::HFS)
     if isempty(model)
         return write(io, "0 0")
     end

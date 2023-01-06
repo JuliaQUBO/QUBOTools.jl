@@ -123,220 +123,38 @@ end
 adjacency(G::Set{Tuple{Int,Int}}, k::Integer)  = adjacency(collect(G), k)
 adjacency(G::Dict{Tuple{Int,Int}}, k::Integer) = adjacency(collect(keys(G)), k)
 
-function qubo(
-    h::Dict{Int,T},
-    J::Dict{Tuple{Int,Int},T},
-    α::T = one(T),
-    β::T = zero(T),
-) where {T}
-    Q = Dict{Tuple{Int,Int},T}()
-
-    sizehint!(Q, length(h) + length(J))
-
-    for (i, l) in h
-        β -= l
-        Q[(i, i)] = get(Q, (i, i), zero(T)) + 2l
-    end
-
-    for ((i, j), q) in J
-        β += q
-        Q[(i, j)] = get(Q, (i, j), zero(T)) + 4q
-        Q[(i, i)] = get(Q, (i, i), zero(T)) - 2q
-        Q[(j, j)] = get(Q, (j, j), zero(T)) - 2q
-    end
-
-    return (Q, α, β)
+function format(source::AbstractModel, target::AbstractModel, data::Any)
+    return format(sense(source), domain(source), sense(target), domain(target), data)
 end
 
-function qubo(
-    h::Vector{T},
-    J::Vector{T},
-    u::Vector{Int},
-    v::Vector{Int},
-    α::T = one(T),
-    β::T = zero(T),
-) where {T}
-    n = length(h)
-    m = length(J)
-    L = zeros(T, n)
-    Q = zeros(T, m)
-
-    for i = 1:n
-        l = h[i]
-
-        β    -= l
-        L[i] += 2l
-    end
-
-    for k = 1:m
-        i = u[k]
-        j = v[k]
-        q = J[k]
-
-        β    += q
-        L[i] -= 2q
-        L[j] -= 2q
-        Q[k] += 4q
-    end
-
-    return (L, Q, u, v, α, β)
+function format(
+    source_sense::Sense,
+    source_domain::Domain,
+    target_sense::Sense,
+    target_domain::Domain,
+    data::Any,
+)
+    return data |> (
+        swap_sense(source_sense, target_sense) ∘ swap_domain(source_domain, target_domain)
+    )
 end
 
-function qubo(h::Vector{T}, J::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
-    n = length(h)
-    Q = zeros(T, n, n)
+# -* Sense *- #
+Base.show(io::IO, ::MinSense) = print(io, "Min")
+Base.show(io::IO, ::MaxSense) = print(io, "Max")
 
-    for i = 1:n, j = i:n
-        if i == j
-            l = h[i]
+swap_sense(::Nothing) = nothing
 
-            β       -= l
-            Q[i, i] += 2l
-        else
-            q = J[i, j]
+swap_sense(::MaxSense) = Min
+swap_sense(::MinSense) = Max
 
-            β       += q
-            Q[i, i] -= 2q
-            Q[j, j] -= 2q
-            Q[i, j] += 4q
-        end
-    end
-
-    return (Q, α, β)
+function swap_sense(target::Symbol, x::Any)                
+    return swap_sense(Sense(target), x)
 end
 
-function qubo(
-    h::SparseVector{T},
-    J::SparseMatrixCSC{T},
-    α::T = one(T),
-    β::T = zero(T),
-) where {T}
-    n = length(h)
-    Q = spzeros(T, n, n)
-
-    for i = 1:n, j = i:n
-        if i == j
-            l = h[i]
-
-            β       -= l
-            Q[i, i] += 2l
-        else
-            q = J[i, j]
-
-            β       += q
-            Q[i, j] += 4q
-            Q[i, i] -= 2q
-            Q[j, j] -= 2q
-        end
-    end
-
-    return (Q, α, β)
+function swap_sense(source::Symbol, target::Symbol, x::Any)
+    return swap_sense(Sense(source), Sense(target), x)
 end
-
-function ising(Q::Dict{Tuple{Int,Int},T}, α::T = one(T), β::T = zero(T)) where {T}
-    h = Dict{Int,T}()
-    J = Dict{Tuple{Int,Int},T}()
-
-    for ((i, j), q) in Q
-        if i == j
-            β    += q / 2
-            h[i] = get(h, i, zero(T)) + q / 2
-        else # i < j
-            β         += q / 4
-            h[i]      = get(h, i, zero(T)) + q / 4
-            h[j]      = get(h, j, zero(T)) + q / 4
-            J[(i, j)] = get(J, (i, j), zero(T)) + q / 4
-        end
-    end
-
-    return (h, J, α, β)
-end
-
-function ising(
-    L::Vector{T},
-    Q::Vector{T},
-    u::Vector{Int},
-    v::Vector{Int},
-    α::T = one(T),
-    β::T = zero(T),
-) where {T}
-    n = length(L)
-    m = length(Q)
-
-    h = zeros(T, n)
-    J = zeros(T, m)
-
-    for i = 1:n
-        l = L[i]
-
-        β    += l / 2
-        h[i] += l / 2
-    end
-
-    for k = 1:m
-        i = u[k]
-        j = v[k]
-        q = Q[k]
-
-        β    += q / 4
-        h[i] += q / 4
-        h[j] += q / 4
-        J[k] += q / 4
-    end
-
-    return (h, J, u, v, α, β)
-end
-
-function ising(Q::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
-    n = size(Q, 1)
-
-    h = zeros(T, n)
-    J = zeros(T, n, n)
-
-    for i = 1:n, j = i:n
-        q = Q[i, j]
-
-        if i == j
-            β    += q / 2
-            h[i] += q / 2
-        else
-            β       += q / 4
-            h[i]    += q / 4
-            h[j]    += q / 4
-            J[i, j] += q / 4
-        end
-    end
-
-    return (h, J, α, β)
-end
-
-function ising(Q::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
-    n = size(Q, 1)
-
-    h = spzeros(T, n)
-    J = spzeros(T, n, n)
-
-    for i = 1:n, j = i:n
-        q = Q[i, j]
-
-        if i == j
-            β    += q / 2
-            h[i] += q / 2
-        else
-            β       += q / 4
-            h[i]    += q / 4
-            h[j]    += q / 4
-            J[i, j] += q / 4
-        end
-    end
-
-    return (h, J, α, β)
-end
-
-swap_sense(::Nothing)                              = nothing
-swap_sense(s::Sense)                               = s === Min ? Max : Min
-swap_sense(target::Symbol, x::Any)                 = swap_sense(Sense(target), x)
-swap_sense(source::Symbol, target::Symbol, x::Any) = swap_sense(Sense(source), Sense(target), x)
 
 function swap_sense(target::Sense, x::Any)
     return swap_sense(sense(x), target, x)
@@ -358,16 +176,134 @@ function swap_sense(Q::Dict{Tuple{Int,Int},T}) where {T}
     return Dict{Tuple{Int,Int},T}(ij => -c for (ij, c) in Q)
 end
 
-function format(
-    source_sense::Sense,
-    source_domain::VariableDomain,
-    target_sense::Sense,
-    target_domain::VariableDomain,
-    x::Any,
-)
-    return swap_sense(
-        source_sense,
-        target_sense,
-        swap_domain(source_domain, target_domain, x),
-    )
+function swap_sense(source::Sense, target::Sense)
+    if source === target
+        return identity
+    else
+        return (x) -> swap_sense(x)
+    end
+end
+
+# -* Format *- #
+function format_types()
+    return subtypes(AbstractFormat)
+end
+
+function formats()
+    return [
+        fmt(dom, sty)
+        for fmt in format_types()
+        for dom in domains()
+        for sty in styles()
+        if supports_domain(fmt, dom) && supports_style(fmt, sty)
+    ]
+end
+
+function infer_format(path::AbstractString)
+    pieces = reverse(split(basename(path), "."))
+
+    if length(pieces) == 1
+        format_error("Unable to infer QUBO format from file without an extension")
+    else
+        format_hint, domain_hint, _... = pieces
+    end
+
+    return infer_format(Symbol(domain_hint), Symbol(format_hint))
+end
+
+function infer_format(domain_hint::Symbol, format_hint::Symbol)
+    return infer_format(Val(domain_hint), Val(format_hint))
+end
+
+function infer_format(::Val, format_hint::Val)
+    return infer_format(format_hint)
+end
+
+function infer_format(format_hint::Symbol)
+    return infer_format(Val(format_hint))
+end
+
+
+# -* Domain *- #
+Base.show(io::IO, ::BoolDomain) = print(io, "𝔹")
+Base.show(io::IO, ::SpinDomain) = print(io, "𝕊")
+
+function domain_name(::BoolDomain)
+    return "Bool"
+end
+
+function domain_name(::SpinDomain)
+    return "Spin"
+end
+
+function domain_types()
+    return Type[Nothing; subtypes(Domain)]
+end
+
+function domains()
+    return Union{Domain,Nothing}[dom() for dom in domain_types()]
+end
+
+function supports_domain(::Type{F}, ::Nothing) where {F<:AbstractFormat}
+    return false
+end
+
+function supports_domain(::Type{F}, ::Domain) where {F<:AbstractFormat}
+    return false
+end
+
+function swap_domain(source::Domain, target::Domain)
+    if source === target
+        return identity
+    else
+        return (x) -> swap_domain(source, target, x)
+    end
+end
+
+# -* Style *- #
+function supports_style(::Type{F}, ::Nothing) where {F<:AbstractFormat}
+    return true
+end
+
+function supports_style(::Type{F}, ::Style) where {F<:AbstractFormat}
+    return false
+end
+
+function style_types()
+    return Type[Nothing; subtypes(Style)]
+end
+
+function styles()
+    return Union{Style,Nothing}[sty() for sty in style_types()]
+end
+
+function style(::AbstractFormat)
+    return nothing
+end
+
+# -* I/O *- #
+function Base.show(io::IO, fmt::F) where {F<:AbstractFormat}
+    return print(io, "$F($(domain(fmt)),$(style(fmt)))")
+end
+
+function read_model(path::AbstractString, fmt::AbstractFormat = infer_format(path))
+    return open(path, "r") do fp
+        return read_model(fp, fmt)
+    end
+end
+
+function read_model!(path::AbstractString, model::AbstractModel, fmt::AbstractFormat = infer_format(path))
+    return open(path, "r") do fp
+        return read_model!(fp, model, fmt)
+    end
+end
+
+function read_model!(io::IO, model::AbstractModel, fmt::AbstractFormat)
+    return copy!(model, read_model(io, fmt))
+end
+
+function write_model(path::AbstractString, model::AbstractModel, fmt::AbstractFormat = infer_format(path))
+    open(path, "w") do fp
+        write_model(fp, model, fmt)
+    end
 end

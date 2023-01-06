@@ -1,8 +1,4 @@
-function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{UnknownDomain}) where {D}
-    return write_model(io, model, BQPJSON{D}())
-end
-
-function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:VariableDomain}
+function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
     data = Dict{Symbol,Any}(
         :linear_terms    => Dict{String,Any}[],
         :quadratic_terms => Dict{String,Any}[],
@@ -10,7 +6,7 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
         :scale           => scale(model),
         :id              => id(model),
         :version         => version(model),
-        :variable_domain => _BQPJSON_VARIABLE_DOMAIN(D),
+        :variable_domain => _BQPJSON_VARIABLE_DOMAIN(domain(model)),
         :variable_ids    => variables(model),
         :description     => description(model),
         :metadata        => metadata(model),
@@ -90,7 +86,7 @@ function write_model(io::IO, model::AbstractModel{D}, ::BQPJSON{D}) where {D<:Va
         json_data["solutions"] = solutions
     end
 
-    JSON.print(io, json_data)
+    JSON.print(io, json_data, fmt.indent)
 
     return nothing
 end

@@ -9,11 +9,26 @@ const _MINIZINC_RE_OBJECTIVE = r"^var\s+float\s*:\s*objective\s*=\s*(.+);$"
 const _MINIZINC_RE_SENSE     = r"^solve (minimize|maximize) objective;$"
 
 @doc raw"""
-""" struct MiniZinc{D} <: AbstractFormat{D} end
+""" struct MiniZinc <: AbstractFormat
+    domain::Union{BoolDomain,SpinDomain,Nothing}
 
-infer_format(::Val{:mzn})               = MiniZinc{UnknownDomain}()
-infer_format(::Val{:spin}, ::Val{:mzn}) = MiniZinc{SpinDomain}()
-infer_format(::Val{:bool}, ::Val{:mzn}) = MiniZinc{BoolDomain}()
+    function MiniZinc(
+        dom::Union{BoolDomain,SpinDomain,Nothing} = nothing,
+        sty::Nothing                              = nothing,
+    )
+        return new(dom)
+    end
+end
+
+domain(fmt::MiniZinc) = fmt.domain
+
+supports_domain(::Type{MiniZinc}, ::Nothing)    = true
+supports_domain(::Type{MiniZinc}, ::BoolDomain) = true
+supports_domain(::Type{MiniZinc}, ::SpinDomain) = true
+
+infer_format(::Val{:mzn})               = MiniZinc(nothing, nothing)
+infer_format(::Val{:spin}, ::Val{:mzn}) = MiniZinc(𝕊, nothing)
+infer_format(::Val{:bool}, ::Val{:mzn}) = MiniZinc(𝔹, nothing)
 
 include("parser.jl")
 include("printer.jl")

@@ -1,11 +1,21 @@
 @doc raw"""
-    Qubist{D<:SpinDomain}
+    Qubist
 
-""" struct Qubist{D<:𝕊} <: AbstractFormat{D} end
+""" struct Qubist <: AbstractFormat
 
-Qubist(args...; kws...) = Qubist{𝕊}(args...; kws...)
+    function Qubist(
+        dom::SpinDomain = SpinDomain(),
+        sty::Nothing    = nothing,
+    )
+        return new()
+    end
+end
 
-infer_format(::Val{:qh}) = Qubist()
+domain(::Qubist) = SpinDomain()
+
+supports_domain(::Type{Qubist}, ::SpinDomain) = true
+
+infer_format(::Val{:qh}) = Qubist(𝕊, nothing)
 
 include("parser.jl")
 include("printer.jl")

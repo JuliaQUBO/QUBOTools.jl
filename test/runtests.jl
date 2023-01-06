@@ -1,7 +1,9 @@
 using Test
 using Printf
 using SparseArrays
+using RecipesBase
 using QUBOTools
+
 import QUBOTools: ↑, ↓, 𝔹, 𝕊
 import QUBOTools: Sample, SampleSet
 import QUBOTools: CodecError, codec_error
@@ -13,6 +15,7 @@ import QUBOTools: backend
 import QUBOTools: BQPJSON, HFS, MiniZinc, Qubist, QUBO
 
 # ~*~ Include test functions ~*~
+include("assets/assets.jl")
 include("tools/tools.jl")
 include("unit/unit.jl")
 include("integration/integration.jl")

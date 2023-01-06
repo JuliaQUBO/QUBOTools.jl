@@ -5,7 +5,23 @@ This file contains fallback implementations by calling the model's backend.
 This allows for external models to define a QUBOTools-based backend and profit from these queries.
 """
 
-frontend(model) = backend(model)
+# ~*~ Frontend & Backend ~*~ #
+# The `frontend` implementation defaults to `backend`
+# because most of the time people will not be working
+# with two equivalent models as in `TwinModel`'s API.
+function frontend(model)
+    return backend(model)
+end
+
+function backend(::M) where {M<:AbstractModel}
+    error(
+        """
+        The '$M' QUBO Model Type has an incomplete inferface.
+        It should either implement `backend(::$M)` or the complete `AbstractModel` API.
+        Run `julia> ?QUBOTools.AbstractModel` for more information.
+        """
+    )
+end
 
 # ~*~ Data access ~*~ #
 model_name(model)            = model_name(backend(model))
