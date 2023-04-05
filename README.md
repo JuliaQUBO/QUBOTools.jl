@@ -142,8 +142,8 @@ When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say
     <a href="https://github.com/psrenergy/ToQUBO.jl">
         <img width="200px" src="https://raw.githubusercontent.com/psrenergy/ToQUBO.jl/master/docs/src/assets/logo.svg" alt="ToQUBO.jl" />
     </a>
-    <a href="https://github.com/psrenergy/Anneal.jl">
-        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/Anneal.jl/master/docs/src/assets/logo.svg" alt="Anneal.jl" />
+    <a href="https://github.com/psrenergy/QUBODrivers.jl">
+        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/QUBODrivers.jl/master/docs/src/assets/logo.svg" alt="QUBODrivers.jl" />
     </a>
     <a href="https://github.com/psrenergy/QUBOTools.jl">
         <img width="200px" src="https://raw.githubusercontent.com/psrenergy/QUBOTools.jl/main/docs/src/assets/logo.svg" alt="QUBOTools.jl" />
