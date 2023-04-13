@@ -1,9 +1,9 @@
 # -* Sense *- #
-function cast(::S, ::S, L̄::Dict{Int,T}) where {S<:Sense,T}
+function cast(::Pair{S,S}, L̄::Dict{Int,T}) where {T,S<:Sense}
     return copy(L̄)
 end
 
-function cast(::Sense, ::Sense, L̄::Dict{Int,T}) where {T}
+function cast(::Pair{A,B}, L̄::Dict{Int,T}) where {T,A<:Sense,B<:Sense}
     L = sizehint!(Dict{Int,T}(), length(L̄))
 
     for (i, c) in L̄
@@ -13,11 +13,11 @@ function cast(::Sense, ::Sense, L̄::Dict{Int,T}) where {T}
     return L
 end
 
-function cast(::S, ::S, Q̄::Dict{Tuple{Int,Int},T}) where {S<:Sense,T}
+function cast(::Pair{S,S}, Q̄::Dict{Tuple{Int,Int},T}) where {T,S<:Sense}
     return copy(Q̄)
 end
 
-function cast(::Sense, ::Sense, Q̄::Dict{Tuple{Int,Int},T}) where {T}
+function cast(::Pair{A,B}, Q̄::Dict{Tuple{Int,Int},T}) where {T,A<:Sense,B<:Sense}
     Q = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q̄))
 
     for (ij, c) in Q̄
@@ -28,13 +28,12 @@ function cast(::Sense, ::Sense, Q̄::Dict{Tuple{Int,Int},T}) where {T}
 end
 
 function cast(
-    ::S,
-    ::S,
+    ::Pair{S,S},
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
     α::T = one(T),
     β::T = zero(T),
-) where {S<:Sense,T}
+) where {T,S<:Sense}
     L = copy(L̄)
     Q = copy(Q̄)
 
@@ -42,28 +41,26 @@ function cast(
 end
 
 function cast(
-    source::Sense,
-    target::Sense,
+    route::Pair{A,B},
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
     α::T = one(T),
     β::T = zero(T),
-) where {T}
-    L = cast(source, target, L̄)
-    Q = cast(source, target, Q̄)
+) where {T,A<:Sense,B<:Sense}
+    L = cast(route, L̄)
+    Q = cast(route, Q̄)
 
     return (L, Q, α, -β)
 end
 
 # -* Domain *- #
 function cast(
-    ::D,
-    ::D,
+    ::Pair{D,D},
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
     α::T = one(T),
     β::T = zero(T),
-) where {D<:Domain,T}
+) where {T,D<:Domain}
     L = copy(L̄)
     Q = copy(Q̄)
 
@@ -71,8 +68,7 @@ function cast(
 end
 
 function cast(
-    ::SpinDomain,
-    ::BoolDomain,
+    ::Pair{SpinDomain,BoolDomain},
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
     α::T = one(T),
@@ -97,8 +93,7 @@ function cast(
 end
 
 function cast(
-    ::BoolDomain,
-    ::SpinDomain,
+    ::Pair{BoolDomain,SpinDomain},
     L̄::Dict{Int,T},
     Q̄::Dict{Tuple{Int,Int},T},
     α::T = one(T),
@@ -122,19 +117,11 @@ function cast(
     return (L, Q, α, β)
 end
 
-
-# -* Model *- #
-function cast(source::AbstractModel, target::AbstractModel, data)
-    return cast(sense(source), sense(target), domain(source), domain(target), data)
-end
-
 # -* Chain *- #
 function cast(
-    source_sense::Sense,
-    target_sense::Sense,
-    source_domain::Domain,
-    target_domain::Domain,
+    sense_route::Pair{A,B},
+    domain_route::Pair{X,Y},
     data,
-)
-    return cast(source_sense, target_sense, cast(source_domain, target_domain, data))
+) where {A<:Sense,B<:Sense,X<:Domain,Y<:Domain}
+    return cast(sense_route, cast(domain_route, data))
 end

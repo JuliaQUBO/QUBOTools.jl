@@ -40,13 +40,20 @@ function variable_inv(model::AbstractModel, i::Integer)
     end
 end
 
+function warm_start(model::AbstractModel{V,T}, i::Integer) where {V,T}
+    return warm_start(model, variable_inv(model, i))
+end
+
+function warm_start(model::AbstractModel{V,T}, v::V) where {V,T}
+    return get(warm_start(model), v, nothing)
+end
+
 # ~*~ Model's Normal Forms ~*~ #
 function qubo(model::AbstractModel, type::Type = Dict)
     n = domain_size(model)
 
     L, Q, α, β = cast(
-        domain(model),
-        Domain(:bool),
+        domain(model) => Domain(:bool),
         linear_terms(model),
         quadratic_terms(model),
         scale(model),
@@ -149,8 +156,7 @@ function ising(model::AbstractModel, type::Type = Dict)
     n = domain_size(model)
 
     L, Q, α, β = cast(
-        domain(model),
-        Domain(:spin),
+        domain(model) => Domain(:spin),
         linear_terms(model),
         quadratic_terms(model),
         scale(model),
@@ -436,9 +442,9 @@ end
 
 # -* Casting Fallback *- #
 function cast(target::Sense, model::AbstractModel)
-    return cast(sense(model), target, model)
+    return cast(sense(model) => target, model)
 end
 
 function cast(target::Domain, model::AbstractModel)
-    return cast(domain(model), target, model)
+    return cast(domain(model) => target, model)
 end

@@ -5,19 +5,11 @@ This file contains fallback implementations by calling the model's backend.
 This allows for external models to define a QUBOTools-based backend and profit from these queries.
 """
 
-# ~*~ Frontend & Backend ~*~ #
-# The `frontend` implementation defaults to `backend`
-# because most of the time people will not be working
-# with two equivalent models as in `TwinModel`'s API.
-function frontend(model)
-    return backend(model)
-end
-
-function backend(::M) where {M<:AbstractModel}
+function backend(::M) where {M}
     error(
         """
-        The '$M' QUBO Model Type has an incomplete inferface.
-        It should either implement `backend(::$M)` or the complete `AbstractModel` API.
+        '$M' has an incomplete inferface for 'QUBOTools'.
+        It should either implement 'backend(::$M)' or the complete 'AbstractModel' API.
         Run `julia> ?QUBOTools.AbstractModel` for more information.
         """
     )
@@ -42,6 +34,7 @@ variables(model)             = variables(backend(model))
 variable_set(model)          = variable_set(backend(model))
 variable_map(model, args...) = variable_map(backend(model), args...)
 variable_inv(model, args...) = variable_inv(backend(model), args...)
+warm_start(model, args...)   = warm_start(backend(model), args...)
 
 # ~*~ Model's Normal Forms ~*~ #
 qubo(model, args...)  = qubo(backend(model), args...)

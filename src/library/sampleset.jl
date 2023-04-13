@@ -1,12 +1,14 @@
-function cast(::D, ::D, ψ::Vector{U}) where {D<:Domain,U<:Integer}
+function cast(::Pair{D,D}, ψ::Vector{U}) where {U<:Integer,D<:Domain}
     return copy(ψ)
 end
 
-cast(::BoolDomain, ::SpinDomain, ψ::Vector{U}) where {U<:Integer} = (2 .* ψ) .- 1
-cast(::SpinDomain, ::BoolDomain, ψ::Vector{U}) where {U<:Integer} = (ψ .+ 1) .÷ 2
+cast(::Pair{BoolDomain,SpinDomain}, x::Integer)                      = (2 * x) - 1
+cast(::Pair{SpinDomain,BoolDomain}, s::Integer)                      = (s + 1) ÷ 2
+cast(::Pair{BoolDomain,SpinDomain}, ψ::Vector{U}) where {U<:Integer} = (2 .* ψ) .- 1
+cast(::Pair{SpinDomain,BoolDomain}, ψ::Vector{U}) where {U<:Integer} = (ψ .+ 1) .÷ 2
 
-function cast(source::Domain, target::Domain, Ψ::Vector{Vector{U}}) where {U<:Integer}
-    return cast.(source, target, Ψ)
+function cast(route::Pair{X,Y}, Ψ::Vector{Vector{U}}) where {U<:Integer,X<:Domain,Y<:Domain}
+    return cast.(route, Ψ)
 end
 
 @doc raw"""
@@ -92,15 +94,15 @@ function format(data::Vector{Sample{T,U}}) where {T,U}
     return sort(collect(values(cache)))
 end
 
-function cast(source::Domain, target::Domain, s::Sample{T,U}) where {T,U}
-    return Sample{T,U}(cast(source, target, state(s)), value(s), reads(s))
+function cast(route::Pair{X,Y}, s::Sample{T,U}) where {T,U,X<:Domain,Y<:Domain}
+    return Sample{T,U}(cast(route, state(s)), value(s), reads(s))
 end
 
-function cast(::S, ::S, s::Sample{T,U}) where {S<:Sense,T,U}
+function cast(::Pair{S,S}, s::Sample{T,U}) where {S<:Sense,T,U}
     return Sample{T,U}(state(s), value(s), reads(s))
 end
 
-function cast(::S1, ::S2, s::Sample{T,U}) where {S1<:Sense,S2<:Sense,T,U}
+function cast(::Pair{A,B}, s::Sample{T,U}) where {T,U,A<:Sense,B<:Sense}
     return Sample{T,U}(state(s), -value(s), reads(s))
 end
 
@@ -189,18 +191,19 @@ reads(ω::AbstractSampleSet)                         = sum(reads.(ω))
 @doc raw"""
     SampleSet{T,U}(
         data::Vector{Sample{T,U}},
-        metadata::Dict{String, Any},
+        metadata::Dict{String,Any},
     ) where {T,U}
 
 It compresses repeated states by adding up the `reads` field.
-It was inspired by [1], with a few tweaks.
+It was inspired by [^dwave], with a few tweaks.
 
 !!! info
     A `SampleSet{T,U}` was designed to be read-only.
     It is optimized to support queries over the solution set.
 
 ## References
-[1] [ocean docs](https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet)
+[^dwave]:
+    [ocean docs](https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet)
 """ struct SampleSet{T,U} <: AbstractSampleSet{T,U}
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
@@ -265,16 +268,10 @@ Base.iterate(ω::SampleSet, i::Integer) = iterate(ω.data, i)
 
 metadata(ω::SampleSet) = ω.metadata
 
-function cast(source::Domain, target::Domain, ω::SampleSet{T,U}) where {T,U}
-    return SampleSet{T,U}(
-        Vector{Sample{T,U}}(cast.(source, target, ω)),
-        deepcopy(metadata(ω)),
-    )
+function cast(route::Pair{A,B}, ω::SampleSet{T,U}) where {T,U,A<:Sense,B<:Sense}
+    return SampleSet{T,U}(Vector{Sample{T,U}}(cast.(route, ω)), deepcopy(metadata(ω)))
 end
 
-function cast(source::Sense, target::Sense, ω::SampleSet{T,U}) where {T,U}
-    return SampleSet{T,U}(
-        Vector{Sample{T,U}}(cast.(source, target, ω)),
-        deepcopy(metadata(ω)),
-    )
+function cast(route::Pair{X,Y}, ω::SampleSet{T,U}) where {T,U,X<:Domain,Y<:Domain}
+    return SampleSet{T,U}(Vector{Sample{T,U}}(cast.(route, ω)), deepcopy(metadata(ω)))
 end

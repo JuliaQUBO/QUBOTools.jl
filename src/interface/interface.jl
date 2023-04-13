@@ -47,14 +47,6 @@ Given a file path, tries to infer the type associated to a QUBO model format.
 """ function infer_format end
 
 @doc raw"""
-    frontend(model)::AbstractModel
-    frontend(model::AbstractModel)::AbstractModel
-
-Retrieves the model's backend.
-Implementing this function allows one to profit from fallback implementations of the other methods.
-""" function frontend end
-
-@doc raw"""
     backend(model)::AbstractModel
     backend(model::AbstractModel)::AbstractModel
 
@@ -101,7 +93,10 @@ Returns the list of available known variable domains.
 
 """ function offset end
 
-abstract type Sense end
+@doc raw"""
+    Sense
+
+""" abstract type Sense end
 
 @doc raw"""
     sense(model)::Sense
@@ -121,7 +116,8 @@ abstract type Sense end
 """ function description end
 
 @doc raw"""
-    metadata(model)
+    metadata(model::AbstractModel)
+    metadata(sampleset::SampleSet)
 """ function metadata end
 
 @doc raw"""
@@ -179,8 +175,8 @@ Returns the set of variables of a given model.
 """ function variable_map end
 
 @doc raw"""
-variable_inv(model)::Dict{Int,V} where {V}
-variable_inv(model, i::Integer)::V where {V}
+    variable_inv(model)::Dict{Int,V} where {V}
+    variable_inv(model, i::Integer)::V where {V}
 
 """ function variable_inv end
 
@@ -369,15 +365,13 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 
 @doc raw"""
     cast(
-        source_sense::Sense,
-        source_domain::Domain,
-        target_sense::Sense,
-        target_domain::Domain,
-        x::Any
-    )
+        sense_route::Pair{A,B},
+        domain_route::Pair{X,Y},
+        data,
+    ) where {A<:Sense,B<:Sense,X<:Domain,Y<:Domain}
 
     cast(::S, ::S, model::AbstractModel) where {S<:Sense}
-    cast(::S1, ::S2, model::AbstractModel) where {S1<:Sense,S2<:Sense}
+    cast(::A, ::B, model::AbstractModel) where {A<:Sense,B<:Sense}
 
 Recasting the sense of a model preserves its meaning:
 
@@ -391,14 +385,14 @@ Recasting the sense of a model preserves its meaning:
 The linear terms, quadratic terms and constant offset of a model have its signs reversed.
 
     cast(::S, ::S, s::Sample) where {S<:Sense}
-    cast(::Sense, ::Sense, s::Sample) where {S1<:Sense,S2<:Sense}
+    cast(::A, ::B, s::Sample) where {A<:Sense,B<:Sense}
     cast(::S, ::S, ω::SampleSet) where {S<:Sense}
-    cast(::Sense, ::Sense, ω::SampleSet) where {S1<:Sense,S2<:Sense}
+    cast(::A, ::B, ω::SampleSet) where {A<:Sense,B<:Sense}
 
     cast(target, model::AbstractModel)
-    cast(source, target, ψ::Vector{U})
-    cast(source, target, Ψ::Vector{Vector{U}})
-    cast(source, target, ω::SampleSet)
+    cast(route, ψ::Vector{U})
+    cast(route, Ψ::Vector{Vector{U}})
+    cast(route, ω::SampleSet)
 
 Returns a new object, switching its domain from `source` to `target`.
 
@@ -427,4 +421,5 @@ Reverses the sign of the objective value.
 
 @doc raw"""
     supports_read(::Type{F}) where {F<:AbstractFormat}
+
 """ function supports_write end

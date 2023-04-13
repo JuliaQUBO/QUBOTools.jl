@@ -28,8 +28,9 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
     id::Union{Int,Nothing}
     version::Union{VersionNumber,Nothing}
     description::Union{String,Nothing}
-    metadata::Union{Dict{String,Any},Nothing}
+    metadata::Dict{String,Any}
     # ~*~ Solutions ~*~
+    warm_start::Dict{V,U}
     sampleset::SampleSet{T,U}
 
     function Model{V,T,U}(
@@ -50,13 +51,16 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
         description::Union{String,Nothing}        = nothing,
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         # ~*~ Solutions ~*~
+        warm_start::Union{Dict{V,U},Nothing}     = nothing,
         sampleset::Union{SampleSet{T,U},Nothing} = nothing,
     ) where {V,T,U}
-        scale     = isnothing(scale) ? one(T) : scale
-        offset    = isnothing(offset) ? zero(T) : offset
-        sense     = isnothing(sense) ? Sense(:min) : Sense(sense)
-        domain    = isnothing(domain) ? nothing : Domain(domain)
-        sampleset = isnothing(sampleset) ? SampleSet{T,U}() : sampleset
+        scale      = isnothing(scale) ? one(T) : scale
+        offset     = isnothing(offset) ? zero(T) : offset
+        sense      = isnothing(sense) ? Sense(:min) : Sense(sense)
+        domain     = isnothing(domain) ? nothing : Domain(domain)
+        metadata   = isnothing(metadata) ? Dict{String,Any}() : metadata
+        warm_start = isnothing(warm_start) ? Dict{V,U}() : warm_start
+        sampleset  = isnothing(sampleset) ? SampleSet{T,U}() : sampleset
 
         return new{V,T,U}(
             linear_terms,
@@ -71,6 +75,7 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
             version,
             description,
             metadata,
+            warm_start,
             sampleset,
         )
     end
@@ -100,8 +105,11 @@ function Model{V,T,U}(
 
     variable_map, variable_inv = _build_mapping(_variable_set)
 
-    linear_terms, quadratic_terms =
-        _map_terms(_linear_terms, _quadratic_terms, variable_map)
+    linear_terms, quadratic_terms = _map_terms(
+        _linear_terms,
+        _quadratic_terms,
+        variable_map,
+    )
 
     return Model{V,T,U}(linear_terms, quadratic_terms, variable_map, variable_inv; kws...)
 end
@@ -134,8 +142,9 @@ function Base.empty!(model::Model{V,T,U}) where {V,T,U}
     model.id          = nothing
     model.version     = nothing
     model.description = nothing
-    model.metadata    = nothing
-    model.sampleset   = SampleSet{T,U}()
+    empty!(model.metadata)
+    empty!(model.warm_start)
+    empty!(model.sampleset)
 
     return model
 end
@@ -158,6 +167,7 @@ function Base.copy(model::Model{V,T,U}) where {V,T,U}
         version     = version(model),
         description = description(model),
         metadata    = deepcopy(metadata(model)),
+        warm_start  = deepcopy(warm_start(model)),
         sampleset   = copy(sampleset(model)),
     )
 end
@@ -176,12 +186,12 @@ id(model::Model)          = model.id
 version(model::Model)     = model.version
 description(model::Model) = model.description
 metadata(model::Model)    = model.metadata
+warm_start(model::Model)  = model.warm_start
 sampleset(model::Model)   = model.sampleset
 
-function cast(source::Domain, target::Domain, model::Model{V,T,U}) where {V,T,U}
+function cast(route::Pair{X,Y}, model::Model{V,T,U}) where {V,T,U,X<:Domain,Y<:Domain}
     L, Q, α, β = cast(
-        source,
-        target,
+        route,
         linear_terms(model),
         quadratic_terms(model),
         scale(model),
@@ -201,14 +211,13 @@ function cast(source::Domain, target::Domain, model::Model{V,T,U}) where {V,T,U}
         version     = version(model),
         description = description(model),
         metadata    = metadata(model),
-        sampleset   = cast(source, target, sampleset(model)),
+        sampleset   = cast(route, sampleset(model)),
     )
 end
 
-function cast(source::Sense, target::Sense, model::Model{V,T,U}) where {V,T,U}
+function cast(route::Pair{A,B}, model::Model{V,T,U}) where {V,T,U,A<:Sense,B<:Sense}
     L, Q, α, β = cast(
-        source,
-        target,
+        route,
         linear_terms(model),
         quadratic_terms(model),
         scale(model),
@@ -228,7 +237,7 @@ function cast(source::Sense, target::Sense, model::Model{V,T,U}) where {V,T,U}
         version     = version(model),
         description = description(model),
         metadata    = deepcopy(metadata(model)),
-        sampleset   = cast(source, target, sampleset(model)),
+        sampleset   = cast(route, sampleset(model)),
     )
 end
 
@@ -245,6 +254,7 @@ function Base.copy!(target::Model{V,T,U}, source::Model{V,T,U}) where {V,T,U}
     target.version         = version(source)
     target.description     = description(source)
     target.metadata        = deepcopy(metadata(source))
+    target.warm_start      = deepcopy(warm_start(source))
     target.sampleset       = copy(sampleset(source))
 
     return target
