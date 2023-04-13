@@ -1,9 +1,8 @@
-function cast(::Pair{D,D}, ψ::Vector{U}) where {U<:Integer,D<:Domain}
-    return copy(ψ)
-end
+cast(::Pair{D,D}, x::Integer) where {D<:Domain} = x
+cast(::Pair{BoolDomain,SpinDomain}, x::Integer) = (2 * x) - 1
+cast(::Pair{SpinDomain,BoolDomain}, s::Integer) = (s + 1) ÷ 2
 
-cast(::Pair{BoolDomain,SpinDomain}, x::Integer)                      = (2 * x) - 1
-cast(::Pair{SpinDomain,BoolDomain}, s::Integer)                      = (s + 1) ÷ 2
+cast(::Pair{D,D}, ψ::Vector{U}) where {U<:Integer,D<:Domain}         = copy(ψ)
 cast(::Pair{BoolDomain,SpinDomain}, ψ::Vector{U}) where {U<:Integer} = (2 .* ψ) .- 1
 cast(::Pair{SpinDomain,BoolDomain}, ψ::Vector{U}) where {U<:Integer} = (ψ .+ 1) .÷ 2
 
@@ -219,6 +218,10 @@ It was inspired by [^dwave], with a few tweaks.
         end
 
         return new{T,U}(data, metadata)
+    end
+
+    function SampleSet{T,U}(metadata::Dict{String,Any}) where {T,U}
+        return new{T,U}(Sample{T,U}[], metadata)
     end
 
     function SampleSet{T,U}() where {T,U}

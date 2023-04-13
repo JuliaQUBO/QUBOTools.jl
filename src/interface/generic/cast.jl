@@ -121,7 +121,7 @@ end
 function cast(
     sense_route::Pair{A,B},
     domain_route::Pair{X,Y},
-    data,
+    data...,
 ) where {A<:Sense,B<:Sense,X<:Domain,Y<:Domain}
-    return cast(sense_route, cast(domain_route, data))
+    return cast(sense_route, cast(domain_route, data...)...)
 end
