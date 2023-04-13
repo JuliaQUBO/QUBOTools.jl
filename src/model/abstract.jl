@@ -40,10 +40,6 @@ function variable_inv(model::AbstractModel, i::Integer)
     end
 end
 
-function warm_start(model::AbstractModel{V,T}, i::Integer) where {V,T}
-    return warm_start(model, variable_inv(model, i))
-end
-
 function warm_start(model::AbstractModel{V,T}, v::V) where {V,T}
     return get(warm_start(model), v, nothing)
 end
