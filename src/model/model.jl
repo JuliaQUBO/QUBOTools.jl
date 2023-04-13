@@ -206,7 +206,7 @@ function cast(route::Pair{X,Y}, model::Model{V,T,U}) where {V,T,U,X<:Domain,Y<:D
         scale       = α,
         offset      = β,
         sense       = sense(model),
-        domain      = target,
+        domain      = last(route), # target
         id          = id(model),
         version     = version(model),
         description = description(model),
@@ -231,7 +231,7 @@ function cast(route::Pair{A,B}, model::Model{V,T,U}) where {V,T,U,A<:Sense,B<:Se
         copy(variable_inv(model));
         scale       = α,
         offset      = β,
-        sense       = target,
+        sense       = last(route), #target
         domain      = domain(model),
         id          = id(model),
         version     = version(model),
