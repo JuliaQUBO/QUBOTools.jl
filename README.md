@@ -64,7 +64,7 @@ julia> write("problem.qubo", model)
 ```
 
 ## Supported Formats
-It is possible to read file formats marked with `r` and write in those stamped with a `w`.
+The `r` and `w` marks indicate that reading and writing modes are available for the corresponding file format, respectively.
 
 ### [BQPJSON](/docs/models/BQPJSON.md) `rw`
 The [BQPJSON](https://bqpjson.readthedocs.io) format was designed at [LANL-ANSI](https://github.com/lanl-ansi) to represent Binary Quadratic Programs in a platform-independet fashion.
@@ -90,24 +90,29 @@ HFS is a very low-level mapping of weights to D-Wave's chimera graph.
 
 ```mermaid
 flowchart TD;
-    BQPJSON-BOOL["BQPJSON<br><code>Bool</code>"];
-    BQPJSON-SPIN["BQPJSON<br><code>Spin</code>"];
-    QUBO["QUBO<br><code>Bool</code>"];
-    QUBIST["Qubist<br><code>Spin</code>"];
-    MINIZINC-BOOL(["MiniZinc<br><code>Bool</code>"]);
-    MINIZINC-SPIN(["MiniZinc<br><code>Spin</code>"]);
+    MODEL["QUBOTools Model"];
+
+    BQPJSON["BQPJSON<br><code>Bool</code><br><code>Spin</code>"];
+
     HFS(["HFS<br><code>Bool</code>"]);
 
-    BQPJSON-BOOL  <==> BQPJSON-SPIN;
-    MINIZINC-BOOL <==> MINIZINC-SPIN;
+    MINIZINC(["MiniZinc<br><code>Bool</code><br><code>Spin</code>"]);
 
-    BQPJSON-BOOL <--->  MINIZINC-BOOL;
-    BQPJSON-BOOL <----> QUBO;
-    BQPJSON-BOOL ---->  HFS;
+    QUBO["QUBO<br><code>Bool</code>"];
 
-    BQPJSON-SPIN <---> MINIZINC-SPIN;
-    BQPJSON-SPIN  ---> QUBIST;
-    QUBIST       -..-> BQPJSON-SPIN;
+    QUBIST["Qubist<br><code>Spin</code>"];
+
+
+    QUBIST -.-> MODEL;
+
+    MODEL --> HFS;
+    MODEL --> QUBIST;
+
+    MODEL <==> MINIZINC;
+
+    MODEL <==> BQPJSON;
+    QUBO  <==> MODEL;
+    
 ```
 
 ## Backend
@@ -133,7 +138,7 @@ $$\min f(\mathbf{x}) = \alpha \left[{ \sum_{i < j} q_{i, j}\,x_{i}\,x_{j} +\sum_
 where $\alpha$ is a scaling factor, $\beta$ a constant offset, $l_{i}\,x_{i}$ are the linear terms and $q_{i, j}\,x_{i}\,x_{j}$ the quadratic ones.
 
 We defined our problems to follow a minimization sense by default.
-While the scaling factor $\alpha$ is strictly positive in **BQPJSON**, $\alpha < 0$ can be used to indicate _maximization_ problems using **QUBOTools**.
+The scaling factor $\alpha$ is strictly positive.
 
 ### [JuMP](https://jump.dev) Integration
 
