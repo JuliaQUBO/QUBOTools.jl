@@ -11,6 +11,9 @@
     <a href="/actions/workflows/ci.yml">
         <img src="https://github.com/psrenergy/QUBOTools.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
+    <a href="https://www.youtube.com/watch?v=OTmzlTbqdNo">
+        <img src="https://img.shields.io/badge/JuliaCon-2022-9558b2" alt="JuliaCon 2022">
+    </a>
     <a href="https://psrenergy.github.com/QUBOTools.jl/dev">
         <img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Docs">
     </a>
