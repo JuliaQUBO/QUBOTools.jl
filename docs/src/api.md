@@ -1,33 +1,36 @@
-# [API Reference](@id api-reference)
+# API Reference
 
-### Fallback dispatch
+## Fallback dispatch
+
 When extending `QUBOTools`, one must implement a method for [`QUBOTools.backend`](@ref). 
 
 ```@docs
 QUBOTools.backend
 ```
 
-### Variable System
+## Variable System
+
 ```@docs
 QUBOTools.varlt
 ```
 
-### Variable Domains
+## Variable Domains
+
 ```@docs
 QUBOTools.Domain
 QUBOTools.BoolDomain
 QUBOTools.SpinDomain
-QUBOTools.UnknownDomain
 QUBOTools.domain
-QUBOTools.sense
 ```
 
-### Frame Casting
+## Frame Casting
+
 ```@docs
 QUBOTools.cast
 ```
 
-### Solution Interface
+## Solution Interface
+
 ```@docs
 QUBOTools.Sample
 QUBOTools.SampleSet
@@ -41,17 +44,22 @@ QUBOTools.energy
 QUBOTools.reads
 ```
 
-### Models
+## Models
+
 ```@docs
 QUBOTools.AbstractModel
 QUBOTools.Model
-QUBOTools.model_name
+```
+
+```@docs
 QUBOTools.AbstractFormat
 QUBOTools.infer_format
 ```
 
 ## Data Access
+
 ```@docs
+QUBOTools.sense
 QUBOTools.linear_terms
 QUBOTools.explicit_linear_terms
 QUBOTools.quadratic_terms
@@ -73,7 +81,8 @@ QUBOTools.description
 QUBOTools.metadata
 ```
 
-### Queries
+## Metrics and other queries
+
 ```@docs
 QUBOTools.domain_size
 QUBOTools.linear_size
@@ -84,8 +93,27 @@ QUBOTools.quadratic_density
 QUBOTools.adjacency
 ```
 
-### Normal Forms
+## Normal Forms
+
 ```@docs
 QUBOTools.qubo
 QUBOTools.ising
+```
+
+## Benchmarking
+
+### Timing
+```@docs
+QUBOTools.total_time
+QUBOTools.effective_time
+```
+
+### Solution Quality
+```@docs
+QUBOTools.success_rate
+```
+
+### Time-to-Solution (TTS)
+```@docs
+QUBOTools.tts
 ```

@@ -1,4 +1,7 @@
 # HFS
+
+## Format
+
 ```@docs
 QUBOTools.HFS
 ```

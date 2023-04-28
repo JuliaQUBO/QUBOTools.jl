@@ -17,7 +17,9 @@ makedocs(;
     authors = "Pedro Xavier and and Pedro Ripper and Tiago Andrade and Joaquim Garcia and David Bernal",
     pages = [
         "Home"    => "index.md",
-        "Manual"  => "manual.md",
+        "Manual"  => [
+            "Introduction" => "manual/index.md",
+        ],
         "Formats" => [
             "BQPJSON"  => "formats/BQPJSON.md",
             "HFS"      => "formats/HFS.md",

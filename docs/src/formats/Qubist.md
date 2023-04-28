@@ -1,5 +1,13 @@
 # Qubist
 
+## Format
+
+```@docs
+QUBOTools.Qubist
+```
+
+## Example
+
 ```
 7 2
 1 1 0.75
@@ -8,8 +16,4 @@
 1 2 1.0
 1 3 1.0
 2 3 1.0
-```
-
-```@docs
-QUBOTools.Qubist
 ```
