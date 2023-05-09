@@ -29,12 +29,13 @@ end
     title  --> "Model density"
     xlabel --> "Variable Index"
     ylabel --> "Variable Index"
-    color  --> :binary
+    color  --> :bwr
     xmirror := true
-
-    x = indices(model)
-    y = reverse(x)
-    z = reverse!(abs.(first(qubo(model, Matrix))); dims=1)
+    
+    n = domain_size(model)
+    x = y = (1:n)
+    z = reverse!((first(qubo(model, Matrix))); dims=1)
+    clims  --> (-maximum(z), maximum(z))
     
     seriestype := :heatmap
 
