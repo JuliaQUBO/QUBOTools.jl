@@ -18,7 +18,13 @@ makedocs(;
     pages = [
         "Home"    => "index.md",
         "Manual"  => [
-            "Introduction" => "manual/index.md",
+            "Introduction"             => "manual/1-start.md",
+            "Mathematical Formulation" => "manual/2-math.md",
+            "Basic Usage"              => "manual/3-usage.md",
+            "Models"                   => "manual/4-models.md",
+            "File Formats"             => "manual/5-formats.md",
+            "Solutions"                => "manual/6-solutions.md",
+            "Analysis"                 => "manual/7-analysis.md"
         ],
         "Formats" => [
             "BQPJSON"  => "formats/BQPJSON.md",
@@ -27,7 +33,6 @@ makedocs(;
             "Qubist"   => "formats/Qubist.md",
             "QUBO"     => "formats/QUBO.md",
         ],
-        "Analysis"      => "analysis.md",
         "API Reference" => "api.md",
     ],
     workdir = @__DIR__,

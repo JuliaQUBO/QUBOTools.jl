@@ -13,7 +13,8 @@ _BQPJSON_VALIDATE_DOMAIN(s::Integer, ::SpinDomain) = (s == ↑) || (s == ↓)
     BQPJSON
 
 Precise and detailed information found in the [bqpjson docs](https://bqpjson.readthedocs.io)
-""" struct BQPJSON <: AbstractFormat
+"""
+struct BQPJSON <: AbstractFormat
     domain::Union{BoolDomain,SpinDomain,Nothing}
     indent::Int
 

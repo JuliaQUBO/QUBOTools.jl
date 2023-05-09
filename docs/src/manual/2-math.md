@@ -21,5 +21,8 @@ Available domains are represented by the `BoolDomain` and `SpinDomain` types, re
 Conversion between domains follows the identity
 
 ```math
-s = 2x - 1
+\left\lbrace\begin{align*}
+    s &= 2x - 1          \\
+    x &= \frac{s + 1}{2}
+\end{align*}\right.
 ```

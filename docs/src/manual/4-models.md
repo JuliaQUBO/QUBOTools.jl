@@ -1,16 +1,34 @@
 # Models
 
-## Backend
+This package defines [`AbstractModel{V,T,U}`](@ref) as an abstract type for QUBO models.
+`V` is a type for indexing variables, usually an integer or string-like type.
+The problem's coefficients are stored under the `T` type, that also represents the energy values corresponding to each solution.
+When solution state vectors are sampled, their entries will be of the integer type `U`.
 
-The `AbstractModel{V,T}` abstract type is defined, where `V` is the type for indexing variable and `T` the one for representing the problem's coefficients.
+## Standard Model Implementation
 
-QUBOTools also exports the ``Model{V,T,U} <: AbstractModel{V,T}`` type, designed to work as a powerful standard backend for all other models.
-Here, `V` plays the role of variable indexing type and usually is `Int` or `Symbol`.
-It is followed by `U <: Integer`, used to store sampled state vectors as `Vector{U}` within `SampleSet{T,U}`.
+QUBOTools also exports the `Model{V,T,U} <: AbstractModel{V,T,U}` type, designed to work as standard backend for other applications to be built atop.
 
-`T <: Real` is the type used to represent all coefficients.
-It is also the choice for the energy values corresponding to each solution.
-It's commonly set as `Float64`.
+## Model Backend
+
+```@example model-backend
+using QUBOTools
+
+mutable struct SuperModel{V,T,U} <: QUBOTools.AbstractModel{V,T,U}
+    model::QUBOTools.Model{V,T,U}
+    super::Bool
+
+    function SuperModel{V,T,U}() where {V,T,U}
+        return new(QUBOTools.Model{V,T,U}(), true)
+    end
+end
+
+QUBOTools.backend(model::SuperModel) = model.model
+```
+
+```@example model-backend
+model = SuperModel{Symbol,Float64,Int}()
+```
 
 ## JuMP Integration
 

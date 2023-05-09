@@ -33,7 +33,7 @@ QUBOTools.cast
 
 ```@docs
 QUBOTools.Sample
-QUBOTools.SampleSet
+QUBOTools.SampleSet{T,U}
 QUBOTools.sampleset
 ```
 
@@ -47,8 +47,8 @@ QUBOTools.reads
 ## Models
 
 ```@docs
-QUBOTools.AbstractModel
-QUBOTools.Model
+QUBOTools.AbstractModel{V,T,U}
+QUBOTools.Model{V,T,U}
 ```
 
 ```@docs
@@ -79,6 +79,14 @@ QUBOTools.id
 QUBOTools.version
 QUBOTools.description
 QUBOTools.metadata
+```
+
+## I/O
+
+```@docs
+QUBOTools.read_model
+QUBOTools.read_model!
+QUBOTools.write_model
 ```
 
 ## Metrics and other queries

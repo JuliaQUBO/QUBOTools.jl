@@ -24,3 +24,19 @@
 
     return (x, y)
 end
+
+@recipe function plot(model::AbstractModel{V,T,U}) where {V,T,U}
+    title  --> "Model density"
+    xlabel --> "Variable Index"
+    ylabel --> "Variable Index"
+    color  --> :binary
+    xmirror := true
+
+    x = indices(model)
+    y = reverse(x)
+    z = reverse!(abs.(first(qubo(model, Matrix))); dims=1)
+    
+    seriestype := :heatmap
+
+    return (x, y, z)
+end

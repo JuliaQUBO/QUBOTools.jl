@@ -69,5 +69,5 @@ function read_model(io::IO, fmt::Qubist)
         _parse_line!(fmt, data, line)
     end
 
-    return StandardModel(data[:linear_terms], data[:quadratic_terms])
+    return Model{Int,Float64,Int}(data[:linear_terms], data[:quadratic_terms])
 end

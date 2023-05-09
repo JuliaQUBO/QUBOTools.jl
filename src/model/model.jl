@@ -3,7 +3,7 @@
         V <: Any,
         T <: Real,
         U <: Integer
-    } <: AbstractModel{V,T}
+    } <: AbstractModel{V,T,U}
 
 The `Model` was designed to work as a general for all implemented interfaces.
 It is intended to be the core engine behind the target codecs.
@@ -12,7 +12,8 @@ It is intended to be the core engine behind the target codecs.
 Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
 By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
-""" mutable struct Model{V<:Any,T<:Real,U<:Integer} <: AbstractModel{V,T}
+"""
+mutable struct Model{V<:Any,T<:Real,U<:Integer} <: AbstractModel{V,T,U}
     # ~*~ Required data ~*~
     linear_terms::Dict{Int,T}
     quadratic_terms::Dict{Tuple{Int,Int},T}
@@ -259,5 +260,3 @@ function Base.copy!(target::Model{V,T,U}, source::Model{V,T,U}) where {V,T,U}
 
     return target
 end
-
-const StandardModel = Model{Int,Float64,Int}

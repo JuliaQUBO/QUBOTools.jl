@@ -6,7 +6,7 @@
 
 ### Visualization
 
-```@example plots
+```@example solution-plots
 using Plots
 using QUBOTools
 
