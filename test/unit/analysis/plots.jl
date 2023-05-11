@@ -32,21 +32,15 @@ end
 
 function test_heatmap_plot()
     @testset "HeatMap" begin
-        Q = Dict{Tuple{Int,Int},Float64}(
-            (1,1) => 0.0,
-            (1,2) => 2.0,
-            (1,3) => -2.0,
-            (2,1) => 0.0,
-            (2,2) => 0.0,
-            (2,3) => 0.5,
-            (3,1) => 0.0,
-            (3,2) => 0.0,
-            (3,3) => 0.0,
-        )
         L = Dict{Int,Float64}(
             1 => 0.5,
             2 => 2.0,
             3 => -3.0,
+        )
+        Q = Dict{Tuple{Int,Int},Float64}(
+            (1,2) => 2.0,
+            (1,3) => -2.0,
+            (2,3) => 0.5,
         )
 
         m = QUBOTools.Model{Int,Float64,Int}(L, Q; domain=:bool)
@@ -60,9 +54,13 @@ function test_heatmap_plot()
 
             @test x == [1, 2, 3]
             @test y == [1, 2, 3]
-            @test z == [0.0 0.0 -3.0; 
-                        0.0 2.0  0.5; 
-                        0.5 2.0 -2.0]
+            @test z == [
+                0.0  0.0  -3.0
+                0.0  2.0   0.5
+                0.5  2.0  -2.0
+            ]
+
+            @test attr[:clims] == (-3.0, 3.0)
 
             @test attr[:ylabel] == "Variable Index"
             @test attr[:xlabel] == "Variable Index"
