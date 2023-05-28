@@ -6,8 +6,6 @@ using JSONSchema
 using LinearAlgebra
 using SparseArrays
 using RecipesBase
-using Base: @propagate_inbounds
-using InteractiveUtils: subtypes
 
 # Variable comparison
 @doc raw"""
@@ -16,7 +14,7 @@ using InteractiveUtils: subtypes
 This function exists to define an arbitrary ordering for a given type and was created to address [^MOI].
 There is no predefined comparison between instances MOI's `VariableIndex` type.
 
-[^MOI]: MathOptInterface Issue [#1985](https://github.com/jump-dev/MathOptInterface.jl/issues/1985)
+[^MOI]: MathOptInterface Issue [(#1985)](https://github.com/jump-dev/MathOptInterface.jl/issues/1985)
 """
 function varlt end
 
@@ -45,13 +43,17 @@ export Qubist
 export QUBO
 
 # Interface definitions
-include("interface/interface.jl")
+include("interface/model.jl")
+include("interface/format.jl")
+include("interface/solution.jl")
+include("interface/architecture.jl")
+include("interface/fallback.jl")
 
 # Fallback methods
 include("interface/fallback.jl")
 
 # Generic methods
-include("interface/generic/generic.jl")
+include("generic/generic.jl")
 
 # Package internal library
 include("library/error.jl")

@@ -13,52 +13,52 @@ Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuM
 By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
 """
-mutable struct Model{V<:Any,T<:Real,U<:Integer} <: AbstractModel{V,T,U}
-    # ~*~ Required data ~*~
-    linear_terms::Dict{Int,T}
-    quadratic_terms::Dict{Tuple{Int,Int},T}
+mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
+    # Coefficients
+    linear_terms::SparseVector{T}
+    quadratic_terms::SparseMatrixCSC{T}
+    # Variable Mapping
     variable_map::Dict{V,Int}
-    variable_inv::Dict{Int,V}
-    # ~*~ Factors ~*~
+    variable_inv::Vector{V}
+    # Factors
     scale::T
     offset::T
-    # ~*~ Sense & Domain ~*~
+    # Sense & Domain
     sense::Sense
-    domain::Union{Domain,Nothing}
-    # ~*~ Metadata ~*~
+    domain::Domain
+    # Metadata
     id::Union{Int,Nothing}
-    version::Union{VersionNumber,Nothing}
     description::Union{String,Nothing}
     metadata::Dict{String,Any}
-    # ~*~ Solutions ~*~
-    warm_start::Dict{V,U}
+    # Solutions
+    warm_start::Vector{U}
     sampleset::SampleSet{T,U}
 
     function Model{V,T,U}(
-        # ~*~ Required data ~*~
+        # Required data
         linear_terms::Dict{Int,T},
         quadratic_terms::Dict{Tuple{Int,Int},T},
         variable_map::Dict{V,Int},
         variable_inv::Dict{Int,V};
-        # ~*~ Factors ~*~
+        # Factors
         scale::Union{T,Nothing}  = nothing,
         offset::Union{T,Nothing} = nothing,
-        # ~*~ Sense & Domain ~*~
-        sense::Union{Sense,Symbol,Nothing}   = nothing,
-        domain::Union{Domain,Symbol,Nothing} = nothing,
-        # ~*~ Metadata ~*~
+        # Sense & Domain
+        sense::Union{Sense,Nothing}   = nothing,
+        domain::Union{Domain,Nothing} = nothing,
+        # Metadata
         id::Union{Integer,Nothing}                = nothing,
         version::Union{VersionNumber,Nothing}     = nothing,
         description::Union{String,Nothing}        = nothing,
         metadata::Union{Dict{String,Any},Nothing} = nothing,
-        # ~*~ Solutions ~*~
+        # Solutions
         warm_start::Union{Dict{V,U},Nothing}     = nothing,
         sampleset::Union{SampleSet{T,U},Nothing} = nothing,
     ) where {V,T,U}
         scale      = isnothing(scale) ? one(T) : scale
         offset     = isnothing(offset) ? zero(T) : offset
-        sense      = isnothing(sense) ? Sense(:min) : Sense(sense)
-        domain     = isnothing(domain) ? nothing : Domain(domain)
+        sense      = isnothing(sense) ? Min : Sense(sense)
+        domain     = isnothing(domain) ? 𝔹 : Domain(domain)
         metadata   = isnothing(metadata) ? Dict{String,Any}() : metadata
         warm_start = isnothing(warm_start) ? Dict{V,U}() : warm_start
         sampleset  = isnothing(sampleset) ? SampleSet{T,U}() : sampleset
@@ -83,7 +83,7 @@ mutable struct Model{V<:Any,T<:Real,U<:Integer} <: AbstractModel{V,T,U}
 end
 
 function Model{V,T,U}(
-    # ~*~ Required data ~*~
+    # Required data
     _linear_terms::Dict{V,T},
     _quadratic_terms::Dict{Tuple{V,V},T},
     _variable_set::Union{Set{V},Nothing} = nothing;
@@ -115,7 +115,7 @@ function Model{V,T,U}(
     return Model{V,T,U}(linear_terms, quadratic_terms, variable_map, variable_inv; kws...)
 end
 
-# ~*~ Empty Constructor ~*~ #
+# Empty Constructor #
 function Model{V,T,U}(; kws...) where {V,T,U}
     return Model{V,T,U}(Dict{V,T}(), Dict{Tuple{V,V},T}(); kws...)
 end
@@ -129,13 +129,13 @@ function Model{V}(args...; kws...) where {V}
 end
 
 function Base.empty!(model::Model{V,T,U}) where {V,T,U}
-    # ~*~ Structures ~*~ #
+    # Structures #
     empty!(model.linear_terms)
     empty!(model.quadratic_terms)
     empty!(model.variable_map)
     empty!(model.variable_inv)
 
-    # ~*~ Attributes ~*~ #
+    # Attributes #
     model.scale       = one(T)
     model.offset      = zero(T)
     model.sense       = Sense(:min)
@@ -184,7 +184,6 @@ variable_map(model::Model)    = model.variable_map
 variable_inv(model::Model)    = model.variable_inv
 
 id(model::Model)          = model.id
-version(model::Model)     = model.version
 description(model::Model) = model.description
 metadata(model::Model)    = model.metadata
 warm_start(model::Model)  = model.warm_start
@@ -209,7 +208,6 @@ function cast(route::Pair{X,Y}, model::Model{V,T,U}) where {V,T,U,X<:Domain,Y<:D
         sense       = sense(model),
         domain      = last(route), # target
         id          = id(model),
-        version     = version(model),
         description = description(model),
         metadata    = metadata(model),
         sampleset   = cast(route, sampleset(model)),
@@ -235,7 +233,6 @@ function cast(route::Pair{A,B}, model::Model{V,T,U}) where {V,T,U,A<:Sense,B<:Se
         sense       = last(route), #target
         domain      = domain(model),
         id          = id(model),
-        version     = version(model),
         description = description(model),
         metadata    = deepcopy(metadata(model)),
         sampleset   = cast(route, sampleset(model)),
@@ -252,7 +249,6 @@ function Base.copy!(target::Model{V,T,U}, source::Model{V,T,U}) where {V,T,U}
     target.sense           = sense(source)
     target.domain          = domain(source)
     target.id              = id(source)
-    target.version         = version(source)
     target.description     = description(source)
     target.metadata        = deepcopy(metadata(source))
     target.warm_start      = deepcopy(warm_start(source))

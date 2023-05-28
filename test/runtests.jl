@@ -8,7 +8,7 @@ import QUBOTools: ↑, ↓, 𝔹, 𝕊, Max, Min
 import QUBOTools: Domain, Sense, Style
 import QUBOTools: Sample, SampleSet
 import QUBOTools: CodecError, codec_error
-import QUBOTools: SamplingError, sampling_error
+import QUBOTools: SolutionError, solution_error
 import QUBOTools: FormatError, format_error
 import QUBOTools: SyntaxError, syntax_error
 import QUBOTools: state, value, reads

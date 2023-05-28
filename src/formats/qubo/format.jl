@@ -1,45 +1,55 @@
 @doc raw"""
-    QUBO{D}(;
-        style::Union{Symbol,Nothing} = nothing,
-        comment::Union{String,Nothing} = nothing,
-    ) where {D}
+    DWaveStyle <: Style
 
-### References
-[1] [qbsolv docs](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
-""" struct QUBO <: AbstractFormat
-    style::Union{DWaveStyle,MQLibStyle,Nothing}
+This style is used by some of the D-Wave libraries[^qbsolv].
+
+[^qbsolv]: qbsolv Documentation [{docs}](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
+"""
+struct DWaveStyle <: Style end
+
+@doc raw"""
+    MQLibStyle <: Style
+
+This is the style of the primary I/O format used to access the MQLib heuristic library.
+"""
+struct MQLibStyle <: Style end
+
+@doc raw"""
+    QUBO(; comment)
+    QUBO{DWaveStyle}(; comment)
+    QUBO{MQLibStyle}(; comment)
+
+"""
+struct QUBO{S} <: AbstractFormat{S}
     comment::Union{String,Nothing}
 
-    function QUBO(
-        dom::BoolDomain                           = BoolDomain(),
-        sty::Union{DWaveStyle,MQLibStyle,Nothing} = DWaveStyle();
-        comment::Union{String,Nothing}            = nothing,
-    )
-        if !isnothing(sty) && isnothing(comment)
-            if sty === DWaveStyle()
-                comment = "c"
-            elseif sty === MQLibStyle()
-                comment = "#"
-            end
+    function QUBO(; comment::Union{String,Nothing} = nothing)
+        return new{nothing}(comment)
+    end
+
+    function QUBO{S}(; comment::Union{String,Nothing} = nothing) where {S<:DWaveStyle}
+        if comment === nothing
+            comment = "c"
         end
 
-        return new(sty, comment)
+        return new{S}(comment)
+    end
+
+    function QUBO{S}(; comment::Union{String,Nothing} = nothing) where {S<:MQLibStyle}
+        if comment === nothing
+            comment = "#"
+        end
+
+        return new{S}(comment)
     end
 end
 
-domain(::QUBO) = BoolDomain()
+domain(::QUBO) = 𝔹
 
-supports_domain(::Type{QUBO}, ::BoolDomain) = true
-
-style(fmt::QUBO) = fmt.style
-
-supports_style(::Type{QUBO}, ::DWaveStyle) = true
-supports_style(::Type{QUBO}, ::MQLibStyle) = true
-
-infer_format(::Val{:qubo})                 = QUBO(𝔹, nothing)
-infer_format(::Val{:dwave}, ::Val{:qubo})  = QUBO(𝔹, Style(:dwave))
-infer_format(::Val{:mqlib}, ::Val{:qubo})  = QUBO(𝔹, Style(:mqlib))
-infer_format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO(𝔹, Style(:dwave))
+infer_format(::Val{:dwave}, ::Val{:qubo})  = QUBO{DWaveStyle}()
+infer_format(::Val{:mqlib}, ::Val{:qubo})  = QUBO{MQLibStyle}()
+infer_format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO{DWaveStyle}()
+infer_format(::Val{:qubo})                 = QUBO()
 
 include("parser.jl")
 include("printer.jl")

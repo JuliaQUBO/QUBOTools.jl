@@ -123,26 +123,13 @@ end
 adjacency(G::Set{Tuple{Int,Int}}, k::Integer)  = adjacency(collect(G), k)
 adjacency(G::Dict{Tuple{Int,Int}}, k::Integer) = adjacency(collect(keys(G)), k)
 
-# -* Sense *- #
-include("sense.jl")
-
 # -* Format *- #
 include("format.jl")
-
-# -* Domain *- #
-include("domain.jl")
-
-# -* Style *- #
-include("style.jl")
 
 # -* Domain/Sense Casting *- #
 include("cast.jl")
 
 # -* I/O *- #
-function Base.show(io::IO, fmt::F) where {F<:AbstractFormat}
-    return print(io, "$F($(domain(fmt)),$(style(fmt)))")
-end
-
 function read_model(path::AbstractString, fmt::AbstractFormat = infer_format(path))
     return open(path, "r") do fp
         return read_model(fp, fmt)

@@ -13,7 +13,8 @@ end
 @doc raw"""
     Sample{T,U}(state::Vector{U}, value::T, reads::Integer) where{T,U}
 
-""" struct Sample{T<:Real,U<:Integer} <: AbstractVector{U}
+"""
+struct Sample{T<:Real,U<:Integer} <: AbstractSample{T,U}
     state::Vector{U}
     value::T
     reads::Int
@@ -73,13 +74,13 @@ function format(data::Vector{Sample{T,U}}) where {T,U}
             if isnothing(bits)
                 bits = length(sample)
             elseif bits != length(sample)
-                sampling_error("All samples must have states of equal length")
+                solution_error("All samples must have states of equal length")
             end
 
             sample
         else
             if value(cached) != value(sample)
-                sampling_error(
+                solution_error(
                     "Samples of the same state vector must have the same energy value",
                 )
             end
@@ -109,7 +110,8 @@ end
     AbstractSampleSet{T<:real,U<:Integer}
 
 An abstract sampleset is, by definition, an ordered set of samples.
-""" abstract type AbstractSampleSet{T<:Real,U<:Integer} <: AbstractVector{T} end
+"""
+abstract type AbstractSampleSet{T<:Real,U<:Integer} <: AbstractVector{T} end
 
 Base.size(ω::AbstractSampleSet) = (size(ω, 1),)
 
@@ -203,7 +205,8 @@ It was inspired by [^dwave], with a few tweaks.
 ## References
 [^dwave]:
     [ocean docs](https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet)
-""" struct SampleSet{T,U} <: AbstractSampleSet{T,U}
+"""
+struct SampleSet{T,U} <: AbstractSolution{T,U}
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
 

@@ -7,9 +7,9 @@ function test_error()
         end
 
         @testset "▷ Sample" begin
-            @test_throws SamplingError sampling_error()
-            @test sprint(showerror, SamplingError()) == "Sampling Error"
-            @test sprint(showerror, SamplingError("Message!")) == "Sampling Error: Message!"
+            @test_throws SolutionError solution_error()
+            @test sprint(showerror, SolutionError()) == "Sampling Error"
+            @test sprint(showerror, SolutionError("Message!")) == "Sampling Error: Message!"
         end
 
         @testset "▷ Format" begin

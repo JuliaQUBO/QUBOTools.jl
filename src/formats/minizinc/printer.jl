@@ -16,14 +16,12 @@ function _print_metadata(io::IO, ::MiniZinc, data::Dict{Symbol,Any})
     return nothing
 end
 
-function _print_domain(io::IO, ::MiniZinc, ::BoolDomain)
-    println(io, "set of int: Domain = {0,1};")
-
-    return nothing
-end
-
-function _print_domain(io::IO, ::MiniZinc, ::SpinDomain)
-    println(io, "set of int: Domain = {-1,1};")
+function _print_domain(io::IO, ::MiniZinc, X::Domain)
+    if X === 𝔹
+        println(io, "set of int: Domain = {0,1};")
+    else # X === 𝕊
+        println(io, "set of int: Domain = {-1,1};")
+    end
 
     return nothing
 end

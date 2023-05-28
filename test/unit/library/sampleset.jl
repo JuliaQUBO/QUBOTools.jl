@@ -102,13 +102,13 @@ function test_samples()
             @test ω isa SampleSet{Float64,Int}
         end
 
-        @test_throws SamplingError SampleSet(
+        @test_throws SolutionError SampleSet(
             [
                 Sample([0, 0],    0.0, 1),
                 Sample([0, 0, 1], 0.0, 1),
             ],
         )
-        @test_throws SamplingError SampleSet(
+        @test_throws SolutionError SampleSet(
             [
                 Sample([0, 0], 0.0, 1),
                 Sample([0, 0], 0.1, 1),

@@ -1,4 +1,4 @@
-model_name(::M) where {M<:AbstractModel} = "QUBO Model"
+name(::M) where {M<:AbstractModel} = "QUBO Model"
 
 Base.isempty(model::AbstractModel) = isempty(variable_map(model))
 
@@ -16,8 +16,8 @@ function variables(model::AbstractModel{V,T}) where {V,T}
     return V[variable_inv(model, i) for i = 1:domain_size(model)]
 end
 
-function variable_set(model::AbstractModel)
-    return Set(keys(variable_map(model)))
+function variable_set(model::AbstractModel{V,T}) where {V,T}
+    return Set{V}(keys(variable_map(model)))
 end
 
 function variable_map(model::AbstractModel{V,T}, v::V) where {V,T}
@@ -27,6 +27,8 @@ function variable_map(model::AbstractModel{V,T}, v::V) where {V,T}
         return mapping[v]
     else
         error("Variable '$v' does not belong to the model")
+
+        return nothing
     end
 end
 
@@ -37,6 +39,8 @@ function variable_inv(model::AbstractModel, i::Integer)
         return mapping[i]
     else
         error("Variable index '$i' does not belong to the model")
+
+        return nothing
     end
 end
 
@@ -49,7 +53,7 @@ function qubo(model::AbstractModel, type::Type = Dict)
     n = domain_size(model)
 
     L, Q, α, β = cast(
-        domain(model) => Domain(:bool),
+        domain(model) => 𝔹,
         linear_terms(model),
         quadratic_terms(model),
         scale(model),
@@ -426,7 +430,7 @@ function Base.show(io::IO, model::AbstractModel)
     println(
         io,
         """
-        $(model_name(model)) [$(sense(model)), $(domain(model))]
+        $(name(model)) [$(sense(model)), $(domain(model))]
         ▷ Variables ……… $(domain_size(model))  
         """,
     )

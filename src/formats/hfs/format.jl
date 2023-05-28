@@ -1,28 +1,29 @@
 @doc raw"""
-    HFS
+    HFS(;
+        chimera_cell_size::Union{Integer,Nothing} = nothing,
+        chimera_precision::Union{Integer,Nothing} = nothing,
+        chimera_degree::Union{Integer,Nothing}    = nothing,
+    )
 
 This format offers a description for the setup of chimera graphs.
-""" struct HFS <: AbstractFormat
+"""
+struct HFS{S} <: AbstractFormat{S}
     chimera_cell_size::Union{Int,Nothing}
     chimera_precision::Union{Int,Nothing}
     chimera_degree::Union{Int,Nothing}
 
-    function HFS(
-        dom::BoolDomain                       = BoolDomain(),
-        sty::Nothing                          = nothing;
-        chimera_cell_size::Union{Int,Nothing} = nothing,
-        chimera_precision::Union{Int,Nothing} = nothing,
-        chimera_degree::Union{Int,Nothing}    = nothing,
+    function HFS(;
+        chimera_cell_size::Union{Integer,Nothing} = nothing,
+        chimera_precision::Union{Integer,Nothing} = nothing,
+        chimera_degree::Union{Integer,Nothing}    = nothing,
     )
-        return new(chimera_cell_size, chimera_precision, chimera_degree)
+        return new{nothing}(chimera_cell_size, chimera_precision, chimera_degree)
     end
 end
 
-domain(::HFS) = BoolDomain()
+domain(::HFS) = 𝔹
 
-supports_domain(::Type{HFS}, ::BoolDomain) = true
-
-infer_format(::Val{:hfs}) = HFS(𝔹, nothing)
+infer_format(::Val{:hfs}) = HFS()
 
 include("chimera.jl")
 include("parser.jl")

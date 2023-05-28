@@ -4,7 +4,6 @@ authors = ["pedromxavier <pedroxavier@psr-inc.com>", "pedroripper <pedroripper@p
 version = "0.9.0"
 
 [deps]
-InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 JSONSchema = "7d188eb4-7ad8-530c-ae41-71a32a6d4692"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

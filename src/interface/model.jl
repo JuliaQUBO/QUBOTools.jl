@@ -1,8 +1,3 @@
-""" /src/interface/data.jl @ QUBOTools.jl
-
-    This file contains iterfaces for data access within QUBO's format system.
-"""
-
 @doc raw"""
     AbstractModel{V,T,U}
 
@@ -16,44 +11,6 @@ gives access to most fallback implementations.
 abstract type AbstractModel{V,T,U} end
 
 @doc raw"""
-    AbstractFormat
-
-"""
-abstract type AbstractFormat end
-
-@doc raw"""
-    Style
-
-"""
-abstract type Style end
-
-@doc raw"""
-    style(::AbstractFormat)::Style
-"""
-function style end
-
-@doc raw"""
-    supports_style(::AbstractFormat)::Bool
-"""
-function supports_style end
-
-@doc raw"""
-    formats()
-
-Returns a list containing all available QUBO file formats.
-"""
-function formats end
-
-@doc raw"""
-    infer_format(::AbstractString)::AbstractFormat
-    infer_format(::Symbol)::AbstractFormat
-    infer_format(::Symbol, ::Symbol)::AbstractFormat
-
-Given a file path, tries to infer the type associated to a QUBO model format.
-"""
-function infer_format end
-
-@doc raw"""
     backend(model)::AbstractModel
     backend(model::AbstractModel)::AbstractModel
 
@@ -62,19 +19,38 @@ Implementing this function allows one to profit from fallback implementations of
 """
 function backend end
 
-# ~*~ Data access ~*~ #
+# Data access
 @doc raw"""
-    model_name(model)::String
+    name(model)::Union{String,Nothing}
 
-Returns a string representing the model type.
+Returns a string for the model's name, or nothing.
 """
-function model_name end
+function name end
+
+@enum Domain begin
+    SpinDomain
+    BoolDomain
+end
+
+Base.Broadcast.broadcastable(X::Domain) = Ref(X)
 
 @doc raw"""
-    Domain
+    BoolDomain <: Domain
 
+```math
+x \in \mathbb{B} = \lbrace{0, 1}\rbrace
+```
 """
-abstract type Domain end
+const 𝔹 = BoolDomain
+
+@doc raw"""
+    SpinDomain <: Domain
+
+```math
+s \in \mathbb{S} = \lbrace{-1, 1}\rbrace
+```
+"""
+const 𝕊 = SpinDomain
 
 @doc raw"""
     domain(model::AbstractModel)::Domain
@@ -83,18 +59,6 @@ abstract type Domain end
 Returns the singleton representing the variable domain of a given model.
 """
 function domain end
-
-@doc raw"""
-    supports_domain(::Type{<:AbstractFormat}, ::Domain)
-"""
-function supports_domain end
-
-@doc raw"""
-    domains()
-
-Returns the list of available known variable domains.
-"""
-function domains end
 
 @doc raw"""
     scale(model)
@@ -108,11 +72,12 @@ function scale end
 """
 function offset end
 
-@doc raw"""
-    Sense
+@enum Sense begin
+    Min
+    Max
+end
 
-"""
-abstract type Sense end
+Base.Broadcast.broadcastable(s::Sense) = Ref(s)
 
 @doc raw"""
     sense(model)::Sense
@@ -121,32 +86,25 @@ abstract type Sense end
 function sense end
 
 @doc raw"""
-    id(model)
+    id(model)::Union{Int,Nothing}
 """
 function id end
 
 @doc raw"""
-    version(model)
+    version(model)::Union{VersionNumber,Nothing}
 """
 function version end
 
 @doc raw"""
-    description(model)
+    description(model)::Union{String,Nothing}
 """
 function description end
 
 @doc raw"""
-    metadata(model::AbstractModel)
+    metadata(model)
     metadata(sampleset::SampleSet)
 """
 function metadata end
-
-@doc raw"""
-    sampleset(model)::SampleSet
-
-Returns the [`SampleSet`](@ref) stored in a model.
-"""
-function sampleset end
 
 @doc raw"""
     linear_terms(model)::Dict{Int,T} where {T <: Real}
@@ -210,7 +168,7 @@ function variable_map end
 """
 function variable_inv end
 
-# ~*~ Model's Normal Forms ~*~ #
+# Model's Normal Forms
 @doc raw"""
     qubo(model::AbstractModel{<:BoolDomain})
     qubo(model::AbstractModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
@@ -266,10 +224,10 @@ Returns sparce matrix representation
 
 Returns Ising Model form from QUBO Model (Bool).
 
-    ising(h::Dict{Int,T}, J::Dict{Tuple{Int, Int}, T}, α::T = one(T), β::T = zero(T)) where {T}    
-    ising(h::Vector{T}, J::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where {T}
-    ising(h::Vector{T}, J::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
-    ising(h::SparseVector{T}, J::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
+    ising(Q::Dict{Tuple{Int, Int}, T}, α::T = one(T), β::T = zero(T)) where {T}    
+    ising(L::Vector{T}, Q::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where {T}
+    ising(Q::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
+    ising(Q::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
 
 # Ising Normal Form
 
@@ -279,44 +237,7 @@ Returns Ising Model form from QUBO Model (Bool).
 """
 function ising end
 
-# ~*~ Data queries ~*~ #
-@doc raw"""
-    state(model, i::Integer)
-
-Returns the state vector corresponding to the ``i``-th solution on the model's sampleset.
-"""
-function state end
-
-@doc raw"""
-    reads(model)
-    reads(model, i::Integer)
-
-Returns the read frequency of the ``i``-th solution on the model's sampleset.
-"""
-function reads end
-
-@doc raw"""
-    value(model, state::Vector)
-    value(model, index::Integer)
-
-This function aims to evaluate the energy of a given state under some QUBO Model.
-
-    value(Q::Dict{Tuple{Int,Int},T}, ψ::Vector{U}, α::T = one(T), β::T = zero(T)) where {T}
-    value(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, ψ::Vector{U}, α::T = one(T), β::T = zero(T)) where {T}
-
-
-!!! info
-    Scale and offset factors are taken into account.
-"""
-function value end
-
-@doc raw"""
-    energy
-
-An alias for [`value`](@ref).
-""" const energy = value
-
-# ~*~ Queries: sizes & density ~*~ #
+# Queries: sizes & density
 @doc raw"""
     domain_size(model)::Integer
 
@@ -396,16 +317,16 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 function adjacency end
 
 @doc raw"""
+    format(data::Vector{Sample{T,U}}) where {T,U}
+"""
+function format end
+
+@doc raw"""
     validate(model)::Bool
     validate(ω::AbstractSampleSet)::Bool
 
 """
 function validate end
-
-@doc raw"""
-    format(data::Vector{Sample{T,U}}) where {T,U}
-"""
-function format end
 
 @doc raw"""
     cast(
@@ -455,11 +376,6 @@ function read_model end
 """
 function read_model! end
 
-@doc raw"""
-    supports_read(::Type{F}) where {F<:AbstractFormat}
- """
- function supports_read end
-
  @doc raw"""
     write_model(::AbstractString, ::AbstractModel)
     write_model(::AbstractString, ::AbstractModel, ::AbstractFormat)
@@ -467,9 +383,3 @@ function read_model! end
 
 """
 function write_model end
-
-@doc raw"""
-    supports_read(::Type{F}) where {F<:AbstractFormat}
-
-"""
-function supports_write end

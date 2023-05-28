@@ -35,8 +35,9 @@ There is an edge from ``v_p`` to ``v_q`` if at least one of the following holds:
 - ``|x_p - x_q| = 1 \wedge y_p = y_q \wedge o_p = o_q = 0 \wedge i_p = i_q``
 - ``x_p = x_q \wedge |y_p-y_q| = 1 \wedge o_p = o_q = 1 \wedge i_p = i_q``
 
-[^chimera] [alex1770/QUBO-Chimera](https://github.com/alex1770/QUBO-Chimera)
-""" struct Chimera
+[^chimera]: alex1770's QUBO-Chimera Git Repository [{git}](https://github.com/alex1770/QUBO-Chimera)
+"""
+struct Chimera
     linear_terms::Dict{Int,Int}
     quadratic_terms::Dict{Tuple{Int,Int},Int}
     cell_size::Int

@@ -19,8 +19,8 @@ end
 
 function test_interface_data_access(bool_model, bool_samples, spin_model, spin_samples, null_model)
     @testset "Data Access" begin
-        @test QUBOTools.model_name(bool_model) == "QUBO Model"
-        @test QUBOTools.model_name(spin_model) == "QUBO Model"
+        @test QUBOTools.name(bool_model) == "QUBO Model"
+        @test QUBOTools.name(spin_model) == "QUBO Model"
         
         @test QUBOTools.domain(bool_model) == BoolDomain()
         @test QUBOTools.domain(spin_model) == SpinDomain()
