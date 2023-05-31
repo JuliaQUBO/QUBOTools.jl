@@ -1,19 +1,31 @@
-function total_time(ω::SampleSet)
-    if !haskey(ω.metadata, "time")
+function total_time(ω::AbstractSolution)
+    data = metadata(ω)::Dict{String,Any}
+
+    if !haskey(data, "time")
         return NaN
-    elseif !haskey(ω.metadata["time"], "total")
+    end
+
+    time_data = data["time"]::Dict{String,Any}
+
+    if !haskey(time_data, "total")
         return NaN
     else
-        return ω.metadata["time"]["total"]
+        return time_data["total"]::Float64
     end
 end
 
-function effective_time(ω::SampleSet)
-    if !haskey(ω.metadata, "time")
+function effective_time(ω::AbstractSolution)
+    data = metadata(ω)::Dict{String,Any}
+
+    if !haskey(data, "time")
         return NaN
-    elseif !haskey(ω.metadata["time"], "effective")
+    end
+
+    time_data = data["time"]::Dict{String,Any}
+
+    if !haskey(time_data, "effective")
         return total_time(ω)
     else
-        return ω.metadata["time"]["effective"]
+        return time_data["effective"]::Float64
     end
 end

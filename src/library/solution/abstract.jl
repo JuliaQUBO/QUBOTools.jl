@@ -1,0 +1,5 @@
+state(ω::AbstractSolution, i::Integer)             = state(ω[i])
+state(ω::AbstractSolution, i::Integer, j::Integer) = state(ω[i], j)
+value(ω::AbstractSolution, i::Integer)             = value(ω[i])
+reads(ω::AbstractSolution, i::Integer)             = reads(ω[i])
+reads(ω::AbstractSolution)                         = sum(reads.(ω))

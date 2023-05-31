@@ -1,5 +1,5 @@
 struct SolutionDistributionPlot{T,U}
-    solution::Any
+    solution::AbstractSolution{T,U}
 
     function SolutionDistributionPlot{T,U}(solution::AbstractSolution{T,U}) where {T,U}
         return new{T,U}(solution)
@@ -35,6 +35,16 @@ SolutionDistributionPlot(model) = SolutionDistributionPlot(solution(model))
     fillrange  := z
 
     return (x, y)
+end
+
+function plot_solution_distribution(solution::AbstractSolution{T,U}) where {T,U}
+    plt = SolutionDistributionPlot{T,U}(solution)
+
+    RecipesBase.plot(plt)
+end
+
+function plot_solution_distribution(model::Any)
+    plot_solution_distribution(QUBOTools.solution(model))
 end
 
 struct ModelDensityPlot{V,T,U}

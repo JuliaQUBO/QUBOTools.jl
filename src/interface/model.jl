@@ -310,60 +310,14 @@ A mapping between each variable index and the set of its neighbors is returned.
 
 If a second parameter, an integer, is present, then the set of neighbors of that node is returned.
 
+    adjacency(arch)::Dict{Int,Set{Int}}
+    adjacency(device)::Dict{Int,Set{Int}}
+
 !!! warning
     Computing specific neighborhoods is expensive.
     Thus, it is recommended that one stores the adjacency list for repeated access.
 """
 function adjacency end
-
-@doc raw"""
-    format(data::Vector{Sample{T,U}}) where {T,U}
-"""
-function format end
-
-@doc raw"""
-    validate(model)::Bool
-    validate(ω::AbstractSampleSet)::Bool
-
-"""
-function validate end
-
-@doc raw"""
-    cast(
-        sense_route::Pair{A,B},
-        domain_route::Pair{X,Y},
-        data,
-    ) where {A<:Sense,B<:Sense,X<:Domain,Y<:Domain}
-
-    cast(::S, ::S, model::AbstractModel) where {S<:Sense}
-    cast(::A, ::B, model::AbstractModel) where {A<:Sense,B<:Sense}
-
-Recasting the sense of a model preserves its meaning:
-
-```math
-\begin{array}{ll}
-    \min_{s} \alpha [f(s) + \beta] &\equiv \max_{s} -\alpha [f(s) + \beta] \\
-                                   &\equiv \max_{s} \alpha [-f(s) - \beta] \\
-\end{array}
-```
-
-The linear terms, quadratic terms and constant offset of a model have its signs reversed.
-
-    cast(::S, ::S, s::Sample) where {S<:Sense}
-    cast(::A, ::B, s::Sample) where {A<:Sense,B<:Sense}
-    cast(::S, ::S, ω::SampleSet) where {S<:Sense}
-    cast(::A, ::B, ω::SampleSet) where {A<:Sense,B<:Sense}
-
-    cast(target, model::AbstractModel)
-    cast(route, ψ::Vector{U})
-    cast(route, Ψ::Vector{Vector{U}})
-    cast(route, ω::SampleSet)
-
-Returns a new object, switching its domain from `source` to `target`.
-
-Reverses the sign of the objective value.
-"""
-function cast end
 
 @doc raw"""
     read_model(::AbstractString)
@@ -380,6 +334,5 @@ function read_model! end
     write_model(::AbstractString, ::AbstractModel)
     write_model(::AbstractString, ::AbstractModel, ::AbstractFormat)
     write_model(::IO, ::AbstractModel, ::AbstractFormat)
-
 """
 function write_model end

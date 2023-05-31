@@ -1,10 +1,10 @@
-function tts(sampleset::SampleSet{T}, λ::T, s::Float64 = 0.99) where {T}
-    if isempty(sampleset)
+function tts(solution::AbstractSolution{T,U}, λ::T, s::Float64 = 0.99) where {T,U}
+    if isempty(solution)
         return NaN
     end
 
-    t = effective_time(sampleset)
-    p = success_rate(sampleset, λ)
+    t = effective_time(solution)
+    p = success_rate(solution, λ)
 
     return tts(t, p, s)
 end
@@ -13,19 +13,20 @@ function tts(t::Float64, p::Float64, s::Float64 = 0.99)
     return t * log(1 - s) / log(1 - p)
 end
 
-function success_rate(sampleset::SampleSet{T}, λ::T) where {T}
-    if isempty(sampleset)
+function success_rate(solution::AbstractSolution{T,U}, λ::T) where {T,U}
+    if isempty(solution)
         return NaN
     else
-        s = 0
         r = 0
+        s = 0
 
-        for sample in sampleset
-            if sample.value <= λ
-                s += sample.reads
+        for sample in solution
+            k = reads(sample)
+            r += k
+
+            if value(sample) <= λ
+                s += k
             end
-
-            r += sample.reads
         end
 
         return s / r

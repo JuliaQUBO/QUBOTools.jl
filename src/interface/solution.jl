@@ -1,57 +1,62 @@
 @doc raw"""
-    AbstractSolution{T,U}
+    AbstractSolution{T,U<:Integer}
+
+By definitioon,
 """
-abstract type AbstractSolution{T,U} end
+abstract type AbstractSolution{T,U<:Integer} end
 
 @doc raw"""
-    AbstractSample{T,U}
+    AbstractSample{T,U<:Integer}
 """
-abstract type AbstractSample{T,U} end
+abstract type AbstractSample{T,U<:Integer} end
 
 @doc raw"""
-    sampleset(model)::SampleSet
+    solution(model)::AbstractSolution{T,U} where {T,U<:Integer}
 
-Returns the [`SampleSet`](@ref) stored in a model.
-"""
-function sampleset end
-
-@doc raw"""
-    solution(model)::AbstractSolution{T,U} where {T,U}
+Returns the model's current solution.
 """
 function solution end
 
 @doc raw"""
-    sample(model)::AbstractSolution{T,U} where {T,U}
+    sample(model, i::Integer)::AbstractSample{T,U} where {T,U<:Integer}
+
+Returns the ``i``-th sample on the model's current solution, if available.
 """
 function sample end
 
 @doc raw"""
-    state(model, i::Integer)
+    state(sample::AbstractSample{T,U})::AbstractVector{U} where {T,U<:Integer}
 
-Returns the state vector corresponding to the ``i``-th solution on the model's sampleset.
+    state(model, i::Integer)::AbstractVector{U} where {U<:Integer}
+
+Returns the state vector corresponding to the ``i``-th sample on the model's current solution, if available.
 """
 function state end
 
 @doc raw"""
-    reads(model)
-    reads(model, i::Integer)
+    reads(model)::Integer
+    reads(solution::AbstractSolution)::Integer
 
-Returns the read frequency of the ``i``-th solution on the model's sampleset.
+Returns the total amount of reads from each sample, combined.
+
+    reads(model, i::Integer)::Integer
+    reads(solution::AbstractSolution, i::Integer)::Integer
+
+Returns the read frequency of the ``i``-th sample on the model's current solution, if available.
 """
 function reads end
 
 @doc raw"""
-    value(model, state::Vector{U}) where {U<:Integer}
-    value(model, index::Integer)
+    value(model)::T where {T}
+    
+    value(model, i::Integer)::T where {T}
+    value(solution::AbstractSolution{T,U}, i::Integer)::T where {T,U}
 
-This function aims to evaluate the energy of a given state under some QUBO Model.
+    value(model, state::AbstractVector{U}) where {U<:Integer}
+    value(solution::AbstractSolution{T,U}, state::AbstractVector{U})::T where {T,U<:Integer}
 
     value(Q::Dict{Tuple{Int,Int},T}, ψ::Vector{U}, α::T = one(T), β::T = zero(T)) where {T}
     value(h::Dict{Int,T}, J::Dict{Tuple{Int,Int},T}, ψ::Vector{U}, α::T = one(T), β::T = zero(T)) where {T}
-
-
-!!! info
-    Scale and offset factors are taken into account.
 """
 function value end
 

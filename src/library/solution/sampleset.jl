@@ -1,118 +1,3 @@
-cast(::Pair{D,D}, x::Integer) where {D<:Domain} = x
-cast(::Pair{BoolDomain,SpinDomain}, x::Integer) = (2 * x) - 1
-cast(::Pair{SpinDomain,BoolDomain}, s::Integer) = (s + 1) ÷ 2
-
-cast(::Pair{D,D}, ψ::Vector{U}) where {U<:Integer,D<:Domain}         = copy(ψ)
-cast(::Pair{BoolDomain,SpinDomain}, ψ::Vector{U}) where {U<:Integer} = (2 .* ψ) .- 1
-cast(::Pair{SpinDomain,BoolDomain}, ψ::Vector{U}) where {U<:Integer} = (ψ .+ 1) .÷ 2
-
-function cast(route::Pair{X,Y}, Ψ::Vector{Vector{U}}) where {U<:Integer,X<:Domain,Y<:Domain}
-    return cast.(route, Ψ)
-end
-
-@doc raw"""
-    Sample{T,U}(state::Vector{U}, value::T, reads::Integer) where{T,U}
-
-"""
-struct Sample{T<:Real,U<:Integer} <: AbstractSample{T,U}
-    state::Vector{U}
-    value::T
-    reads::Int
-
-    function Sample{T,U}(state::Vector{U}, value::T, reads::Integer = 1) where {T,U}
-        return new{T,U}(state, value, reads)
-    end
-end
-
-Sample{T}(args...) where {T} = Sample{T,Int}(args...)
-Sample(args...)              = Sample{Float64}(args...)
-
-state(s::Sample) = s.state
-state(s::Sample, i::Integer) = s.state[i]
-value(s::Sample) = s.value
-reads(s::Sample) = s.reads
-
-Base.:(==)(u::Sample{T,U}, v::Sample{T,U}) where {T,U} = state(u) == state(v)
-Base.:(<)(u::Sample{T,U}, v::Sample{T,U}) where {T,U}  = value(u) < value(v)
-
-function Base.isequal(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-    return isequal(reads(u), reads(v)) &&
-           isequal(value(u), value(v)) &&
-           isequal(state(u), state(v))
-end
-
-function Base.isless(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-    if isequal(value(u), value(v))
-        return isless(state(u), state(v))
-    else
-        return isless(value(u), value(v))
-    end
-end
-
-Base.print(io::IO, s::Sample)        = join(io, ifelse.(state(s) .> 0, '↓', '↑'))
-Base.length(s::Sample)               = length(state(s))
-Base.size(s::Sample)                 = (length(s),)
-Base.getindex(s::Sample, i::Integer) = state(s, i)
-Base.collect(s::Sample)              = collect(state(s))
-
-@doc raw"""
-    merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-
-Assumes that `u == v`.
-"""
-function Base.merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-    return Sample{T,U}(state(u), value(u), reads(u) + reads(v))
-end
-
-function format(data::Vector{Sample{T,U}}) where {T,U}
-    bits  = nothing
-    cache = sizehint!(Dict{Vector{U},Sample{T,U}}(), length(data))
-
-    for sample::Sample{T,U} in data
-        cached = get(cache, state(sample), nothing)
-        merged = if isnothing(cached)
-            if isnothing(bits)
-                bits = length(sample)
-            elseif bits != length(sample)
-                solution_error("All samples must have states of equal length")
-            end
-
-            sample
-        else
-            if value(cached) != value(sample)
-                solution_error(
-                    "Samples of the same state vector must have the same energy value",
-                )
-            end
-
-            merge(cached, sample)
-        end
-
-        cache[state(merged)] = merged
-    end
-
-    return sort(collect(values(cache)))
-end
-
-function cast(route::Pair{X,Y}, s::Sample{T,U}) where {T,U,X<:Domain,Y<:Domain}
-    return Sample{T,U}(cast(route, state(s)), value(s), reads(s))
-end
-
-function cast(::Pair{S,S}, s::Sample{T,U}) where {S<:Sense,T,U}
-    return Sample{T,U}(state(s), value(s), reads(s))
-end
-
-function cast(::Pair{A,B}, s::Sample{T,U}) where {T,U,A<:Sense,B<:Sense}
-    return Sample{T,U}(state(s), -value(s), reads(s))
-end
-
-@doc raw"""
-    AbstractSampleSet{T<:real,U<:Integer}
-
-An abstract sampleset is, by definition, an ordered set of samples.
-"""
-abstract type AbstractSampleSet{T<:Real,U<:Integer} <: AbstractVector{T} end
-
 Base.size(ω::AbstractSampleSet) = (size(ω, 1),)
 
 function Base.size(ω::AbstractSampleSet, axis::Integer)
@@ -183,11 +68,7 @@ function validate(ω::AbstractSampleSet)
     end
 end
 
-state(ω::AbstractSampleSet, i::Integer)             = state(ω[i])
-state(ω::AbstractSampleSet, i::Integer, j::Integer) = state(ω[i], j)
-value(ω::AbstractSampleSet, i::Integer)             = value(ω[i])
-reads(ω::AbstractSampleSet, i::Integer)             = reads(ω[i])
-reads(ω::AbstractSampleSet)                         = sum(reads.(ω))
+
 
 @doc raw"""
     SampleSet{T,U}(
@@ -207,6 +88,8 @@ It was inspired by [^dwave], with a few tweaks.
     [ocean docs](https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet)
 """
 struct SampleSet{T,U} <: AbstractSolution{T,U}
+    sense::Sense
+    domain::Domain
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
 

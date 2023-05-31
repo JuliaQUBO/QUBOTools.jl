@@ -1,19 +1,18 @@
 @doc raw"""
-    Model{
-        V <: Any,
-        T <: Real,
-        U <: Integer
-    } <: AbstractModel{V,T,U}
+    Model{V,T,U} <: AbstractModel{V,T,U}
 
-The `Model` was designed to work as a general for all implemented interfaces.
+Reference [`AbstractModel`](@ref) implementation.
+
 It is intended to be the core engine behind the target codecs.
 
 ## MathOptInterface/JuMP
+
 Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
 By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
 """
 mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
+    size::Int
     # Coefficients
     linear_terms::SparseVector{T}
     quadratic_terms::SparseMatrixCSC{T}
@@ -27,12 +26,10 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
     sense::Sense
     domain::Domain
     # Metadata
-    id::Union{Int,Nothing}
-    description::Union{String,Nothing}
     metadata::Dict{String,Any}
     # Solutions
+    solution::SampleSet{T,U}
     warm_start::Vector{U}
-    sampleset::SampleSet{T,U}
 
     function Model{V,T,U}(
         # Required data
@@ -72,9 +69,6 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
             offset,
             sense,
             domain,
-            id,
-            version,
-            description,
             metadata,
             warm_start,
             sampleset,
@@ -173,23 +167,29 @@ function Base.copy(model::Model{V,T,U}) where {V,T,U}
     )
 end
 
-scale(model::Model)  = model.scale
-offset(model::Model) = model.offset
-sense(model::Model)  = model.sense
-domain(model::Model) = model.domain
 
-linear_terms(model::Model)    = model.linear_terms
-quadratic_terms(model::Model) = model.quadratic_terms
-variable_map(model::Model)    = model.variable_map
-variable_inv(model::Model)    = model.variable_inv
 
-id(model::Model)          = model.id
-description(model::Model) = model.description
-metadata(model::Model)    = model.metadata
-warm_start(model::Model)  = model.warm_start
-sampleset(model::Model)   = model.sampleset
 
-function cast(route::Pair{X,Y}, model::Model{V,T,U}) where {V,T,U,X<:Domain,Y<:Domain}
+
+function Base.copy!(target::Model{V,T,U}, source::Model{V,T,U}) where {V,T,U}
+    target.linear_terms    = copy(linear_terms(source))
+    target.quadratic_terms = copy(quadratic_terms(source))
+    target.variable_map    = copy(variable_map(source))
+    target.variable_inv    = copy(variable_inv(source))
+    target.scale           = scale(source)
+    target.offset          = offset(source)
+    target.sense           = sense(source)
+    target.domain          = domain(source)
+    target.id              = id(source)
+    target.description     = description(source)
+    target.metadata        = deepcopy(metadata(source))
+    target.warm_start      = deepcopy(warm_start(source))
+    target.sampleset       = copy(sampleset(source))
+
+    return target
+end
+
+function cast(route::Route{D}, model::Model{V,T,U}) where {D<:Domain,V,T,U}
     L, Q, α, β = cast(
         route,
         linear_terms(model),
@@ -237,22 +237,4 @@ function cast(route::Pair{A,B}, model::Model{V,T,U}) where {V,T,U,A<:Sense,B<:Se
         metadata    = deepcopy(metadata(model)),
         sampleset   = cast(route, sampleset(model)),
     )
-end
-
-function Base.copy!(target::Model{V,T,U}, source::Model{V,T,U}) where {V,T,U}
-    target.linear_terms    = copy(linear_terms(source))
-    target.quadratic_terms = copy(quadratic_terms(source))
-    target.variable_map    = copy(variable_map(source))
-    target.variable_inv    = copy(variable_inv(source))
-    target.scale           = scale(source)
-    target.offset          = offset(source)
-    target.sense           = sense(source)
-    target.domain          = domain(source)
-    target.id              = id(source)
-    target.description     = description(source)
-    target.metadata        = deepcopy(metadata(source))
-    target.warm_start      = deepcopy(warm_start(source))
-    target.sampleset       = copy(sampleset(source))
-
-    return target
 end
