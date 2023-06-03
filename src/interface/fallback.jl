@@ -61,5 +61,3 @@ adjacency(model, k)       = adjacency(backend(model), k)
 # File I/O
 write_model(src, model)      = write_model(src, backend(model))
 write_model(src, model, fmt) = write_model(src, backend(model), fmt)
-read_model!(src, model)      = read_model!(src, backend(model))
-read_model!(src, model, fmt) = read_model!(src, backend(model), fmt)

@@ -93,7 +93,6 @@ QUBOTools.metadata
 
 ```@docs
 QUBOTools.read_model
-QUBOTools.read_model!
 QUBOTools.write_model
 ```
 

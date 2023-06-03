@@ -335,11 +335,6 @@ function adjacency end
 """
 function read_model end
 
-@doc raw"""
-    read_model!(::AbstractModel, ::AbstractString)
-"""
-function read_model! end
-
  @doc raw"""
     write_model(::AbstractString, ::AbstractModel)
     write_model(::AbstractString, ::AbstractModel, ::AbstractFormat)

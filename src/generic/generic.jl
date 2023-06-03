@@ -140,20 +140,6 @@ function Base.read(path::AbstractString, fmt::AbstractFormat)
     return read_model(path, fmt)
 end
 
-function read_model!(path::AbstractString, model::AbstractModel, fmt::AbstractFormat = infer_format(path))
-    return open(path, "r") do fp
-        return read_model!(fp, model, fmt)
-    end
-end
-
-function read_model!(io::IO, model::AbstractModel, fmt::AbstractFormat)
-    return copy!(model, read_model(io, fmt))
-end
-
-function Base.read!(path::AbstractString, model::AbstractModel, fmt::AbstractFormat)
-    return read_model!(path, model, fmt)
-end
-
 function write_model(path::AbstractString, model::AbstractModel, fmt::AbstractFormat = infer_format(path))
     open(path, "w") do fp
         write_model(fp, model, fmt)

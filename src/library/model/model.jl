@@ -14,8 +14,8 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
 mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
     size::Int
     # Coefficients
-    linear_terms::SparseVector{T}
-    quadratic_terms::SparseMatrixCSC{T}
+    linear_terms::LinearForm{T}
+    quadratic_terms::QuadraticForm{T}
     # Variable Mapping
     variable_map::Dict{V,Int}
     variable_inv::Vector{V}

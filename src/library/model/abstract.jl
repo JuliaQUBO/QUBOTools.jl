@@ -406,14 +406,6 @@ function Base.read(source::Union{IO,AbstractString}, fmt::AbstractFormat)
     return read_model(source, fmt)
 end
 
-function Base.read!(
-    source::Union{IO,AbstractString},
-    model::AbstractModel,
-    fmt::AbstractFormat,
-)
-    return read_model!(source, model, fmt)
-end
-
 function Base.write(
     target::Union{IO,AbstractString},
     model::AbstractModel,
