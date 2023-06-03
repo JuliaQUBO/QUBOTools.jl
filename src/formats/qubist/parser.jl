@@ -1,5 +1,5 @@
 function _parse_entry!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
-    m = match(r"^([0-9]+) ([0-9]+) ([+-]?([0-9]*[.])?[0-9]+)$", line)
+    m = match(r"^([0-9]+)\s+([0-9]+)\s+([+-]?([0-9]*[.])?[0-9]+)$", line)
 
     if isnothing(m)
         return false
@@ -65,8 +65,8 @@ function read_model(io::IO, fmt::Qubist)
         :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
     )
 
-    for line in strip.(readlines(io))
-        _parse_line!(fmt, data, line)
+    for line in readlines(io)
+        _parse_line!(fmt, data, strip(line))
     end
 
     return StandardModel(data[:linear_terms], data[:quadratic_terms])
