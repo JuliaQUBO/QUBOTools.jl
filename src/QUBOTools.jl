@@ -39,6 +39,9 @@ include("interface/architecture.jl")
 include("interface/generic.jl")
 include("interface/fallback.jl")
 
+# Generic methods
+include("generic/cast.jl")
+
 # Reference implementations
 include("library/solution/abstract.jl")
 include("library/solution/state.jl")

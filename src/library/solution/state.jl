@@ -1,6 +1,6 @@
 const State{U<:Integer} = AbstractVector{U}
 
-function cast((s,t)::Route{D}, x::U) where {D<:Domain,U<:Integer}
+function cast((s,t)::Pair{D,D}, x::U) where {D<:Domain,U<:Integer}
     if s === t
         return x
     elseif s === 𝔹 && t === 𝕊
@@ -12,7 +12,7 @@ function cast((s,t)::Route{D}, x::U) where {D<:Domain,U<:Integer}
     end
 end
 
-function cast((s,t)::Route{D}, ψ::State{U}) where {D<:Domain,U<:Integer}
+function cast((s,t)::Pair{D,D}, ψ::S) where {D<:Domain,U,S<:State{U}}
     if s === t
         return ψ
     elseif s === 𝔹 && t === 𝕊
@@ -22,8 +22,4 @@ function cast((s,t)::Route{D}, ψ::State{U}) where {D<:Domain,U<:Integer}
     else
         error("Unknown domain cast route '$(s) => $(t)'")
     end
-end
-
-function cast(route::Route{D}, Ψ::AbstractVector{State{U}}) where {D<:Domain,U<:Integer}
-    return cast.(route, Ψ)
 end

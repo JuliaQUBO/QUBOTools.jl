@@ -1,10 +1,8 @@
 # Abstract
-const Route{s,t} = Pair{Val{s},Val{t}}
-
-cast((s, t)::Pair{E,E}, args...) where {E<:Enum} = cast(Val(s) => Val(t), args...)
+const Route{X} = Pair{X,X}
 
 # Sense
-cast(::Route{x,x}, ℓ::Dict{Int,T}) where {T,x} = copy(ℓ)
+cast(::Route{S}, ℓ::Dict{Int,T}) where {T,S<:Sense} = ℓ
 
 function cast(::Pair{A,B}, L̄::Dict{Int,T}) where {T,A<:Sense,B<:Sense}
     L = sizehint!(Dict{Int,T}(), length(L̄))
