@@ -50,7 +50,7 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         # Solutions
         warm_start::Union{Dict{V,U},Nothing}     = nothing,
-        sampleset::Union{SampleSet{T,U},Nothing} = nothing,
+        solution::Union{SampleSet{T,U},Nothing} = nothing,
     ) where {V,T,U}
         scale      = isnothing(scale) ? one(T) : scale
         offset     = isnothing(offset) ? zero(T) : offset
@@ -58,7 +58,7 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         domain     = isnothing(domain) ? 𝔹 : Domain(domain)
         metadata   = isnothing(metadata) ? Dict{String,Any}() : metadata
         warm_start = isnothing(warm_start) ? Dict{V,U}() : warm_start
-        sampleset  = isnothing(sampleset) ? SampleSet{T,U}() : sampleset
+        solution  = isnothing(solution) ? SampleSet{T,U}() : solution
 
         return new{V,T,U}(
             linear_terms,
@@ -71,7 +71,7 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
             domain,
             metadata,
             warm_start,
-            sampleset,
+            solution,
         )
     end
 end
@@ -139,7 +139,7 @@ function Base.empty!(model::Model{V,T,U}) where {V,T,U}
     model.description = nothing
     empty!(model.metadata)
     empty!(model.warm_start)
-    empty!(model.sampleset)
+    empty!(model.solution)
 
     return model
 end
@@ -163,7 +163,7 @@ function Base.copy(model::Model{V,T,U}) where {V,T,U}
         description = description(model),
         metadata    = deepcopy(metadata(model)),
         warm_start  = deepcopy(warm_start(model)),
-        sampleset   = copy(sampleset(model)),
+        solution   = copy(solution(model)),
     )
 end
 
@@ -184,7 +184,7 @@ function Base.copy!(target::Model{V,T,U}, source::Model{V,T,U}) where {V,T,U}
     target.description     = description(source)
     target.metadata        = deepcopy(metadata(source))
     target.warm_start      = deepcopy(warm_start(source))
-    target.sampleset       = copy(sampleset(source))
+    target.solution       = copy(solution(source))
 
     return target
 end
@@ -210,7 +210,7 @@ function cast(route::Route{D}, model::Model{V,T,U}) where {D<:Domain,V,T,U}
         id          = id(model),
         description = description(model),
         metadata    = metadata(model),
-        sampleset   = cast(route, sampleset(model)),
+        solution   = cast(route, solution(model)),
     )
 end
 
@@ -235,6 +235,6 @@ function cast(route::Pair{A,B}, model::Model{V,T,U}) where {V,T,U,A<:Sense,B<:Se
         id          = id(model),
         description = description(model),
         metadata    = deepcopy(metadata(model)),
-        sampleset   = cast(route, sampleset(model)),
+        solution   = cast(route, solution(model)),
     )
 end

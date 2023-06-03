@@ -1,64 +1,8 @@
-Base.size(ω::AbstractSampleSet) = (size(ω, 1),)
-
-function Base.size(ω::AbstractSampleSet, axis::Integer)
-    if axis == 1
-        return length(ω)
-    else
-        return 1
-    end
-end
-
-Base.firstindex(::AbstractSampleSet)            = 1
-Base.firstindex(::AbstractSampleSet, ::Integer) = 1
-Base.lastindex(ω::AbstractSampleSet)            = length(ω)
-
-function Base.lastindex(ω::AbstractSampleSet, axis::Integer)
-    if axis == 1
-        return length(ω)
-    elseif axis == 2 && !isempty(ω)
-        return length(ω[begin])
-    else
-        return 1
-    end
-end
-
-Base.iterate(ω::AbstractSampleSet) = iterate(ω, firstindex(ω))
-
-function Base.iterate(ω::AbstractSampleSet, i::Integer)
-    if 1 <= i <= length(ω)
-        return (getindex(ω, i), i + 1)
-    else
-        return nothing
-    end
-end
-
-function Base.show(io::IO, ω::S) where {S<:AbstractSampleSet}
-    if isempty(ω)
-        return println(io, "Empty $(S)")
-    end
-
-    println(io, "$(S) with $(length(ω)) samples:")
-
-    for (i, s) in enumerate(ω)
-        print(io, "  ")
-
-        if i < 10
-            println(io, s)
-        else
-            return println(io, "⋮")
-        end
-    end
-
-    return nothing
-end
-
 # ~*~ :: Metadata Validation :: ~*~ #
-const _SAMPLESET_METADATA_PATH   = joinpath(@__DIR__, "sampleset.schema.json")
-const _SAMPLESET_METADATA_DATA   = JSON.parsefile(_SAMPLESET_METADATA_PATH)
-const _SAMPLESET_METADATA_SCHEMA = JSONSchema.Schema(_SAMPLESET_METADATA_DATA)
+const SAMPLESET_METADATA_SCHEMA = JSONSchema.Schema(JSON.parsefile(joinpath(@__DIR__, "sampleset.schema.json")))
 
-function validate(ω::AbstractSampleSet)
-    report = JSONSchema.validate(_SAMPLESET_METADATA_SCHEMA, metadata(ω))
+function validate(ω::AbstractSolution)
+    report = JSONSchema.validate(metadata(ω), SAMPLESET_METADATA_SCHEMA)
 
     if !isnothing(report)
         @warn report
@@ -67,8 +11,6 @@ function validate(ω::AbstractSampleSet)
         return true
     end
 end
-
-
 
 @doc raw"""
     SampleSet{T,U}(

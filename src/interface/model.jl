@@ -141,30 +141,40 @@ function indices end
 
 @doc raw"""
     variables(model)::Vector
+    variables(model::AbstractModel{V})::Vector{V} where {V}
 
 Returns a sorted vector containing the model's variables.
-If order doesn't matter, use `variable_set(model)` instead.
+If order doesn't matter, use [`variable_set`](@ref) instead.
 """
 function variables end
 
 @doc raw"""
     variable_set(model)::Set
+    variable_set(model::AbstractModel{V})::Set{V} where {V}
 
 Returns the set of variables of a given model.
 """
 function variable_set end
 
 @doc raw"""
-    variable_map(model)::Dict{V,Int} where {V}
-    variable_map(model, x::V)::Integer where {V}
+    variable_map(model::AbstractModel{V})::Dict{V,Int} where {V}
 
+Returns a dictionary that maps variables into their integer indices.
+
+    variable_map(model::AbstractModel{V}, x::V)::Int where {V}
+
+Returns the index of a given variable.
 """
 function variable_map end
 
 @doc raw"""
-    variable_inv(model)::Dict{Int,V} where {V}
-    variable_inv(model, i::Integer)::V where {V}
+    variable_inv(model::AbstractModel{V})::Vector{V} where {V}
 
+Returns a vector that maps indices into their corresponding variables.
+
+    variable_inv(model::AbstractModel{V}, i::Integer)::V where {V}
+
+Given an index, returns the corresponding varaible.
 """
 function variable_inv end
 

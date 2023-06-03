@@ -5,7 +5,7 @@ using RecipesBase
 using QUBOTools
 
 import QUBOTools: ↑, ↓, 𝔹, 𝕊, Max, Min
-import QUBOTools: Domain, Sense, Style
+import QUBOTools: Domain, Sense, AbstractStyle
 import QUBOTools: Sample, SampleSet
 import QUBOTools: CodecError, codec_error
 import QUBOTools: SolutionError, solution_error

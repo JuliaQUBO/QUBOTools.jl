@@ -5,13 +5,12 @@
 abstract type AbstractFormat{S} end
 
 @doc raw"""
-    Style
-
+    AbstractStyle
 """
-abstract type Style end
+abstract type AbstractStyle end
 
 @doc raw"""
-    style(fmt::AbstractFormat{S})::Style
+    style(fmt::AbstractFormat{S})::S where {S<:Union{AbstractStyle,Nothing}}
 """
 function style end
 

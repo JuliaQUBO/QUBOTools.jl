@@ -12,4 +12,4 @@ id(model::Model)          = model.id
 description(model::Model) = model.description
 metadata(model::Model)    = model.metadata
 warm_start(model::Model)  = model.warm_start
-sampleset(model::Model)   = model.sampleset
+solution(model::Model)   = model.solution

@@ -58,9 +58,9 @@ function test_interface_data_access(bool_model, bool_samples, spin_model, spin_s
             "type" => "spin",
         )
 
-        @test QUBOTools.sampleset(null_model) == SampleSet()
-        @test QUBOTools.sampleset(bool_model) == QUBOTools.SampleSet(bool_samples)
-        @test QUBOTools.sampleset(spin_model) == QUBOTools.SampleSet(spin_samples)
+        @test QUBOTools.solution(null_model) == SampleSet()
+        @test QUBOTools.solution(bool_model) == QUBOTools.SampleSet(bool_samples)
+        @test QUBOTools.solution(spin_model) == QUBOTools.SampleSet(spin_samples)
 
         @test QUBOTools.linear_terms(null_model) == Dict{Int,Float64}()
         @test QUBOTools.linear_terms(bool_model) == Dict{Int,Float64}(1 => 1.0, 2 => -1.0)
@@ -412,7 +412,7 @@ function test_interface()
                 "meta" => "data",
                 "type" => "bool",
             ),
-            sampleset   = QUBOTools.SampleSet(bool_samples),
+            solution   = QUBOTools.SampleSet(bool_samples),
         ),
     )
 
@@ -430,7 +430,7 @@ function test_interface()
                 "meta" => "data",
                 "type" => "spin",
             ),
-            sampleset   = QUBOTools.SampleSet(spin_samples),
+            solution   = QUBOTools.SampleSet(spin_samples),
         ),
     )
 

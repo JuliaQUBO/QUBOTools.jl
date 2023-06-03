@@ -43,7 +43,7 @@ function read_model(io::IO, fmt::BQPJSON)
         version     = data[:version],
         description = data[:description],
         metadata    = data[:metadata],
-        sampleset   = data[:sampleset],
+        solution   = data[:solution],
     )
 end
 
@@ -119,7 +119,7 @@ function _parse_solutions!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{St
     solutions = get(data, "solutions", nothing)
 
     if isnothing(solutions)
-        data[:sampleset] = nothing
+        data[:solution] = nothing
 
         return nothing
     end
@@ -159,7 +159,7 @@ function _parse_solutions!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{St
         end
     end
 
-    data[:sampleset] = SampleSet{Float64,Int}(samples, solution_metadata)
+    data[:solution] = SampleSet{Float64,Int}(samples, solution_metadata)
 
     return nothing
 end

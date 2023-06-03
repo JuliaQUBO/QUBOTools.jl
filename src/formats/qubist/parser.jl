@@ -1,5 +1,5 @@
 function _parse_entry!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
-    m = match(r"^([0-9]+) ([0-9]+) ([+-]?([0-9]*[.])?[0-9]+)$", line)
+    m = match(r"^\s*([0-9]+)\s+([0-9]+)\s+([+-]?([0-9]*[.])?[0-9]+)\s*$", line)
 
     if isnothing(m)
         return false

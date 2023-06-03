@@ -13,7 +13,7 @@ function indices(model::AbstractModel)
 end
 
 function variables(model::AbstractModel{V,T}) where {V,T}
-    return V[variable_inv(model, i) for i = 1:domain_size(model)]
+    return collect(variable_inv(model))
 end
 
 function variable_set(model::AbstractModel{V,T}) where {V,T}
@@ -303,19 +303,19 @@ end
 
 # ~*~ Data queries ~*~ #
 function state(model::AbstractModel, index::Integer)
-    return state(sampleset(model), index)
+    return state(solution(model), index)
 end
 
 function reads(model::AbstractModel)
-    return reads(sampleset(model))
+    return reads(solution(model))
 end
 
 function reads(model::AbstractModel, index::Integer)
-    return reads(sampleset(model), index)
+    return reads(solution(model), index)
 end
 
 function value(model::AbstractModel, index::Integer)
-    return value(sampleset(model), index)
+    return value(solution(model), index)
 end
 
 function value(model::AbstractModel, ψ::Vector{U}) where {U<:Integer}
@@ -456,7 +456,7 @@ function Base.show(io::IO, model::AbstractModel)
         )
     end
 
-    if isempty(sampleset(model))
+    if isempty(solution(model))
         print(
             io,
             """
@@ -466,7 +466,7 @@ function Base.show(io::IO, model::AbstractModel)
 
         return nothing
     else
-        ω = sampleset(model)
+        ω = solution(model)
         n = length(ω)
         z = sense(model) === Min ? value(ω[begin]) : value(ω[end])
 

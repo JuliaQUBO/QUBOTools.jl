@@ -23,6 +23,15 @@ QUBOTools.SpinDomain
 QUBOTools.domain
 ```
 
+## Objective Sense
+
+```@docs
+QUBOTools.Sense
+QUBOTools.MinSense
+QUBOTools.MaxSense
+QUBOTools.sense
+```
+
 ## Frame Casting
 
 ```@docs
@@ -34,7 +43,7 @@ QUBOTools.cast
 ```@docs
 QUBOTools.Sample
 QUBOTools.SampleSet{T,U}
-QUBOTools.sampleset
+QUBOTools.solution
 ```
 
 ```@docs
@@ -59,7 +68,6 @@ QUBOTools.infer_format
 ## Data Access
 
 ```@docs
-QUBOTools.sense
 QUBOTools.linear_terms
 QUBOTools.explicit_linear_terms
 QUBOTools.quadratic_terms

@@ -1,5 +1,3 @@
-const Route{X} = Pair{X,X}
-
 @doc raw"""
     cast(
         sense_route::Pair{A,B},
@@ -21,10 +19,10 @@ Recasting the sense of a model preserves its meaning:
 
 The linear terms, quadratic terms and constant offset of a model have its signs reversed.
 
-    cast(route, s::Sample) where {S<:Sense}
-    cast(route, s::Sample) where {A<:Sense,B<:Sense}
-    cast(route, ω::SampleSet) where {S<:Sense}
-    cast(route, ω::SampleSet) where {A<:Sense,B<:Sense}
+    cast(route, s::Sample)
+    cast(route, s::Sample)
+    cast(route, ω::SampleSet)
+    cast(route, ω::SampleSet)
 
     cast(route, model::AbstractModel)
     cast(route, ψ::Vector{U})

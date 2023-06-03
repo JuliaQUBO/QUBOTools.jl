@@ -1,13 +1,14 @@
 function infer_format(path::AbstractString)
-    pieces = reverse(split(basename(path), "."))
+    pieces = Symbol.(reverse(split(basename(path), ".")))
 
     if length(pieces) == 1
         format_error("Unable to infer QUBO format from file without an extension")
     else
-        format_hint, extra_hint, _... = pieces
+        # Get two last fragments of the file name
+        format_hint, extra_hint = first(pieces, 2)
     end
 
-    return infer_format(Symbol(extra_hint), Symbol(format_hint))
+    return infer_format(extra_hint, format_hint)
 end
 
 function infer_format(extra_hint::Symbol, format_hint::Symbol)

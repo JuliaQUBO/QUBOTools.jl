@@ -10,7 +10,7 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
         :variable_ids    => variables(model),
         :description     => description(model),
         :metadata        => metadata(model),
-        :sampleset       => sampleset(model),
+        :solution       => solution(model),
     )
 
     for (i, l) in linear_terms(model)
@@ -58,12 +58,12 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
         json_data["description"] = data[:description]
     end
 
-    if !isnothing(data[:sampleset])
+    if !isnothing(data[:solution])
         sol_id = 0
 
         solutions = Dict{String,Any}[]
 
-        for s in data[:sampleset]
+        for s in data[:solution]
             assignment = Dict{String,Any}[
                 Dict{String,Any}(
                     "id"    => i,

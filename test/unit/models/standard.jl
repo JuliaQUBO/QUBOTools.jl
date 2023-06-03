@@ -43,7 +43,7 @@ function test_standard()
         )
     )
 
-    sampleset = QUBOTools.SampleSet{Float64,Int}(
+    solution = QUBOTools.SampleSet{Float64,Int}(
         sampleset_samples,
         sampleset_metadata,
     )
@@ -58,7 +58,7 @@ function test_standard()
         version     = version,
         description = description,
         metadata    = metadata,
-        sampleset   = sampleset
+        solution   = solution
     )
 
     @testset "Standard" verbose = true begin
