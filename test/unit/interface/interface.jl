@@ -104,9 +104,9 @@ function test_interface_data_access(bool_model, bool_samples, spin_model, spin_s
         @test_throws Exception QUBOTools.variable_inv(bool_model, -1)
         @test_throws Exception QUBOTools.variable_inv(spin_model, -1)
 
-        @test QUBOTools.domain_size(null_model) == 0
-        @test QUBOTools.domain_size(bool_model) == 2
-        @test QUBOTools.domain_size(spin_model) == 2
+        @test QUBOTools.dimension(null_model) == 0
+        @test QUBOTools.dimension(bool_model) == 2
+        @test QUBOTools.dimension(spin_model) == 2
         
         @test QUBOTools.linear_size(null_model) == 0
         @test QUBOTools.linear_size(bool_model) == 2

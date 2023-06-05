@@ -3,21 +3,21 @@ function _print_header(::IO, ::QUBO, ::Dict{Symbol,Any}, ::Nothing)
 end
 
 function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::DWaveStyle)
-    domain_size    = data[:domain_size]
+    dimension    = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
 
-    println(io, "p qubo 0 $(domain_size) $(linear_size) $(quadratic_size)")
+    println(io, "p qubo 0 $(dimension) $(linear_size) $(quadratic_size)")
 
     return nothing
 end
 
 function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::MQLibStyle)
-    domain_size    = data[:domain_size]
+    dimension    = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
 
-    println(io, "$(domain_size) $(linear_size + quadratic_size)")
+    println(io, "$(dimension) $(linear_size + quadratic_size)")
 
     return nothing
 end
@@ -92,7 +92,7 @@ function write_model(io::IO, model::AbstractModel, fmt::QUBO)
         :id              => id(model),
         :description     => description(model),
         :metadata        => metadata(model),
-        :domain_size     => domain_size(model),
+        :dimension     => dimension(model),
     )
 
     _print_metadata(io, fmt, data, fmt.comment)

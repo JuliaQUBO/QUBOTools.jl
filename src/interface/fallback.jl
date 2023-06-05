@@ -49,7 +49,7 @@ sample(model, i)  = sample(backend(model), i)
 solution(model)   = solution(backend(model)) 
 
 # Data queries
-domain_size(model)        = domain_size(backend(model))
+dimension(model)        = dimension(backend(model))
 linear_size(model)        = linear_size(backend(model))
 quadratic_size(model)     = quadratic_size(backend(model))
 density(model)            = density(backend(model))

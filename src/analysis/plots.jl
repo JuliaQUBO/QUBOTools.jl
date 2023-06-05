@@ -1,15 +1,21 @@
-struct SolutionDistributionPlot{T,U}
-    solution::AbstractSolution{T,U}
+struct EnergyFrequencyPlot{T,U,S<:AbstractSolution{T,U}} <: AbstractVisualization
+    solution::S
 
-    function SolutionDistributionPlot{T,U}(solution::AbstractSolution{T,U}) where {T,U}
-        return new{T,U}(solution)
+    function EnergyFrequencyPlot(solution::S) where {T,U,S<:AbstractSolution{T,U}}
+        return new{T,U,S}(solution)
     end
 end
 
-SolutionDistributionPlot(model) = SolutionDistributionPlot(solution(model))
+function EnergyFrequencyPlot(model::AbstractModel)
+    return EnergyFrequencyPlot(solution(model))
+end
 
-@recipe function f(plt::SolutionDistributionPlot{T,U}) where {T,U}
-    title --> "Solution Summary"
+function EnergyFrequencyPlot(model::Any)
+    return EnergyFrequencyPlot(backend(model))
+end
+
+@recipe function f(plt::EnergyFrequencyPlot)
+    title  --> "Solution Summary"
     xlabel --> "Energy"
     ylabel --> "Frequency"
     legend --> nothing
@@ -37,39 +43,31 @@ SolutionDistributionPlot(model) = SolutionDistributionPlot(solution(model))
     return (x, y)
 end
 
-function plot_solution_distribution(solution::AbstractSolution{T,U}) where {T,U}
-    plt = SolutionDistributionPlot{T,U}(solution)
+struct ModelDensityPlot{V,T,U,M<:AbstractModel{V,T,U}} <: AbstractVisualization
+    model::M
 
-    RecipesBase.plot(plt)
-end
-
-function plot_solution_distribution(model::Any)
-    plot_solution_distribution(QUBOTools.solution(model))
-end
-
-struct ModelDensityPlot{V,T,U}
-    model::Any
-
-    function ModelDensityPlot{V,T,U}(model::AbstractModel{V,T,U}) where {V,T,U}
-        return new{V,T,U}(model)
+    function ModelDensityPlot(model::M) where {V,T,U,M<:AbstractModel{V,T,U}}
+        return new{V,T,U,M}(model)
     end
 end
 
-ModelDensityPlot(model) = ModelDensityPlot(backend(model))
+function ModelDensityPlot(model::Any)
+    return ModelDensityPlot(backend(model))
+end
 
 @recipe function f(plt::ModelDensityPlot{V,T,U}) where {V,T,U}
-    title --> "Model density"
-    color --> :bwr
+    title  --> "Model density"
+    color  --> :bwr
     xlabel --> "Variable Index"
     ylabel --> "Variable Index"
 
-    n = domain_size(plt.model)
+    n = dimension(plt.model)
     t = collect(1:(n÷10+1):n)
 
     xticks := t
     yticks := t
 
-    z = if domain(plt.model) === nothing # assume its QUBO
+    z = if domain(plt.model) === nothing
         error("No domain specified")
     elseif domain(plt.model) === 𝔹
         Q, = qubo(plt.model, Symmetric)

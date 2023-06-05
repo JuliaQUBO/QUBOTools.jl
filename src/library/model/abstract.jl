@@ -5,11 +5,11 @@ Base.isempty(model::AbstractModel) = isempty(variable_map(model))
 function explicit_linear_terms(model::AbstractModel{V,T}) where {V,T}
     L = linear_terms(model)
 
-    return Dict{Int,T}(i => get(L, i, zero(T)) for i = 1:domain_size(model))
+    return Dict{Int,T}(i => get(L, i, zero(T)) for i = 1:dimension(model))
 end
 
 function indices(model::AbstractModel)
-    return collect(1:domain_size(model))
+    return collect(1:dimension(model))
 end
 
 function variables(model::AbstractModel{V,T}) where {V,T}
@@ -50,7 +50,7 @@ end
 
 # ~*~ Model's Normal Forms ~*~ #
 function qubo(model::AbstractModel, type::Type = Dict)
-    n = domain_size(model)
+    n = dimension(model)
 
     L, Q, α, β = cast(
         domain(model) => 𝔹,
@@ -174,7 +174,7 @@ function qubo(
 end
 
 function ising(model::AbstractModel, type::Type = Dict)
-    n = domain_size(model)
+    n = dimension(model)
 
     L, Q, α, β = cast(
         domain(model) => Domain(:spin),
@@ -334,12 +334,12 @@ function value(model::AbstractModel, ψ::Vector{U}) where {U<:Integer}
 end
 
 # ~*~ Queries: sizes & density ~*~ #
-domain_size(model::AbstractModel)    = length(variable_map(model))
+dimension(model::AbstractModel)    = length(variable_map(model))
 linear_size(model::AbstractModel)    = length(linear_terms(model))
 quadratic_size(model::AbstractModel) = length(quadratic_terms(model))
 
 function density(model::AbstractModel)
-    n = domain_size(model)
+    n = dimension(model)
 
     if n == 0
         return NaN
@@ -352,7 +352,7 @@ function density(model::AbstractModel)
 end
 
 function linear_density(model::AbstractModel)
-    n = domain_size(model)
+    n = dimension(model)
 
     if n == 0
         return NaN
@@ -364,7 +364,7 @@ function linear_density(model::AbstractModel)
 end
 
 function quadratic_density(model::AbstractModel)
-    n = domain_size(model)
+    n = dimension(model)
 
     if n <= 1
         return NaN
@@ -376,7 +376,7 @@ function quadratic_density(model::AbstractModel)
 end
 
 function adjacency(model::AbstractModel)
-    n = domain_size(model)
+    n = dimension(model)
     A = Dict{Int,Set{Int}}(i => Set{Int}() for i = 1:n)
 
     for (i, j) in keys(quadratic_terms(model))
@@ -402,18 +402,6 @@ function adjacency(model::AbstractModel, k::Integer)
 end
 
 # ~*~ I/O ~*~ #
-function Base.read(source::Union{IO,AbstractString}, fmt::AbstractFormat)
-    return read_model(source, fmt)
-end
-
-function Base.write(
-    target::Union{IO,AbstractString},
-    model::AbstractModel,
-    fmt::AbstractFormat,
-)
-    return write_model(target, model, fmt)
-end
-
 function Base.copy!(target::X, source::Y) where {X<:AbstractModel,Y<:AbstractModel}
     return copy!(target, convert(X, source))
 end
@@ -423,7 +411,7 @@ function Base.show(io::IO, model::AbstractModel)
         io,
         """
         $(name(model)) [$(sense(model)), $(domain(model))]
-        ▷ Variables ……… $(domain_size(model))  
+        ▷ Variables ……… $(dimension(model))  
         """,
     )
 

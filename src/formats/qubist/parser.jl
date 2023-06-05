@@ -29,21 +29,21 @@ function _parse_header!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
         return false
     end
 
-    domain_size = tryparse(Int, m[1])
+    dimension = tryparse(Int, m[1])
     total_size  = tryparse(Int, m[2])
 
-    if isnothing(domain_size) || isnothing(total_size)
+    if isnothing(dimension) || isnothing(total_size)
         syntax_error("Invalid header: '$line'")
     end
 
     # TODO: `sizehint!` linear and quadratic collections
     # IDEA: 
     #   1. linear_size + quadratic_size = total_size
-    #   2. domain_size * linear_size    ≈ linear_size + 2 quadratic_size
+    #   2. dimension * linear_size    ≈ linear_size + 2 quadratic_size
     #   
-    #   3. => quadratic_size = (domain_size - 1) * linear_size ÷ 2 [2]
-    #   4. => linear_size    ≈ 2 * total_size ÷ (domain_size + 1)  [1, 3]
-    linear_size    = 2 * total_size ÷ (domain_size + 1)
+    #   3. => quadratic_size = (dimension - 1) * linear_size ÷ 2 [2]
+    #   4. => linear_size    ≈ 2 * total_size ÷ (dimension + 1)  [1, 3]
+    linear_size    = 2 * total_size ÷ (dimension + 1)
     quadratic_size = total_size - linear_size
 
     sizehint!(data[:linear_terms], linear_size)
@@ -69,5 +69,10 @@ function read_model(io::IO, fmt::Qubist)
         _parse_line!(fmt, data, line)
     end
 
-    return Model{Int,Float64,Int}(data[:linear_terms], data[:quadratic_terms])
+    return Model{Int,Float64,Int}(
+        data[:linear_terms],
+        data[:quadratic_terms],
+        sense = Min,
+        domain = SpinDomain,
+    )
 end

@@ -1,3 +1,5 @@
+const Route{X} = Pair{X,X}
+
 @doc raw"""
     cast(
         sense_route::Pair{A,B},

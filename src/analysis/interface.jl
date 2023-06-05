@@ -16,6 +16,23 @@ The success factor ``s`` defaults to ``0.99``.
 function tts end
 
 @doc raw"""
+    opt_tts(ω::SampleSet{T,<:Any}, λ::T, s::Float64=0.99) where {T}
+
+Computes the _time to solution_ (TTS) from the optimal objective value and a sample set.
+The success factor ``s`` defaults to ``0.99``.
+
+    opt_tts(t::Float64, p::Float64, s::Float64=0.99)
+
+Computes the _time to solution_ (TTS) given the effective time ``t`` spent running the algorithm and the success probability ``p``.
+The success factor ``s`` defaults to ``0.99``.
+
+```math
+\textrm{TTS}(t, p; s) = t \frac{\log(1 - s)}{\log(1 - p)}
+```
+"""
+function opt_tts end
+
+@doc raw"""
     success_rate(ω::SampleSet{T,<:Any}, λ::T) where {T}
 
 Returns the success rate according to the given sample set and the optimal objective value ``\lambda``.
@@ -42,3 +59,39 @@ function effective_time end
     hamming_distance(x::Sample{T,U}, y::Sample{T,U}) where {T,U}
 """
 function hamming_distance end
+
+@doc raw"""
+    AbstractVisualization
+
+Represents a conceptual visualization built from a set of data structures.
+Its realization may combine multiple plot recipes as well.
+
+# Examples
+
+## Model Density Heatmap
+
+```julia
+julia> p = QUBOTools.ModelDensityPlot(model)
+
+julia> plot(p)
+```
+
+## Solution Energy vs. Frequency
+
+```julia
+julia> s = QUBOTools.solution(model)
+
+julia> p = QUBOTools.EnergyFrequencyPlot(s)
+
+julia> plot(p)
+```
+
+or simply,
+
+```julia
+julia> p = QUBOTools.EnergyFrequencyPlot(model)
+
+julia> plot(p)
+```
+"""
+abstract type AbstractVisualization end

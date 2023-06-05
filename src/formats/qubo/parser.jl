@@ -69,7 +69,7 @@ function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::
         return false
     end
 
-    data[:domain_size]    = tryparse(Int, m[2])
+    data[:dimension]    = tryparse(Int, m[2])
     data[:linear_size]    = tryparse(Int, m[3])
     data[:quadratic_size] = tryparse(Int, m[4])
 
@@ -83,7 +83,7 @@ function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString, ::
         return false
     end
 
-    data[:domain_size]    = tryparse(Int, m[1])
+    data[:dimension]    = tryparse(Int, m[1])
     data[:quadratic_size] = tryparse(Int, m[2])
 
     return true
@@ -142,7 +142,7 @@ function read_model(io::IO, fmt::QUBO)
         :id              => nothing,
         :description     => nothing,
         :metadata        => Dict{String,Any}(),
-        :domain_size     => nothing,
+        :dimension     => nothing,
         :linear_size     => nothing,
         :quadratic_size  => nothing,
     )

@@ -31,6 +31,7 @@ export Qubist
 export QUBO
 
 # Interface definitions
+include("interface/form.jl")
 include("interface/model.jl")
 include("interface/solution.jl")
 include("interface/format.jl")
@@ -43,6 +44,9 @@ include("interface/fallback.jl")
 include("generic/cast.jl")
 
 # Reference implementations
+include("library/form/abstract.jl")
+include("library/form/form.jl")
+
 include("library/solution/abstract.jl")
 include("library/solution/state.jl")
 include("library/solution/sample.jl")

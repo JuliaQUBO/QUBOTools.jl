@@ -99,7 +99,7 @@ QUBOTools.write_model
 ## Metrics and other queries
 
 ```@docs
-QUBOTools.domain_size
+QUBOTools.dimension
 QUBOTools.linear_size
 QUBOTools.quadratic_size
 QUBOTools.density

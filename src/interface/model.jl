@@ -249,11 +249,11 @@ function ising end
 
 # Queries: sizes & density
 @doc raw"""
-    domain_size(model)::Integer
+    dimension(model)::Integer
 
 Counts the number of variables in the model.
 """
-function domain_size end
+function dimension end
 
 @doc raw"""
     linear_size(model)::Int

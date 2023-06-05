@@ -12,24 +12,20 @@ By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard wor
 
 """
 mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
-    size::Int
-    # Coefficients
-    linear_terms::LinearForm{T}
-    quadratic_terms::QuadraticForm{T}
+    # Coefficients & Factors
+    form::NormalForm{T}
     # Variable Mapping
     variable_map::Dict{V,Int}
     variable_inv::Vector{V}
-    # Factors
-    scale::T
-    offset::T
     # Sense & Domain
     sense::Sense
     domain::Domain
     # Metadata
     metadata::Dict{String,Any}
-    # Solutions
+    # Solution
     solution::SampleSet{T,U}
-    warm_start::Vector{U}
+    # Hints
+    warm_start::State{U}
 
     function Model{V,T,U}(
         # Required data
@@ -44,13 +40,10 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         sense::Union{Sense,Nothing}   = nothing,
         domain::Union{Domain,Nothing} = nothing,
         # Metadata
-        id::Union{Integer,Nothing}                = nothing,
-        version::Union{VersionNumber,Nothing}     = nothing,
-        description::Union{String,Nothing}        = nothing,
         metadata::Union{Dict{String,Any},Nothing} = nothing,
-        # Solutions
-        warm_start::Union{Dict{V,U},Nothing}     = nothing,
+        # Solution
         solution::Union{SampleSet{T,U},Nothing} = nothing,
+        warm_start::Union{Dict{V,U},Nothing} = nothing,
     ) where {V,T,U}
         scale      = isnothing(scale) ? one(T) : scale
         offset     = isnothing(offset) ? zero(T) : offset
@@ -58,7 +51,7 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         domain     = isnothing(domain) ? 𝔹 : Domain(domain)
         metadata   = isnothing(metadata) ? Dict{String,Any}() : metadata
         warm_start = isnothing(warm_start) ? Dict{V,U}() : warm_start
-        solution  = isnothing(solution) ? SampleSet{T,U}() : solution
+        solution   = isnothing(solution) ? SampleSet{T,U}() : solution
 
         return new{V,T,U}(
             linear_terms,
@@ -100,11 +93,8 @@ function Model{V,T,U}(
 
     variable_map, variable_inv = _build_mapping(_variable_set)
 
-    linear_terms, quadratic_terms = _map_terms(
-        _linear_terms,
-        _quadratic_terms,
-        variable_map,
-    )
+    linear_terms, quadratic_terms =
+        _map_terms(_linear_terms, _quadratic_terms, variable_map)
 
     return Model{V,T,U}(linear_terms, quadratic_terms, variable_map, variable_inv; kws...)
 end
@@ -163,7 +153,7 @@ function Base.copy(model::Model{V,T,U}) where {V,T,U}
         description = description(model),
         metadata    = deepcopy(metadata(model)),
         warm_start  = deepcopy(warm_start(model)),
-        solution   = copy(solution(model)),
+        solution    = copy(solution(model)),
     )
 end
 
@@ -184,7 +174,7 @@ function Base.copy!(target::Model{V,T,U}, source::Model{V,T,U}) where {V,T,U}
     target.description     = description(source)
     target.metadata        = deepcopy(metadata(source))
     target.warm_start      = deepcopy(warm_start(source))
-    target.solution       = copy(solution(source))
+    target.solution        = copy(solution(source))
 
     return target
 end
@@ -210,7 +200,7 @@ function cast(route::Route{D}, model::Model{V,T,U}) where {D<:Domain,V,T,U}
         id          = id(model),
         description = description(model),
         metadata    = metadata(model),
-        solution   = cast(route, solution(model)),
+        solution    = cast(route, solution(model)),
     )
 end
 
@@ -222,7 +212,7 @@ function cast(route::Pair{A,B}, model::Model{V,T,U}) where {V,T,U,A<:Sense,B<:Se
         scale(model),
         offset(model),
     )
-    
+
     return Model{V,T,U}(
         L,
         Q,
@@ -235,6 +225,6 @@ function cast(route::Pair{A,B}, model::Model{V,T,U}) where {V,T,U,A<:Sense,B<:Se
         id          = id(model),
         description = description(model),
         metadata    = deepcopy(metadata(model)),
-        solution   = cast(route, solution(model)),
+        solution    = cast(route, solution(model)),
     )
 end

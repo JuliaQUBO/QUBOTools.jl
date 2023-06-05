@@ -27,7 +27,7 @@ function _print_domain(io::IO, ::MiniZinc, X::Domain)
 end
 
 function _print_variables!(io::IO, ::MiniZinc, data::Dict{Symbol,Any})
-    for i = 1:data[:domain_size]
+    for i = 1:data[:dimension]
         x = data[:variable_inv][i]
 
         data[:mzn_variables][x] = "$(_MINIZINC_VAR_SYMBOL)$(x)"
@@ -68,7 +68,7 @@ function write_model(io::IO, model::AbstractModel, fmt::MiniZinc)
         :quadratic_terms     => quadratic_terms(model),
         :scale               => scale(model),
         :offset              => offset(model),
-        :domain_size         => domain_size(model),
+        :dimension         => dimension(model),
         :id                  => id(model),
         :metadata            => metadata(model),
         :description         => description(model),

@@ -87,7 +87,7 @@ function test_standard()
 
         @testset "Queries" verbose = true begin
             @test QUBOTools.domain(std_model)      == 𝔹
-            @test QUBOTools.domain_size(std_model) == 2
+            @test QUBOTools.dimension(std_model) == 2
 
             @test QUBOTools.linear_size(std_model)    == 2
             @test QUBOTools.quadratic_size(std_model) == 1
