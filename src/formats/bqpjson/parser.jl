@@ -32,7 +32,7 @@ function read_model(io::IO, fmt::BQPJSON)
         data[:offset],
     )
 
-    return StandardModel(
+    return Model{Int,Float64,Int}(
         L,
         Q;
         scale       = α,

@@ -1,6 +1,6 @@
 struct SampleModel{T} end
 
-struct QUBOModel{V,T} <: QUBOTools.AbstractModel{V,T} end
+struct QUBOModel{V,T,U} <: QUBOTools.AbstractModel{V,T,U} end
 
 value(::SampleModel{T}, ::Any) where {T} = zero(T)
 

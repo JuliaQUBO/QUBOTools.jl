@@ -151,7 +151,7 @@ function read_model(io::IO, fmt::QUBO)
         _parse_line!(fmt, data, line)
     end
 
-    return StandardModel(
+    return Model{Int,Float64,Int}(
         data[:linear_terms],
         data[:quadratic_terms];
         scale       = data[:scale],

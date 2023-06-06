@@ -1,24 +1,19 @@
-name    = "QUBOTools"
-uuid    = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"
-authors = [
-  "pedromxavier <pedroxavier@psr-inc.com>",
-  "pedroripper <pedroripper@psr-inc.com>",
-  "AndradeTiago <tiago.andrade@psr-inc.com>",
-  "joaquimg <joaquim@psr-inc.com>",
-  "bernalde <dbernalneira@usra.edu>"
-]
-version = "0.8.1"
+name = "QUBOTools"
+uuid = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"
+authors = ["pedromxavier <pedroxavier@psr-inc.com>", "pedroripper <pedroripper@psr-inc.com>", "AndradeTiago <tiago.andrade@psr-inc.com>", "joaquimg <joaquim@psr-inc.com>", "bernalde <dbernalneira@usra.edu>"]
+version = "0.8.2"
 
 [deps]
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
-JSON             = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-JSONSchema       = "7d188eb4-7ad8-530c-ae41-71a32a6d4692"
-Printf           = "de0858da-6303-5e67-8744-51eddeeeb8d7"
-RecipesBase      = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
-SparseArrays     = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+JSONSchema = "7d188eb4-7ad8-530c-ae41-71a32a6d4692"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
-JSON        = "0.21.3"
-JSONSchema  = "1"
+JSON = "0.21.3"
+JSONSchema = "1"
 RecipesBase = "1.3"
-julia       = "1.6"
+julia = "1.6"

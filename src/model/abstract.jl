@@ -128,6 +128,27 @@ function qubo(
 end
 
 function qubo(
+    ::Type{Symmetric},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
+    Q = zeros(T, n, n)
+
+    for (i, c) in L̄
+        Q[i, i] = c
+    end
+
+    for ((i, j), c) in Q̄
+        Q[i, j] = c / 2
+    end
+
+    return (Symmetric(Q), α, β)
+end
+
+function qubo(
     ::Type{SparseMatrixCSC},
     n::Integer,
     L̄::Dict{Int,T},
@@ -230,6 +251,28 @@ function ising(
     end
 
     return (h, J, α, β)
+end
+
+function ising(
+    ::Type{Symmetric},
+    n::Integer,
+    L̄::Dict{Int,T},
+    Q̄::Dict{Tuple{Int,Int},T},
+    α::T,
+    β::T,
+) where {T}
+    h = zeros(T, n)
+    J = zeros(T, n, n)
+
+    for (i, c) in L̄
+        h[i] = c
+    end
+
+    for ((i, j), c) in Q̄
+        J[i, j] = c / 2
+    end
+
+    return (h, Symmetric(J), α, β)
 end
 
 function ising(

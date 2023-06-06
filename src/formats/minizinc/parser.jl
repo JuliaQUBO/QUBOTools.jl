@@ -220,7 +220,7 @@ function read_model(io::IO, fmt::MiniZinc)
         data[:offset],
     )
 
-    return StandardModel(
+    return Model{Int,Float64,Int}(
         L,
         Q,
         data[:variable_set];

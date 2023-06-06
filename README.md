@@ -115,36 +115,6 @@ flowchart TD;
     
 ```
 
-## Backend
-The `AbstractModel{D}` abstract type is defined, where `D <: Domain`.
-Available variable domains are `BoolDomain` and `SpinDomain`, respectively, $x \in \mathbb{B} = \lbrace 0, 1 \rbrace$ and $s \in \lbrace -1, 1 \rbrace$.
-Conversion between domains follows the identity
-
-$$s = 2x - 1$$
-
-**QUBOTools.jl** also exports the ``StandardQUBOModel{S, U, T, D} <: AbstractModel{D}`` type, designed to work as a powerful standard backend for all other models.
-Here, `S <: Any` plays the role of variable indexing type and usually defaults to `Int`.
-It is followed by `U <: Integer`, used to store sampled states of type `Vector{U}`.
-
-When `D <: SpinDomain`, it is necessary that `U <: Signed`.
-`T <: Real` is the type used to represent all coefficients.
-It is also the choice for the energy values corresponding to each solution.
-It's commonly set as `Float64`.
-
-This package's mathematical formulation was inspired by **BQPJSON**'s, and is given by
-
-$$\min f(\mathbf{x}) = \alpha \left[{ \sum_{i < j} q_{i, j}\,x_{i}\,x_{j} +\sum_{i} l_{i}\,x_{i} + \beta }\right]$$
-
-where $\alpha$ is a scaling factor, $\beta$ a constant offset, $l_{i}\,x_{i}$ are the linear terms and $q_{i, j}\,x_{i}\,x_{j}$ the quadratic ones.
-
-We defined our problems to follow a minimization sense by default.
-The scaling factor $\alpha$ is strictly positive.
-
-### [JuMP](https://jump.dev) Integration
-
-One of the main ideas was to make JuMP / MathOptInterface integration easy and, in fact, the implemented backend does a lot of the the data crunching.
-When `S` is set to `MOI.VariableIndex` and `T` matches `Optimzer{T}`, we can say that most of the hard work is done.
-
 <div align="center">
     <h2>PSR Quantum Optimization Toolchain</h2>
     <a href="https://github.com/psrenergy/ToQUBO.jl">

@@ -4,7 +4,7 @@
 """
 
 @doc raw"""
-    AbstractModel{V,T}
+    AbstractModel{V,T,U}
 
 Represents an abstract QUBO Model and should support most of the queries made available
 by `QUBOTools`.
@@ -12,31 +12,37 @@ by `QUBOTools`.
 
 As shown in the example above, implementing a method for the [`backend`](@ref) function
 gives access to most fallback implementations.
-""" abstract type AbstractModel{V,T} end
+"""
+abstract type AbstractModel{V,T,U} end
 
 @doc raw"""
     AbstractFormat
 
-""" abstract type AbstractFormat end
+"""
+abstract type AbstractFormat end
 
 @doc raw"""
     Style
 
-""" abstract type Style end
+"""
+abstract type Style end
 
 @doc raw"""
     style(::AbstractFormat)::Style
-""" function style end
+"""
+function style end
 
 @doc raw"""
     supports_style(::AbstractFormat)::Bool
-""" function supports_style end
+"""
+function supports_style end
 
 @doc raw"""
     formats()
 
 Returns a list containing all available QUBO file formats.
-""" function formats end
+"""
+function formats end
 
 @doc raw"""
     infer_format(::AbstractString)::AbstractFormat
@@ -44,7 +50,8 @@ Returns a list containing all available QUBO file formats.
     infer_format(::Symbol, ::Symbol)::AbstractFormat
 
 Given a file path, tries to infer the type associated to a QUBO model format.
-""" function infer_format end
+"""
+function infer_format end
 
 @doc raw"""
     backend(model)::AbstractModel
@@ -52,79 +59,94 @@ Given a file path, tries to infer the type associated to a QUBO model format.
 
 Retrieves the model's backend.
 Implementing this function allows one to profit from fallback implementations of the other methods.
-""" function backend end
+"""
+function backend end
 
 # ~*~ Data access ~*~ #
 @doc raw"""
     model_name(model)::String
 
 Returns a string representing the model type.
-""" function model_name end
+"""
+function model_name end
 
 @doc raw"""
     Domain
 
-""" abstract type Domain end
+"""
+abstract type Domain end
 
 @doc raw"""
     domain(model::AbstractModel)::Domain
     domain(fmt::AbstractFormat)::Domain
 
 Returns the singleton representing the variable domain of a given model.
-""" function domain end
+"""
+function domain end
 
 @doc raw"""
     supports_domain(::Type{<:AbstractFormat}, ::Domain)
-""" function supports_domain end
+"""
+function supports_domain end
 
 @doc raw"""
     domains()
 
 Returns the list of available known variable domains.
-""" function domains end
+"""
+function domains end
 
 @doc raw"""
     scale(model)
 
-""" function scale end
+"""
+function scale end
 
 @doc raw"""
     offset(model)
 
-""" function offset end
+"""
+function offset end
 
 @doc raw"""
     Sense
 
-""" abstract type Sense end
+"""
+abstract type Sense end
 
 @doc raw"""
     sense(model)::Sense
 
-""" function sense end
+"""
+function sense end
 
 @doc raw"""
     id(model)
-""" function id end
+"""
+function id end
 
 @doc raw"""
     version(model)
-""" function version end
+"""
+function version end
 
 @doc raw"""
     description(model)
-""" function description end
+"""
+function description end
 
 @doc raw"""
     metadata(model::AbstractModel)
     metadata(sampleset::SampleSet)
-""" function metadata end
+"""
+function metadata end
 
 @doc raw"""
     sampleset(model)::SampleSet
 
 Returns the [`SampleSet`](@ref) stored in a model.
-""" function sampleset end
+"""
+function sampleset end
 
 @doc raw"""
     linear_terms(model)::Dict{Int,T} where {T <: Real}
@@ -133,52 +155,60 @@ Retrieves the linear terms of a model as a dict.
 
 !!! info
     The `explicit_linear_terms` method includes all variables, breaking linear sparsity.
-""" function linear_terms end
+"""
+function linear_terms end
 
 @doc raw"""
     explicit_linear_terms(model)::Dict{Int,T} where {T <: Real}
 
 Retrieves the linear terms of a model as a dict, including zero entries.
-""" function explicit_linear_terms end
+"""
+function explicit_linear_terms end
 
 @doc raw"""
     quadratic_terms(model)::Dict{Tuple{Int,Int},T} where {T <: Real}
 
 Retrieves the quadratic terms of a model as a dict.
 For every key pair ``(i, j)`` holds that ``i < j``.
-""" function quadratic_terms end
+"""
+function quadratic_terms end
 
 @doc raw"""
     indices(model)::Vector{Int}
 
 Returns a sorted vector that matches the variable indices.
 It is equivalent to `variable_map.(model, variables(model))`
-""" function indices end
+"""
+function indices end
 
 @doc raw"""
     variables(model)::Vector
 
 Returns a sorted vector containing the model's variables.
 If order doesn't matter, use `variable_set(model)` instead.
-""" function variables end
+"""
+function variables end
 
 @doc raw"""
     variable_set(model)::Set
 
 Returns the set of variables of a given model.
-""" function variable_set end
+"""
+function variable_set end
 
 @doc raw"""
     variable_map(model)::Dict{V,Int} where {V}
     variable_map(model, x::V)::Integer where {V}
 
-""" function variable_map end
+"""
+function variable_map end
 
 @doc raw"""
     variable_inv(model)::Dict{Int,V} where {V}
     variable_inv(model, i::Integer)::V where {V}
 
-""" function variable_inv end
+"""
+function variable_inv end
 
 # ~*~ Model's Normal Forms ~*~ #
 @doc raw"""
@@ -211,7 +241,8 @@ Returns QUBO form from Ising Model (Spin).
 !!! info
     Apart from the sparse matricial case, the linear terms are explicitly included,
     breaking sparsity by containing zero entries.
-""" function qubo end
+"""
+function qubo end
 
 @doc raw"""
     ising(model::AbstractModel{<:SpinDomain})
@@ -245,21 +276,24 @@ Returns Ising Model form from QUBO Model (Bool).
 !!! info
     Apart from the sparse matricial case, the linear terms are explicitly included,
     breaking sparsity by containing zero entries.
-""" function ising end
+"""
+function ising end
 
 # ~*~ Data queries ~*~ #
 @doc raw"""
     state(model, i::Integer)
 
 Returns the state vector corresponding to the ``i``-th solution on the model's sampleset.
-""" function state end
+"""
+function state end
 
 @doc raw"""
     reads(model)
     reads(model, i::Integer)
 
 Returns the read frequency of the ``i``-th solution on the model's sampleset.
-""" function reads end
+"""
+function reads end
 
 @doc raw"""
     value(model, state::Vector)
@@ -273,7 +307,8 @@ This function aims to evaluate the energy of a given state under some QUBO Model
 
 !!! info
     Scale and offset factors are taken into account.
-""" function value end
+"""
+function value end
 
 @doc raw"""
     energy
@@ -286,19 +321,22 @@ An alias for [`value`](@ref).
     domain_size(model)::Integer
 
 Counts the number of variables in the model.
-""" function domain_size end
+"""
+function domain_size end
 
 @doc raw"""
     linear_size(model)::Int
 
 Counts the number of non-zero linear terms in the model.
-""" function linear_size end
+"""
+function linear_size end
 
 @doc raw"""
     quadratic_size(model)::Int
 
 Counts the number of non-zero quadratic terms in the model.
-""" function quadratic_size end
+"""
+function quadratic_size end
 
 @doc raw"""
     density(model)::Float64
@@ -310,7 +348,8 @@ Computes the density ``\rho`` of non-zero terms in a model, according to the exp
 where ``L`` is the number of non-zero linear terms, ``Q`` the number of quadratic ones and ``N`` the number of variables.
 
 If the model is empty, returns `NaN`.
-""" function density end
+"""
+function density end
 
 @doc raw"""
     linear_density(model)::Float64
@@ -320,17 +359,19 @@ Computes the linear density ``\rho_{l}``, given by
 \rho_{l} = \frac{L}{N}
 ```
 where ``L`` is the number of non-zero linear terms and ``N`` the number of variables.
-""" function linear_density end
+"""
+function linear_density end
 
 @doc raw"""
     quadratic_density(model)::Float64
 
-Computes the linear density ``\rho_{q}``, given by
+Computes the quadratic density ``\rho_{q}``, given by
 ```math
 \rho_{q} = \frac{2Q}{N (N - 1)}
 ```
 where ``Q`` is the number of non-zero quadratic terms and ``N`` the number of variables.
-""" function quadratic_density end
+"""
+function quadratic_density end
 
 @doc raw"""
     adjacency(model)::Dict{Int,Set{Int}}
@@ -351,17 +392,20 @@ If a second parameter, an integer, is present, then the set of neighbors of that
 !!! warning
     Computing specific neighborhoods is expensive.
     Thus, it is recommended that one stores the adjacency list for repeated access.
-""" function adjacency end
+"""
+function adjacency end
 
 @doc raw"""
     validate(model)::Bool
     validate(ω::AbstractSampleSet)::Bool
 
-""" function validate end
+"""
+function validate end
 
 @doc raw"""
     format(data::Vector{Sample{T,U}}) where {T,U}
-""" function format end
+"""
+function format end
 
 @doc raw"""
     cast(
@@ -397,29 +441,35 @@ The linear terms, quadratic terms and constant offset of a model have its signs 
 Returns a new object, switching its domain from `source` to `target`.
 
 Reverses the sign of the objective value.
-""" function cast end
+"""
+function cast end
 
 @doc raw"""
     read_model(::AbstractString)
     read_model(::AbstractString, ::AbstractFormat)
-""" function read_model end
+"""
+function read_model end
 
 @doc raw"""
     read_model!(::AbstractModel, ::AbstractString)
-""" function read_model! end
+"""
+function read_model! end
 
 @doc raw"""
     supports_read(::Type{F}) where {F<:AbstractFormat}
- """ function supports_read end
+ """
+ function supports_read end
 
  @doc raw"""
     write_model(::AbstractString, ::AbstractModel)
     write_model(::AbstractString, ::AbstractModel, ::AbstractFormat)
     write_model(::IO, ::AbstractModel, ::AbstractFormat)
 
-""" function write_model end
+"""
+function write_model end
 
 @doc raw"""
     supports_read(::Type{F}) where {F<:AbstractFormat}
 
-""" function supports_write end
+"""
+function supports_write end

@@ -1,6 +1,7 @@
 # QUBOTools.jl
 
 ## Introduction
+
 The `QUBOTools.jl` package implements codecs and query methods for working with [QUBO](https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization) instances.
 Its purpose is to provide fast and reliable conversion between common formats used to represent such problems.
 This allows for rapid leverage of many emergent computing architectures whose job is to solve this kind of optimization problem.
@@ -27,7 +28,8 @@ Nevertheless, this package also provides full support for _Ising Models_, given 
 where ``J \in \mathbb{R}^{n \times n}`` is upper triangular and ``\mathbf{h} \in \mathbb{R}^{n}``.
 
 ## Installation
-QUBOTools.jl is avaible through Julia's General Registry:
+
+QUBOTools is avaible through Julia's General Registry:
 
 ```julia-repl
 julia> import Pkg
@@ -38,6 +40,7 @@ julia> using QUBOTools
 ```
 
 ## Design Goals
+
 The objective of this package is to provide:
 - Fast and reliable I/O, including conversion between formats.
 - Model & Solution Analysis through data queries, metrics and plot recipes.

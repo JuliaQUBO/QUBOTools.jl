@@ -3,37 +3,40 @@ module QUBOTools
 using Printf
 using JSON
 using JSONSchema
+using LinearAlgebra
 using SparseArrays
 using RecipesBase
 using Base: @propagate_inbounds
 using InteractiveUtils: subtypes
 
-# ~*~ Variable comparison ~*~ #
+# Variable comparison
 @doc raw"""
     varlt(x::V, y::V) where {V}
 
-This function exists to define an arbitrary ordering for a given type and was created to address [1].
+This function exists to define an arbitrary ordering for a given type and was created to address [^MOI].
 There is no predefined comparison between instances MOI's `VariableIndex` type.
-[1] https://github.com/jump-dev/MathOptInterface.jl/issues/1985
-""" function varlt end
+
+[^MOI]: MathOptInterface Issue [#1985](https://github.com/jump-dev/MathOptInterface.jl/issues/1985)
+"""
+function varlt end
 
 varlt(x::V, y::V) where {V} = isless(x, y)
 
 const ≺ = varlt # \prec[tab]
-const ↑ = -1     # \uparrow[tab]
-const ↓ = +1     # \downarrow[tab]
+const ↑ = -1    # \uparrow[tab]
+const ↓ = +1    # \downarrow[tab]
 
-# ~*~ Exports: Symbols ~*~ #
+# Exports: Symbols
 export ↑, ↓
 export 𝔹, 𝕊
 
-# ~*~ Exports: Variable Domains ~*~ #
+# Exports: Variable Domains
 export BoolDomain, SpinDomain
 
-# ~*~ Exports: Solution Interface ~*~ #
+# Exports: Solution Interface
 export Sample, SampleSet
 
-# ~*~ Exports: Supported Model Formats ~*~ #
+# Exports: Supported Model Formats
 export Standard
 export BQPJSON
 export HFS
@@ -41,28 +44,28 @@ export MiniZinc
 export Qubist
 export QUBO
 
-# ~*~ Interface definitions ~*~ #
+# Interface definitions
 include("interface/interface.jl")
 
-# ~*~ Fallback methods ~*~ #
+# Fallback methods
 include("interface/fallback.jl")
 
-# ~*~ Generic methods ~*~ #
+# Generic methods
 include("interface/generic/generic.jl")
 
-# ~*~ Package internal library ~*~ #
+# Package internal library
 include("library/error.jl")
 include("library/tools.jl")
 include("library/sampleset.jl")
 
-# ~*~ Model definitions ~*~ #
+# Model definitions
 include("model/model.jl")
 include("model/abstract.jl")
 
-# ~*~ Format definitions ~*~ #
+# Format definitions
 include("formats/formats.jl")
 
-# ~*~ Analysis Tools ~*~ #
+# Analysis Tools
 include("analysis/interface.jl")
 include("analysis/time.jl")
 include("analysis/metrics.jl")
