@@ -1,17 +1,18 @@
 struct EnergyFrequencyPlot{T,U,S<:AbstractSolution{T,U}} <: AbstractVisualization
     solution::S
+    λ::Union{T,Nothing}
 
-    function EnergyFrequencyPlot(solution::S) where {T,U,S<:AbstractSolution{T,U}}
-        return new{T,U,S}(solution)
+    function EnergyFrequencyPlot(solution::S, λ::Union{T,Nothing} = nothing) where {T,U,S<:AbstractSolution{T,U}}
+        return new{T,U,S}(solution, λ)
     end
 end
 
-function EnergyFrequencyPlot(model::AbstractModel)
-    return EnergyFrequencyPlot(solution(model))
+function EnergyFrequencyPlot(model::AbstractModel, λ::Union{T,Nothing} = nothing)
+    return EnergyFrequencyPlot(solution(model), λ)
 end
 
-function EnergyFrequencyPlot(model::Any)
-    return EnergyFrequencyPlot(backend(model))
+function EnergyFrequencyPlot(model::Any, λ::Union{T,Nothing} = nothing)
+    return EnergyFrequencyPlot(backend(model), λ)
 end
 
 @recipe function f(plt::EnergyFrequencyPlot)
@@ -37,6 +38,16 @@ end
         λ = x[i]
     end
 
+    if plt.λ !== nothing
+        @series begin
+            legend    --> "Ground Energy"
+            color     --> :red
+            seriestype := :vline
+
+            ([plt.λ],)
+        end
+    end
+
     seriestype := :bar
     fillrange  := z
 
@@ -55,7 +66,7 @@ function ModelDensityPlot(model::Any)
     return ModelDensityPlot(backend(model))
 end
 
-@recipe function f(plt::ModelDensityPlot{V,T,U}) where {V,T,U}
+@recipe function f(plt::ModelDensityPlot{V,T,U,M}) where {V,T,U,M}
     title  --> "Model density"
     color  --> :bwr
     xlabel --> "Variable Index"

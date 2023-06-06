@@ -38,7 +38,10 @@ function opt_tts(solution::AbstractVector{S}, λ::T, s::Float64 = 0.99, q::Float
         return NaN
     end
 
-    ...
+    t = effective_time.(solution)
+    p = success_rate.(solution, λ)
+
+    return opt_tts(t, p, s, q)
 end
 
 function opt_tts(t::AbstractVector{T}, p::AbstractVector{T}, s::Float64 = 0.99, q::Float64 = 0.5) where {T}
