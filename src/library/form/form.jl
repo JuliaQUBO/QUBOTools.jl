@@ -24,7 +24,7 @@ struct DictForm{T} <: AbstractForm{T}
     end
 end
 
-function DictForm{T}(form::F) where {F<:AbstractForm}
+function DictForm{T}(form::F) where {T,S,F<:AbstractForm{S}}
     n = dimension(form)
     L = LinearDictForm{T}(i => v for (i, v) in linear_terms(form) if !iszero(v))
     Q = QuadraticDictForm{T}(ij => v for (ij, v) in quadratic_terms(form) if !iszero(v))
@@ -34,7 +34,9 @@ function DictForm{T}(form::F) where {F<:AbstractForm}
     return DictForm{T}(n, L, Q, α, β)
 end
 
-dimension(form::DictForm)     = form.n
+dimension(form::DictForm)       = form.n
+linear_form(form::DictForm)     = form.L
+quadratic_form(form::DictForm)  = form.Q
 linear_terms(form::DictForm)    = form.L
 quadratic_terms(form::DictForm) = form.Q
 scale(form::DictForm)           = form.α
@@ -68,7 +70,7 @@ struct MatrixForm{T} <: AbstractForm{T}
     end
 end
 
-function MatrixForm{T}(form::F) where {F<:AbstractForm}
+function MatrixForm{T}(form::F) where {T,S,F<:AbstractForm{S}}
     n = dimension(form)
     L = zeros(T, n)::LinearMatrixForm{T}
     Q = zeros(T, n, n)::QuadraticMatrixForm{T}
@@ -79,14 +81,16 @@ function MatrixForm{T}(form::F) where {F<:AbstractForm}
         L[i] = convert(T, v)
     end
 
-    for ((i, j)v) in quadratic_terms(form)
+    for ((i, j), v) in quadratic_terms(form)
         Q[i, j] = convert(T, v)
     end
 
     return MatrixForm{T}(n, L, Q, α, β)
 end
 
-dimension(form::MatrixForm)     = form.n
+dimension(form::MatrixForm)       = form.n
+linear_form(form::MatrixForm)     = form.L
+quadratic_form(form::MatrixForm)  = form.Q
 linear_terms(form::MatrixForm)    = (i => form.L for i = 1:form.n)
 quadratic_terms(form::MatrixForm) = ((i, j) => form.Q[i, j] for i = 1:form.n for j = (i+1):form.n)
 scale(form::MatrixForm)           = form.α
@@ -120,7 +124,7 @@ struct SparseForm{T} <: AbstractForm{T}
     end
 end
 
-function SparseForm{T}(form::F) where {F<:AbstractForm}
+function SparseForm{T}(form::F) where {T,S,F<:AbstractForm{S}}
     n = dimension(form)
     L = spzeros(T, n)::LinearSparseForm{T}
     Q = QuadraticSparseForm{T}(spzeros(T, n, n))
@@ -131,14 +135,16 @@ function SparseForm{T}(form::F) where {F<:AbstractForm}
         L[i] = convert(T, v)
     end
 
-    for ((i, j)v) in quadratic_terms(form)
+    for ((i, j), v) in quadratic_terms(form)
         Q[i, j] = convert(T, v)
     end
 
     return SparseForm{T}(n, L, Q, α, β)
 end
 
-dimension(form::SparseForm)     = form.n
+dimension(form::SparseForm)       = form.n
+linear_form(form::SparseForm)     = form.L
+quadratic_form(form::SparseForm)  = form.Q
 linear_terms(form::SparseForm)    = (i => v for (i, v) in zip(findnz(form.L)...))
 quadratic_terms(form::SparseForm) = ((i, j) => v for (i, j, v) in zip(findnz(form.Q)...))
 scale(form::SparseForm)           = form.α
@@ -172,7 +178,7 @@ struct VectorForm{T} <: AbstractForm{T}
     end
 end
 
-function VectorForm{T}(form::F) where {F<:AbstractForm}
+function VectorForm{T}(form::F) where {T,S,F<:AbstractForm{S}}
     n = dimension(form)
     L = zeros(T, n)::LinearVectorForm{T}
     Q = QuadraticVectorForm{T}(Vector{T}(), Vector{Int}(), Vector{Int}())
@@ -194,7 +200,9 @@ function VectorForm{T}(form::F) where {F<:AbstractForm}
     return VectorForm{T}(n, L, Q, α, β)
 end
 
-dimension(form::VectorForm)     = form.n
+dimension(form::VectorForm)       = form.n
+linear_form(form::VectorForm)     = form.L
+quadratic_form(form::VectorForm)  = form.Q
 linear_terms(form::VectorForm)    = (i => v for (i, v) in enumerate(form.L))
 quadratic_terms(form::VectorForm) = ((i, j) => v for (v, i, j) in zip(form.Q...))
 scale(form::VectorForm)           = form.α

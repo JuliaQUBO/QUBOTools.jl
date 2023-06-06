@@ -5,6 +5,7 @@ using JSON
 using JSONSchema
 using LinearAlgebra
 using SparseArrays
+using Statistics
 using RecipesBase
 using PseudoBooleanOptimization
 using PseudoBooleanOptimization: varlt
@@ -40,12 +41,13 @@ include("interface/architecture.jl")
 include("interface/generic.jl")
 include("interface/fallback.jl")
 
-# Generic methods
-include("generic/cast.jl")
+# Error types and messages
+include("library/error.jl")
 
 # Reference implementations
 include("library/form/abstract.jl")
 include("library/form/form.jl")
+include("library/form/cast.jl")
 
 include("library/solution/abstract.jl")
 include("library/solution/state.jl")
@@ -54,5 +56,6 @@ include("library/solution/sampleset.jl")
 
 include("library/model/abstract.jl")
 include("library/model/model.jl")
+include("library/model/data.jl")
 
 end # module

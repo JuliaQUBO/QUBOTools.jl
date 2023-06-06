@@ -81,3 +81,32 @@ function syntax_warning(msg::String)
 
     return nothing
 end
+
+@doc raw"""
+    CastingError
+
+Error while casting data between domains or senses.
+"""
+struct CastingError <: Exception
+    msg::Union{String,Nothing}
+
+    CastingError(msg::Union{String,Nothing} = nothing) = new(msg)
+end
+
+function Base.showerror(io::IO, e::CastingError)
+    if isnothing(e.msg)
+        print(io, "Casting Error")
+    else
+        print(io, "Casting Error: $(e.msg)")
+    end
+end
+
+function casting_error(msg::Union{String,Nothing} = nothing)
+    throw(CastingError(msg))
+
+    return nothing
+end
+
+function casting_error((s, t)::Route{X}, ::T) where {X,T}
+    return casting_error("There is no known casting of '$T' from '$s' to '$t'")
+end

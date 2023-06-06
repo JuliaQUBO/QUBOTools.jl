@@ -16,18 +16,14 @@ The success factor ``s`` defaults to ``0.99``.
 function tts end
 
 @doc raw"""
-    opt_tts(ω::SampleSet{T,<:Any}, λ::T, s::Float64=0.99) where {T}
+    opt_tts(solution::AbstractVector{S}, λ::T, s::Float64 = 0.99, q::Float64 = 0.5) where {T,U,S<:AbstractSolution{T,U}}
 
-Computes the _time to solution_ (TTS) from the optimal objective value and a sample set.
-The success factor ``s`` defaults to ``0.99``.
+Computes the _optimal time-to-solution_ (optTTS) from the ground-state value and a vector of solutions given a probability ``s`` and a quantile ``q``.
 
-    opt_tts(t::Float64, p::Float64, s::Float64=0.99)
-
-Computes the _time to solution_ (TTS) given the effective time ``t`` spent running the algorithm and the success probability ``p``.
-The success factor ``s`` defaults to ``0.99``.
+The success factor ``s`` defaults to ``0.99`` and the quantile ``q`` defaults to ``0.5``, i.e., the median.
 
 ```math
-\textrm{TTS}(t, p; s) = t \frac{\log(1 - s)}{\log(1 - p)}
+\textrm{optTTS}(t, p; s, q) = \left\langle t \frac{\log(1 - s)}{\log(1 - p)} \right\rangle_{q}
 ```
 """
 function opt_tts end
@@ -71,6 +67,8 @@ Its realization may combine multiple plot recipes as well.
 ## Model Density Heatmap
 
 ```julia
+julia> using Plots
+
 julia> p = QUBOTools.ModelDensityPlot(model)
 
 julia> plot(p)
@@ -79,6 +77,8 @@ julia> plot(p)
 ## Solution Energy vs. Frequency
 
 ```julia
+julia> using Plots
+
 julia> s = QUBOTools.solution(model)
 
 julia> p = QUBOTools.EnergyFrequencyPlot(s)
@@ -89,6 +89,8 @@ julia> plot(p)
 or simply,
 
 ```julia
+julia> using Plots
+
 julia> p = QUBOTools.EnergyFrequencyPlot(model)
 
 julia> plot(p)

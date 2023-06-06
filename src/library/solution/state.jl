@@ -8,7 +8,7 @@ function cast((s,t)::Pair{D,D}, x::U) where {D<:Domain,U<:Integer}
     elseif s === 𝕊 && t === 𝔹
         return (x + 1) ÷ 2
     else
-        error("Unknown domain cast route '$(s) => $(t)'")
+        casting_error(s => t, x)
     end
 end
 
@@ -20,6 +20,6 @@ function cast((s,t)::Pair{D,D}, ψ::S) where {D<:Domain,U,S<:State{U}}
     elseif s === 𝕊 && t === 𝔹
         return (ψ .+ 1) .÷ 2
     else
-        error("Unknown domain cast route '$(s) => $(t)'")
+        casting_error(s => t, ψ)
     end
 end
