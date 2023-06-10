@@ -1,4 +1,4 @@
-function read_model(io::IO, fmt::BQPJSON)
+function read_model(io::IO, fmt::BQPJSON{S}) where {S}
     json_data = JSON.parse(io)
     report    = JSONSchema.validate(_BQPJSON_SCHEMA, json_data)
 
@@ -24,12 +24,15 @@ function read_model(io::IO, fmt::BQPJSON)
 
     target_domain = something(domain(fmt), data[:domain])
 
-    L, Q, α, β = cast(
+    model_form = cast(
         data[:domain] => target_domain,
-        data[:linear_terms],
-        data[:quadratic_terms],
-        data[:scale],
-        data[:offset],
+        DictForm{Float64}(
+            length(variable_set)
+            data[:linear_terms],
+            data[:quadratic_terms],
+            data[:scale],
+            data[:offset],
+        )
     )
 
     return Model{Int,Float64,Int}(
@@ -43,7 +46,7 @@ function read_model(io::IO, fmt::BQPJSON)
         version     = data[:version],
         description = data[:description],
         metadata    = data[:metadata],
-        solution   = data[:solution],
+        solution    = data[:solution],
     )
 end
 

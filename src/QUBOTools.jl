@@ -38,6 +38,7 @@ include("interface/solution.jl")
 include("interface/format.jl")
 include("interface/architecture.jl")
 # include("interface/device.jl")
+include("interface/analysis.jl")
 include("interface/generic.jl")
 include("interface/fallback.jl")
 
@@ -45,9 +46,13 @@ include("interface/fallback.jl")
 include("library/error.jl")
 
 # Reference implementations
+include("library/io.jl")
+
 include("library/form/abstract.jl")
-include("library/form/form.jl")
-include("library/form/cast.jl")
+include("library/form/dict.jl")
+include("library/form/dense.jl")
+include("library/form/sparse.jl")
+include("library/form/vector.jl")
 
 include("library/solution/abstract.jl")
 include("library/solution/state.jl")
@@ -56,6 +61,18 @@ include("library/solution/sampleset.jl")
 
 include("library/model/abstract.jl")
 include("library/model/model.jl")
-include("library/model/data.jl")
+
+# include("library/format/abstract.jl")
+# include("library/format/bqpjson/format.jl")
+# include("library/format/hfs/format.jl")
+# include("library/format/minizinc/format.jl")
+# include("library/format/qubist/format.jl")
+# include("library/format/qubo/format.jl")
+
+include("library/analysis/metrics/solution.jl")
+include("library/analysis/metrics/model.jl")
+
+include("library/analysis/visualization/energy_frequency.jl")
+include("library/analysis/visualization/model_density.jl")
 
 end # module

@@ -1,14 +1,20 @@
+@doc raw"""
+    Frame(sense::Sense, domain::Domain)
+"""
+struct Frame
+    sense::Sense
+    domain::Domain
+end
+
+@doc raw"""
+    frame(model)
+"""
+function frame end
+
 const Route{X} = Pair{X,X}
 
 @doc raw"""
-    cast(
-        sense_route::Pair{A,B},
-        domain_route::Pair{X,Y},
-        data,
-    ) where {A<:Sense,B<:Sense,X<:Domain,Y<:Domain}
 
-    cast(::S, ::S, model::AbstractModel) where {S<:Sense}
-    cast(::A, ::B, model::AbstractModel) where {A<:Sense,B<:Sense}
 
 Recasting the sense of a model preserves its meaning:
 
@@ -19,21 +25,7 @@ Recasting the sense of a model preserves its meaning:
 \end{array}
 ```
 
-The linear terms, quadratic terms and constant offset of a model have its signs reversed.
-
-    cast(route, s::Sample)
-    cast(route, s::Sample)
-    cast(route, ω::SampleSet)
-    cast(route, ω::SampleSet)
-
-    cast(route, model::AbstractModel)
-    cast(route, ψ::Vector{U})
-    cast(route, Ψ::Vector{Vector{U}})
-    cast(route, ω::SampleSet)
-
-Returns a new object, switching its domain from `source` to `target`.
-
-Reverses the sign of the objective value.
+The linear terms, quadratic terms and constant offset of a model will have its signs reversed.
 
 !!! warn
     Casting to the same (sense, domain) frame is a no-op.
@@ -42,8 +34,6 @@ Reverses the sign of the objective value.
 function cast end
 
 @doc raw"""
-    validate(model)::Bool
-    validate(ω::AbstractSampleSet)::Bool
-
+    validate(obj)
 """
 function validate end

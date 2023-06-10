@@ -23,7 +23,7 @@ end
 
 domain(::HFS) = 𝔹
 
-infer_format(::Val{:hfs}) = HFS()
+format(::Val{:hfs}) = HFS()
 
 include("chimera.jl")
 include("parser.jl")

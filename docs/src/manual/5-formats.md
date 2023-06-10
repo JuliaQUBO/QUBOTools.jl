@@ -26,5 +26,5 @@ QUBOTools.supports_domain(::SuperFormat, ::Nothing) = true
 QUBOTools.supports_domain(::SuperFormat, ::QUBOTools.BoolDomain) = true
 QUBOTools.supports_domain(::SuperFormat, ::QUBOTools.SpinDomain) = true
 
-QUBOTools.infer_format(::Val{:super}) = SuperFormat(nothing)
+QUBOTools.format(::Val{:super}) = SuperFormat(nothing)
 ```

@@ -46,10 +46,10 @@ end
 
 domain(::QUBO) = 𝔹
 
-infer_format(::Val{:dwave}, ::Val{:qubo})  = QUBO{DWaveStyle}()
-infer_format(::Val{:mqlib}, ::Val{:qubo})  = QUBO{MQLibStyle}()
-infer_format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO{DWaveStyle}()
-infer_format(::Val{:qubo})                 = QUBO()
+format(::Val{:dwave}, ::Val{:qubo})  = QUBO{DWaveStyle}()
+format(::Val{:mqlib}, ::Val{:qubo})  = QUBO{MQLibStyle}()
+format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO{DWaveStyle}()
+format(::Val{:qubo})                 = QUBO()
 
 include("parser.jl")
 include("printer.jl")

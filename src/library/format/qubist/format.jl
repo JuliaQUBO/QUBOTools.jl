@@ -8,7 +8,7 @@ end
 
 domain(::Qubist) = 𝕊
 
-infer_format(::Val{:qh}) = Qubist()
+format(::Val{:qh}) = Qubist()
 
 include("parser.jl")
 include("printer.jl")

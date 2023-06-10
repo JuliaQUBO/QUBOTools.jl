@@ -180,6 +180,13 @@ function variable_inv end
 
 # Model's Normal Forms
 @doc raw"""
+    form(model::AbstractModel; domain)
+    form(model::AbstractModel{_,T}, ::Type{F}; domain) where {_,T,X,F<:AbstractForm{X}}
+    form(model)
+"""
+function form end
+
+@doc raw"""
     qubo(model::AbstractModel{<:BoolDomain})
     qubo(model::AbstractModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
 
@@ -247,6 +254,13 @@ Returns Ising Model form from QUBO Model (Bool).
 """
 function ising end
 
+@doc raw"""
+    start(model::AbstractModel{V,T,U}; domain = domain(model))::Dict{Int,U} where {V,T,U}
+
+Returns a dictionary containing a warm-start value for each variable index.
+"""
+function start end
+
 # Queries: sizes & density
 @doc raw"""
     dimension(model)::Integer
@@ -268,41 +282,6 @@ function linear_size end
 Counts the number of non-zero quadratic terms in the model.
 """
 function quadratic_size end
-
-@doc raw"""
-    density(model)::Float64
-
-Computes the density ``\rho`` of non-zero terms in a model, according to the expression
-```math
-\rho = \frac{2Q + L}{N^{2}}
-```
-where ``L`` is the number of non-zero linear terms, ``Q`` the number of quadratic ones and ``N`` the number of variables.
-
-If the model is empty, returns `NaN`.
-"""
-function density end
-
-@doc raw"""
-    linear_density(model)::Float64
-
-Computes the linear density ``\rho_{l}``, given by
-```math
-\rho_{l} = \frac{L}{N}
-```
-where ``L`` is the number of non-zero linear terms and ``N`` the number of variables.
-"""
-function linear_density end
-
-@doc raw"""
-    quadratic_density(model)::Float64
-
-Computes the quadratic density ``\rho_{q}``, given by
-```math
-\rho_{q} = \frac{2Q}{N (N - 1)}
-```
-where ``Q`` is the number of non-zero quadratic terms and ``N`` the number of variables.
-"""
-function quadratic_density end
 
 @doc raw"""
     adjacency(model)::Dict{Int,Set{Int}}

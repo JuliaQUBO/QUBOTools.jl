@@ -21,9 +21,9 @@ end
 
 domain(fmt::MiniZinc) = fmt.domain
 
-infer_format(::Val{:spin}, ::Val{:mzn}) = MiniZinc(𝕊)
-infer_format(::Val{:bool}, ::Val{:mzn}) = MiniZinc(𝔹)
-infer_format(::Val{:mzn})               = MiniZinc()
+format(::Val{:spin}, ::Val{:mzn}) = MiniZinc(𝕊)
+format(::Val{:bool}, ::Val{:mzn}) = MiniZinc(𝔹)
+format(::Val{:mzn})               = MiniZinc()
 
 include("parser.jl")
 include("printer.jl")

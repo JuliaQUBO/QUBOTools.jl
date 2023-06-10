@@ -75,29 +75,29 @@ function test_tools()
         )
 
         # ~*~ Type inference ~*~ #
-        @test QUBOTools.infer_format(:bool, :json) isa QUBOTools.BQPJSON
-        @test QUBOTools.infer_format("file.bool.json") isa QUBOTools.BQPJSON
+        @test QUBOTools.format(:bool, :json) isa QUBOTools.BQPJSON
+        @test QUBOTools.format("file.bool.json") isa QUBOTools.BQPJSON
 
-        @test QUBOTools.infer_format(:spin, :json) isa QUBOTools.BQPJSON
-        @test QUBOTools.infer_format("file.spin.json") isa QUBOTools.BQPJSON
+        @test QUBOTools.format(:spin, :json) isa QUBOTools.BQPJSON
+        @test QUBOTools.format("file.spin.json") isa QUBOTools.BQPJSON
 
-        @test QUBOTools.infer_format(:hfs) isa QUBOTools.HFS
-        @test QUBOTools.infer_format("file.hfs") isa QUBOTools.HFS
+        @test QUBOTools.format(:hfs) isa QUBOTools.HFS
+        @test QUBOTools.format("file.hfs") isa QUBOTools.HFS
 
-        @test QUBOTools.infer_format(:bool, :mzn) isa QUBOTools.MiniZinc
-        @test QUBOTools.infer_format("file.bool.mzn") isa QUBOTools.MiniZinc
+        @test QUBOTools.format(:bool, :mzn) isa QUBOTools.MiniZinc
+        @test QUBOTools.format("file.bool.mzn") isa QUBOTools.MiniZinc
 
-        @test QUBOTools.infer_format(:spin, :mzn) isa QUBOTools.MiniZinc
-        @test QUBOTools.infer_format("file.spin.mzn") isa QUBOTools.MiniZinc
+        @test QUBOTools.format(:spin, :mzn) isa QUBOTools.MiniZinc
+        @test QUBOTools.format("file.spin.mzn") isa QUBOTools.MiniZinc
 
-        @test QUBOTools.infer_format(:qh) isa QUBOTools.Qubist
-        @test QUBOTools.infer_format("file.qh") isa QUBOTools.Qubist
+        @test QUBOTools.format(:qh) isa QUBOTools.Qubist
+        @test QUBOTools.format("file.qh") isa QUBOTools.Qubist
 
-        @test QUBOTools.infer_format(:qubo) isa QUBOTools.QUBO
-        @test QUBOTools.infer_format("file.qubo") isa QUBOTools.QUBO
+        @test QUBOTools.format(:qubo) isa QUBOTools.QUBO
+        @test QUBOTools.format("file.qubo") isa QUBOTools.QUBO
 
-        @test_throws Exception QUBOTools.infer_format(:xyz)
-        @test_throws Exception QUBOTools.infer_format("file")
+        @test_throws Exception QUBOTools.format(:xyz)
+        @test_throws Exception QUBOTools.format("file")
     end
 
     @testset "Raw Model Queries" begin

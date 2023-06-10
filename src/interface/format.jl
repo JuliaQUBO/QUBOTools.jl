@@ -15,10 +15,10 @@ abstract type AbstractStyle end
 function style end
 
 @doc raw"""
-    infer_format(::AbstractString)::AbstractFormat{S}
-    infer_format(::Symbol)::AbstractFormat{S}
-    infer_format(::Symbol, ::Symbol)::AbstractFormat{S}
+    format(::AbstractString)::AbstractFormat{S}
+    format(::Symbol)::AbstractFormat{S}
+    format(::Symbol, ::Symbol)::AbstractFormat{S}
 
 Given the file path, tries to infer the type associated to a QUBO model format.
 """
-function infer_format end
+function format end

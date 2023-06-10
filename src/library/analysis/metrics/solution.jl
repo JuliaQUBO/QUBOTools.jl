@@ -1,3 +1,35 @@
+function total_time(ω::AbstractSolution)
+    data = metadata(ω)::Dict{String,Any}
+
+    if !haskey(data, "time")
+        return NaN
+    end
+
+    time_data = data["time"]::Dict{String,Any}
+
+    if !haskey(time_data, "total")
+        return NaN
+    else
+        return time_data["total"]::Float64
+    end
+end
+
+function effective_time(ω::AbstractSolution)
+    data = metadata(ω)::Dict{String,Any}
+
+    if !haskey(data, "time")
+        return NaN
+    end
+
+    time_data = data["time"]::Dict{String,Any}
+
+    if !haskey(time_data, "effective")
+        return total_time(ω)
+    else
+        return time_data["effective"]::Float64
+    end
+end
+
 function success_rate(solution::AbstractSolution{T,U}, λ::T) where {T,U}
     if isempty(solution)
         return NaN
@@ -46,4 +78,18 @@ end
 
 function opt_tts(t::AbstractVector{T}, p::AbstractVector{T}, s::Float64 = 0.99, q::Float64 = 0.5) where {T}
     return quantile(tts.(t, p, s), q)
+end
+
+function hamming_distance(ψ::State{U}, φ::State{U}) where {U}
+    @assert length(ψ) == length(φ)
+
+    d = 0
+
+    for i = eachindex(ψ)
+        if ψ[i] != φ[i]
+            d += 1
+        end
+    end
+
+    return d
 end

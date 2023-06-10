@@ -62,7 +62,7 @@ QUBOTools.Model{V,T,U}
 
 ```@docs
 QUBOTools.AbstractFormat
-QUBOTools.infer_format
+QUBOTools.format
 ```
 
 ## Data Access

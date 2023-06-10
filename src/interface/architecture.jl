@@ -12,9 +12,9 @@ should not have any methods directely related to it.
 struct GenericArchitecture <: AbstractArchitecture end
 
 @doc raw"""
-    infer_architecture(::Any)
+    architecture(::Any)
 
-Tries to infer the solver's architecture from its type.
+This function makes it possible to infer the solver's architecture from its type.
 It should be defined to provide automatic architecture recognition when writing QUBO Solvers.
 
 ## Example
@@ -28,9 +28,9 @@ struct SolverArchitecture <: AbstractArchitecture
     ...
 end
 
-infer_architecture(::Solver) = SolverArchitecture()
+architecture(::Solver) = SolverArchitecture()
 ```
 """
-function infer_architecture end
+function architecture end
 
-infer_architecture(::Any) = GenericArchitecture()
+architecture(::Any) = GenericArchitecture()

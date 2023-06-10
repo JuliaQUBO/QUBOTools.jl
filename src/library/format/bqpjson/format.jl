@@ -6,16 +6,20 @@ const _BQPJSON_VERSION_LATEST = _BQPJSON_VERSION_LIST[end]
 function _BQPJSON_VARIABLE_DOMAIN(X::Domain)
     if X === 𝔹
         return "boolean"
-    else # X === 𝕊
+    elseif X === 𝕊
         return "spin"
+    else
+        error("Invalid domain '$X'")
     end
 end
 
 function _BQPJSON_VALIDATE_DOMAIN(x::Integer, X::Domain)
     if X === 𝔹
         return (x == 0) || (x == 1)
-    else # X === 𝕊
+    elseif X === 𝕊
         return (s == ↑) || (s == ↓)
+    else
+        error("Invalid domain '$X'")
     end
 end
 
@@ -43,9 +47,9 @@ end
 
 domain(fmt::BQPJSON) = fmt.domain
 
-infer_format(::Val{:bool}, ::Val{:json}) = BQPJSON(𝔹)
-infer_format(::Val{:spin}, ::Val{:json}) = BQPJSON(𝕊)
-infer_format(::Val{:json})               = BQPJSON()
+format(::Val{:bool}, ::Val{:json}) = BQPJSON(𝔹)
+format(::Val{:spin}, ::Val{:json}) = BQPJSON(𝕊)
+format(::Val{:json})               = BQPJSON()
 
 include("parser.jl")
 include("printer.jl")

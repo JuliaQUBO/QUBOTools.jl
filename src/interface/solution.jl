@@ -11,6 +11,11 @@ abstract type AbstractSolution{T,U<:Integer} end
 abstract type AbstractSample{T,U<:Integer} end
 
 @doc raw"""
+    State{U<:Integer}
+"""
+const State{U<:Integer} = AbstractVector{U}
+
+@doc raw"""
     solution(model)::AbstractSolution{T,U} where {T,U<:Integer}
 
 Returns the model's current solution.
