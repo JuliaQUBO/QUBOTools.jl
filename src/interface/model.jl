@@ -284,33 +284,21 @@ Counts the number of non-zero quadratic terms in the model.
 function quadratic_size end
 
 @doc raw"""
-    adjacency(model)::Dict{Int,Set{Int}}
-    adjacency(G::Vector{Tuple{Int,Int}})::Dict{Int,Set{Int}}
-    adjacency(G::Set{Tuple{Int,Int}})::Dict{Int,Set{Int}}
-    adjacency(G::Dict{Tuple{Int,Int},T})::Dict{Int,Set{Int}}
+    adjacency(model; tol::T = zero(T)) where {T}
 
-Computes the adjacency list representation for the quadratic terms of a given model.
-A mapping between each variable index and the set of its neighbors is returned.
+Computes the adjacency matrix representation for the quadratic terms of a given model.
 
-    adjacency(model, k::Integer)::Set{Int}
-    adjacency(G::Vector{Tuple{Int,Int}}, k::Integer)::Set{Int}
-    adjacency(G::Set{Tuple{Int,Int}}, k::Integer)::Set{Int}
-    adjacency(G::Dict{Tuple{Int,Int},T}, k::Integer)::Set{Int}
+    adjacency(model, k::Integer; tol::T = zero(T)) where {T}
 
-If a second parameter, an integer, is present, then the set of neighbors of that node is returned.
-
-    adjacency(arch)::Dict{Int,Set{Int}}
-    adjacency(device)::Dict{Int,Set{Int}}
-
-!!! warning
-    Computing specific neighborhoods is expensive.
-    Thus, it is recommended that one stores the adjacency list for repeated access.
+Computes the adjacency vector representation for the quadratic terms of a given model,
+with respect to the variable with index ``k``.
 """
 function adjacency end
 
 @doc raw"""
     read_model(::AbstractString)
     read_model(::AbstractString, ::AbstractFormat)
+    read_model(::IO, ::AbstractFormat)
 """
 function read_model end
 

@@ -1,4 +1,4 @@
-function test_standard()
+function test_model()
     # ~*~ Types ~*~ #
     V = Symbol
     U = Int
@@ -58,7 +58,7 @@ function test_standard()
         version     = version,
         description = description,
         metadata    = metadata,
-        solution   = solution
+        solution    = solution
     )
 
     @testset "Standard" verbose = true begin
@@ -127,33 +127,5 @@ function test_standard()
             empty!(std_model)
             @test isempty(std_model)
         end
-
-        # @testset "Bridges" verbose = true begin
-        #     @testset "BOOL -> SPIN" verbose = true begin
-        #         # spin_model = convert(
-        #         #     QUBOTools.Model{Symbol,Float64,Int,QUBOTools.SpinDomain},
-        #         #     bool_model,
-        #         # )
-
-        #         # @test QUBOTools.id(spin_model) == id
-        #         # @test QUBOTools.description(spin_model) == description
-
-        #         # @test QUBOTools.linear_terms(spin_model) == Dict{Float64,Int}()
-        #         # @test QUBOTools.quadratic_terms(spin_model) == Dict{Tuple{Int,Int},Float64}(
-        #         #     (1, 2) => -0.5
-        #         # )
-        #         # @test QUBOTools.scale(spin_model) == 1.0
-        #         # @test QUBOTools.offset(spin_model) == 0.5
-
-        #         # for x in [[0, 0], [0, 1], [1, 0], [1, 1]]
-        #         #     s = 2x .- 1
-
-        #         #     bool_energy = QUBOTools.value(bool_model, x)
-        #         #     spin_energy = QUBOTools.value(spin_model, s)
-
-        #         #     @test bool_energy == spin_energy
-        #         # end
-        #     end
-        # end
     end
 end

@@ -4,6 +4,10 @@
 struct Frame
     sense::Sense
     domain::Domain
+
+    function Frame(sense, domain)
+        return new(QUBOTools.sense(sense), QUBOTools.domain(domain))
+    end
 end
 
 @doc raw"""

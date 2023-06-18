@@ -22,10 +22,10 @@ function test_samples()
         @test QUBOTools.cast(𝔹 => 𝔹, Ψ) == Ψ
         @test QUBOTools.cast(𝔹 => 𝔹, Φ) == Φ
 
-        @test QUBOTools.cast(𝕊 => 𝕊, [Φ, Ψ]) == [Φ, Ψ]
-        @test QUBOTools.cast(𝕊 => 𝕊, [ϕ, ψ]) == [ϕ, ψ]
-        @test QUBOTools.cast(𝔹 => 𝔹, [Φ, Ψ]) == [Φ, Ψ]
-        @test QUBOTools.cast(𝔹 => 𝔹, [ϕ, ψ]) == [ϕ, ψ]
+        @test QUBOTools.cast.(𝕊 => 𝕊, [Φ, Ψ]) == [Φ, Ψ]
+        @test QUBOTools.cast.(𝕊 => 𝕊, [ϕ, ψ]) == [ϕ, ψ]
+        @test QUBOTools.cast.(𝔹 => 𝔹, [Φ, Ψ]) == [Φ, Ψ]
+        @test QUBOTools.cast.(𝔹 => 𝔹, [ϕ, ψ]) == [ϕ, ψ]
 
         # ~ State Conversion ~ #
         @test QUBOTools.cast(𝔹 => 𝕊, Φ) == ϕ
@@ -34,8 +34,8 @@ function test_samples()
         @test QUBOTools.cast(𝕊 => 𝔹, ψ) == Ψ
 
         # ~ Multiple States Conversion ~ #
-        @test QUBOTools.cast(𝔹 => 𝕊, [Φ, Ψ]) == [ϕ, ψ]
-        @test QUBOTools.cast(𝕊 => 𝔹, [ϕ, ψ]) == [Φ, Ψ]
+        @test QUBOTools.cast.(𝔹 => 𝕊, [Φ, Ψ]) == [ϕ, ψ]
+        @test QUBOTools.cast.(𝕊 => 𝔹, [ϕ, ψ]) == [Φ, Ψ]
     end
 
     @testset "Samples" begin

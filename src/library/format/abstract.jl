@@ -6,9 +6,9 @@ function format(path::AbstractString)
     else
         # Get two last fragments of the file name
         format_hint, extra_hint = first(pieces, 2)
-    end
 
-    return format(extra_hint, format_hint)
+        return format(extra_hint, format_hint)
+    end
 end
 
 function format(extra_hint::Symbol, format_hint::Symbol)

@@ -44,17 +44,17 @@ end
 
 # ~*~ Model's Normal Forms ~*~ #
 function form(
-    model::AbstractModel{_,T},
+    model::AbstractModel{V,T,U},
     ::Type{F};
     domain = domain(model),
-) where {_,T,X,F<:AbstractForm{X}}
-    Φ = if F <: NormalForm{T}
-        form(model)
-    else
-        F(form(model))
-    end
+) where {V,T,U,X,F<:AbstractForm{X}}
+    Φ = form(model)
 
-    return cast(QUBOTools.domain(model) => domain, Φ)
+    if !(Φ isa F)
+        return cast(QUBOTools.domain(model) => domain, Φ)
+    else
+        return cast(QUBOTools.domain(model) => domain, F(Φ))
+    end
 end
 
 # ~*~ Data queries ~*~ #

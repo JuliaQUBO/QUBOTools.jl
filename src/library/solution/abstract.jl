@@ -1,3 +1,9 @@
+# States
+
+# Samples
+state(s::AbstractSample, i::Integer) = getindex(state(s), i)
+
+# Solutions
 Base.size(ω::AbstractSolution) = (size(ω, 1),)
 
 function Base.size(ω::AbstractSolution, axis::Integer)
@@ -16,7 +22,7 @@ function Base.lastindex(ω::AbstractSolution, axis::Integer)
     if axis == 1
         return length(ω)
     elseif axis == 2 && !isempty(ω)
-        return length(ω[begin])
+        return length(getindex(ω, 1))
     else
         return 1
     end
@@ -52,8 +58,8 @@ function Base.show(io::IO, ω::S) where {S<:AbstractSolution}
     return nothing
 end
 
-state(ω::AbstractSolution, i::Integer)             = state(ω[i])
-state(ω::AbstractSolution, i::Integer, j::Integer) = state(ω[i], j)
-value(ω::AbstractSolution, i::Integer)             = value(ω[i])
-reads(ω::AbstractSolution, i::Integer)             = reads(ω[i])
+state(ω::AbstractSolution, i::Integer)             = state(getindex(ω, i))
+state(ω::AbstractSolution, i::Integer, j::Integer) = state(getindex(ω, i), j)
+value(ω::AbstractSolution, i::Integer)             = value(getindex(ω, i))
+reads(ω::AbstractSolution, i::Integer)             = reads(getindex(ω, i))
 reads(ω::AbstractSolution)                         = sum(reads.(ω))

@@ -18,10 +18,6 @@ struct DenseForm{T} <: AbstractForm{T}
         α::T = one(T),
         β::T = zero(T),
     ) where {T}
-        @assert size(L) == (n,)
-        @assert size(Q) == (n, n)
-        @assert α > zero(T)
-
         return new{T}(n, L, Q, α, β)
     end
 end

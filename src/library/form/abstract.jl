@@ -34,12 +34,12 @@ function adjacency(Φ::F, k::Integer; tol::T = zero(T)) where {T,F<:AbstractForm
     A = spzeros(Int, n)
 
     for ((i, j), v) in quadratic_terms(Φ)
-        if abs(v) <= tol
-            continue
-        elseif i == k
-            A[j] = 1
-        elseif j == k
-            A[i] = 1
+        if abs(v) > tol
+            if i == k
+                A[j] = 1
+            elseif j == k
+                A[i] = 1
+            end
         end
     end
 
@@ -77,4 +77,12 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:AbstractForm{T}}
     else
         casting_error(s => t, Φ)
     end
+end
+
+function linear_size(Φ::F) where {T,F<:AbstractForm{T}}
+    return length(linear_terms(Φ))
+end
+
+function quadratic_size(Φ::F) where {T,F<:AbstractForm{T}}
+    return length(quadratic_terms(Φ))
 end

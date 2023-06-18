@@ -1,3 +1,5 @@
+sense(s::Sense) = s    
+
 function sense(s::Symbol)
     if s === :min
         return Min
@@ -8,13 +10,15 @@ function sense(s::Symbol)
     end
 end
 
-function domain(s::Symbol)
-    if s === :bool
+domain(x::Domain) = x
+
+function domain(x::Symbol)
+    if x === :bool
         return BoolDomain
-    elseif s === :spin
+    elseif x === :spin
         return SpinDomain
     else
-        error("Invalid domain '$s', options are ':bool' and ':spin'")
+        error("Invalid domain '$x', options are ':bool' and ':spin'")
     end
 end
 

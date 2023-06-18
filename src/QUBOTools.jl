@@ -25,11 +25,6 @@ export BoolDomain, SpinDomain
 export Sample, SampleSet
 
 # Exports: Supported Model Formats
-export BQPJSON
-export HFS
-export MiniZinc
-export Qubist
-export QUBO
 
 # Interface definitions
 include("interface/form.jl")
@@ -52,7 +47,6 @@ include("library/form/abstract.jl")
 include("library/form/dict.jl")
 include("library/form/dense.jl")
 include("library/form/sparse.jl")
-include("library/form/vector.jl")
 
 include("library/solution/abstract.jl")
 include("library/solution/state.jl")
@@ -62,7 +56,7 @@ include("library/solution/sampleset.jl")
 include("library/model/abstract.jl")
 include("library/model/model.jl")
 
-# include("library/format/abstract.jl")
+include("library/format/abstract.jl")
 # include("library/format/bqpjson/format.jl")
 # include("library/format/hfs/format.jl")
 # include("library/format/minizinc/format.jl")

@@ -16,26 +16,8 @@ Sample{T}(args...) where {T} = Sample{T,Int}(args...)
 Sample(args...)              = Sample{Float64}(args...)
 
 state(s::Sample) = s.state
-state(s::Sample, i::Integer) = s.state[i]
 value(s::Sample) = s.value
 reads(s::Sample) = s.reads
-
-Base.:(==)(u::Sample{T,U}, v::Sample{T,U}) where {T,U} = state(u) == state(v)
-Base.:(<)(u::Sample{T,U}, v::Sample{T,U}) where {T,U}  = value(u) < value(v)
-
-function Base.isequal(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-    return isequal(reads(u), reads(v)) &&
-           isequal(value(u), value(v)) &&
-           isequal(state(u), state(v))
-end
-
-function Base.isless(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
-    if isequal(value(u), value(v))
-        return isless(state(u), state(v))
-    else
-        return isless(value(u), value(v))
-    end
-end
 
 Base.print(io::IO, s::Sample)        = join(io, ifelse.(state(s) .> 0, '↓', '↑'))
 Base.length(s::Sample)               = length(state(s))

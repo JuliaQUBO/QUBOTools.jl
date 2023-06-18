@@ -18,7 +18,34 @@ struct DictForm{T} <: AbstractForm{T}
         α::T = one(T),
         β::T = zero(T),
     ) where {T}
-        @assert α > zero(T)
+        l = sizehint!(LinearDictForm{T}(), length(L))
+        q = sizehint!(LinearDictForm{T}(), length(Q))
+
+        for (i, v) in L
+            iszero(v) && continue
+
+            l[i] = get(l, i, zero(T)) + v
+
+            iszero(l[i]) && delete!(l, i)
+        end
+
+        for ((i, j), v) in Q
+            iszero(v) && continue
+
+            if i == j
+                l[i] = get(l, i, zero(T)) + v
+
+                iszero(l[i]) && delete!(l, i)
+            elseif i > j
+                q[(j,i)] = get(q, (j,i), zero(T)) + v
+
+                iszero(q[(j,i)]) && delete!(q, (j,i))
+            else # i < j
+                q[(i,j)] = get(q, (i,j), zero(T)) + v
+
+                iszero(q[(i,j)]) && delete!(q, (i,j))
+            end
+        end
 
         return new{T}(n, L, Q, α, β)
     end
@@ -37,8 +64,8 @@ end
 dimension(Φ::DictForm)       = Φ.n
 linear_form(Φ::DictForm)     = Φ.L
 quadratic_form(Φ::DictForm)  = Φ.Q
-linear_terms(Φ::DictForm)    = (i => v for (i, v) in Φ.L if !iszero(v))
-quadratic_terms(Φ::DictForm) = (ij => v for (ij, v) in Φ.Q if !iszero(v))
+linear_terms(Φ::DictForm)    = linear_form(Φ)
+quadratic_terms(Φ::DictForm) = quadratic_form(Φ)
 scale(Φ::DictForm)           = Φ.α
 offset(Φ::DictForm)          = Φ.β
 

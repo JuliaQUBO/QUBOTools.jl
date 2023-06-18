@@ -1,5 +1,5 @@
 const LinearSparseForm{T}    = SparseVector{T}
-const QuadraticSparseForm{T} = UpperTriangular{T,SparseMatrixCSC{T}}
+const QuadraticSparseForm{T} = SparseMatrixCSC{T}
 
 @doc raw"""
     SparseForm{T}
@@ -18,10 +18,6 @@ struct SparseForm{T} <: AbstractForm{T}
         α::T = one(T),
         β::T = zero(T),
     ) where {T}
-        @assert size(L) == (n,)
-        @assert size(Q) == (n, n)
-        @assert α > zero(T)
-
         return new{T}(n, L, Q, α, β)
     end
 end
@@ -29,7 +25,7 @@ end
 function SparseForm{T}(Φ::F) where {T,S,F<:AbstractForm{S}}
     n = dimension(Φ)
     L = spzeros(T, n)::LinearSparseForm{T}
-    Q = QuadraticSparseForm{T}(spzeros(T, n, n))
+    Q = spzeros(T, n, n)::QuadraticSparseForm{T}
     α = convert(T, scale(Φ))
     β = convert(T, offset(Φ))
 
@@ -49,6 +45,8 @@ linear_form(Φ::SparseForm)     = Φ.L
 quadratic_form(Φ::SparseForm)  = Φ.Q
 linear_terms(Φ::SparseForm)    = (i => v for (i, v) in zip(findnz(Φ.L)...))
 quadratic_terms(Φ::SparseForm) = ((i, j) => v for (i, j, v) in zip(findnz(Φ.Q)...))
+linear_size(Φ::SparseForm)     = nnz(Φ.L)
+quadratic_size(Φ::SparseForm)  = nnz(Φ.Q)
 scale(Φ::SparseForm)           = Φ.α
 offset(Φ::SparseForm)          = Φ.β
 
