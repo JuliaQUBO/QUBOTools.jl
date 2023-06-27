@@ -84,7 +84,15 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
     end
 end
 
-# Dict Constructor
+# Dict Constructors
+function Model(
+    linear_terms::Dict{V,T},
+    quadratic_terms::Dict{Tuple{V,V},T};
+    kws...,
+) where {V,T}
+    return Model{V,T,Int}(linear_terms, quadratic_terms; kws...)
+end
+
 function Model{V,T,U}(
     linear_terms::Dict{V,T},
     quadratic_terms::Dict{Tuple{V,V},T};
@@ -102,30 +110,37 @@ function Model{V,T,U}(
     variables = VariableMap{V}(var_set)
 
     # Normalize data and store it in the normal form
-    n = length(var_inv)
+    n = length(var_set)
     L = spzeros(T, n)
     Q = spzeros(T, n, n)
     α = scale
     β = offset
 
     for (v, l) in linear_terms
-        i = variables.map[v]
+        if !iszero(l)
+            i = variables.map[v]
 
-        L[i] += l
+            L[i] += l
+        end
     end
 
     for ((u, v), q) in quadratic_terms
-        i = variables.map[u]
-        j = variables.map[v]
+        if !iszero(q)
+            i = variables.map[u]
+            j = variables.map[v]
 
-        if i < j
-            Q[i, j] += q
-        elseif j < i
-            Q[j, i] += q
-        else # i == j
-            L[i] += q
+            if i < j
+                Q[i, j] += q
+            elseif j < i
+                Q[j, i] += q
+            else # i == j
+                L[i] += q
+            end
         end
     end
+
+    dropzeros!(L)
+    dropzeros!(Q)
 
     form = NormalForm{T}(n, L, Q, α, β)
 
@@ -144,7 +159,7 @@ offset(model::Model)          = offset(form(model))
 
 frame(model::Model)  = model.frame
 sense(model::Model)  = sense(frame(model))
-domain(model::Model) = fomain(frame(model))
+domain(model::Model) = domain(frame(model))
 
 variable_map(model::Model) = model.variables.map
 variable_inv(model::Model) = model.variables.inv

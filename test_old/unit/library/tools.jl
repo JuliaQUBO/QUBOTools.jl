@@ -1,27 +1,6 @@
 function test_tools()
     @testset "Tools" begin
-        L̄ = Dict{Symbol,Float64}(
-            :x => 0.5,
-            :y => 1.0,
-            :z => 2.0,
-            :w => -0.25,
-            :ξ => 0.0,
-            :γ => 1.0,
-        )
-
-        Q̄ = Dict{Tuple{Symbol,Symbol},Float64}(
-            (:x, :x) => 0.5,
-            (:x, :y) => 1.0,
-            (:x, :z) => 2.0,
-            (:x, :w) => 3.0,
-            (:z, :y) => -1.0,
-            (:w, :z) => -2.0,
-            (:γ, :γ) => -1.0,
-            (:α, :β) => 0.5,
-            (:β, :α) => -0.5,
-            (:β, :α) => 0.5,
-            (:α, :β) => -0.5,
-        )
+        
 
         L̄, Q̄, variable_set = QUBOTools._normal_form(L̄, Q̄)
 
@@ -167,4 +146,6 @@ function test_tools()
         @test QUBOTools.adjacency(J, 2) == B[2]
         @test QUBOTools.adjacency(J, 3) == B[3]
     end
+
+    return nothing
 end

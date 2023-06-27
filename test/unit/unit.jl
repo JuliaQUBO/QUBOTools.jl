@@ -1,7 +1,7 @@
 include("library/library.jl")
 
 function test_unit()
-    @testset "Unit Tests" begin
+    @testset "⊚ ⊚ Unit Tests" verbose = true begin
         test_library()
     end
 

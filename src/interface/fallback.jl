@@ -41,22 +41,19 @@ ising(model)       = ising(backend(model))
 ising(model, type) = ising(backend(model), type)
 
 # Solution queries
-state(model, i)   = state(backend(model), i)
-value(model, i)   = value(backend(model), i)
-reads(model)      = reads(backend(model))
-reads(model, i)   = reads(backend(model), i)
-sample(model, i)  = sample(backend(model), i)
-solution(model)   = solution(backend(model)) 
+state(model, i)  = state(backend(model), i)
+value(model, i)  = value(backend(model), i)
+reads(model)     = reads(backend(model))
+reads(model, i)  = reads(backend(model), i)
+sample(model, i) = sample(backend(model), i)
+solution(model)  = solution(backend(model)) 
 
 # Data queries
-dimension(model)        = dimension(backend(model))
-linear_size(model)        = linear_size(backend(model))
-quadratic_size(model)     = quadratic_size(backend(model))
-density(model)            = density(backend(model))
-linear_density(model)     = linear_density(backend(model))
-quadratic_density(model)  = quadratic_density(backend(model))
-adjacency(model)          = adjacency(backend(model))
-adjacency(model, k)       = adjacency(backend(model), k)
+dimension(model)      = dimension(backend(model))
+linear_size(model)    = linear_size(backend(model))
+quadratic_size(model) = quadratic_size(backend(model))
+adjacency(model)      = adjacency(backend(model))
+adjacency(model, k)   = adjacency(backend(model), k)
 
 # File I/O
 write_model(src, model)      = write_model(src, backend(model))

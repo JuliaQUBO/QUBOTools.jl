@@ -6,6 +6,19 @@ state(s::AbstractSample, i::Integer) = getindex(state(s), i)
 # Solutions
 Base.size(ω::AbstractSolution) = (size(ω, 1),)
 
+# Comparison
+function Base.:(==)(x::S, y::S) where {T,U,S<:AbstractSample{T,U}}
+    return value(x) == value(y) &&
+           reads(x) == reads(y) &&
+           state(x) == state(y)
+end
+
+function Base.isapprox(x::S, y::S; kws...) where {T,U,S<:AbstractSample{T,U}}
+    return isapprox(value(x), value(y); kws...) &&
+           reads(x) == reads(y) &&
+           state(x) == state(y)
+end
+
 function Base.size(ω::AbstractSolution, axis::Integer)
     if axis == 1
         return length(ω)

@@ -44,10 +44,10 @@ struct SampleSet{T,U} <: AbstractSolution{T,U}
     ) where {T,U}
         return new{T,U}(Sample{T,U}[], metadata, Frame(sense, domain))
     end
+end
 
-    function SampleSet{T,U}(; sense::Sense = Min, domain::Domain = 𝔹) where {T,U}
-        return new{T,U}(Sample{T,U}[], Dict{String,Any}(), sense, domain)
-    end
+function SampleSet{T,U}(; sense::Sense = Min, domain::Domain = 𝔹) where {T,U}
+    return SampleSet{T,U}(Sample{T,U}[], Dict{String,Any}(); sense, domain)
 end
 
 function SampleSet{T,U}(
