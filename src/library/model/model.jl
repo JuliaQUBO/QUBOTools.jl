@@ -48,6 +48,9 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         solution::Union{SampleSet{T,U},Nothing} = nothing,
         start::Union{Dict{Int,U},Nothing} = nothing,
+        # Extra Metadata
+        id::Union{Integer,Nothing} = nothing,
+        description::Union{String,Nothing} = nothing,
     ) where {V,T,U}
         frame = Frame(sense, domain)
 
@@ -215,7 +218,7 @@ function cast(route::Route{D}, model::Model{V,T,U}) where {D<:Domain,V,T,U}
         sense    = sense(model),
         domain   = last(route), # target
         solution = cast(route, solution(model)),
-        start    = Dict{Int,U}(i => cast(route, x) for (i, x) in start(model)),
+        start    = start(model; domain = last(route)),
     )
 end
 
