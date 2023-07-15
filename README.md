@@ -63,7 +63,7 @@ julia> using QUBOTools
 
 julia> model = QUBOTools.read_model("problem.json")
 
-julia> write("problem.qubo", model)
+julia> QUBOTools.write_model("problem.qubo", model)
 ```
 
 ## Supported Formats
