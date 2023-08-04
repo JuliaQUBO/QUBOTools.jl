@@ -1,5 +1,7 @@
 @doc raw"""
-    Sample{T,U}(state::Vector{U}, value::T, reads::Integer) where{T,U}
+    Sample{T,U}(state::Vector{U}, value::T, reads::Integer = 1) where{T,U}
+
+This is the reference implementation for [`AbstractSample`](@ref).
 
 """
 struct Sample{T<:Real,U<:Integer} <: AbstractSample{T,U}
@@ -19,22 +21,40 @@ state(s::Sample) = s.state
 value(s::Sample) = s.value
 reads(s::Sample) = s.reads
 
-Base.print(io::IO, s::Sample)        = join(io, ifelse.(state(s) .> 0, '↓', '↑'))
 Base.length(s::Sample)               = length(state(s))
 Base.size(s::Sample)                 = (length(s),)
 Base.getindex(s::Sample, i::Integer) = state(s, i)
 Base.collect(s::Sample)              = collect(state(s))
 
-@doc raw"""
-    merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
+function cast(route::Pair{X,Y}, s::Sample{T,U}) where {T,U,X<:Domain,Y<:Domain}
+    return Sample{T,U}(cast(route, state(s)), value(s), reads(s))
+end
 
-Assumes that `u == v`.
-"""
-function Base.merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
+function cast(::Pair{S,S}, s::Sample{T,U}) where {S<:Sense,T,U}
+    return Sample{T,U}(state(s), value(s), reads(s))
+end
+
+function cast(::Pair{A,B}, s::Sample{T,U}) where {T,U,A<:Sense,B<:Sense}
+    return Sample{T,U}(state(s), -value(s), reads(s))
+end
+
+raw"""
+    _merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
+
+Assumes that `state(u) == state(v)` and `value(u) ≈ value(v)`.
+""" 
+function _merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
     return Sample{T,U}(state(u), value(u), reads(u) + reads(v))
 end
 
-function format(data::Vector{Sample{T,U}}) where {T,U}
+raw"""
+    _sort_and_merge(data::V) where {T,U,V<:AbstractVector{Sample{T,U}}}
+
+Sorts a vector of samples by
+    1. Energy value, in ascending order
+    2. Sampling Frequency, in descending order
+""" 
+function _sort_and_merge(data::V) where {T,U,V<:AbstractVector{Sample{T,U}}}
     bits  = nothing
     cache = sizehint!(Dict{Vector{U},Sample{T,U}}(), length(data))
 
@@ -49,29 +69,17 @@ function format(data::Vector{Sample{T,U}}) where {T,U}
 
             sample
         else
-            if value(cached) != value(sample)
+            if !(value(cached) ≈ value(sample))
                 solution_error(
-                    "Samples of the same state vector must have the same energy value",
+                    "Samples of the same state vector must have (approximately) the same energy value",
                 )
             end
 
-            merge(cached, sample)
+            _merge(cached, sample)
         end
 
         cache[state(merged)] = merged
     end
 
-    return sort(collect(values(cache)))
-end
-
-function cast(route::Pair{X,Y}, s::Sample{T,U}) where {T,U,X<:Domain,Y<:Domain}
-    return Sample{T,U}(cast(route, state(s)), value(s), reads(s))
-end
-
-function cast(::Pair{S,S}, s::Sample{T,U}) where {S<:Sense,T,U}
-    return Sample{T,U}(state(s), value(s), reads(s))
-end
-
-function cast(::Pair{A,B}, s::Sample{T,U}) where {T,U,A<:Sense,B<:Sense}
-    return Sample{T,U}(state(s), -value(s), reads(s))
+    return sort!(collect(values(cache)); by = s -> (value(s), -reads(s)))
 end

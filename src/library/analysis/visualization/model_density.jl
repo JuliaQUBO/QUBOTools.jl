@@ -1,5 +1,3 @@
-
-
 struct ModelDensityPlot{V,T,U,M<:AbstractModel{V,T,U}} <: AbstractVisualization
     model::M
 
@@ -18,11 +16,10 @@ end
     xlabel --> "Variable Index"
     ylabel --> "Variable Index"
 
-    n, L, Q, α, β = MatrixForm{T}(form(plt.model))
+    n, L, Q, α, _ = DenseForm{T}(form(plt.model))
 
-    n = dimension(plt.model)
     t = collect(1:(n÷10+1):n)
-    z = Symmetric(Q / 2) + diagm(L)
+    z = α * (Symmetric(Q / 2) + diagm(L))
     L = maximum(abs.(z))
 
     xticks       := t

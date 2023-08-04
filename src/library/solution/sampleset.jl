@@ -2,8 +2,8 @@
     SampleSet{T,U}(
         data::Vector{Sample{T,U}},
         metadata::Dict{String,Any};
-        sense::Sense = Min,
-        domain::Domain = 𝔹,
+        sense::Sense   = Min,
+        domain::Domain = BoolDomain(),
     ) where {T,U}
 
 It compresses repeated states by adding up the `reads` field.
@@ -23,12 +23,12 @@ struct SampleSet{T,U} <: AbstractSolution{T,U}
     frame::Frame
 
     function SampleSet{T,U}(
-        data::AbstractVector{S},
+        data::V,
         metadata::Union{Dict{String,Any},Nothing} = nothing;
-        sense::Union{Sense,Symbol} = Min,
-        domain::Union{Domain,Symbol} = 𝔹,
-    ) where {T,U,S<:Sample{T,U}}
-        data = sort(data)
+        sense::Union{Sense,Symbol} = :min,
+        domain::Union{Domain,Symbol} = :bool,
+    ) where {T,U,S<:Sample{T,U},V<:AbstractVector{S}}
+        data = _sort_and_merge(data)
 
         if isnothing(metadata)
             metadata = Dict{String,Any}()
@@ -39,14 +39,17 @@ struct SampleSet{T,U} <: AbstractSolution{T,U}
 
     function SampleSet{T,U}(
         metadata::Dict{String,Any};
-        sense::Union{Sense,Symbol} = Min,
-        domain::Union{Domain,Symbol} = 𝔹,
+        sense::Union{Sense,Symbol}   = :min,
+        domain::Union{Domain,Symbol} = :bool,
     ) where {T,U}
         return new{T,U}(Sample{T,U}[], metadata, Frame(sense, domain))
     end
 end
 
-function SampleSet{T,U}(; sense::Sense = Min, domain::Domain = 𝔹) where {T,U}
+function SampleSet{T,U}(;
+    sense::Union{Sense,Symbol}   = :min,
+    domain::Union{Domain,Symbol} = :bool,
+) where {T,U}
     return SampleSet{T,U}(Sample{T,U}[], Dict{String,Any}(); sense, domain)
 end
 
@@ -70,12 +73,8 @@ end
 SampleSet{T}(args...; kws...) where {T} = SampleSet{T,Int}(args...; kws...)
 SampleSet(args...; kws...)              = SampleSet{Float64}(args...; kws...)
 
-Base.copy(ω::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(
-    collect(ω),
-    deepcopy(metadata(ω));
-    sense = sense(ω),
-    domain = domain(ω),
-)
+Base.copy(ω::SampleSet{T,U}) where {T,U} =
+    SampleSet{T,U}(collect(ω), deepcopy(metadata(ω)); sense = sense(ω), domain = domain(ω))
 
 Base.:(==)(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = (ω.data == η.data)
 

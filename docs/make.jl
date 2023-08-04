@@ -6,16 +6,16 @@ DocMeta.setdocmeta!(QUBOTools, :DocTestSetup, :(using QUBOTools); recursive = tr
 
 makedocs(;
     modules = [QUBOTools],
-    doctest = true,
-    clean = true,
-    format = Documenter.HTML(
-        assets = ["assets/extra_styles.css", "assets/favicon.ico"],
-        mathengine = Documenter.KaTeX(),
+    doctest = true, 
+    clean   = true,
+    format  = Documenter.HTML(
+        assets           = ["assets/extra_styles.css", "assets/favicon.ico"],
+        mathengine       = Documenter.KaTeX(),
         sidebar_sitename = false,
     ),
     sitename = "QUBOTools.jl",
-    authors = "Pedro Xavier and and Pedro Ripper and Tiago Andrade and Joaquim Garcia and David Bernal",
-    pages = [
+    authors = "Pedro Xavier and Pedro Ripper and Tiago Andrade and Joaquim Garcia and David Bernal",
+    pages = [   
         "Home"    => "index.md",
         "Manual"  => [
             "Introduction"             => "manual/1-start.md",

@@ -18,7 +18,31 @@ struct SparseForm{T} <: AbstractForm{T}
         α::T = one(T),
         β::T = zero(T),
     ) where {T}
-        return new{T}(n, L, Q, α, β)
+        l = spzeros(T, n)
+        q = spzeros(T, n, n)
+
+        for (i, v) in zip(findnz(L)...)
+            iszero(v) && continue
+
+            l[i] += v
+        end
+
+        for (i, j, v) in zip(findnz(Q)...)
+            iszero(v) && continue
+
+            if i == j
+                l[i] += v
+            elseif i > j
+                q[j, i] += v
+            else # i < j
+                q[i, j] += v
+            end
+        end
+
+        dropzeros!(l)
+        dropzeros!(q)
+
+        return new{T}(n, l, q, α, β)
     end
 end
 
@@ -56,17 +80,39 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:SparseForm{T}}
     elseif s === 𝔹 && t === 𝕊
         n, L, Q, α, β = Φ
 
-        h = L / 2 + sum(Q + Q'; dims=2) / 4 |> LinearSparseForm{T}
-        J = Q / 4                           |> QuadraticSparseForm{T}
-        β = β + sum(L) / 2 + sum(Q) / 4
+        h = spzeros(T, n)
+        J = spzeros(T, n, n)
+
+        for (i, v) in zip(findnz(L)...)
+            h[i] += v / 2
+            β    += v / 2
+        end
+
+        for (i, j, v) in zip(findnz(Q)...)
+            J[i, j] += v / 4
+            h[i]    += v / 4
+            h[j]    += v / 4
+            β       += v / 4
+        end
 
         return F(n, h, J, α, β)
     elseif s === 𝕊 && t === 𝔹
         n, h, J, α, β = Φ
 
-        L = 2 * h - 2 * sum(J + J'; dims=2) |> LinearSparseForm{T}
-        Q = 4 * J                           |> QuadraticSparseForm{T}
-        β = β + sum(L) - sum(Q)
+        L = spzeros(T, n)
+        Q = spzeros(T, n, n)
+
+        for (i, v) in zip(findnz(h)...)
+            L[i] += 2v
+            β    -= v
+        end
+
+        for (i, j, v) in zip(findnz(J)...)
+            Q[i, j] += 4v
+            L[i]    -= 2v
+            L[j]    -= 2v
+            β       += v
+        end
 
         return F(n, L, Q, α, β)
     else

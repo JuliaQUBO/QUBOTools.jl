@@ -19,7 +19,7 @@ struct DictForm{T} <: AbstractForm{T}
         β::T = zero(T),
     ) where {T}
         l = sizehint!(LinearDictForm{T}(), length(L))
-        q = sizehint!(LinearDictForm{T}(), length(Q))
+        q = sizehint!(QuadraticDictForm{T}(), length(Q))
 
         for (i, v) in L
             iszero(v) && continue
@@ -37,17 +37,17 @@ struct DictForm{T} <: AbstractForm{T}
 
                 iszero(l[i]) && delete!(l, i)
             elseif i > j
-                q[(j,i)] = get(q, (j,i), zero(T)) + v
+                q[(j, i)] = get(q, (j, i), zero(T)) + v
 
-                iszero(q[(j,i)]) && delete!(q, (j,i))
+                iszero(q[(j, i)]) && delete!(q, (j, i))
             else # i < j
-                q[(i,j)] = get(q, (i,j), zero(T)) + v
+                q[(i, j)] = get(q, (i, j), zero(T)) + v
 
-                iszero(q[(i,j)]) && delete!(q, (i,j))
+                iszero(q[(i, j)]) && delete!(q, (i, j))
             end
         end
 
-        return new{T}(n, L, Q, α, β)
+        return new{T}(n, l, q, α, β)
     end
 end
 
@@ -82,6 +82,52 @@ function cast((s, t)::Route{S}, Q::QuadraticDictForm{T}) where {S<:Sense,T}
         return Q
     else
         return QuadraticDictForm{T}(ij => -v for (ij, v) in Q)
+    end
+end
+
+function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:DictForm{T}}
+    if s === t
+        return Φ
+    elseif s === 𝔹 && t === 𝕊
+        n, L, Q, α, β = Φ
+
+        h = sizehint!(LinearDictForm{T}(), length(L))
+        J = sizehint!(QuadraticDictForm{T}(), length(Q))
+
+        for (i, v) in L
+            h[i] = get(h, i, zero(T)) + v / 2
+            β += v / 2
+        end
+
+        for ((i, j), v) in Q
+            J[(i, j)] = get(J, (i, j), zero(T)) + v / 4
+            h[i]      = get(h, i, zero(T)) + v / 4
+            h[j]      = get(h, j, zero(T)) + v / 4
+            β += v / 4
+        end
+
+        return F(n, h, J, α, β)
+    elseif s === 𝕊 && t === 𝔹
+        n, h, J, α, β = Φ
+
+        L = sizehint!(LinearDictForm{T}(), length(h))
+        Q = sizehint!(QuadraticDictForm{T}(), length(J))
+
+        for (i, v) in h
+            L[i] = get(L, i, zero(T)) + 2v
+            β    -= v
+        end
+
+        for ((i, j), v) in J
+            Q[(i, j)] = get(Q, (i, j), zero(T)) + 4v
+            L[i]      = get(L, i, zero(T)) - 2v
+            L[j]      = get(L, j, zero(T)) - 2v
+            β         += v
+        end
+
+        return F(n, L, Q, α, β)
+    else
+        casting_error(s => t, Φ)
     end
 end
 

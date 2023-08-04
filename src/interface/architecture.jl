@@ -34,3 +34,11 @@ architecture(::Solver) = SolverArchitecture()
 function architecture end
 
 architecture(::Any) = GenericArchitecture()
+
+@doc raw"""
+    layout(::Any)
+
+Returns the layout of a device or architecture, i.e., a mapping between integers
+identifying nodes and their spatial position.
+"""
+function layout end

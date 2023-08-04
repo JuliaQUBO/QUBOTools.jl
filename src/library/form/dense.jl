@@ -13,19 +13,30 @@ struct DenseForm{T} <: AbstractForm{T}
 
     function DenseForm{T}(
         n::Integer,
-        L::LinearDenseForm{T},
-        Q::QuadraticDenseForm{T},
+        L::AbstractVector{T},
+        Q::AbstractMatrix{T},
         α::T = one(T),
         β::T = zero(T),
     ) where {T}
-        return new{T}(n, L, Q, α, β)
+        l = zeros(T, n)::LinearDenseForm{T}
+        q = UpperTriangular{T,Matrix{T}}(zeros(T, n, n))::QuadraticDenseForm{T}
+
+        for i = 1:n
+            l[i] = L[i] + Q[i, i]
+        end
+
+        for i = 1:n, j = (i+1):n
+            q[i, j] = Q[i, j] + Q[j, i]
+        end
+
+        return new{T}(n, l, q, α, β)
     end
 end
 
 function DenseForm{T}(Φ::F) where {T,S,F<:AbstractForm{S}}
     n = dimension(Φ)
     L = zeros(T, n)::LinearDenseForm{T}
-    Q = zeros(T, n, n)::QuadraticDenseForm{T}
+    Q = UpperTriangular{T,Matrix{T}}(zeros(T, n, n))
     α = convert(T, scale(Φ))
     β = convert(T, offset(Φ))
 
@@ -47,3 +58,11 @@ linear_terms(Φ::DenseForm)    = (i => Φ.L[i] for i = 1:Φ.n if !iszero(Φ.L[i]
 quadratic_terms(Φ::DenseForm) = ((i, j) => Φ.Q[i, j] for i = 1:Φ.n for j = (i+1):Φ.n if !iszero(Φ.Q[i, j]))
 scale(Φ::DenseForm)           = Φ.α
 offset(Φ::DenseForm)          = Φ.β
+
+function linear_size(Φ::F) where {T,F<:DenseForm{T}}
+    return count(!iszero, Φ.L)
+end
+
+function quadratic_size(Φ::F) where {T,F<:DenseForm{T}}
+    return count(!iszero, Φ.Q)
+end

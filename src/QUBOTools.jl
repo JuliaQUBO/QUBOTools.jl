@@ -43,9 +43,7 @@ include("library/error.jl")
 # Reference implementations
 include("library/io.jl")
 
-# Generic Methods
-include("library/generic.jl")
-
+include("library/frame.jl")
 include("library/form/abstract.jl")
 include("library/form/dict.jl")
 include("library/form/dense.jl")

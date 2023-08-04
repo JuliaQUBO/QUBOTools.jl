@@ -178,82 +178,6 @@ Given an index, returns the corresponding varaible.
 """
 function variable_inv end
 
-# Model's Normal Forms
-@doc raw"""
-    form(model::AbstractModel; domain)
-    form(model::AbstractModel{_,T}, ::Type{F}; domain) where {_,T,X,F<:AbstractForm{X}}
-    form(model)
-"""
-function form end
-
-@doc raw"""
-    qubo(model::AbstractModel{<:BoolDomain})
-    qubo(model::AbstractModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)
-
-Returns sparse dictionary representation.
-
-    qubo(model::AbstractModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
-
-Returns sparse vector quadruple (linear, quadratic, lower index & upper index).
-
-    qubo(model::AbstractModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
-
-Returns dense matrix representation.
-
-    qubo(model::AbstractModel{<:BoolDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
-
-Returns sparse matrix representation.
-
-    qubo(model::AbstractModel{<:SpinDomain}, args...)
-
-Returns QUBO form from Ising Model (Spin).
-
-    qubo(h::Dict{Int,T}, J::Dict{Tuple{Int, Int}, T}, α::T = one(T), β::T = zero(T)) where {T}    
-    qubo(h::Vector{T}, J::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where {T}
-    qubo(h::Vector{T}, J::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
-    qubo(h::SparseVector{T}, J::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
-
-!!! info
-    Apart from the sparse matricial case, the linear terms are explicitly included,
-    breaking sparsity by containing zero entries.
-"""
-function qubo end
-
-@doc raw"""
-    ising(model::AbstractModel{<:SpinDomain})
-    ising(model::AbstractModel{<:SpinDomain}, ::Type{<:Dict}, T::Type = Float64))
-
-Returns sparce dictionary representation
-
-    ising(model::AbstractModel{<:BoolDomain}, ::Type{Vector}, T::Type = Float64)
-
-Returns sparse vector quadruple (linear, quadratic, lower index & upper index).
-
-    ising(model::AbstractModel{<:BoolDomain}, ::Type{Matrix}, T::Type = Float64)
-
-Returns dense matrix representation.
-
-    ising(model::AbstractModel{<:SpinDomain}, ::Type{SparseMatrixCSC}, T::Type = Float64)
-
-Returns sparce matrix representation
-
-    ising(model::AbstractModel{<:BoolDomain}, args...)
-
-Returns Ising Model form from QUBO Model (Bool).
-
-    ising(Q::Dict{Tuple{Int, Int}, T}, α::T = one(T), β::T = zero(T)) where {T}    
-    ising(L::Vector{T}, Q::Vector{T}, u::Vector{Int}, v::Vector{Int}, α::T = one(T), β::T = zero(T)) where {T}
-    ising(Q::Matrix{T}, α::T = one(T), β::T = zero(T)) where {T}
-    ising(Q::SparseMatrixCSC{T}, α::T = one(T), β::T = zero(T)) where {T}
-
-# Ising Normal Form
-
-!!! info
-    Apart from the sparse matricial case, the linear terms are explicitly included,
-    breaking sparsity by containing zero entries.
-"""
-function ising end
-
 @doc raw"""
     start(model::AbstractModel{V,T,U}; domain = domain(model))::Dict{Int,U} where {V,T,U}
 
@@ -284,16 +208,23 @@ Counts the number of non-zero quadratic terms in the model.
 function quadratic_size end
 
 @doc raw"""
-    adjacency(model; tol::T = zero(T)) where {T}
+    topology(model; tol::T = zero(T)) where {T}
 
 Computes the adjacency matrix representation for the quadratic terms of a given model.
 
-    adjacency(model, k::Integer; tol::T = zero(T)) where {T}
+    topology(model, k::Integer; tol::T = zero(T)) where {T}
 
 Computes the adjacency vector representation for the quadratic terms of a given model,
 with respect to the variable with index ``k``.
 """
-function adjacency end
+function topology end
+
+@doc raw"""
+    adjacency
+
+An alias for [`topology`](@ref).
+"""
+const adjacency = topology
 
 @doc raw"""
     read_model(::AbstractString)

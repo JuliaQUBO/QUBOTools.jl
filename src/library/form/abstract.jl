@@ -1,5 +1,7 @@
 # Adding an iterate interface allows struct unpacking, i.e.,
 # n, L, Q, α, β = form
+Base.length(::F) where {T,F<:AbstractForm{T}} = 5
+
 function Base.iterate(Φ::F, state::Integer = 1) where {T,F<:AbstractForm{T}}
     if state == 1
         return (dimension(Φ), state + 1)
@@ -16,25 +18,56 @@ function Base.iterate(Φ::F, state::Integer = 1) where {T,F<:AbstractForm{T}}
     end
 end
 
-function adjacency(Φ::F; tol::T = zero(T)) where {T,F<:AbstractForm{T}}
+# Comparison
+function Base.:(==)(Φ::F, Ψ::F) where {T,F<:AbstractForm{T}}
+    return dimension(Φ) == dimension(Ψ) &&
+           scale(Φ) == scale(Ψ) &&
+           offset(Φ) == offset(Ψ) &&
+           linear_form(Φ) == linear_form(Ψ) &&
+           quadratic_form(Φ) == quadratic_form(Ψ)
+end
+
+function Base.isapprox(Φ::F, Ψ::F; kws...) where {T,F<:AbstractForm{T}}
+    return dimension(Φ) == dimension(Ψ) &&
+           isapprox(scale(Φ), scale(Ψ); kws...) &&
+           isapprox(offset(Φ), offset(Ψ); kws...) &&
+           _isapprox(linear_form(Φ), linear_form(Ψ); kws...) &&
+           _isapprox(quadratic_form(Φ), quadratic_form(Ψ); kws...)
+end
+
+function _isapprox(x, y; kws...)
+    return isapprox(x, y; kws...)
+end
+
+function _isapprox(x::Dict{V,T}, y::Dict{V,T}; kws...) where {V,T}
+    for k in union(keys(x), keys(y))
+        if !isapprox(get(x, k, zero(T)), get(y, k, zero(T)); kws...)
+            return false
+        end
+    end
+
+    return true
+end
+
+function topology(Φ::F; kws...) where {T,F<:AbstractForm{T}}
     n = dimension(Φ)
     A = spzeros(Int, n, n)
 
     for ((i, j), v) in quadratic_terms(Φ)
-        if abs(v) > tol
-            A[i,j] = 1
+        if isapprox(v, zero(T); kws...)
+            A[i, j] = 1
         end
     end
 
     return Symmetric(A)
 end
 
-function adjacency(Φ::F, k::Integer; tol::T = zero(T)) where {T,F<:AbstractForm{T}}
+function topology(Φ::F, k::Integer; kws...) where {T,F<:AbstractForm{T}}
     n = dimension(Φ)
     A = spzeros(Int, n)
 
     for ((i, j), v) in quadratic_terms(Φ)
-        if abs(v) > tol
+        if isapprox(v, zero(T); kws...)
             if i == k
                 A[j] = 1
             elseif j == k
