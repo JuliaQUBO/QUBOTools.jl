@@ -1,5 +1,5 @@
 function test_metrics()
-    @testset "⦷ Metrics ⦷" verbose = true begin
+    @testset "→ Metrics" verbose = true begin
         e = 1.0
         s = QUBOTools.SampleSet(
             QUBOTools.Sample{Float64,Int}[
@@ -16,7 +16,7 @@ function test_metrics()
             ),
         )
 
-        @testset "TTS" begin
+        @testset "⋅ TTS" begin
             @test QUBOTools.total_time(s) == 2.0
             @test QUBOTools.effective_time(s) == 1.0
 
@@ -60,24 +60,24 @@ function test_metrics()
 end
 
 function test_plots()
-    @testset "■ Plots ■" verbose = true begin
-        test_sampleset_plot()
-        test_heatmap_plot()
+    @testset "→ Plots" verbose = true begin
+        test_energy_frequency_plot()
+        test_model_density_plot()
     end
 
     return nothing
 end
 
-function test_sampleset_plot()
-    @testset "SampleSet" begin
-        ω = SampleSet([
+function test_energy_frequency_plot()
+    @testset "⋅ Energy Frequency" begin
+        sol = SampleSet([
             Sample([0, 0], 1.0, 1),
             Sample([0, 1], 2.0, 2),
             Sample([1, 0], 3.0, 3),
             Sample([1, 1], 4.0, 4),
         ])
 
-        p = QUBOTools.EnergyFrequencyPlot(ω)
+        p = QUBOTools.EnergyFrequencyPlot(sol)
 
         let r = RecipesBase.apply_recipe(Dict{Symbol,Any}(), p)
             @test length(r) == 1
@@ -97,8 +97,8 @@ function test_sampleset_plot()
     return nothing
 end
 
-function test_heatmap_plot()
-    @testset "HeatMap" begin
+function test_model_density_plot()
+    @testset "⋅ Model Density" begin
         L = Dict{Int,Float64}(
             1 => 0.5,
             2 => 2.0,

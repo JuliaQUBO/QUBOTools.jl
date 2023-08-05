@@ -3,6 +3,7 @@ module QUBOTools
 using Printf
 using JSON
 using JSONSchema
+using Graphs
 using LinearAlgebra
 using SparseArrays
 using Statistics
@@ -58,11 +59,11 @@ include("library/model/abstract.jl")
 include("library/model/model.jl")
 
 include("library/format/abstract.jl")
-# include("library/format/bqpjson/format.jl")
+include("library/format/bqpjson/format.jl")
 # include("library/format/hfs/format.jl")
 # include("library/format/minizinc/format.jl")
 # include("library/format/qubist/format.jl")
-# include("library/format/qubo/format.jl")
+include("library/format/qubo/format.jl")
 
 include("library/analysis/metrics/solution.jl")
 include("library/analysis/metrics/model.jl")

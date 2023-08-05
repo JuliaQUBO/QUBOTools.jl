@@ -39,10 +39,10 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
     # Hints
     start::Dict{Int,U}
 
-    # Canonical Constructor
+    # Canonical Constructor - Normal Form
     function Model{V,T,U}(
-        form::NormalForm{T},
-        variables::VariableMap{V};
+        Φ::NormalForm{T},
+        variable_map::VariableMap{V};
         sense::Union{Sense,Symbol} = :min,
         domain::Union{Domain,Symbol} = :bool,
         metadata::Union{Dict{String,Any},Nothing} = nothing,
@@ -66,8 +66,42 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
             start = Dict{Int,U}()
         end
 
-        return new{V,T,U}(form, variables, frame, metadata, solution, start)
+        if id !== nothing
+            metadata["id"] = id
+        end
+
+        if description !== nothing
+            metadata["description"] = description
+        end
+
+        return new{V,T,U}(Φ, variable_map, frame, metadata, solution, start)
     end
+
+    function Model{V,T,U}(
+        Φ::F,
+        variable_map::VariableMap{V};
+        sense::Union{Sense,Symbol} = :min,
+        domain::Union{Domain,Symbol} = :bool,
+        metadata::Union{Dict{String,Any},Nothing} = nothing,
+        solution::Union{SampleSet{T,U},Nothing} = nothing,
+        start::Union{Dict{Int,U},Nothing} = nothing,
+        # Extra Metadata
+        id::Union{Integer,Nothing} = nothing,
+        description::Union{String,Nothing} = nothing,
+    ) where {V,T,U,F<:AbstractForm{T}}
+        return Model{V,T,U}(
+            NormalForm{T}(Φ),
+            variable_map;
+            sense,
+            domain,
+            metadata,
+            solution,
+            start,
+            id,
+            description,
+        )
+    end
+
 
     # Empty Model
     function Model{V,T,U}(;
@@ -78,12 +112,25 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         solution::Union{SampleSet{T,U},Nothing} = nothing,
         start::Union{Dict{Int,U},Nothing} = nothing,
+        # Extra Metadata
+        id::Union{Integer,Nothing} = nothing,
+        description::Union{String,Nothing} = nothing,
     ) where {V,T,U}
-        form = NormalForm{T}(0, spzeros(T, 0), spzeros(T, 0, 0), scale, offset)
+        Φ = NormalForm{T}(0, spzeros(T, 0), spzeros(T, 0, 0), scale, offset)
 
-        variables = VariableMap{V}(V[])
+        variables_map = VariableMap{V}(V[])
 
-        return Model{V,T,U}(form, variables; sense, domain, metadata, solution, start)
+        return Model{V,T,U}(
+            Φ,
+            variables_map;
+            sense,
+            domain,
+            metadata,
+            solution,
+            start,
+            id,
+            description,
+        )
     end
 end
 
@@ -104,50 +151,54 @@ function Model{V,T,U}(
     kws...,
 ) where {V,T,U}
     # Collect Variables
-    var_set = Set{V}(keys(linear_terms))
+    variable_set = Set{V}(keys(linear_terms))
 
     for (i, j) in keys(quadratic_terms)
-        push!(var_set, i, j)
+        push!(variable_set, i, j)
     end
 
-    variables = VariableMap{V}(var_set)
+    return Model{V,T,U}(variable_set, linear_terms, quadratic_terms; scale, offset, kws...)
+end
+
+function Model{V,T,U}(
+    variable_set::Set{V},
+    linear_terms::Dict{V,T},
+    quadratic_terms::Dict{Tuple{V,V},T};
+    scale::T = one(T),
+    offset::T = zero(T),
+    kws...,
+) where {V,T,U}
+    variable_map = VariableMap{V}(variable_set)
 
     # Normalize data and store it in the normal form
-    n = length(var_set)
+    n = length(variable_set)
     L = spzeros(T, n)
     Q = spzeros(T, n, n)
     α = scale
     β = offset
 
     for (v, l) in linear_terms
-        if !iszero(l)
-            i = variables.map[v]
+        i = variable_map.map[v]
 
-            L[i] += l
-        end
+        L[i] += l
     end
 
     for ((u, v), q) in quadratic_terms
-        if !iszero(q)
-            i = variables.map[u]
-            j = variables.map[v]
+        i = variable_map.map[u]
+        j = variable_map.map[v]
 
-            if i < j
-                Q[i, j] += q
-            elseif j < i
-                Q[j, i] += q
-            else # i == j
-                L[i] += q
-            end
+        if i < j
+            Q[i, j] += q
+        elseif j < i
+            Q[j, i] += q
+        else # i == j
+            L[i] += q
         end
     end
 
-    dropzeros!(L)
-    dropzeros!(Q)
+    Φ = NormalForm{T}(n, L, Q, α, β)
 
-    form = NormalForm{T}(n, L, Q, α, β)
-
-    return Model{V,T,U}(form, variables; kws...)
+    return Model{V,T,U}(Φ, variable_map; kws...)
 end
 
 function form(model::Model; domain = QUBOTools.domain(model))
@@ -217,6 +268,7 @@ function cast(route::Route{D}, model::Model{V,T,U}) where {D<:Domain,V,T,U}
         model.variables;
         sense    = sense(model),
         domain   = last(route), # target
+        metadata = deepcopy(metadata(model)),
         solution = cast(route, solution(model)),
         start    = start(model; domain = last(route)),
     )

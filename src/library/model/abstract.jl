@@ -27,12 +27,12 @@ function variable_map(model::AbstractModel{V,T}, v::V) where {V,T}
 end
 
 function variable_inv(model::AbstractModel, i::Integer)
-    mapping = variable_inv(model)
+    mapping = variable_inv(model)::AbstractVector
 
-    if haskey(mapping, i)
+    if 1 <= i <= length(mapping)
         return mapping[i]
     else
-        error("Variable index '$i' does not belong to the model")
+        error("Variable with index '$i' does not belong to the model")
 
         return nothing
     end
@@ -78,13 +78,23 @@ function value(model::AbstractModel, ψ::State{U}) where {U}
     return value(form(model), ψ)
 end
 
-# ~*~ Queries: sizes & density ~*~ #
-dimension(model::AbstractModel) = dimension(form(model))
-linear_size(model::AbstractModel) = linear_size(form(model))
+# Queries: Dimensions
+dimension(model::AbstractModel)      = dimension(form(model))
+linear_size(model::AbstractModel)    = linear_size(form(model))
 quadratic_size(model::AbstractModel) = quadratic_size(form(model))
 
-adjacency(model::AbstractModel)             = adjacency(form(model))
-adjacency(model::AbstractModel, k::Integer) = adjacency(form(model), k)
+# Queries: Topology
+topology(model::AbstractModel)             = topology(form(model))
+topology(model::AbstractModel, k::Integer) = adjacency(form(model), k)
+
+# Queries: Metadata
+function id(model::AbstractModel)
+    return get(metadata(model), "id", nothing)
+end
+
+function description(model::AbstractModel)
+    return get(metadata(model), "description", nothing)
+end
 
 # ~*~ I/O ~*~ #
 function Base.copy!(target::X, source::Y) where {X<:AbstractModel,Y<:AbstractModel}

@@ -15,33 +15,16 @@ This is the style of the primary I/O format used to access the MQLib heuristic l
 struct MQLibStyle <: AbstractStyle end
 
 @doc raw"""
-    QUBO(; comment)
-    QUBO{DWaveStyle}(; comment)
-    QUBO{MQLibStyle}(; comment)
+    QUBO()
+    QUBO{DWaveStyle}()
+    QUBO{MQLibStyle}()
 
 """
 struct QUBO{S} <: AbstractFormat{S}
-    comment::Union{String,Nothing}
 
-    function QUBO(; comment::Union{String,Nothing} = nothing)
-        return new{nothing}(comment)
-    end
+    QUBO() = new{nothing}()
 
-    function QUBO{S}(; comment::Union{String,Nothing} = nothing) where {S<:DWaveStyle}
-        if comment === nothing
-            comment = "c"
-        end
-
-        return new{S}(comment)
-    end
-
-    function QUBO{S}(; comment::Union{String,Nothing} = nothing) where {S<:MQLibStyle}
-        if comment === nothing
-            comment = "#"
-        end
-
-        return new{S}(comment)
-    end
+    QUBO{S}() where {S} = new{S}()
 end
 
 domain(::QUBO) = 𝔹

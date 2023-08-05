@@ -4,7 +4,9 @@ using SparseArrays
 using RecipesBase
 using QUBOTools
 
-# ~*~ Include test functions ~*~
+const __TEST_PATH__ = @__DIR__
+
+# Include test functions
 include("unit/unit.jl")
 
 function test_main()

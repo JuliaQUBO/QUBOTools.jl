@@ -1,9 +1,9 @@
-function _print_header(::IO, ::QUBO, ::Dict{Symbol,Any}, ::Nothing)
+function _print_header(::IO, ::QUBO, ::Dict{Symbol,Any})
     return nothing
 end
 
-function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::DWaveStyle)
-    dimension    = data[:dimension]
+function _print_header(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:DWaveStyle}
+    dimension      = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
 
@@ -12,8 +12,8 @@ function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::DWaveStyle)
     return nothing
 end
 
-function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::MQLibStyle)
-    dimension    = data[:dimension]
+function _print_header(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:MQLibStyle}
+    dimension      = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
 
@@ -22,41 +22,55 @@ function _print_header(io::IO, ::QUBO, data::Dict{Symbol,Any}, ::MQLibStyle)
     return nothing
 end
 
-function _print_metadata(::IO, ::QUBO, ::Dict{Symbol,Any}, ::Nothing)
+function _print_metadata(::IO, ::QUBO, ::Dict{Symbol,Any})
+    return nothing
+end
+
+function _print_metadata_entry(
+    io::IO,
+    ::QUBO{S},
+    key::AbstractString,
+    val::Any,
+) where {S<:DWaveStyle}
+    println(io, "c $(key) : $(val)")
+
+    return nothing
+end
+
+function _print_metadata_entry(
+    io::IO,
+    ::QUBO{S},
+    key::AbstractString,
+    val::Any,
+) where {S<:MQLibStyle}
+    println(io, "# $(key) : $(val)")
+
     return nothing
 end
 
 function _print_metadata(io::IO, ::QUBO, data::Dict{Symbol,Any}, comment::String)
-    scale       = data[:scale]
-    offset      = data[:offset]
-    id          = data[:id]
-    description = data[:description]
-    metadata    = data[:metadata]
+    scale    = data[:scale]
+    offset   = data[:offset]
+    metadata = data[:metadata]
 
-    !isnothing(scale)       && println(io, "$(comment) scale : $(scale)")
-    !isnothing(offset)      && println(io, "$(comment) offset : $(offset)")
-    !isnothing(id)          && println(io, "$(comment) id : $(id)")
-    !isnothing(description) && println(io, "$(comment) description : $(description)")
+    !isnothing(scale) && _print_metadata_entry(io, fmt, "scale", scale)
+    !isnothing(offset) && _print_metadata_entry(io, fmt, "offset", offset)
 
     if !isnothing(metadata)
         for (key, val) in metadata
-            print(io, "$(comment) $(key) : ")
-            JSON.print(io, val)
-            println(io)
+            _print_metadata_entry(io, fmt, key, val)
+
+            print(io, "$(comment) $(key) : $(JSON.json(val))")
         end
     end
 
     return nothing
 end
 
-function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Union{DWaveStyle,Nothing})
-    !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
-
+function _print_entries(io::IO, ::QUBO, data::Dict{Symbol,Any})
     for (i, l) in data[:linear_terms]
         println(io, "$(i) $(i) $(l)")
     end
-
-    !isnothing(fmt.comment) && println(io, "$(fmt.comment) quadratic terms")
 
     for ((i, j), q) in data[:quadratic_terms]
         println(io, "$(i) $(j) $(q)")
@@ -65,16 +79,34 @@ function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::Union{DWave
     return nothing
 end
 
-function _print_entries(io::IO, fmt::QUBO, data::Dict{Symbol,Any}, ::MQLibStyle)
-    !isnothing(fmt.comment) && println(io, "$(fmt.comment) linear terms")
+function _print_entries(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:DWaveStyle}
+    println(io, "c linear terms")
 
     for (i, l) in data[:linear_terms]
         println(io, "$(i) $(i) $(l)")
     end
 
-    !isnothing(fmt.comment) && println(io, "$(fmt.comment) quadratic terms")
+    println(io, "c quadratic terms")
 
     for ((i, j), q) in data[:quadratic_terms]
+        println(io, "$(i) $(j) $(q)")
+    end
+
+    return nothing
+end
+
+function _print_entries(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:MQLibStyle}
+    println(io, "# linear terms")
+
+    for (i, l) in data[:linear_terms]
+        println(io, "$(i) $(i) $(l)")
+    end
+
+    println(io, "# quadratic terms")
+
+    for ((i, j), q) in data[:quadratic_terms]
+        # NOTE: in MQLib qubo files, quadratic coefficients
+        # are halved when written to the file
         println(io, "$(i) $(j) $(q/2)")
     end
 
@@ -89,15 +121,13 @@ function write_model(io::IO, model::AbstractModel, fmt::QUBO)
         :quadratic_size  => quadratic_size(model),
         :scale           => scale(model),
         :offset          => offset(model),
-        :id              => id(model),
-        :description     => description(model),
         :metadata        => metadata(model),
-        :dimension     => dimension(model),
+        :dimension       => dimension(model),
     )
 
-    _print_metadata(io, fmt, data, fmt.comment)
-    _print_header(io, fmt, data, style(fmt))
-    _print_entries(io, fmt, data, style(fmt))
-    
+    _print_metadata(io, fmt, data)
+    _print_header(io, fmt, data)
+    _print_entries(io, fmt, data)
+
     return nothing
 end

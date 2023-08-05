@@ -1,4 +1,5 @@
-# Model 5 ~ Large Model
+# Model 3 ~ Simple model with quadratic terms and metadata
+
 $$
 \left\lbrace
 \begin{align*}
@@ -9,6 +10,7 @@ H(s_1, s_3, s_5) = ~?
 $$
 
 ## Status Table
+
 | Format   | Domain | Status |
 | :------- | :----: | :----: |
 | BQPJSON  |  Bool  |   ❌    |

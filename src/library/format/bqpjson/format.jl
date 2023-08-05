@@ -34,14 +34,14 @@ struct BQPJSON{S} <: AbstractFormat{S}
     indent::Int
 
     function BQPJSON(
-        X::Union{Domain,Nothing} = nothing;
-        version::VersionNumber   = v"1.0.0",
-        indent::Integer          = 2,
+        domain::Union{Domain,Nothing} = nothing;
+        version::VersionNumber        = v"1.0.0",
+        indent::Integer               = 2,
     )
         @assert version ∈ _BQPJSON_VERSION_LIST
         @assert indent >= 0
 
-        return new{nothing}(X, version, indent)
+        return new{nothing}(domain, version, indent)
     end
 end
 

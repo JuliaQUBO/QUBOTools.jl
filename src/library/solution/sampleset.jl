@@ -2,8 +2,8 @@
     SampleSet{T,U}(
         data::Vector{Sample{T,U}},
         metadata::Dict{String,Any};
-        sense::Sense   = Min,
-        domain::Domain = BoolDomain(),
+        sense::Union{Sense,Symbol}   = :min,
+        domain::Union{Domain,Symbol} = :bool,
     ) where {T,U}
 
 It compresses repeated states by adding up the `reads` field.

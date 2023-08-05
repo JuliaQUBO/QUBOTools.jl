@@ -5,12 +5,12 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
         :offset          => offset(model),
         :scale           => scale(model),
         :id              => id(model),
-        :version         => version(model),
+        :version         => fmt.version,
         :variable_domain => _BQPJSON_VARIABLE_DOMAIN(domain(model)),
         :variable_ids    => variables(model),
         :description     => description(model),
         :metadata        => metadata(model),
-        :solution       => solution(model),
+        :solution        => solution(model),
     )
 
     for (i, l) in linear_terms(model)
