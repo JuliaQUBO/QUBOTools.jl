@@ -53,6 +53,8 @@ function _parse_header!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
 end
 
 function _parse_line!(fmt::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
+    isempty(line) && return nothing
+
     _parse_entry!(fmt, data, line)  && return nothing
     _parse_header!(fmt, data, line) && return nothing
 
@@ -65,8 +67,8 @@ function read_model(io::IO, fmt::Qubist)
         :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
     )
 
-    for line in strip.(readlines(io))
-        _parse_line!(fmt, data, line)
+    for line in readlines(io)
+        _parse_line!(fmt, data, strip(line))
     end
 
     return Model{Int,Float64,Int}(

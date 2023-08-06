@@ -1,4 +1,6 @@
 function _parse_line!(fmt::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
+    isempty(line) && return nothing
+
     _parse_entry!(fmt, data, line)   && return nothing
     _parse_comment!(fmt, data, line) && return nothing
     _parse_header!(fmt, data, line)  && return nothing
