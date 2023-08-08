@@ -23,7 +23,7 @@ function read_model(io::IO, fmt::BQPJSON{S}) where {S}
     _parse_terms!(fmt, model_data, json_data)
     _parse_solutions!(fmt, model_data, json_data)
 
-    model = Model{Int,Float64,Int}(
+    return Model{Int,Float64,Int}(
         model_data[:variable_set],
         model_data[:linear_terms],
         model_data[:quadratic_terms];
@@ -35,11 +35,6 @@ function read_model(io::IO, fmt::BQPJSON{S}) where {S}
         description = model_data[:description],
         metadata    = model_data[:metadata],
         solution    = model_data[:solution],
-    )
-
-    return cast(
-        domain(model_data[:domain]) => something(domain(fmt), domain(model_data[:domain])),
-        model
     )
 end
 

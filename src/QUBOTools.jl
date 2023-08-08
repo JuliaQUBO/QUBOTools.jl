@@ -1,6 +1,7 @@
 module QUBOTools
 
 using Printf
+using HDF5
 using JSON
 using JSONSchema
 using Graphs
@@ -56,14 +57,16 @@ include("library/solution/sample.jl")
 include("library/solution/sampleset.jl")
 
 include("library/model/abstract.jl")
+include("library/model/variable_map.jl")
 include("library/model/model.jl")
 
 include("library/format/abstract.jl")
 include("library/format/bqpjson/format.jl")
 # include("library/format/hfs/format.jl")
 # include("library/format/minizinc/format.jl")
-# include("library/format/qubist/format.jl")
+include("library/format/qubist/format.jl")
 include("library/format/qubo/format.jl")
+include("library/format/qubin/format.jl")
 
 include("library/analysis/metrics/solution.jl")
 include("library/analysis/metrics/model.jl")

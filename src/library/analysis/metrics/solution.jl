@@ -1,5 +1,5 @@
-function total_time(ω::AbstractSolution)
-    data = metadata(ω)::Dict{String,Any}
+function total_time(sol::AbstractSolution)
+    data = metadata(sol)::Dict{String,Any}
 
     if !haskey(data, "time")
         return NaN
@@ -14,8 +14,8 @@ function total_time(ω::AbstractSolution)
     end
 end
 
-function effective_time(ω::AbstractSolution)
-    data = metadata(ω)::Dict{String,Any}
+function effective_time(sol::AbstractSolution)
+    data = metadata(sol)::Dict{String,Any}
 
     if !haskey(data, "time")
         return NaN
@@ -24,7 +24,7 @@ function effective_time(ω::AbstractSolution)
     time_data = data["time"]::Dict{String,Any}
 
     if !haskey(time_data, "effective")
-        return total_time(ω)
+        return total_time(sol)
     else
         return time_data["effective"]::Float64
     end

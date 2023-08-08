@@ -1,17 +1,3 @@
-struct VariableMap{V}
-    map::Dict{V,Int}
-    inv::Vector{V}
-
-    function VariableMap{V}(
-        variables::X,
-    ) where {V,X<:Union{AbstractVector{V},AbstractSet{V}}}
-        inv = sort!(collect(variables); lt = varlt)
-        map = Dict{V,Int}(v => i for (i, v) in enumerate(inv))
-
-        return new(map, inv)
-    end
-end
-
 @doc raw"""
     Model{V,T,U} <: AbstractModel{V,T,U}
 
@@ -30,8 +16,6 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
     form::NormalForm{T}
     # Variable Mapping
     variables::VariableMap{V}
-    # Sense & Domain
-    frame::Frame
     # Metadata
     metadata::Dict{String,Any}
     # Solution
@@ -43,8 +27,6 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
     function Model{V,T,U}(
         Φ::NormalForm{T},
         variable_map::VariableMap{V};
-        sense::Union{Sense,Symbol} = :min,
-        domain::Union{Domain,Symbol} = :bool,
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         solution::Union{SampleSet{T,U},Nothing} = nothing,
         start::Union{Dict{Int,U},Nothing} = nothing,
@@ -52,8 +34,6 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         id::Union{Integer,Nothing} = nothing,
         description::Union{String,Nothing} = nothing,
     ) where {V,T,U}
-        frame = Frame(sense, domain)
-
         if metadata === nothing
             metadata = Dict{String,Any}()
         end
@@ -74,14 +54,12 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
             metadata["description"] = description
         end
 
-        return new{V,T,U}(Φ, variable_map, frame, metadata, solution, start)
+        return new{V,T,U}(Φ, variable_map, metadata, solution, start)
     end
 
     function Model{V,T,U}(
         Φ::F,
         variable_map::VariableMap{V};
-        sense::Union{Sense,Symbol} = :min,
-        domain::Union{Domain,Symbol} = :bool,
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         solution::Union{SampleSet{T,U},Nothing} = nothing,
         start::Union{Dict{Int,U},Nothing} = nothing,
@@ -92,8 +70,6 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         return Model{V,T,U}(
             NormalForm{T}(Φ),
             variable_map;
-            sense,
-            domain,
             metadata,
             solution,
             start,
@@ -116,7 +92,7 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         id::Union{Integer,Nothing} = nothing,
         description::Union{String,Nothing} = nothing,
     ) where {V,T,U}
-        Φ = NormalForm{T}(0, spzeros(T, 0), spzeros(T, 0, 0), scale, offset)
+        Φ = NormalForm{T}(0, spzeros(T, 0), spzeros(T, 0, 0), scale, offset; sense, domain)
 
         variables_map = VariableMap{V}(V[])
 
@@ -166,7 +142,9 @@ function Model{V,T,U}(
     quadratic_terms::Dict{Tuple{V,V},T};
     scale::T = one(T),
     offset::T = zero(T),
-    kws...,
+    sense::Union{Sense,Symbol}   = :min,
+    domain::Union{Domain,Symbol} = :bool,
+    kws...
 ) where {V,T,U}
     variable_map = VariableMap{V}(variable_set)
 
@@ -196,7 +174,7 @@ function Model{V,T,U}(
         end
     end
 
-    Φ = NormalForm{T}(n, L, Q, α, β)
+    Φ = NormalForm{T}(n, L, Q, α, β; sense, domain)
 
     return Model{V,T,U}(Φ, variable_map; kws...)
 end
@@ -211,7 +189,7 @@ quadratic_terms(model::Model) = quadratic_terms(form(model))
 scale(model::Model)           = scale(form(model))
 offset(model::Model)          = offset(form(model))
 
-frame(model::Model)  = model.frame
+frame(model::Model)  = frame(model.form)
 sense(model::Model)  = sense(frame(model))
 domain(model::Model) = domain(frame(model))
 
@@ -254,7 +232,6 @@ end
 function Base.copy!(target::Model{V,T,U}, source::AbstractModel{V,T,U}) where {V,T,U}
     target.form      = NormalForm{T}(form(source))
     target.variables = VariableMap{V}(variables(source))
-    target.frame     = frame(source)
     target.metadata  = deepcopy(metadata(source))
     target.solution  = copy(solution(source))
     target.start     = deepcopy(start(source))
@@ -266,8 +243,6 @@ function cast(route::Route{D}, model::Model{V,T,U}) where {D<:Domain,V,T,U}
     return Model{V,T,U}(
         cast(route, form(model)),
         model.variables;
-        sense    = sense(model),
-        domain   = last(route), # target
         metadata = deepcopy(metadata(model)),
         solution = cast(route, solution(model)),
         start    = start(model; domain = last(route)),
@@ -278,8 +253,6 @@ function cast(route::Route{S}, model::Model{V,T,U}) where {S<:Sense,V,T,U}
     return Model{V,T,U}(
         cast(route, form(model)),
         model.variables;
-        sense    = last(route), #target
-        domain   = domain(model),
         metadata = deepcopy(metadata(model)),
         solution = cast(route, solution(model)),
         start    = deepcopy(start(model)),

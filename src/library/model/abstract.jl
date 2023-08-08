@@ -141,9 +141,9 @@ function Base.show(io::IO, model::AbstractModel)
 
         return nothing
     else
-        ω = solution(model)
-        n = length(ω)
-        z = sense(model) === Min ? value(ω[begin]) : value(ω[end])
+        sol = solution(model)
+        n = length(sol)
+        z = sense(model) === Min ? value(sol[begin]) : value(sol[end])
 
         print(
             io,

@@ -10,6 +10,8 @@ function _BQPJSON_VARIABLE_DOMAIN(X::Domain)
         return "spin"
     else
         error("Invalid domain '$X'")
+
+        return nothing
     end
 end
 
@@ -20,35 +22,31 @@ function _BQPJSON_VALIDATE_DOMAIN(x::Integer, X::Domain)
         return (s == ↑) || (s == ↓)
     else
         error("Invalid domain '$X'")
+
+        return nothing
     end
 end
 
 @doc raw"""
-    BQPJSON(X::Union{Domain,Nothing}; indent::Integer)
+    BQPJSON(; version::VersionNumber, indent::Integer)
 
 Precise and detailed information found in the [bqpjson docs](https://bqpjson.readthedocs.io)
 """
 struct BQPJSON{S} <: AbstractFormat{S}
-    domain::Union{Domain,Nothing}
     version::VersionNumber
     indent::Int
 
-    function BQPJSON(
-        domain::Union{Domain,Nothing} = nothing;
-        version::VersionNumber        = v"1.0.0",
-        indent::Integer               = 2,
+    function BQPJSON(;
+        version::VersionNumber = _BQPJSON_VERSION_LATEST,
+        indent::Integer        = 2,
     )
         @assert version ∈ _BQPJSON_VERSION_LIST
         @assert indent >= 0
 
-        return new{nothing}(domain, version, indent)
+        return new{nothing}(version, indent)
     end
 end
 
-domain(fmt::BQPJSON) = fmt.domain
-
-format(::Val{:bool}, ::Val{:json}) = BQPJSON(𝔹)
-format(::Val{:spin}, ::Val{:json}) = BQPJSON(𝕊)
 format(::Val{:json})               = BQPJSON()
 
 include("parser.jl")

@@ -182,7 +182,7 @@ function read_model(io::IO, fmt::QUBO)
         scale       = data[:scale],
         offset      = data[:offset],
         sense       = :min,
-        domain      = domain(fmt),
+        domain      = :bool,
         id          = data[:id],
         description = data[:description],
         metadata    = data[:metadata],

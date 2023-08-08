@@ -16,22 +16,22 @@ struct MQLibStyle <: AbstractStyle end
 
 @doc raw"""
     QUBO()
-    QUBO{DWaveStyle}()
-    QUBO{MQLibStyle}()
+    QUBO(style::AbstractStyle)
 
 """
 struct QUBO{S} <: AbstractFormat{S}
+    style::Union{S,Nothing}
 
-    QUBO() = new{nothing}()
+    QUBO() = new{nothing}(nothing)
 
-    QUBO{S}() where {S} = new{S}()
+    QUBO(style::S) where {S<:AbstractStyle} = new{S}(style)
 end
 
-domain(::QUBO) = 𝔹
+style(fmt::QUBO) = fmt.style
 
-format(::Val{:dwave}, ::Val{:qubo})  = QUBO{DWaveStyle}()
-format(::Val{:mqlib}, ::Val{:qubo})  = QUBO{MQLibStyle}()
-format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO{DWaveStyle}()
+format(::Val{:dwave}, ::Val{:qubo})  = QUBO(DWaveStyle())
+format(::Val{:mqlib}, ::Val{:qubo})  = QUBO(MQLibStyle())
+format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO(DWaveStyle())
 format(::Val{:qubo})                 = QUBO()
 
 include("parser.jl")

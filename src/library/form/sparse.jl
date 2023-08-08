@@ -11,13 +11,19 @@ struct SparseForm{T} <: AbstractForm{T}
     α::T
     β::T
 
+    frame::Frame
+
     function SparseForm{T}(
         n::Integer,
         L::LinearSparseForm{T},
         Q::QuadraticSparseForm{T},
         α::T = one(T),
-        β::T = zero(T),
+        β::T = zero(T);
+        sense::Union{Sense,Symbol}   = :min,
+        domain::Union{Domain,Symbol} = :bool,
     ) where {T}
+        frame = Frame(sense, domain)
+
         l = spzeros(T, n)
         q = spzeros(T, n, n)
 
@@ -42,7 +48,7 @@ struct SparseForm{T} <: AbstractForm{T}
         dropzeros!(l)
         dropzeros!(q)
 
-        return new{T}(n, l, q, α, β)
+        return new{T}(n, l, q, α, β, frame)
     end
 end
 
@@ -61,7 +67,7 @@ function SparseForm{T}(Φ::F) where {T,S,F<:AbstractForm{S}}
         Q[i, j] = convert(T, v)
     end
 
-    return SparseForm{T}(n, L, Q, α, β)
+    return SparseForm{T}(n, L, Q, α, β; sense = sense(Φ), domain = domain(Φ))
 end
 
 dimension(Φ::SparseForm)       = Φ.n
@@ -73,8 +79,13 @@ linear_size(Φ::SparseForm)     = nnz(Φ.L)
 quadratic_size(Φ::SparseForm)  = nnz(Φ.Q)
 scale(Φ::SparseForm)           = Φ.α
 offset(Φ::SparseForm)          = Φ.β
+frame(Φ::SparseForm)           = Φ.frame
+sense(Φ::SparseForm)           = sense(frame(Φ))
+domain(Φ::SparseForm)          = domain(frame(Φ))
 
 function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:SparseForm{T}}
+    @assert domain(Φ) == s
+
     if s === t
         return Φ
     elseif s === 𝔹 && t === 𝕊
@@ -95,7 +106,7 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:SparseForm{T}}
             β       += v / 4
         end
 
-        return F(n, h, J, α, β)
+        return F(n, h, J, α, β; sense = sense(Φ), domain = t)
     elseif s === 𝕊 && t === 𝔹
         n, h, J, α, β = Φ
 
@@ -114,9 +125,11 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:SparseForm{T}}
             β       += v
         end
 
-        return F(n, L, Q, α, β)
+        return F(n, L, Q, α, β; sense = sense(Φ), domain = t)
     else
         casting_error(s => t, Φ)
+
+        return nothing
     end
 end
 

@@ -11,13 +11,19 @@ struct DictForm{T} <: AbstractForm{T}
     α::T
     β::T
 
+    frame::Frame
+
     function DictForm{T}(
         n::Integer,
         L::LinearDictForm{T},
         Q::QuadraticDictForm{T},
         α::T = one(T),
-        β::T = zero(T),
+        β::T = zero(T);
+        sense::Union{Sense,Symbol}   = :min,
+        domain::Union{Domain,Symbol} = :bool,
     ) where {T}
+        frame = Frame(sense, domain)
+
         l = sizehint!(LinearDictForm{T}(), length(L))
         q = sizehint!(QuadraticDictForm{T}(), length(Q))
 
@@ -47,7 +53,7 @@ struct DictForm{T} <: AbstractForm{T}
             end
         end
 
-        return new{T}(n, l, q, α, β)
+        return new{T}(n, l, q, α, β, frame)
     end
 end
 
@@ -58,7 +64,7 @@ function DictForm{T}(Φ::F) where {T,S,F<:AbstractForm{S}}
     α = convert(T, scale(Φ))
     β = convert(T, offset(Φ))
 
-    return DictForm{T}(n, L, Q, α, β)
+    return DictForm{T}(n, L, Q, α, β; sense = sense(Φ), domain = domain(Φ))
 end
 
 dimension(Φ::DictForm)       = Φ.n
@@ -68,6 +74,9 @@ linear_terms(Φ::DictForm)    = linear_form(Φ)
 quadratic_terms(Φ::DictForm) = quadratic_form(Φ)
 scale(Φ::DictForm)           = Φ.α
 offset(Φ::DictForm)          = Φ.β
+frame(Φ::DictForm)           = Φ.frame
+sense(Φ::DictForm)           = sense(frame(Φ))
+domain(Φ::DictForm)          = domain(frame(Φ))
 
 function cast((s, t)::Route{S}, L::LinearDictForm{T}) where {S<:Sense,T}
     if s === t
@@ -86,6 +95,8 @@ function cast((s, t)::Route{S}, Q::QuadraticDictForm{T}) where {S<:Sense,T}
 end
 
 function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:DictForm{T}}
+    @assert domain(Φ) === s
+
     if s === t
         return Φ
     elseif s === 𝔹 && t === 𝕊
@@ -106,7 +117,7 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:DictForm{T}}
             β += v / 4
         end
 
-        return F(n, h, J, α, β)
+        return F(n, h, J, α, β; sense = sense(Φ), domain = t)
     elseif s === 𝕊 && t === 𝔹
         n, h, J, α, β = Φ
 
@@ -125,9 +136,11 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:DictForm{T}}
             β         += v
         end
 
-        return F(n, L, Q, α, β)
+        return F(n, L, Q, α, β; sense = sense(Φ), domain = t)
     else
         casting_error(s => t, Φ)
+
+        return nothing
     end
 end
 

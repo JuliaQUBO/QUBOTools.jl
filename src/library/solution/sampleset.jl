@@ -73,40 +73,40 @@ end
 SampleSet{T}(args...; kws...) where {T} = SampleSet{T,Int}(args...; kws...)
 SampleSet(args...; kws...)              = SampleSet{Float64}(args...; kws...)
 
-Base.copy(ω::SampleSet{T,U}) where {T,U} =
-    SampleSet{T,U}(collect(ω), deepcopy(metadata(ω)); sense = sense(ω), domain = domain(ω))
+Base.copy(sol::SampleSet{T,U}) where {T,U} =
+    SampleSet{T,U}(collect(sol), deepcopy(metadata(sol)); sense = sense(sol), domain = domain(sol))
 
-Base.:(==)(ω::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = (ω.data == η.data)
+Base.:(==)(sol::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = (sol.data == η.data)
 
-Base.length(ω::SampleSet)  = length(ω.data)
-Base.isempty(ω::SampleSet) = isempty(ω.data)
+Base.length(sol::SampleSet)  = length(sol.data)
+Base.isempty(sol::SampleSet) = isempty(sol.data)
 
-Base.collect(ω::SampleSet)              = collect(ω.data)
-Base.getindex(ω::SampleSet, i::Integer) = ω.data[i]
+Base.collect(sol::SampleSet)              = collect(sol.data)
+Base.getindex(sol::SampleSet, i::Integer) = sol.data[i]
 
-Base.iterate(ω::SampleSet)             = iterate(ω.data)
-Base.iterate(ω::SampleSet, i::Integer) = iterate(ω.data, i)
+Base.iterate(sol::SampleSet)             = iterate(sol.data)
+Base.iterate(sol::SampleSet, i::Integer) = iterate(sol.data, i)
 
-frame(ω::SampleSet)  = ω.frame
-sense(ω::SampleSet)  = sense(frame(ω))
-domain(ω::SampleSet) = domain(frame(ω))
+frame(sol::SampleSet)  = sol.frame
+sense(sol::SampleSet)  = sense(frame(sol))
+domain(sol::SampleSet) = domain(frame(sol))
 
-metadata(ω::SampleSet) = ω.metadata
+metadata(sol::SampleSet) = sol.metadata
 
-function cast(route::Route{S}, ω::SampleSet{T,U}) where {T,U,S<:Sense}
+function cast(route::Route{S}, sol::SampleSet{T,U}) where {T,U,S<:Sense}
     return SampleSet{T,U}(
-        Vector{Sample{T,U}}(cast.(route, ω)),
-        deepcopy(metadata(ω));
+        Vector{Sample{T,U}}(cast.(route, sol)),
+        deepcopy(metadata(sol));
         sense  = last(route),
-        domain = domain(ω),
+        domain = domain(sol),
     )
 end
 
-function cast(route::Route{D}, ω::SampleSet{T,U}) where {T,U,D<:Domain}
+function cast(route::Route{D}, sol::SampleSet{T,U}) where {T,U,D<:Domain}
     return SampleSet{T,U}(
-        Vector{Sample{T,U}}(cast.(route, ω)),
-        deepcopy(metadata(ω));
-        sense  = sense(ω),
+        Vector{Sample{T,U}}(cast.(route, sol)),
+        deepcopy(metadata(sol));
+        sense  = sense(sol),
         domain = last(route),
     )
 end

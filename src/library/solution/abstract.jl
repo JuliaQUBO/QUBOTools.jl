@@ -4,7 +4,7 @@
 state(s::AbstractSample, i::Integer) = getindex(state(s), i)
 
 # Solutions
-Base.size(ω::AbstractSolution) = (size(ω, 1),)
+Base.size(sol::AbstractSolution) = (size(sol, 1),)
 
 # Comparison
 function Base.:(==)(x::S, y::S) where {T,U,S<:AbstractSample{T,U}}
@@ -19,9 +19,9 @@ function Base.isapprox(x::S, y::S; kws...) where {T,U,S<:AbstractSample{T,U}}
            state(x) == state(y)
 end
 
-function Base.size(ω::AbstractSolution, axis::Integer)
+function Base.size(sol::AbstractSolution, axis::Integer)
     if axis == 1
-        return length(ω)
+        return length(sol)
     else
         return 1
     end
@@ -29,36 +29,36 @@ end
 
 Base.firstindex(::AbstractSolution)            = 1
 Base.firstindex(::AbstractSolution, ::Integer) = 1
-Base.lastindex(ω::AbstractSolution)            = length(ω)
+Base.lastindex(sol::AbstractSolution)            = length(sol)
 
-function Base.lastindex(ω::AbstractSolution, axis::Integer)
+function Base.lastindex(sol::AbstractSolution, axis::Integer)
     if axis == 1
-        return length(ω)
-    elseif axis == 2 && !isempty(ω)
-        return length(getindex(ω, 1))
+        return length(sol)
+    elseif axis == 2 && !isempty(sol)
+        return length(getindex(sol, 1))
     else
         return 1
     end
 end
 
-Base.iterate(ω::AbstractSolution) = iterate(ω, firstindex(ω))
+Base.iterate(sol::AbstractSolution) = iterate(sol, firstindex(sol))
 
-function Base.iterate(ω::AbstractSolution, i::Integer)
-    if 1 <= i <= length(ω)
-        return (getindex(ω, i), i + 1)
+function Base.iterate(sol::AbstractSolution, i::Integer)
+    if 1 <= i <= length(sol)
+        return (getindex(sol, i), i + 1)
     else
         return nothing
     end
 end
 
-function Base.show(io::IO, ω::S) where {S<:AbstractSolution}
-    if isempty(ω)
+function Base.show(io::IO, sol::S) where {S<:AbstractSolution}
+    if isempty(sol)
         return println(io, "Empty $(S)")
     end
 
-    println(io, "$(S) with $(length(ω)) samples:")
+    println(io, "$(S) with $(length(sol)) samples:")
 
-    for (i, s) in enumerate(ω)
+    for (i, s) in enumerate(sol)
         print(io, "  ")
 
         if i < 10
@@ -71,8 +71,13 @@ function Base.show(io::IO, ω::S) where {S<:AbstractSolution}
     return nothing
 end
 
-state(ω::AbstractSolution, i::Integer)             = state(getindex(ω, i))
-state(ω::AbstractSolution, i::Integer, j::Integer) = state(getindex(ω, i), j)
-value(ω::AbstractSolution, i::Integer)             = value(getindex(ω, i))
-reads(ω::AbstractSolution, i::Integer)             = reads(getindex(ω, i))
-reads(ω::AbstractSolution)                         = sum(reads.(ω))
+state(sol::AbstractSolution, i::Integer)             = state(getindex(sol, i))
+state(sol::AbstractSolution, i::Integer, j::Integer) = state(getindex(sol, i), j)
+value(sol::AbstractSolution, i::Integer)             = value(getindex(sol, i))
+reads(sol::AbstractSolution, i::Integer)             = reads(getindex(sol, i))
+reads(sol::AbstractSolution)                         = sum(reads.(sol))
+
+# Cast Frame
+function solution(model::AbstractModel; domain::Domain)
+    return cast(QUBOTools.domain(model) => domain, QUBOTools.solution(model))
+end

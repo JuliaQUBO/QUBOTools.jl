@@ -54,6 +54,13 @@ function test_metrics()
                 @test isnan(QUBOTools.tts(s, 0.0))
             end
         end
+
+        @testset "⋅ Hamming Distance" begin
+            @test QUBOTools.hamming_distance([0, 1, 1], [0, 1, 1]) == 0
+            @test QUBOTools.hamming_distance([0, 0, 1], [0, 1, 1]) == 1
+            @test QUBOTools.hamming_distance([0, 0, 1], [0, 1, 0]) == 2
+            @test QUBOTools.hamming_distance([1, 0, 1], [0, 1, 0]) == 3
+        end
     end
 
     return nothing

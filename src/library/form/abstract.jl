@@ -1,6 +1,6 @@
 # Adding an iterate interface allows struct unpacking, i.e.,
-# n, L, Q, α, β = form
-Base.length(::F) where {T,F<:AbstractForm{T}} = 5
+# n, L, Q, α, β, sense, domain = form
+Base.length(::F) where {T,F<:AbstractForm{T}} = 7
 
 function Base.iterate(Φ::F, state::Integer = 1) where {T,F<:AbstractForm{T}}
     if state == 1
@@ -13,6 +13,10 @@ function Base.iterate(Φ::F, state::Integer = 1) where {T,F<:AbstractForm{T}}
         return (scale(Φ), state + 1)
     elseif state == 5
         return (offset(Φ), state + 1)
+    elseif state == 6
+        return (sense(Φ), state + 1)
+    elseif state == 7
+        return (domain(Φ), state + 1)
     else
         return nothing
     end
@@ -79,7 +83,10 @@ function topology(Φ::F, k::Integer; kws...) where {T,F<:AbstractForm{T}}
     return A
 end
 
-# Abstract methods
+function cast(t::Domain, Φ::F) where {T,F<:AbstractForm{T}}
+    return cast(domain(Φ) => t, Φ)
+end
+
 function cast((s, t)::Route{S}, A::AbstractArray{T,N}) where {S<:Sense,T,N}
     if s === t
         return A
@@ -89,6 +96,8 @@ function cast((s, t)::Route{S}, A::AbstractArray{T,N}) where {S<:Sense,T,N}
 end
 
 function cast((s, t)::Route{S}, Φ::F) where {S<:Sense,T,F<:AbstractForm{T}}
+    @assert sense(Φ) === s
+
     if s === t
         return Φ
     else
@@ -98,17 +107,21 @@ function cast((s, t)::Route{S}, Φ::F) where {S<:Sense,T,F<:AbstractForm{T}}
         α = scale(Φ)
         β = -offset(Φ)
 
-        return F(n, L, Q, α, β)
+        return F(n, L, Q, α, β; sense = t, domain = domain(Φ))
     end
 end
 
 function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:AbstractForm{T}}
+    @assert domain(Φ) === s
+
     if s === t
         return Φ
     elseif s === 𝔹 && t === 𝕊 || s === 𝕊 && t === 𝔹
         return F(cast(s => t, NormalForm{T}(Φ)))
     else
         casting_error(s => t, Φ)
+
+        return nothing
     end
 end
 

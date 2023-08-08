@@ -74,12 +74,12 @@ function test_solution_sampleset()
             @test meta_set.metadata === metadata
         end
 
-        let ω = SampleSet()
-            @test ω isa SampleSet{Float64,Int}
+        let sol = SampleSet()
+            @test sol isa SampleSet{Float64,Int}
         end
 
-        let ω = SampleSet{Float64}()
-            @test ω isa SampleSet{Float64,Int}
+        let sol = SampleSet{Float64}()
+            @test sol isa SampleSet{Float64,Int}
         end
 
         @test_throws SolutionError SampleSet(
@@ -120,19 +120,19 @@ function test_solution_sampleset()
                 ["presolve", "decomposition", "binary quadratic polytope cuts"],
         )
 
-        ω = SampleSet(u, metadata)
+        sol = SampleSet(u, metadata)
         η = SampleSet(v)
 
-        @test ω == η
+        @test sol == η
 
-        let θ = copy(ω)
-            @test θ == ω
-            @test QUBOTools.metadata(ω) == metadata
+        let θ = copy(sol)
+            @test θ == sol
+            @test QUBOTools.metadata(sol) == metadata
 
             # Ensure metadata was deepcopied
             metadata["origin"] = "monte carlo"
 
-            @test QUBOTools.metadata(ω) == metadata
+            @test QUBOTools.metadata(sol) == metadata
             @test QUBOTools.metadata(θ) != metadata
         end
 
@@ -155,14 +155,14 @@ function test_solution_sampleset()
             end
         end
 
-        bool_ω = Sample{Float64,Int}[
+        bool_sol = Sample{Float64,Int}[
             Sample([0, 0], 4.0, 1),
             Sample([0, 1], 3.0, 2),
             Sample([1, 0], 2.0, 3),
             Sample([1, 1], 1.0, 4),
         ]
 
-        spin_ω = Sample{Float64,Int}[
+        spin_sol = Sample{Float64,Int}[
             Sample([↑, ↑], 4.0, 1),
             Sample([↑, ↓], 3.0, 2),
             Sample([↓, ↑], 2.0, 3),
@@ -171,8 +171,8 @@ function test_solution_sampleset()
 
         # ~*~ Domain translation ~*~ #
         let (bool_set, spin_set) = (
-                SampleSet(bool_ω),
-                SampleSet(spin_ω),
+                SampleSet(bool_sol),
+                SampleSet(spin_sol),
             )
             # ~ index ~ #
             @test size(bool_set) == (4,)
