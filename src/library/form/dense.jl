@@ -75,3 +75,15 @@ end
 function quadratic_size(Φ::F) where {T,F<:DenseForm{T}}
     return count(!iszero, Φ.Q)
 end
+
+function form(
+    n::Int,
+    L::LinearDenseForm{T},
+    Q::QuadraticDenseForm{T},
+    α::T,
+    β::T;
+    sense::Sense,
+    domain::Domain,
+) where {T}
+    return DenseForm{T}(n, L, Q, α, β; sense, domain)
+end

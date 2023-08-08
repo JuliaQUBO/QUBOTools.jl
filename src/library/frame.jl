@@ -7,8 +7,26 @@ function sense(s::Symbol)
         return Max
     else
         error("Invalid sense '$s', options are ':min' and ':max'")
+
+        return nothing
     end
 end
+
+sense(s::AbstractString) = sense(Symbol(s))
+
+function Symbol(s::Sense)
+    if s === Min
+        return :min
+    elseif s === Max
+        return :max
+    else
+        error("Invalid sense '$s', options are 'Min' and 'Max'")
+
+        return nothing
+    end
+end
+
+String(s::Sense) = String(Symbol(s))
 
 domain(x::Domain) = x
 
@@ -19,8 +37,26 @@ function domain(x::Symbol)
         return SpinDomain
     else
         error("Invalid domain '$x', options are ':bool' and ':spin'")
+
+        return nothing
     end
 end
+
+domain(s::AbstractString) = domain(Symbol(s))
+
+function Symbol(x::Domain)
+    if x === BoolDomain
+        return :bool
+    elseif x === SpinDomain
+        return :spin
+    else
+        error("Invalid domain '$x', options are 'BoolDomain' and 'SpinDomain'")
+
+        return nothing
+    end
+end
+
+String(x::Domain) = String(Symbol(x))
 
 function sense(frame::Frame)
     return frame.sense

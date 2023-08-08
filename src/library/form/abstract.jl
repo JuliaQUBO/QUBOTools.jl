@@ -53,34 +53,30 @@ function _isapprox(x::Dict{V,T}, y::Dict{V,T}; kws...) where {V,T}
     return true
 end
 
-function topology(Φ::F; kws...) where {T,F<:AbstractForm{T}}
-    n = dimension(Φ)
-    A = spzeros(Int, n, n)
+function topology(Φ::F) where {T,F<:AbstractForm{T}}
+    E = Graphs.Edge{Int}[]
 
-    for ((i, j), v) in quadratic_terms(Φ)
-        if isapprox(v, zero(T); kws...)
-            A[i, j] = 1
-        end
+    for t in quadratic_terms(Φ)
+        i, j = first(t)
+        
+        push!(E, Graphs.Edge{Int}(i, j))
     end
 
-    return Symmetric(A)
+    return Graphs.Graph(E)
 end
 
-function topology(Φ::F, k::Integer; kws...) where {T,F<:AbstractForm{T}}
-    n = dimension(Φ)
-    A = spzeros(Int, n)
+function topology(Φ::F, k::Integer) where {T,F<:AbstractForm{T}}
+    N = Set{Int}()
 
     for ((i, j), v) in quadratic_terms(Φ)
-        if isapprox(v, zero(T); kws...)
-            if i == k
-                A[j] = 1
-            elseif j == k
-                A[i] = 1
-            end
+        if i == k
+            push!(N, j)
+        elseif j == k
+            push!(N, i)
         end
     end
 
-    return A
+    return N
 end
 
 function cast(t::Domain, Φ::F) where {T,F<:AbstractForm{T}}

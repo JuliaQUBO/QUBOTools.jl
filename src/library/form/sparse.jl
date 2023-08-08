@@ -133,6 +133,18 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:SparseForm{T}}
     end
 end
 
+function form(
+    n::Int,
+    L::LinearSparseForm{T},
+    Q::QuadraticSparseForm{T},
+    α::T,
+    β::T;
+    sense::Sense,
+    domain::Domain,
+) where {T}
+    return SparseForm{T}(n, L, Q, α, β; sense, domain)
+end
+
 # Choose sparse as normal Φ
 const LinearNormalForm{T}    = LinearSparseForm{T}
 const QuadraticNormalForm{T} = QuadraticSparseForm{T}

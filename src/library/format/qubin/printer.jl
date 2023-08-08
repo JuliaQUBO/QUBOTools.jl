@@ -16,7 +16,6 @@ function write_model(
     fmt::QUBin{S},
 ) where {S,V,T,U,M<:AbstractModel{V,T,U}}
     _write_model(fp, model, fmt)
-
     _write_solution(fp, model, fmt)
 
     return nothing
@@ -41,7 +40,7 @@ function _write_model_form(
 ) where {S,V,T,U,M<:AbstractModel{V,T,U}}
     create_group(fp["model"], "form")
 
-    n, L, Q, α, β = QUBOTools.form(model, QUBOTools.SparseForm{T}; domain = domain(fmt))
+    n, L, Q, α, β, s, x = QUBOTools.form(model, QUBOTools.SparseForm{T})
 
     fp["model"]["form"]["dimension"] = n
 
@@ -62,6 +61,9 @@ function _write_model_form(
 
     fp["model"]["form"]["scale"]  = α
     fp["model"]["form"]["offset"] = β
+
+    fp["model"]["form"]["sense"]  = String(s)
+    fp["model"]["form"]["domain"] = String(x)
 
     return nothing
 end
@@ -84,9 +86,12 @@ function _write_solution(
 ) where {S,V,T,U,M<:AbstractModel{V,T,U}}
     create_group(fp, "solution")
 
-    sol = QUBOTools.solution(model; domain = domain(fmt))
+    sol = QUBOTools.solution(model)
 
     _write_solution_data(fp, sol, fmt)
+
+    fp["solution"]["sense"]  = String(sense(sol))
+    fp["solution"]["domain"] = String(domain(sol))
 
     _write_solution_metadata(fp, sol, fmt)
 

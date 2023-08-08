@@ -164,6 +164,36 @@ function test_form_dict()
                     1E-10
             end
         end
+
+        @testset "Topology" begin
+            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+        end
     end
 
     return nothing
@@ -362,6 +392,36 @@ function test_form_sparse()
                     1E-10
             end
         end
+
+        @testset "Topology" begin
+            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+        end
     end
 
     return nothing
@@ -550,6 +610,36 @@ function test_form_dense()
                 @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ) ≈ Φ atol =
                     1E-10
             end
+        end
+
+        @testset "Topology" begin
+            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
+
+            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph(
+                [
+                    QUBOTools.Graphs.Edge(1, 2),
+                    QUBOTools.Graphs.Edge(2, 3),
+                ]
+            )
         end
     end
 

@@ -169,3 +169,15 @@ function value(
 
     return α * (e + β)
 end
+
+function form(
+    n::Int,
+    L::LinearDictForm{T},
+    Q::QuadraticDictForm{T},
+    α::T,
+    β::T;
+    sense::Sense,
+    domain::Domain,
+) where {T}
+    return DictForm{T}(n, L, Q, α, β; sense, domain)
+end
