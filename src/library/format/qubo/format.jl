@@ -19,15 +19,24 @@ struct MQLibStyle <: AbstractStyle end
     QUBO(style::AbstractStyle)
 
 """
-struct QUBO{S} <: AbstractFormat{S}
-    style::Union{S,Nothing}
+struct QUBO{S} <: AbstractFormat
+    QUBO() = new{nothing}()
+    QUBO(::S) where {S<:AbstractStyle} = new{S}()
 
-    QUBO() = new{nothing}(nothing)
+    function QUBO(style::Symbol)
+        if style === :dwave || style === :qbsolv
+            return QUBO(DWaveStyle())
+        elseif style === :mqlib
+            return QUBO(MQLibStyle())
+        else
+            error("Unkown style '$style' for QUBO files")
 
-    QUBO(style::S) where {S<:AbstractStyle} = new{S}(style)
+            return nothing
+        end
+    end
 end
 
-style(fmt::QUBO) = fmt.style
+style(::QUBO{S}) where {S} = S
 
 format(::Val{:dwave}, ::Val{:qubo})  = QUBO(DWaveStyle())
 format(::Val{:mqlib}, ::Val{:qubo})  = QUBO(MQLibStyle())

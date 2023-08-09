@@ -1,23 +1,24 @@
 @doc raw"""
-    AbstractFormat{S}
+    AbstractFormat
 
 """
-abstract type AbstractFormat{S} end
+abstract type AbstractFormat end
 
 @doc raw"""
     AbstractStyle
+
 """
 abstract type AbstractStyle end
 
 @doc raw"""
-    style(fmt::AbstractFormat{S})::S where {S<:Union{AbstractStyle,Nothing}}
+    style(fmt::AbstractFormat)::Union{Symbol,Nothing}
 """
 function style end
 
 @doc raw"""
-    format(::AbstractString)::AbstractFormat{S}
-    format(::Symbol)::AbstractFormat{S}
-    format(::Symbol, ::Symbol)::AbstractFormat{S}
+    format(::AbstractString)::AbstractFormat
+    format(::Symbol)::AbstractFormat
+    format(::Symbol, ::Symbol)::AbstractFormat
 
 Given the file path, tries to infer the type associated to a QUBO model format.
 """

@@ -1,4 +1,4 @@
-function _parse_entry!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
+function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)
     m = match(r"^\s*([0-9]+)\s+([0-9]+)\s+([+-]?([0-9]*[.])?[0-9]+)\s*$", line)
 
     if isnothing(m)
@@ -22,7 +22,7 @@ function _parse_entry!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
     return true
 end
 
-function _parse_header!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
+function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)
     m = match(r"^([0-9]+) ([0-9]+)$", line)
 
     if isnothing(m)
@@ -52,11 +52,11 @@ function _parse_header!(::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
     return true
 end
 
-function _parse_line!(fmt::Qubist, data::Dict{Symbol,Any}, line::AbstractString)
+function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::Qubist)
     isempty(line) && return nothing
 
-    _parse_entry!(fmt, data, line)  && return nothing
-    _parse_header!(fmt, data, line) && return nothing
+    _parse_entry!(data, line, fmt)  && return nothing
+    _parse_header!(data, line, fmt) && return nothing
 
     syntax_error("'$line'")
 end
@@ -68,7 +68,7 @@ function read_model(io::IO, fmt::Qubist)
     )
 
     for line in readlines(io)
-        _parse_line!(fmt, data, strip(line))
+        _parse_line!(data, strip(line), fmt)
     end
 
     return Model{Int,Float64,Int}(

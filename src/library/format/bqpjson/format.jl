@@ -32,7 +32,7 @@ end
 
 Precise and detailed information found in the [bqpjson docs](https://bqpjson.readthedocs.io)
 """
-struct BQPJSON{S} <: AbstractFormat{S}
+struct BQPJSON <: AbstractFormat
     version::VersionNumber
     indent::Int
 
@@ -43,11 +43,11 @@ struct BQPJSON{S} <: AbstractFormat{S}
         @assert version ∈ _BQPJSON_VERSION_LIST
         @assert indent >= 0
 
-        return new{nothing}(version, indent)
+        return new(version, indent)
     end
 end
 
-format(::Val{:json})               = BQPJSON()
+format(::Val{:json}) = BQPJSON()
 
 include("parser.jl")
 include("printer.jl")

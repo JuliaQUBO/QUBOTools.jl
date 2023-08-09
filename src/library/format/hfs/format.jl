@@ -7,7 +7,7 @@
 
 This format offers a description for the setup of chimera graphs.
 """
-struct HFS{S} <: AbstractFormat{S}
+struct HFS <: AbstractFormat
     chimera_cell_size::Union{Int,Nothing}
     chimera_precision::Union{Int,Nothing}
     chimera_degree::Union{Int,Nothing}

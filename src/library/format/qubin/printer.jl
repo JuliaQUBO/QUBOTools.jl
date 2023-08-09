@@ -1,8 +1,8 @@
 function write_model(
     path::AbstractString,
     model::M,
-    fmt::QUBin{S},
-) where {S,V,T,U,M<:AbstractModel{V,T,U}}
+    fmt::QUBin,
+) where {V,T,U,M<:AbstractModel{V,T,U}}
     HDF5.h5open(path, "w") do fp
         write_model(fp, model, fmt)
     end
@@ -13,8 +13,8 @@ end
 function write_model(
     fp::HDF5.File,
     model::M,
-    fmt::QUBin{S},
-) where {S,V,T,U,M<:AbstractModel{V,T,U}}
+    fmt::QUBin,
+) where {V,T,U,M<:AbstractModel{V,T,U}}
     _write_model(fp, model, fmt)
     _write_solution(fp, model, fmt)
 
@@ -24,11 +24,19 @@ end
 function _write_model(
     fp::HDF5.File,
     model::M,
-    fmt::QUBin{S},
-) where {S,V,T,U,M<:AbstractModel{V,T,U}}
+    fmt::QUBin,
+) where {V,T,U,M<:AbstractModel{V,T,U}}
     create_group(fp, "model")
 
+    _write_model_variables(fp, model, fmt)
     _write_model_form(fp, model, fmt)
+    _write_model_metadata(fp, model, fmt)
+
+    return nothing
+end
+
+function _write_model_variables(fp::HDF5.File, model::M, ::QUBin) where {V,T,U,M<:AbstractModel{V,T,U}}
+    fp["model"]["variables"] = variables(model)
 
     return nothing
 end
@@ -36,8 +44,8 @@ end
 function _write_model_form(
     fp::HDF5.File,
     model::M,
-    fmt::QUBin{S},
-) where {S,V,T,U,M<:AbstractModel{V,T,U}}
+    ::QUBin,
+) where {V,T,U,M<:AbstractModel{V,T,U}}
     create_group(fp["model"], "form")
 
     n, L, Q, α, β, s, x = QUBOTools.form(model, QUBOTools.SparseForm{T})
@@ -72,8 +80,8 @@ end
 function _write_model_metadata(
     fp::HDF5.File,
     model::M,
-    ::QUBin{S},
-) where {S,V,T,U,M<:AbstractModel{V,T,U}}
+    ::QUBin,
+) where {V,T,U,M<:AbstractModel{V,T,U}}
     fp["model"]["metadata"] = JSON.json(QUBOTools.metadata(model))
 
     return nothing
@@ -82,8 +90,8 @@ end
 function _write_solution(
     fp::HDF5.File,
     model::M,
-    fmt::QUBin{S},
-) where {S,V,T,U,M<:AbstractModel{V,T,U}}
+    fmt::QUBin,
+) where {V,T,U,M<:AbstractModel{V,T,U}}
     create_group(fp, "solution")
 
     sol = QUBOTools.solution(model)
@@ -101,8 +109,8 @@ end
 function _write_solution_data(
     fp::HDF5.File,
     sol::AbstractSolution{T,U},
-    ::QUBin{S},
-) where {S,T,U}
+    ::QUBin,
+) where {T,U}
     create_group(fp["solution"], "data")
 
     if isempty(sol)
@@ -115,9 +123,9 @@ function _write_solution_data(
         r = reads.(sol)
     end
 
-    write(create_dataset(fp["solution"], "state", U, size(ψ)), ψ)
-    write(create_dataset(fp["solution"], "value", T, size(λ)), λ)
-    write(create_dataset(fp["solution"], "reads", Int, size(r)), r)
+    write(create_dataset(fp["solution"]["data"], "state", U, size(ψ)), ψ)
+    write(create_dataset(fp["solution"]["data"], "value", T, size(λ)), λ)
+    write(create_dataset(fp["solution"]["data"], "reads", Int, size(r)), r)
 
     return nothing
 end
@@ -125,8 +133,8 @@ end
 function _write_solution_metadata(
     fp::HDF5.File,
     sol::AbstractSolution{T,U},
-    ::QUBin{S},
-) where {S,T,U}
+    ::QUBin,
+) where {T,U}
     fp["solution"]["metadata"] = JSON.json(QUBOTools.metadata(sol))
 
     return nothing

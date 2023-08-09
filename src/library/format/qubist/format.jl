@@ -2,9 +2,7 @@
     Qubist()
 
 """
-struct Qubist{S} <: AbstractFormat{S}
-    Qubist() = new{nothing}()
-end
+struct Qubist <: AbstractFormat end
 
 format(::Val{:qh}) = Qubist()
 

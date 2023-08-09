@@ -1,16 +1,47 @@
-function _parse_line!(fmt::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
+function read_model(io::IO, fmt::QUBO)
+    data = Dict{Symbol,Any}(
+        :linear_terms    => Dict{Int,Float64}(),
+        :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
+        :scale           => 1.0,
+        :offset          => 0.0,
+        :id              => nothing,
+        :description     => nothing,
+        :metadata        => Dict{String,Any}(),
+        :dimension       => nothing,
+        :linear_size     => nothing,
+        :quadratic_size  => nothing,
+    )
+
+    for line in readlines(io)
+        _parse_line!(data, strip(line), fmt)
+    end
+
+    return Model{Int,Float64,Int}(
+        data[:linear_terms],
+        data[:quadratic_terms];
+        scale       = data[:scale],
+        offset      = data[:offset],
+        sense       = :min,
+        domain      = :bool,
+        id          = data[:id],
+        description = data[:description],
+        metadata    = data[:metadata],
+    )
+end
+
+function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::QUBO)
     isempty(line) && return nothing
 
-    _parse_entry!(fmt, data, line)   && return nothing
-    _parse_comment!(fmt, data, line) && return nothing
-    _parse_header!(fmt, data, line)  && return nothing
+    _parse_entry!(data, line, fmt)   && return nothing
+    _parse_comment!(data, line, fmt) && return nothing
+    _parse_header!(data, line, fmt)  && return nothing
 
     syntax_error("$line")
 
     return nothing
 end
 
-function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
+function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO)
     L = data[:linear_terms]
     Q = data[:quadratic_terms]
     
@@ -33,7 +64,7 @@ function _parse_entry!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
     return true
 end
 
-function _parse_entry!(::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString) where {S<:MQLibStyle}
+function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO{S}) where {S<:MQLibStyle}
     L = data[:linear_terms]
     Q = data[:quadratic_terms]
     
@@ -58,11 +89,11 @@ function _parse_entry!(::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString) 
     return true
 end
 
-function _parse_header!(::QUBO, data::Dict{Symbol,Any}, line::AbstractString)
+function _parse_header!(::Dict{Symbol,Any}, ::AbstractString, ::QUBO)
     return false
 end
 
-function _parse_header!(::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString) where {S<:DWaveStyle}
+function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO{S}) where {S<:DWaveStyle}
     m = match(r"^p\s+qubo\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)$", line)
 
     if isnothing(m)
@@ -76,7 +107,7 @@ function _parse_header!(::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString)
     return true
 end
 
-function _parse_header!(::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString) where {S<:MQLibStyle}
+function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO{S}) where {S<:MQLibStyle}
     m = match(r"^([0-9]+)\s+([0-9]+)$", line)
 
     if isnothing(m)
@@ -89,11 +120,11 @@ function _parse_header!(::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString)
     return true
 end
 
-function _parse_comment!(::QUBO, ::Dict{Symbol,Any}, ::AbstractString)
+function _parse_comment!(::Dict{Symbol,Any}, ::AbstractString, ::QUBO)
     return false
 end
 
-function _parse_comment_metadata!(::QUBO, data::Dict{Symbol,Any}, content::AbstractString)
+function _parse_comment_metadata!(data::Dict{Symbol,Any}, content::AbstractString, ::QUBO{S}) where {S<:Union{DWaveStyle,MQLibStyle}}
     m = match(r"^([a-zA-Z][a-zA-Z0-9_]+)\s*:\s*(.+)$", content)
 
     if isnothing(m)
@@ -118,7 +149,7 @@ function _parse_comment_metadata!(::QUBO, data::Dict{Symbol,Any}, content::Abstr
     return nothing
 end
 
-function _parse_comment!(fmt::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString) where {S<:DWaveStyle}
+function _parse_comment!(data::Dict{Symbol,Any}, line::AbstractString, fmt::QUBO{S}) where {S<:DWaveStyle}
     m = match(r"^c\s*(.+)?$", line)
 
     if isnothing(m)
@@ -133,12 +164,12 @@ function _parse_comment!(fmt::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractStr
         return true
     end
 
-    _parse_comment_metadata!(fmt, data, content)
+    _parse_comment_metadata!(data, content, fmt)
 
     return true
 end
 
-function _parse_comment!(::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString) where {S<:MQLibStyle}
+function _parse_comment!(data::Dict{Symbol,Any}, line::AbstractString, fmt::QUBO{S}) where {S<:MQLibStyle}
     m = match(r"^\#\s*(.+)?$", line)
 
     if isnothing(m)
@@ -153,38 +184,7 @@ function _parse_comment!(::QUBO{S}, data::Dict{Symbol,Any}, line::AbstractString
         return true
     end
 
-    _parse_comment_metadata!(fmt, data, content)
+    _parse_comment_metadata!(data, content, fmt)
 
     return true
-end
-
-function read_model(io::IO, fmt::QUBO)
-    data = Dict{Symbol,Any}(
-        :linear_terms    => Dict{Int,Float64}(),
-        :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
-        :scale           => 1.0,
-        :offset          => 0.0,
-        :id              => nothing,
-        :description     => nothing,
-        :metadata        => Dict{String,Any}(),
-        :dimension       => nothing,
-        :linear_size     => nothing,
-        :quadratic_size  => nothing,
-    )
-
-    for line in readlines(io)
-        _parse_line!(fmt, data, strip(line))
-    end
-
-    return Model{Int,Float64,Int}(
-        data[:linear_terms],
-        data[:quadratic_terms];
-        scale       = data[:scale],
-        offset      = data[:offset],
-        sense       = :min,
-        domain      = :bool,
-        id          = data[:id],
-        description = data[:description],
-        metadata    = data[:metadata],
-    )
 end

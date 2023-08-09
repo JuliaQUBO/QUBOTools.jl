@@ -14,7 +14,7 @@ end
 
 sense(s::AbstractString) = sense(Symbol(s))
 
-function Symbol(s::Sense)
+function Base.Symbol(s::Sense)
     if s === Min
         return :min
     elseif s === Max
@@ -44,7 +44,7 @@ end
 
 domain(s::AbstractString) = domain(Symbol(s))
 
-function Symbol(x::Domain)
+function Base.Symbol(x::Domain)
     if x === BoolDomain
         return :bool
     elseif x === SpinDomain

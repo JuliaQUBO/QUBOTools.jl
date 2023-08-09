@@ -87,11 +87,11 @@ Base.getindex(sol::SampleSet, i::Integer) = sol.data[i]
 Base.iterate(sol::SampleSet)             = iterate(sol.data)
 Base.iterate(sol::SampleSet, i::Integer) = iterate(sol.data, i)
 
+metadata(sol::SampleSet) = sol.metadata
+
 frame(sol::SampleSet)  = sol.frame
 sense(sol::SampleSet)  = sense(frame(sol))
 domain(sol::SampleSet) = domain(frame(sol))
-
-metadata(sol::SampleSet) = sol.metadata
 
 function cast(route::Route{S}, sol::SampleSet{T,U}) where {T,U,S<:Sense}
     return SampleSet{T,U}(

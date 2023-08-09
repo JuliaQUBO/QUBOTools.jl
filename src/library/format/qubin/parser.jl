@@ -1,33 +1,33 @@
 function read_model(path::AbstractString, fmt::QUBin)
-    model = nothing
-
-    HDF5.h5open(path, "r") do fp
-        model = read_model(fp, fmt)
+    return HDF5.h5open(path, "r") do fp
+        return read_model(fp, fmt)
     end
-
-    return model
 end
 
 function read_model(fp::HDF5.File, fmt::QUBin)
-    model_form      = _parse_model_form(fp, fmt)
-    model_variables = _parse_model_variables(fp, fmt)
-    model_metadata  = _parse_model_metadata(fp, fmt)::Dict{String,Any}
-    model_solution  = _parse_solution(fp, fmt)
+    form      = _parse_model_form(fp, fmt)
+    variables = _parse_model_variables(fp, fmt)
+    metadata  = _parse_model_metadata(fp, fmt)
+    solution  = _parse_solution(fp, fmt)
 
-    return Model(
-        model_form,
-        model_variables;
-        metadata = model_metadata,
-        solution = model_solution,
-    )
+    return _parse_model(form, variables; metadata, solution)
 end
 
-function _parse_model_form(fp::HDF5.File, fmt::QUBin)
+function _parse_model(
+    form::SparseForm{T},
+    variables::VariableMap{V};
+    metadata::Dict{String,Any},
+    solution::SampleSet{T,U},
+) where {V,T,U}
+    return Model{V,T,U}(form, variables; metadata, solution)
+end
+
+function _parse_model_form(fp::HDF5.File, ::QUBin)
     n = read(fp["model"]["form"]["dimension"])
 
     li = read(fp["model"]["form"]["linear"]["i"])
     lv = read(fp["model"]["form"]["linear"]["v"])
-    
+
     L = sparsevec(li, lv)
 
     qi = read(fp["model"]["form"]["quadratic"]["i"])
@@ -39,33 +39,67 @@ function _parse_model_form(fp::HDF5.File, fmt::QUBin)
     α = read(fp["model"]["form"]["scale"])
     β = read(fp["model"]["form"]["offset"])
 
-    s = sense(read(fp["model"]["form"]["sense"]))
-    x = domain(read(fp["model"]["form"]["domain"]))
+    sense = QUBOTools.sense(read(fp["model"]["form"]["sense"]))
+    domain = QUBOTools.domain(read(fp["model"]["form"]["domain"]))
 
-    return form(n, L, Q, α, β; sense = s, domain = x)
+    return _parse_model_form(n, L, Q, α, β; sense, domain)
+end
+
+function _parse_model_form(
+    n::Int,
+    L::LinearSparseForm{T},
+    Q::QuadraticSparseForm{T},
+    α::T,
+    β::T;
+    sense::Sense,
+    domain::Domain,
+) where {T}
+    return SparseForm{T}(n, L, Q, α, β; sense, domain)
+end
+
+function _parse_model_variables(fp::HDF5.File, ::QUBin)
+    variables = read(fp["model"]["variables"])
+
+    return _parse_model_variables(variables)
+end
+
+function _parse_model_variables(variables::Vector{V}) where {V}
+    return VariableMap{V}(variables)
+end
+
+function _parse_model_metadata(fp::HDF5.File, ::QUBin)
+    return JSON.parse(read(fp["model"]["metadata"]))
 end
 
 function _parse_solution(fp::HDF5.File, fmt::QUBin)
-    sol_data     = _parse_solution_data(fp, fmt)::Vector{Sample{T,U}} where {T,U}
-    sol_metadata = _parse_solution_metadata(fp, fmt)
+    data     = _parse_solution_data(fp, fmt)
+    metadata = _parse_solution_metadata(fp, fmt)
 
-    sol_sense  = sense(read(fp["solution"]["sense"]))
-    sol_domain = domain(read(fp["solution"]["domain"]))
+    sense  = QUBOTools.sense(read(fp["solution"]["sense"]))
+    domain = QUBOTools.domain(read(fp["solution"]["domain"]))
 
-    return SampleSet{T,U}(
-        sol_data,
-        sol_metadata;
-        sense  = sol_sense,
-        domain = sol_domain,
-    )
+    return _parse_solution(data, metadata; sense, domain)
+end
+
+function _parse_solution(
+    data::Vector{Sample{T,U}},
+    metadata::Dict{String,Any};
+    sense::Sense,
+    domain::Domain,
+) where {T,U}
+    return SampleSet{T,U}(data, metadata; sense, domain)
 end
 
 function _parse_solution_data(fp::HDF5.File, fmt::QUBin)
-    ψ = read(fp["solution"]["data"]["state"])::Vector{U} where {U}
-    λ = read(fp["solution"]["data"]["value"])::Vector{T} where {T}
-    r = read(fp["solution"]["data"]["reads"])::Vector{Int}
+    ψ = read(fp["solution"]["data"]["state"])
+    λ = read(fp["solution"]["data"]["value"])
+    r = read(fp["solution"]["data"]["reads"])
 
-    return Sample{T,U}[Sample{T,U}(ψ[i], λ[i], r[i]) for i = eachindex(ψ)]
+    return _parse_solution_data(ψ, λ, r)
+end
+
+function _parse_solution_data(ψ::Matrix{U}, λ::Vector{T}, r::Vector{Int}) where {T,U}
+    return Sample{T,U}[Sample{T,U}(ψ[i,:], λ[i], r[i]) for i in eachindex(ψ)]
 end
 
 function _parse_solution_metadata(fp::HDF5.File, fmt::QUBin)

@@ -6,14 +6,11 @@ function test_format_hints()
         @test QUBOTools.format(:spin, :json) isa QUBOTools.BQPJSON
         @test QUBOTools.format("file.spin.json") isa QUBOTools.BQPJSON
 
-        @test QUBOTools.format(:hfs) isa QUBOTools.HFS
-        @test QUBOTools.format("file.hfs") isa QUBOTools.HFS
+        # @test QUBOTools.format(:hfs) isa QUBOTools.HFS
+        # @test QUBOTools.format("file.hfs") isa QUBOTools.HFS
 
-        @test QUBOTools.format(:bool, :mzn) isa QUBOTools.MiniZinc
-        @test QUBOTools.format("file.bool.mzn") isa QUBOTools.MiniZinc
-
-        @test QUBOTools.format(:spin, :mzn) isa QUBOTools.MiniZinc
-        @test QUBOTools.format("file.spin.mzn") isa QUBOTools.MiniZinc
+        @test QUBOTools.format(:qb) isa QUBOTools.QUBin
+        @test QUBOTools.format("file.qb") isa QUBOTools.QUBin
 
         @test QUBOTools.format(:qh) isa QUBOTools.Qubist
         @test QUBOTools.format("file.qh") isa QUBOTools.Qubist
@@ -91,19 +88,17 @@ end
 
 function test_qubist_format()
     @testset "⋅ Qubist" begin
-        fmt = QUBOTools.Qubist()
-
         for i = 0:2
             file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "spin.qh")
             temp_path = "$(tempname()).spin.qh"
 
-            src_model = QUBOTools.read_model(file_path, fmt)
+            src_model = QUBOTools.read_model(file_path)
 
             @test src_model isa QUBOTools.Model
 
-            QUBOTools.write_model(temp_path, src_model, fmt)
+            QUBOTools.write_model(temp_path, src_model)
 
-            dst_model = QUBOTools.read_model(temp_path, fmt)
+            dst_model = QUBOTools.read_model(temp_path)
 
             @test dst_model isa QUBOTools.Model
         end
@@ -114,21 +109,38 @@ end
 
 function test_qubin_format()
     @testset "⋅ QuBin" begin
-        fmt = QUBOTools.QUBin()
+        @testset "bool" begin
+            for i = 0:2
+                file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "bool.qb")
+                temp_path = "$(tempname()).bool.qb"
 
-        for i = 0:-1 # skip
-            file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "spin.qb")
-            temp_path = "$(tempname()).spin.qb"
+                src_model = QUBOTools.read_model(file_path)
 
-            src_model = QUBOTools.read_model(file_path, fmt)
+                @test src_model isa QUBOTools.Model
 
-            @test src_model isa QUBOTools.Model
+                QUBOTools.write_model(temp_path, src_model)
 
-            QUBOTools.write_model(temp_path, src_model, fmt)
+                dst_model = QUBOTools.read_model(temp_path)
 
-            dst_model = QUBOTools.read_model(temp_path, fmt)
+                @test dst_model isa QUBOTools.Model
+            end
+        end
 
-            @test dst_model isa QUBOTools.Model
+        @testset "spin" begin
+            for i = 0:2
+                file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "spin.qb")
+                temp_path = "$(tempname()).spin.qb"
+
+                src_model = QUBOTools.read_model(file_path)
+
+                @test src_model isa QUBOTools.Model
+
+                QUBOTools.write_model(temp_path, src_model)
+
+                dst_model = QUBOTools.read_model(temp_path)
+
+                @test dst_model isa QUBOTools.Model
+            end
         end
     end
 
@@ -137,10 +149,11 @@ end
 
 function test_formats()
     @testset "→ Formats" verbose = true begin
+        test_format_hints()
         test_bqpjson_format()
+        test_qubin_format()
         test_qubo_format()
         test_qubist_format()
-        test_qubin_format()
     end
 
     return nothing

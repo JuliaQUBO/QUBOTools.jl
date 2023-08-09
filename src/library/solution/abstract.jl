@@ -29,7 +29,7 @@ end
 
 Base.firstindex(::AbstractSolution)            = 1
 Base.firstindex(::AbstractSolution, ::Integer) = 1
-Base.lastindex(sol::AbstractSolution)            = length(sol)
+Base.lastindex(sol::AbstractSolution)          = length(sol)
 
 function Base.lastindex(sol::AbstractSolution, axis::Integer)
     if axis == 1
@@ -76,8 +76,3 @@ state(sol::AbstractSolution, i::Integer, j::Integer) = state(getindex(sol, i), j
 value(sol::AbstractSolution, i::Integer)             = value(getindex(sol, i))
 reads(sol::AbstractSolution, i::Integer)             = reads(getindex(sol, i))
 reads(sol::AbstractSolution)                         = sum(reads.(sol))
-
-# Cast Frame
-function solution(model::AbstractModel; domain::Domain)
-    return cast(QUBOTools.domain(model) => domain, QUBOTools.solution(model))
-end

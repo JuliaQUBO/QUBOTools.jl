@@ -1,8 +1,27 @@
-function _print_header(::IO, ::QUBO, ::Dict{Symbol,Any})
+function write_model(io::IO, model::AbstractModel, fmt::QUBO)
+    data = Dict{Symbol,Any}(
+        :linear_terms    => linear_terms(model),
+        :quadratic_terms => quadratic_terms(model),
+        :linear_size     => linear_size(model),
+        :quadratic_size  => quadratic_size(model),
+        :scale           => scale(model),
+        :offset          => offset(model),
+        :metadata        => metadata(model),
+        :dimension       => dimension(model),
+    )
+
+    _print_metadata(io, data, fmt)
+    _print_header(io, data, fmt)
+    _print_entries(io, data, fmt)
+
     return nothing
 end
 
-function _print_header(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:DWaveStyle}
+function _print_header(::IO, ::Dict{Symbol,Any}, ::QUBO)
+    return nothing
+end
+
+function _print_header(io::IO, data::Dict{Symbol,Any}, ::QUBO{S}) where {S<:DWaveStyle}
     dimension      = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
@@ -12,7 +31,7 @@ function _print_header(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:DWav
     return nothing
 end
 
-function _print_header(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:MQLibStyle}
+function _print_header(io::IO, data::Dict{Symbol,Any}, ::QUBO{S}) where {S<:MQLibStyle}
     dimension      = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
@@ -28,9 +47,9 @@ end
 
 function _print_metadata_entry(
     io::IO,
-    ::QUBO{S},
     key::AbstractString,
     val::Any,
+    ::QUBO{S},
 ) where {S<:DWaveStyle}
     println(io, "c $(key) : $(val)")
 
@@ -39,35 +58,33 @@ end
 
 function _print_metadata_entry(
     io::IO,
-    ::QUBO{S},
     key::AbstractString,
     val::Any,
+    ::QUBO{S},
 ) where {S<:MQLibStyle}
     println(io, "# $(key) : $(val)")
 
     return nothing
 end
 
-function _print_metadata(io::IO, ::QUBO, data::Dict{Symbol,Any}, comment::String)
+function _print_metadata(io::IO, data::Dict{Symbol,Any}, fmt::QUBO)
     scale    = data[:scale]
     offset   = data[:offset]
     metadata = data[:metadata]
 
-    !isnothing(scale) && _print_metadata_entry(io, fmt, "scale", scale)
-    !isnothing(offset) && _print_metadata_entry(io, fmt, "offset", offset)
+    !isnothing(scale)  && _print_metadata_entry(io, "scale", scale, fmt)
+    !isnothing(offset) && _print_metadata_entry(io, "offset", offset, fmt)
 
     if !isnothing(metadata)
         for (key, val) in metadata
-            _print_metadata_entry(io, fmt, key, val)
-
-            print(io, "$(comment) $(key) : $(JSON.json(val))")
+            _print_metadata_entry(io, key, JSON.json(val), fmt)
         end
     end
 
     return nothing
 end
 
-function _print_entries(io::IO, ::QUBO, data::Dict{Symbol,Any})
+function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO)
     for (i, l) in data[:linear_terms]
         println(io, "$(i) $(i) $(l)")
     end
@@ -79,7 +96,7 @@ function _print_entries(io::IO, ::QUBO, data::Dict{Symbol,Any})
     return nothing
 end
 
-function _print_entries(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:DWaveStyle}
+function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO{S}) where {S<:DWaveStyle}
     println(io, "c linear terms")
 
     for (i, l) in data[:linear_terms]
@@ -95,7 +112,7 @@ function _print_entries(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:DWa
     return nothing
 end
 
-function _print_entries(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:MQLibStyle}
+function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO{S}) where {S<:MQLibStyle}
     println(io, "# linear terms")
 
     for (i, l) in data[:linear_terms]
@@ -113,21 +130,3 @@ function _print_entries(io::IO, ::QUBO{S}, data::Dict{Symbol,Any}) where {S<:MQL
     return nothing
 end
 
-function write_model(io::IO, model::AbstractModel, fmt::QUBO)
-    data = Dict{Symbol,Any}(
-        :linear_terms    => linear_terms(model),
-        :quadratic_terms => quadratic_terms(model),
-        :linear_size     => linear_size(model),
-        :quadratic_size  => quadratic_size(model),
-        :scale           => scale(model),
-        :offset          => offset(model),
-        :metadata        => metadata(model),
-        :dimension       => dimension(model),
-    )
-
-    _print_metadata(io, fmt, data)
-    _print_header(io, fmt, data)
-    _print_entries(io, fmt, data)
-
-    return nothing
-end

@@ -1,6 +1,4 @@
-struct QUBin{S} <: AbstractFormat{S}
-    QUBin() = new{nothing}()
-end
+struct QUBin <: AbstractFormat end
 
 # Hints:
 format(::Val{:hdf5}) = QUBin()

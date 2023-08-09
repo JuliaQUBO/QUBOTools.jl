@@ -78,7 +78,6 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         )
     end
 
-
     # Empty Model
     function Model{V,T,U}(;
         scale::T = one(T),
@@ -214,8 +213,9 @@ end
 function Base.empty!(model::Model{V,T,U}) where {V,T,U}
     model.form      = NormalForm{T}()
     model.variables = VariableMap{V}(V[])
+    model.solution  = SampleSet{T,U}()
+
     empty!(model.metadata)
-    model.solution = SampleSet{T,U}()
     empty!(model.start)
 
     return model

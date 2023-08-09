@@ -1,4 +1,4 @@
-function read_model(io::IO, fmt::BQPJSON{S}) where {S}
+function read_model(io::IO, fmt::BQPJSON)
     json_data = JSON.parse(io)
 
     report = JSONSchema.validate(_BQPJSON_SCHEMA, json_data)
@@ -18,10 +18,10 @@ function read_model(io::IO, fmt::BQPJSON{S}) where {S}
         :metadata        => deepcopy(json_data["metadata"]),
     )
 
-    _parse_version!(fmt, model_data, json_data)
-    _parse_domain!(fmt, model_data, json_data)
-    _parse_terms!(fmt, model_data, json_data)
-    _parse_solutions!(fmt, model_data, json_data)
+    _parse_version!(model_data, json_data, fmt)
+    _parse_domain!(model_data, json_data, fmt)
+    _parse_terms!(model_data, json_data, fmt)
+    _parse_solutions!(model_data, json_data, fmt)
 
     return Model{Int,Float64,Int}(
         model_data[:variable_set],
@@ -38,7 +38,7 @@ function read_model(io::IO, fmt::BQPJSON{S}) where {S}
     )
 end
 
-function _parse_version!(fmt::BQPJSON, ::Dict{Symbol,Any}, json_data::Dict{String,Any})
+function _parse_version!(::Dict{Symbol,Any}, json_data::Dict{String,Any}, fmt::BQPJSON)
     bqpjson_version = VersionNumber(json_data["version"])
 
     if bqpjson_version !== fmt.version
@@ -53,7 +53,7 @@ function _parse_version!(fmt::BQPJSON, ::Dict{Symbol,Any}, json_data::Dict{Strin
     return nothing
 end
 
-function _parse_domain!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{String,Any})
+function _parse_domain!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::BQPJSON)
     bqpjson_domain = json_data["variable_domain"]
 
     if bqpjson_domain == "boolean"
@@ -67,7 +67,7 @@ function _parse_domain!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{Strin
     return nothing
 end
 
-function _parse_terms!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{String,Any})
+function _parse_terms!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::BQPJSON)
     # Variables
     V = data[:variable_set]
 
@@ -109,7 +109,7 @@ function _parse_terms!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{String
     return nothing
 end
 
-function _parse_solutions!(::BQPJSON, data::Dict{Symbol,Any}, json_data::Dict{String,Any})
+function _parse_solutions!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::BQPJSON)
     solutions = get(data, "solutions", nothing)
 
     if isnothing(solutions)
