@@ -58,7 +58,7 @@ function topology(Φ::F) where {T,F<:AbstractForm{T}}
 
     for t in quadratic_terms(Φ)
         i, j = first(t)
-        
+
         push!(E, Graphs.Edge{Int}(i, j))
     end
 

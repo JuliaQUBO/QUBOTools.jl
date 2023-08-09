@@ -79,13 +79,14 @@ function test_model(V = Symbol, T = Float64, U = Int)
                 @test QUBOTools.variable_inv(model, 3) == :y
                 @test_throws Exception QUBOTools.variable_inv(model, 9)
 
-                @test QUBOTools.variables(model)    == [:w, :x, :y, :z, :α, :β, :γ, :ξ]
-                @test QUBOTools.variable_set(model) == Set{V}([:w, :x, :y, :z, :α, :β, :γ, :ξ])
+                @test QUBOTools.variables(model) == [:w, :x, :y, :z, :α, :β, :γ, :ξ]
+                @test QUBOTools.variable_set(model) ==
+                      Set{V}([:w, :x, :y, :z, :α, :β, :γ, :ξ])
 
-                @test QUBOTools.scale(model)  == 2.0
+                @test QUBOTools.scale(model) == 2.0
                 @test QUBOTools.offset(model) == -1.0
 
-                @test QUBOTools.id(model)          == 33
+                @test QUBOTools.id(model) == 33
                 @test QUBOTools.description(model) == "A QUBO Model"
             end
         end

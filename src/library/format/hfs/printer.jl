@@ -11,8 +11,8 @@ function write_model(io::IO, model::AbstractModel, fmt::HFS)
 
     for (i, q) in chimera.linear_terms
         args = [
-            collect(chimera.coordinates[variable_inv(model, i)]);
-            collect(chimera.coordinates[variable_inv(model, i)]);
+            collect(chimera.coordinates[variable_inv(model, i)])
+            collect(chimera.coordinates[variable_inv(model, i)])
             q
         ]
 
@@ -21,8 +21,8 @@ function write_model(io::IO, model::AbstractModel, fmt::HFS)
 
     for ((i, j), Q) in chimera.quadratic_terms
         args = [
-            collect(chimera.coordinates[variable_inv(model, i)]);
-            collect(chimera.coordinates[variable_inv(model, j)]);
+            collect(chimera.coordinates[variable_inv(model, i)])
+            collect(chimera.coordinates[variable_inv(model, j)])
             Q
         ]
 

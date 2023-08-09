@@ -72,7 +72,7 @@ function _print_metadata(io::IO, data::Dict{Symbol,Any}, fmt::QUBO)
     offset   = data[:offset]
     metadata = data[:metadata]
 
-    !isnothing(scale)  && _print_metadata_entry(io, "scale", scale, fmt)
+    !isnothing(scale) && _print_metadata_entry(io, "scale", scale, fmt)
     !isnothing(offset) && _print_metadata_entry(io, "offset", offset, fmt)
 
     if !isnothing(metadata)

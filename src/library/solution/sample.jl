@@ -42,7 +42,7 @@ raw"""
     _merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
 
 Assumes that `state(u) == state(v)` and `value(u) ≈ value(v)`.
-""" 
+"""
 function _merge(u::Sample{T,U}, v::Sample{T,U}) where {T,U}
     return Sample{T,U}(state(u), value(u), reads(u) + reads(v))
 end
@@ -53,7 +53,7 @@ raw"""
 Sorts a vector of samples by
     1. Energy value, in ascending order
     2. Sampling Frequency, in descending order
-""" 
+"""
 function _sort_and_merge(data::V) where {T,U,V<:AbstractVector{Sample{T,U}}}
     bits  = nothing
     cache = sizehint!(Dict{Vector{U},Sample{T,U}}(), length(data))

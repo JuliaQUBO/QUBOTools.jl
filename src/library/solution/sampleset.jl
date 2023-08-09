@@ -73,8 +73,12 @@ end
 SampleSet{T}(args...; kws...) where {T} = SampleSet{T,Int}(args...; kws...)
 SampleSet(args...; kws...)              = SampleSet{Float64}(args...; kws...)
 
-Base.copy(sol::SampleSet{T,U}) where {T,U} =
-    SampleSet{T,U}(collect(sol), deepcopy(metadata(sol)); sense = sense(sol), domain = domain(sol))
+Base.copy(sol::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(
+    collect(sol),
+    deepcopy(metadata(sol));
+    sense = sense(sol),
+    domain = domain(sol),
+)
 
 Base.:(==)(sol::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = (sol.data == η.data)
 

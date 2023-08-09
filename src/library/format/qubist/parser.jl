@@ -30,7 +30,7 @@ function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)
     end
 
     dimension = tryparse(Int, m[1])
-    total_size  = tryparse(Int, m[2])
+    total_size = tryparse(Int, m[2])
 
     if isnothing(dimension) || isnothing(total_size)
         syntax_error("Invalid header: '$line'")
@@ -55,7 +55,7 @@ end
 function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::Qubist)
     isempty(line) && return nothing
 
-    _parse_entry!(data, line, fmt)  && return nothing
+    _parse_entry!(data, line, fmt) && return nothing
     _parse_header!(data, line, fmt) && return nothing
 
     syntax_error("'$line'")

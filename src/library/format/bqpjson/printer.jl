@@ -16,10 +16,7 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
     for (i, l) in linear_terms(model)
         push!(
             data[:linear_terms],
-            Dict{String,Any}(
-                "id"    => variable_inv(model, i),
-                "coeff" => l,
-            )
+            Dict{String,Any}("id" => variable_inv(model, i), "coeff" => l),
         )
     end
 
@@ -30,12 +27,12 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
                 "id_head" => variable_inv(model, i),
                 "id_tail" => variable_inv(model, j),
                 "coeff"   => q,
-            )
+            ),
         )
     end
 
-    sort!(data[:linear_terms]   ; by=(lt) -> lt["id"])
-    sort!(data[:quadratic_terms]; by=(qt) -> (qt["id_head"], qt["id_tail"]))
+    sort!(data[:linear_terms]; by = (lt) -> lt["id"])
+    sort!(data[:quadratic_terms]; by = (qt) -> (qt["id_head"], qt["id_tail"]))
 
     json_data = Dict{String,Any}(
         "id"              => data[:id],
@@ -65,10 +62,8 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
 
         for s in data[:solution]
             assignment = Dict{String,Any}[
-                Dict{String,Any}(
-                    "id"    => i,
-                    "value" => state(s, i),
-                ) for i in values(variable_map(model))
+                Dict{String,Any}("id" => i, "value" => state(s, i)) for
+                i in values(variable_map(model))
             ]
 
             for _ = 1:reads(s)
@@ -78,7 +73,7 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
                         "id"         => (sol_id += 1),
                         "assignment" => assignment,
                         "evaluation" => value(sample),
-                    )
+                    ),
                 )
             end
         end

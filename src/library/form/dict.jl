@@ -17,8 +17,8 @@ struct DictForm{T} <: AbstractForm{T}
         n::Integer,
         L::LinearDictForm{T},
         Q::QuadraticDictForm{T},
-        α::T = one(T),
-        β::T = zero(T);
+        α::T                         = one(T),
+        β::T                         = zero(T);
         sense::Union{Sense,Symbol}   = :min,
         domain::Union{Domain,Symbol} = :bool,
     ) where {T}
@@ -114,7 +114,7 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:DictForm{T}}
             J[(i, j)] = get(J, (i, j), zero(T)) + v / 4
             h[i]      = get(h, i, zero(T)) + v / 4
             h[j]      = get(h, j, zero(T)) + v / 4
-            β += v / 4
+            β         += v / 4
         end
 
         return F(n, h, J, α, β; sense = sense(Φ), domain = t)

@@ -6,25 +6,25 @@ DocMeta.setdocmeta!(QUBOTools, :DocTestSetup, :(using QUBOTools); recursive = tr
 
 makedocs(;
     modules = [QUBOTools],
-    doctest = true, 
-    clean   = true,
-    format  = Documenter.HTML(
+    doctest = true,
+    clean = true,
+    format = Documenter.HTML(
         assets           = ["assets/extra_styles.css", "assets/favicon.ico"],
         mathengine       = Documenter.KaTeX(),
         sidebar_sitename = false,
     ),
     sitename = "QUBOTools.jl",
     authors = "Pedro Xavier and Pedro Ripper and Tiago Andrade and Joaquim Garcia and David Bernal",
-    pages = [   
-        "Home"    => "index.md",
-        "Manual"  => [
+    pages = [
+        "Home" => "index.md",
+        "Manual" => [
             "Introduction"             => "manual/1-start.md",
             "Mathematical Formulation" => "manual/2-math.md",
             "Basic Usage"              => "manual/3-usage.md",
             "Models"                   => "manual/4-models.md",
             "File Formats"             => "manual/5-formats.md",
             "Solutions"                => "manual/6-solutions.md",
-            "Analysis"                 => "manual/7-analysis.md"
+            "Analysis"                 => "manual/7-analysis.md",
         ],
         "Formats" => [
             "BQPJSON"  => "formats/BQPJSON.md",
@@ -35,7 +35,7 @@ makedocs(;
         ],
         "API Reference" => "api.md",
     ],
-    workdir = @__DIR__,
+    workdir = @__DIR__
 )
 
 if "--skip-deploy" ∈ ARGS

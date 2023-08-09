@@ -17,8 +17,8 @@ struct SparseForm{T} <: AbstractForm{T}
         n::Integer,
         L::LinearSparseForm{T},
         Q::QuadraticSparseForm{T},
-        α::T = one(T),
-        β::T = zero(T);
+        α::T                         = one(T),
+        β::T                         = zero(T);
         sense::Union{Sense,Symbol}   = :min,
         domain::Union{Domain,Symbol} = :bool,
     ) where {T}

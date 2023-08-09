@@ -1,5 +1,5 @@
 function _print_header(io::IO, data::Dict{Symbol,Any}, ::Qubist)
-    dimension    = data[:dimension]
+    dimension      = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
 
@@ -10,7 +10,7 @@ end
 
 function write_model(io::IO, model::AbstractModel, fmt::Qubist)
     data = Dict{Symbol,Any}(
-        :dimension    => dimension(model),
+        :dimension      => dimension(model),
         :linear_size    => linear_size(model),
         :quadratic_size => quadratic_size(model),
     )

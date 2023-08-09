@@ -1,5 +1,5 @@
 function test_solution_states()
-    @testset "States" begin
+    @testset "⋅ States" begin
         # ~ Short-Circuit ~ #
         @test QUBOTools.cast(𝕊 => 𝕊, [↑, ↓, ↑]) == [↑, ↓, ↑]
         @test QUBOTools.cast(𝕊 => 𝕊, [↓, ↑, ↓]) == [↓, ↑, ↓]
@@ -31,7 +31,7 @@ function test_solution_states()
 end
 
 function test_solution_samples()
-    @testset "Samples" begin
+    @testset "⋅ Samples" begin
         let s = Sample([0, 1], 1.0, 3)
             @test length(s) == 2
             @test QUBOTools.state(s) == [0, 1]
@@ -40,7 +40,7 @@ function test_solution_samples()
 
             @test s[1] == 0
             @test s[2] == 1
-            @test_throws BoundsError s[3] 
+            @test_throws BoundsError s[3]
 
             @test Sample([1, 1], 1.0, 3) != s
             @test Sample([0, 1], 2.0, 3) != s
@@ -53,11 +53,11 @@ function test_solution_samples()
 end
 
 function test_solution_sampleset()
-    @testset "SampleSet" begin
+    @testset "⋅ SampleSet" begin
         let null_set = SampleSet()
             @test isempty(null_set)
             @test isempty(null_set.metadata)
-            
+
             # ~ index ~ #
             @test size(null_set) == (0,)
             @test size(null_set, 1) == length(null_set) == 0
@@ -82,18 +82,14 @@ function test_solution_sampleset()
             @test sol isa SampleSet{Float64,Int}
         end
 
-        @test_throws SolutionError SampleSet(
-            [
-                Sample([0, 0],    0.0, 1),
-                Sample([0, 0, 1], 0.0, 1),
-            ],
-        )
-        @test_throws SolutionError SampleSet(
-            [
-                Sample([0, 0], 0.0, 1),
-                Sample([0, 0], 0.1, 1),
-            ],
-        )
+        @test_throws SolutionError SampleSet([
+            Sample([0, 0], 0.0, 1),
+            Sample([0, 0, 1], 0.0, 1),
+        ],)
+        @test_throws SolutionError SampleSet([
+            Sample([0, 0], 0.0, 1),
+            Sample([0, 0], 0.1, 1),
+        ],)
         # ~*~ Merge & Sort ~*~#
         u = Sample{Float64,Int}[
             Sample([0, 0], 0.0, 1),
@@ -107,9 +103,9 @@ function test_solution_sampleset()
         ]
 
         v = Sample{Float64,Int}[
-            Sample([0, 0], 0.0,  3),
+            Sample([0, 0], 0.0, 3),
             Sample([1, 1], 1.0, 15),
-            Sample([0, 1], 2.0,  7),
+            Sample([0, 1], 2.0, 7),
             Sample([1, 0], 4.0, 11),
         ]
 
@@ -170,10 +166,7 @@ function test_solution_sampleset()
         ]
 
         # ~*~ Domain translation ~*~ #
-        let (bool_set, spin_set) = (
-                SampleSet(bool_sol),
-                SampleSet(spin_sol),
-            )
+        let (bool_set, spin_set) = (SampleSet(bool_sol), SampleSet(spin_sol))
             # ~ index ~ #
             @test size(bool_set) == (4,)
             @test size(spin_set) == (4,)
@@ -183,8 +176,8 @@ function test_solution_sampleset()
             @test size(spin_set, 2) == 1
             @test bool_set[begin] === bool_set[1]
             @test spin_set[begin] === spin_set[1]
-            @test bool_set[end]   === bool_set[4]
-            @test spin_set[end]   === spin_set[4]
+            @test bool_set[end] === bool_set[4]
+            @test spin_set[end] === spin_set[4]
 
             # ~ state ~ #
             @test state(bool_set, 1) == [1, 1]
@@ -252,7 +245,7 @@ function test_solution_sampleset()
 end
 
 function test_solution()
-    @testset "→ Solution" begin
+    @testset "→ Solution" verbose = true begin
         test_solution_states()
         test_solution_samples()
     end

@@ -5,13 +5,11 @@ This file contains fallback implementations by calling the model's backend.
 This allows for external models to define a QUBOTools-based backend and profit from these queries.
 """
 
-backend(::M) where {M} = error(
-    """
-    '$M' has an incomplete inferface for 'QUBOTools'.
-    It should either implement 'backend(::$M)' or the complete 'AbstractModel' API.
-    Run `julia> ?QUBOTools.AbstractModel` for more information.
-    """
-)
+backend(::M) where {M} = error("""
+                               '$M' has an incomplete inferface for 'QUBOTools'.
+                               It should either implement 'backend(::$M)' or the complete 'AbstractModel' API.
+                               Run `julia> ?QUBOTools.AbstractModel` for more information.
+                               """)
 
 # Data access
 name(model)                  = name(backend(model))
@@ -46,7 +44,7 @@ value(model, i)  = value(backend(model), i)
 reads(model)     = reads(backend(model))
 reads(model, i)  = reads(backend(model), i)
 sample(model, i) = sample(backend(model), i)
-solution(model)  = solution(backend(model)) 
+solution(model)  = solution(backend(model))
 
 # Data queries
 dimension(model)      = dimension(backend(model))

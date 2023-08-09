@@ -1,5 +1,5 @@
 function test_form_dict()
-    @testset "Dict Form" begin
+    @testset "⋅ Dict" begin
         L̄ = Dict{Int,Float64}(1 => 10.0, 2 => 11.0, 3 => 12.0)
         Q̄ = Dict{Tuple{Int,Int},Float64}(
             (1, 1) => 1.0,
@@ -166,33 +166,25 @@ function test_form_dict()
         end
 
         @testset "Topology" begin
-            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
         end
     end
 
@@ -200,7 +192,7 @@ function test_form_dict()
 end
 
 function test_form_sparse()
-    @testset "Sparse Form" begin
+    @testset "⋅ Sparse" begin
         L̄ = sparse([10.0, 11.0, 12.0])
         Q̄ = sparse([
             1.0 4.0 0.0
@@ -394,33 +386,25 @@ function test_form_sparse()
         end
 
         @testset "Topology" begin
-            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
         end
     end
 
@@ -428,7 +412,7 @@ function test_form_sparse()
 end
 
 function test_form_dense()
-    @testset "Dense Form" begin
+    @testset "⋅ Dense" begin
         L̄ = [10.0, 11.0, 12.0]
         Q̄ = [
             1.0 4.0 0.0
@@ -613,33 +597,25 @@ function test_form_dense()
         end
 
         @testset "Topology" begin
-            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
 
-            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph(
-                [
-                    QUBOTools.Graphs.Edge(1, 2),
-                    QUBOTools.Graphs.Edge(2, 3),
-                ]
-            )
+            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph([
+                QUBOTools.Graphs.Edge(1, 2),
+                QUBOTools.Graphs.Edge(2, 3),
+            ])
         end
     end
 
@@ -647,7 +623,7 @@ function test_form_dense()
 end
 
 function test_form()
-    @testset "→ Form" begin
+    @testset "→ Form" verbose = true begin
         test_form_dict()
         test_form_sparse()
         test_form_dense()

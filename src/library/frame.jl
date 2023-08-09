@@ -1,4 +1,4 @@
-sense(s::Sense) = s    
+sense(s::Sense) = s
 
 function sense(s::Symbol)
     if s === :min
@@ -69,6 +69,6 @@ end
 @doc raw"""
     cast((s,t)::Route{Frame}, obj::Any)
 """
-function cast((s,t)::Route{Frame}, obj::Any)
+function cast((s, t)::Route{Frame}, obj::Any)
     return cast(sense(s) => sense(t), cast(domain(s) => domain(t), obj))
 end

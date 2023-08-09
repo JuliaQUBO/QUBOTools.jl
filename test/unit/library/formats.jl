@@ -1,5 +1,5 @@
 function test_format_hints()
-        @testset "⋅ Format Hints" begin
+    @testset "⋅ Format Hints" begin
         @test QUBOTools.format(:bool, :json) isa QUBOTools.BQPJSON
         @test QUBOTools.format("file.bool.json") isa QUBOTools.BQPJSON
 
@@ -27,7 +27,8 @@ function test_bqpjson_format()
     @testset "⋅ BQPJSON" begin
         @testset "bool" begin
             for i = 0:2
-                file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "bool.json")
+                file_path =
+                    joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "bool.json")
                 temp_path = "$(tempname()).bool.json"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -44,7 +45,8 @@ function test_bqpjson_format()
 
         @testset "spin" begin
             for i = 0:2
-                file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "spin.json")
+                file_path =
+                    joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "spin.json")
                 temp_path = "$(tempname()).spin.json"
 
                 src_model = QUBOTools.read_model(file_path)

@@ -233,7 +233,7 @@ const adjacency = topology
 """
 function read_model end
 
- @doc raw"""
+@doc raw"""
     write_model(::AbstractString, ::AbstractModel)
     write_model(::AbstractString, ::AbstractModel, ::AbstractFormat)
     write_model(::IO, ::AbstractModel, ::AbstractFormat)

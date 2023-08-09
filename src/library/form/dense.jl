@@ -17,8 +17,8 @@ struct DenseForm{T} <: AbstractForm{T}
         n::Integer,
         L::AbstractVector{T},
         Q::AbstractMatrix{T},
-        α::T = one(T),
-        β::T = zero(T);
+        α::T                         = one(T),
+        β::T                         = zero(T);
         sense::Union{Sense,Symbol}   = :min,
         domain::Union{Domain,Symbol} = :bool,
     ) where {T}

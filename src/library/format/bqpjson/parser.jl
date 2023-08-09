@@ -42,12 +42,10 @@ function _parse_version!(::Dict{Symbol,Any}, json_data::Dict{String,Any}, fmt::B
     bqpjson_version = VersionNumber(json_data["version"])
 
     if bqpjson_version !== fmt.version
-        codec_error(
-            """
-            Invalid BQPJSON version '$(bqpjson_version)'.
-            The specified codec version is '$(fmt.version)'
-            """
-        )
+        codec_error("""
+                    Invalid BQPJSON version '$(bqpjson_version)'.
+                    The specified codec version is '$(fmt.version)'
+                    """)
     end
 
     return nothing

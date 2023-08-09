@@ -35,7 +35,11 @@ function _write_model(
     return nothing
 end
 
-function _write_model_variables(fp::HDF5.File, model::M, ::QUBin) where {V,T,U,M<:AbstractModel{V,T,U}}
+function _write_model_variables(
+    fp::HDF5.File,
+    model::M,
+    ::QUBin,
+) where {V,T,U,M<:AbstractModel{V,T,U}}
     fp["model"]["variables"] = variables(model)
 
     return nothing

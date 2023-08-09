@@ -9,10 +9,7 @@ function test_metrics()
                 QUBOTools.Sample([1, 0, 0], 4.0, 4),
             ],
             Dict{String,Any}(
-                "time" => Dict{String,Any}(
-                    "total"     => 2.0,
-                    "effective" => 1.0
-                ),
+                "time" => Dict{String,Any}("total" => 2.0, "effective" => 1.0),
             ),
         )
 
@@ -31,9 +28,9 @@ function test_metrics()
             end
 
             let s = QUBOTools.SampleSet(
-                QUBOTools.Sample{Float64,Int}[],
-                Dict{String,Any}("time" => Dict{String,Any}()),
-            )
+                    QUBOTools.Sample{Float64,Int}[],
+                    Dict{String,Any}("time" => Dict{String,Any}()),
+                )
                 @test isnan(QUBOTools.total_time(s))
                 @test isnan(QUBOTools.effective_time(s))
                 @test isnan(QUBOTools.success_rate(s, 0.0))
@@ -41,13 +38,9 @@ function test_metrics()
             end
 
             let s = QUBOTools.SampleSet(
-                QUBOTools.Sample{Float64,Int}[],
-                Dict{String,Any}(
-                    "time" => Dict{String,Any}(
-                        "total" => 1.0,
-                    )
-                ),
-            )
+                    QUBOTools.Sample{Float64,Int}[],
+                    Dict{String,Any}("time" => Dict{String,Any}("total" => 1.0)),
+                )
                 @test QUBOTools.total_time(s) == 1.0
                 @test QUBOTools.effective_time(s) == 1.0
                 @test isnan(QUBOTools.success_rate(s, 0.0))
@@ -106,18 +99,10 @@ end
 
 function test_model_density_plot()
     @testset "⋅ Model Density" begin
-        L = Dict{Int,Float64}(
-            1 => 0.5,
-            2 => 2.0,
-            3 => -3.0,
-        )
-        Q = Dict{Tuple{Int,Int},Float64}(
-            (1,2) => 2.0,
-            (1,3) => -2.0,
-            (2,3) => 0.5,
-        )
+        L = Dict{Int,Float64}(1 => 0.5, 2 => 2.0, 3 => -3.0)
+        Q = Dict{Tuple{Int,Int},Float64}((1, 2) => 2.0, (1, 3) => -2.0, (2, 3) => 0.5)
 
-        m = QUBOTools.Model{Int,Float64,Int}(L, Q; domain=:bool)
+        m = QUBOTools.Model{Int,Float64,Int}(L, Q; domain = :bool)
         p = QUBOTools.ModelDensityPlot(m)
 
         let r = RecipesBase.apply_recipe(Dict{Symbol,Any}(), p)

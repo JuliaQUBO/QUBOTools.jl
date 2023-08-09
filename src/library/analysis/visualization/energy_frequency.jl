@@ -2,12 +2,18 @@ struct EnergyFrequencyPlot{T,U,S<:AbstractSolution{T,U}} <: AbstractVisualizatio
     solution::S
     λ::Union{T,Nothing}
 
-    function EnergyFrequencyPlot(solution::S, λ::Union{T,Nothing} = nothing) where {T,U,S<:AbstractSolution{T,U}}
+    function EnergyFrequencyPlot(
+        solution::S,
+        λ::Union{T,Nothing} = nothing,
+    ) where {T,U,S<:AbstractSolution{T,U}}
         return new{T,U,S}(solution, λ)
     end
 end
 
-function EnergyFrequencyPlot(model::AbstractModel{V,T,U}, λ::Union{T,Nothing} = nothing) where {V,T,U}
+function EnergyFrequencyPlot(
+    model::AbstractModel{V,T,U},
+    λ::Union{T,Nothing} = nothing,
+) where {V,T,U}
     return EnergyFrequencyPlot(solution(model), λ)
 end
 
@@ -16,7 +22,7 @@ function EnergyFrequencyPlot(model::Any, λ = nothing)
 end
 
 @recipe function plot(plt::EnergyFrequencyPlot{T,U,S}) where {T,U,S}
-    title  --> "Solution Summary"
+    title --> "Solution Summary"
     xlabel --> "Energy"
     ylabel --> "Frequency"
     legend --> nothing
@@ -40,8 +46,8 @@ end
 
     if plt.λ !== nothing
         @series begin
-            legend    --> "Ground Energy"
-            color     --> :red
+            legend --> "Ground Energy"
+            color --> :red
             seriestype := :vline
 
             ([plt.λ],)

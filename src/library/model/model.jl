@@ -139,11 +139,11 @@ function Model{V,T,U}(
     variable_set::Set{V},
     linear_terms::Dict{V,T},
     quadratic_terms::Dict{Tuple{V,V},T};
-    scale::T = one(T),
-    offset::T = zero(T),
+    scale::T                     = one(T),
+    offset::T                    = zero(T),
     sense::Union{Sense,Symbol}   = :min,
     domain::Union{Domain,Symbol} = :bool,
-    kws...
+    kws...,
 ) where {V,T,U}
     variable_map = VariableMap{V}(variable_set)
 

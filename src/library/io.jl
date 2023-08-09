@@ -4,7 +4,11 @@ function read_model(path::AbstractString, fmt::AbstractFormat = format(path))
     end
 end
 
-function write_model(path::AbstractString, model::AbstractModel, fmt::AbstractFormat = format(path))
+function write_model(
+    path::AbstractString,
+    model::AbstractModel,
+    fmt::AbstractFormat = format(path),
+)
     return open(path, "w") do fp
         return write_model(fp, model, fmt)
     end
