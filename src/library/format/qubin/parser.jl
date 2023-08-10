@@ -13,6 +13,16 @@ function read_model(fp::HDF5.File, fmt::QUBin)
     return _parse_model(form, variables; metadata, solution)
 end
 
+function read_solution(path::AbstractString, fmt::QUBin)
+    return HDF5.h5open(path, "r") do fp
+        return read_solution(fp, fmt)
+    end
+end
+
+function read_solution(fp::HDF5.File, fmt::QUBin)
+    return _parse_solution(fp, fmt)
+end
+
 function _parse_model(
     form::SparseForm{T},
     variables::VariableMap{V};

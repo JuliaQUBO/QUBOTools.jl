@@ -71,3 +71,17 @@ function value end
 An alias for [`value`](@ref).
 """
 const energy = value
+
+@doc raw"""
+    read_solution(::AbstractString)
+    read_solution(::AbstractString, ::AbstractFormat)
+    read_solution(::IO, ::AbstractFormat)
+"""
+function read_solution end
+
+@doc raw"""
+    write_solution(::AbstractString, ::AbstractSolution)
+    write_solution(::AbstractString, ::AbstractSolution, ::AbstractFormat)
+    write_solution(::IO, ::AbstractSolution, ::AbstractFormat)
+"""
+function write_solution end

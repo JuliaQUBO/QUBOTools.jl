@@ -21,6 +21,20 @@ function write_model(
     return nothing
 end
 
+function write_solution(path::AbstractString, sol::S, fmt::QUBin) where {S<:AbstractSolution}
+    HDF5.h5open(path, "w") do fp
+        write_solution(fp, sol, fmt)
+    end
+
+    return nothing
+end
+
+function write_solution(fp::HDF5.File, sol::S, fmt::QUBin) where {S<:AbstractSolution}
+    _write_solution(fp, sol, fmt)
+
+    return nothing
+end
+
 function _write_model(
     fp::HDF5.File,
     model::M,
