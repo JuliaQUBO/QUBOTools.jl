@@ -23,18 +23,20 @@ function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)
 end
 
 function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)
-    m = match(r"^([0-9]+) ([0-9]+)$", line)
+    m = match(r"^([0-9]+)\s+([0-9]+)$", line)
 
     if isnothing(m)
         return false
     end
 
-    dimension = tryparse(Int, m[1])
-    total_size = tryparse(Int, m[2])
+    dimension  = parse(Int, m[1])
+    total_size = parse(Int, m[2])
 
     if isnothing(dimension) || isnothing(total_size)
         syntax_error("Invalid header: '$line'")
     end
+
+    data[:dimension] = dimension
 
     # TODO: `sizehint!` linear and quadratic collections
     # IDEA: 
@@ -72,9 +74,10 @@ function read_model(io::IO, fmt::Qubist)
     end
 
     return Model{Int,Float64,Int}(
+        Set{Int}(1:data[:dimension]),
         data[:linear_terms],
         data[:quadratic_terms],
-        sense = Min,
-        domain = SpinDomain,
+        sense  = :min,
+        domain = :spin,
     )
 end

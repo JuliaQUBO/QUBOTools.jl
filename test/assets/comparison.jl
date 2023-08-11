@@ -21,6 +21,8 @@ function _compare_models(
 ) where {V,T,U,M<:QUBOTools.AbstractModel{V,T,U}}
     _compare_frames(QUBOTools.frame(src), QUBOTools.frame(dst))
 
+    _compare_variables(QUBOTools.variables(src), QUBOTools.variables(dst))
+
     _compare_forms(
         QUBOTools.form(src),
         QUBOTools.form(dst);
@@ -43,6 +45,12 @@ function _compare_models(
             atol,
         )
     end
+
+    return nothing
+end
+
+@inline function _compare_variables(src::Vector{V}, dst::Vector{V}) where {V}
+    @test src == dst
 
     return nothing
 end

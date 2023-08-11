@@ -118,7 +118,7 @@ function test_qubist_format()
 end
 
 function test_qubin_format()
-    @testset "⋅ QuBin" begin
+    @testset "⋅ QUBin" begin
         @testset "bool" begin
             for i = 0:2
                 file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "bool.qb")
