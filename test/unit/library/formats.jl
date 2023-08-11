@@ -40,6 +40,8 @@ function test_bqpjson_format()
                 dst_model = QUBOTools.read_model(temp_path)
 
                 @test dst_model isa QUBOTools.Model
+
+                _compare_models(src_model, dst_model)
             end
         end
 
@@ -58,6 +60,8 @@ function test_bqpjson_format()
                 dst_model = QUBOTools.read_model(temp_path)
 
                 @test dst_model isa QUBOTools.Model
+
+                _compare_models(src_model, dst_model)
             end
         end
     end
@@ -82,6 +86,8 @@ function test_qubo_format()
             dst_model = QUBOTools.read_model(temp_path, fmt)
 
             @test dst_model isa QUBOTools.Model
+
+            _compare_models(src_model, dst_model)
         end
     end
 
@@ -103,6 +109,8 @@ function test_qubist_format()
             dst_model = QUBOTools.read_model(temp_path)
 
             @test dst_model isa QUBOTools.Model
+
+            _compare_models(src_model, dst_model)
         end
     end
 
@@ -125,6 +133,8 @@ function test_qubin_format()
                 dst_model = QUBOTools.read_model(temp_path)
 
                 @test dst_model isa QUBOTools.Model
+
+                _compare_models(src_model, dst_model)
             end
         end
 
@@ -142,6 +152,8 @@ function test_qubin_format()
                 dst_model = QUBOTools.read_model(temp_path)
 
                 @test dst_model isa QUBOTools.Model
+
+                _compare_models(src_model, dst_model)
             end
         end
     end

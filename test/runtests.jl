@@ -6,6 +6,9 @@ using QUBOTools
 
 const __TEST_PATH__ = @__DIR__
 
+# Include assets
+include("assets/comparison.jl")
+
 # Include test functions
 include("unit/unit.jl")
 
