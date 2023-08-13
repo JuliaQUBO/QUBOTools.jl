@@ -27,25 +27,20 @@ QUBOTools.description(model)
 ```
 
 ```@example manual
-QUBOTools.linear_terms(model)
+QUBOTools.linear_terms(model) |> collect
 ```
 
 ```@example manual
-QUBOTools.quadratic_terms(model)
+QUBOTools.quadratic_terms(model) |> collect
 ```
 
 ## File formats
 
 ### Conversion between formats
+
 One of the main functionalities of this package is to allow fast conversion from a QUBO file format to another.
 Achieving this is as simple as writing the loaded model but providing a different specification:
 
 ```@example manual
-QUBOTools.write_model(stdout, model, QUBO())
-```
-
-It can also be used to switch between variable domains while keeping the file format unchanged:
-
-```@example manual
-QUBOTools.write_model(stdout, model, BQPJSON(SpinDomain(); indent = 4))
+QUBOTools.write_model(stdout, model, QUBOTools.Qubist())
 ```

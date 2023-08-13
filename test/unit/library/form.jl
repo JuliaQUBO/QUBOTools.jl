@@ -1,3 +1,112 @@
+function test_form_cast(Φ̄::F, Φ::F, Ψ̄::F, Ψ::F) where {T,F<:QUBOTools.AbstractForm{T}}
+    @testset "Casting" begin
+        @testset "Sense" begin
+            # no-op
+            @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Min, Φ̄) === Φ̄
+            @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Max, Φ) === Φ
+            @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Min, Ψ̄) === Ψ̄
+            @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Max, Ψ) === Ψ
+
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.Max => QUBOTools.Max,
+                Φ̄,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.Min => QUBOTools.Min,
+                Φ,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.Max => QUBOTools.Max,
+                Ψ̄,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.Min => QUBOTools.Min,
+                Ψ,
+            )
+
+            @test _compare_forms(QUBOTools.cast(QUBOTools.Min => QUBOTools.Max, Φ̄), Φ)
+            @test _compare_forms(QUBOTools.cast(QUBOTools.Max => QUBOTools.Min, Φ), Φ̄)
+            @test _compare_forms(QUBOTools.cast(QUBOTools.Min => QUBOTools.Max, Ψ̄), Ψ)
+            @test _compare_forms(QUBOTools.cast(QUBOTools.Max => QUBOTools.Min, Ψ), Ψ̄)
+
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.Max => QUBOTools.Min,
+                Φ̄,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.Min => QUBOTools.Max,
+                Φ,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.Max => QUBOTools.Min,
+                Ψ̄,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.Min => QUBOTools.Max,
+                Ψ,
+            )
+        end
+
+        @testset "Domain" begin
+            # no-op
+            @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.BoolDomain, Φ̄) === Φ̄
+            @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.SpinDomain, Ψ̄) === Ψ̄
+            @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.BoolDomain, Φ) === Φ
+            @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.SpinDomain, Ψ) === Ψ
+
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.BoolDomain => QUBOTools.BoolDomain,
+                Ψ,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.SpinDomain => QUBOTools.SpinDomain,
+                Φ,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.BoolDomain => QUBOTools.BoolDomain,
+                Ψ̄,
+            )
+            @test_throws AssertionError QUBOTools.cast(
+                QUBOTools.SpinDomain => QUBOTools.SpinDomain,
+                Φ̄,
+            )
+
+            @test _compare_forms(QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.SpinDomain, Φ̄), Ψ̄)
+            @test _compare_forms(QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ̄), Φ̄)
+            @test _compare_forms(QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.SpinDomain, Φ), Ψ)
+            @test _compare_forms(QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ), Φ)
+        end
+    end
+
+    return nothing
+end
+
+function test_form_topology(Φ̄::F, Φ::F, Ψ̄::F, Ψ::F) where {T,F<:QUBOTools.AbstractForm{T}}
+    @testset "Topology" begin
+        @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph([
+            QUBOTools.Graphs.Edge(1, 2),
+            QUBOTools.Graphs.Edge(2, 3),
+        ])
+
+        @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph([
+            QUBOTools.Graphs.Edge(1, 2),
+            QUBOTools.Graphs.Edge(2, 3),
+        ])
+
+        @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph([
+            QUBOTools.Graphs.Edge(1, 2),
+            QUBOTools.Graphs.Edge(2, 3),
+        ])
+
+        @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph([
+            QUBOTools.Graphs.Edge(1, 2),
+            QUBOTools.Graphs.Edge(2, 3),
+        ])
+    end
+
+    return nothing
+end
+
 function test_form_dict()
     @testset "⋅ Dict" begin
         L̄ = Dict{Int,Float64}(1 => 10.0, 2 => 11.0, 3 => 12.0)
@@ -80,112 +189,9 @@ function test_form_dict()
             )
         end
 
-        @testset "Casting" begin
-            @testset "Sense" begin
-                # no-op
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Min, Φ̄) === Φ̄
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Max, Φ) === Φ
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Min, Ψ̄) === Ψ̄
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Max, Ψ) === Ψ
+        test_form_cast(Φ̄, Φ, Ψ̄, Ψ)
 
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Max,
-                    Φ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Min,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Max,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Min,
-                    Ψ,
-                )
-
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Max, Φ̄) ≈ Φ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Min, Φ) ≈ Φ̄ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Max, Ψ̄) ≈ Ψ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Min, Ψ) ≈ Ψ̄ atol = 1E-10
-
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Min,
-                    Φ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Max,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Min,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Max,
-                    Ψ,
-                )
-            end
-
-            @testset "Domain" begin
-                # no-op
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.BoolDomain, Φ̄) ===
-                      Φ̄
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.SpinDomain, Ψ̄) ===
-                      Ψ̄
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.BoolDomain, Φ) === Φ
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.SpinDomain, Ψ) === Ψ
-
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.BoolDomain => QUBOTools.BoolDomain,
-                    Ψ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.SpinDomain => QUBOTools.SpinDomain,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.BoolDomain => QUBOTools.BoolDomain,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.SpinDomain => QUBOTools.SpinDomain,
-                    Φ̄,
-                )
-
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.SpinDomain, Φ̄) ≈ Ψ̄ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ̄) ≈ Φ̄ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.SpinDomain, Φ) ≈ Ψ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ) ≈ Φ atol =
-                    1E-10
-            end
-        end
-
-        @testset "Topology" begin
-            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-        end
+        test_form_topology(Φ̄, Φ, Ψ̄, Ψ)
     end
 
     return nothing
@@ -300,112 +306,9 @@ function test_form_sparse()
             ) atol = 1E-10
         end
 
-        @testset "Casting" begin
-            @testset "Sense" begin
-                # no-op
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Min, Φ̄) === Φ̄
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Max, Φ) === Φ
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Min, Ψ̄) === Ψ̄
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Max, Ψ) === Ψ
-
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Max,
-                    Φ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Min,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Max,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Min,
-                    Ψ,
-                )
-
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Max, Φ̄) ≈ Φ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Min, Φ) ≈ Φ̄ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Max, Ψ̄) ≈ Ψ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Min, Ψ) ≈ Ψ̄ atol = 1E-10
-
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Min,
-                    Φ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Max,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Min,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Max,
-                    Ψ,
-                )
-            end
-
-            @testset "Domain" begin
-                # no-op
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.BoolDomain, Φ̄) ===
-                      Φ̄
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.SpinDomain, Ψ̄) ===
-                      Ψ̄
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.BoolDomain, Φ) === Φ
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.SpinDomain, Ψ) === Ψ
-
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.BoolDomain => QUBOTools.BoolDomain,
-                    Ψ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.SpinDomain => QUBOTools.SpinDomain,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.BoolDomain => QUBOTools.BoolDomain,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.SpinDomain => QUBOTools.SpinDomain,
-                    Φ̄,
-                )
-
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.SpinDomain, Φ̄) ≈ Ψ̄ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ̄) ≈ Φ̄ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.SpinDomain, Φ) ≈ Ψ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ) ≈ Φ atol =
-                    1E-10
-            end
-        end
-
-        @testset "Topology" begin
-            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-        end
+        test_form_cast(Φ̄, Φ, Ψ̄, Ψ)
+        
+        test_form_topology(Φ̄, Φ, Ψ̄, Ψ)
     end
 
     return nothing
@@ -511,112 +414,9 @@ function test_form_dense()
             ) atol = 1E-10
         end
 
-        @testset "Casting" begin
-            @testset "Sense" begin
-                # no-op
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Min, Φ̄) === Φ̄
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Max, Φ) === Φ
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Min, Ψ̄) === Ψ̄
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Max, Ψ) === Ψ
-
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Max,
-                    Φ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Min,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Max,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Min,
-                    Ψ,
-                )
-
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Max, Φ̄) ≈ Φ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Min, Φ) ≈ Φ̄ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Min => QUBOTools.Max, Ψ̄) ≈ Ψ atol = 1E-10
-                @test QUBOTools.cast(QUBOTools.Max => QUBOTools.Min, Ψ) ≈ Ψ̄ atol = 1E-10
-
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Min,
-                    Φ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Max,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Max => QUBOTools.Min,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.Min => QUBOTools.Max,
-                    Ψ,
-                )
-            end
-
-            @testset "Domain" begin
-                # no-op
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.BoolDomain, Φ̄) ===
-                      Φ̄
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.SpinDomain, Ψ̄) ===
-                      Ψ̄
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.BoolDomain, Φ) === Φ
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.SpinDomain, Ψ) === Ψ
-
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.BoolDomain => QUBOTools.BoolDomain,
-                    Ψ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.SpinDomain => QUBOTools.SpinDomain,
-                    Φ,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.BoolDomain => QUBOTools.BoolDomain,
-                    Ψ̄,
-                )
-                @test_throws AssertionError QUBOTools.cast(
-                    QUBOTools.SpinDomain => QUBOTools.SpinDomain,
-                    Φ̄,
-                )
-
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.SpinDomain, Φ̄) ≈ Ψ̄ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ̄) ≈ Φ̄ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.BoolDomain => QUBOTools.SpinDomain, Φ) ≈ Ψ atol =
-                    1E-10
-                @test QUBOTools.cast(QUBOTools.SpinDomain => QUBOTools.BoolDomain, Ψ) ≈ Φ atol =
-                    1E-10
-            end
-        end
-
-        @testset "Topology" begin
-            @test QUBOTools.topology(Φ) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Ψ) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Φ̄) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-
-            @test QUBOTools.topology(Ψ̄) == QUBOTools.Graphs.Graph([
-                QUBOTools.Graphs.Edge(1, 2),
-                QUBOTools.Graphs.Edge(2, 3),
-            ])
-        end
+        test_form_cast(Φ̄, Φ, Ψ̄, Ψ)
+        
+        test_form_topology(Φ̄, Φ, Ψ̄, Ψ)
     end
 
     return nothing

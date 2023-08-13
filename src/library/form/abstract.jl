@@ -68,7 +68,7 @@ end
 function topology(Φ::F, k::Integer) where {T,F<:AbstractForm{T}}
     N = Set{Int}()
 
-    for ((i, j), v) in quadratic_terms(Φ)
+    for ((i, j), _) in quadratic_terms(Φ)
         if i == k
             push!(N, j)
         elseif j == k

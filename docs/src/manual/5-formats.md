@@ -1,6 +1,11 @@
 # Formats
 
-## Styles
+|              Format              | Read  | Write | Model | Solutions | Start | Metadata |
+| :------------------------------: | :---: | :---: | :---: | :-------: | :---: | :------: |
+| [BQPJSON](../formats/BQPJSON.md) |   ✅   |   ✅   |   ✅   |     ✅     |   ❌   |    ✅     |
+|   [QUBin](../formats/QUBin.md)   |   ✅   |   ✅   |   ✅   |     ✅     |   ✅   |    ✅     |
+|  [Qubist](../formats/Qubist.md)  |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ❌     |
+|    [QUBO](../formats/QUBO.md)    |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
 
 ## Custom File Format
 
@@ -8,23 +13,8 @@
 using QUBOTools
 
 struct SuperFormat <: QUBOTools.AbstractFormat
-    domain::Union{QUBOTools.BoolDomain,QUBOTools.SpinDomain,Nothing}
     super::Bool
 
-    function SuperFormat(
-        dom::Union{QUBOTools.BoolDomain,QUBOTools.SpinDomain,Nothing} = nothing,
-        sty::Nothing                                                  = nothing;
-        super::Bool                                                   = true
-    )
-        return new(dom, super)
-    end
+    SuperFormat(super::Bool = true) = new(super)
 end
-
-QUBOTools.domain(fmt::SuperFormat) = fmt.domain
-
-QUBOTools.supports_domain(::SuperFormat, ::Nothing) = true
-QUBOTools.supports_domain(::SuperFormat, ::QUBOTools.BoolDomain) = true
-QUBOTools.supports_domain(::SuperFormat, ::QUBOTools.SpinDomain) = true
-
-QUBOTools.format(::Val{:super}) = SuperFormat(nothing)
 ```

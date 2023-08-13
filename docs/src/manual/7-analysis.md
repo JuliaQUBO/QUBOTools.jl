@@ -17,7 +17,7 @@ Q = Dict{Tuple{Int,Int},Float64}((1,2) => 2.0, (1,3) => -2.0, (2,3) => 0.5)
 
 m = Model{Int,Float64,Int}(L, Q; domain=:bool)
 
-plot(m)
+QUBOTools.ModelDensityPlot(m) |> plot
 ```
 
 ```@example solution-plots
@@ -31,5 +31,7 @@ s = SampleSet([
     Sample([1, 1], 1.5,  4),
 ])
 
-plot(s)
+λ = 0.5 # ground state
+
+QUBOTools.EnergyFrequencyPlot(s, λ) |> plot
 ```

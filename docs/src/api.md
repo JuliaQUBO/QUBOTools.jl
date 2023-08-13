@@ -27,21 +27,22 @@ QUBOTools.domain
 
 ```@docs
 QUBOTools.Sense
-QUBOTools.MinSense
-QUBOTools.MaxSense
+QUBOTools.Min
+QUBOTools.Max
 QUBOTools.sense
 ```
 
 ## Frame Casting
 
 ```@docs
+QUBOTools.Frame
 QUBOTools.cast
 ```
 
 ## Solution Interface
 
 ```@docs
-QUBOTools.Sample
+QUBOTools.Sample{T,U}
 QUBOTools.SampleSet{T,U}
 QUBOTools.solution
 ```
@@ -49,8 +50,8 @@ QUBOTools.solution
 ```@docs
 QUBOTools.state
 QUBOTools.value
-QUBOTools.energy
 QUBOTools.reads
+QUBOTools.energy
 ```
 
 ## Models
@@ -69,24 +70,22 @@ QUBOTools.format
 
 ```@docs
 QUBOTools.linear_terms
-QUBOTools.explicit_linear_terms
 QUBOTools.quadratic_terms
 QUBOTools.scale
 QUBOTools.offset
 ```
 
 ```@docs
+QUBOTools.variables
+QUBOTools.variable_set
 QUBOTools.variable_map
 QUBOTools.variable_inv
-QUBOTools.variable_set
-QUBOTools.variables
 ```
 
 ```@docs
-QUBOTools.id
-QUBOTools.version
-QUBOTools.description
 QUBOTools.metadata
+QUBOTools.id
+QUBOTools.description
 ```
 
 ## I/O
@@ -94,6 +93,11 @@ QUBOTools.metadata
 ```@docs
 QUBOTools.read_model
 QUBOTools.write_model
+```
+
+```@docs
+QUBOTools.read_solution
+QUBOTools.write_solution
 ```
 
 ## Metrics and other queries
@@ -105,10 +109,18 @@ QUBOTools.quadratic_size
 QUBOTools.density
 QUBOTools.linear_density
 QUBOTools.quadratic_density
+QUBOTools.topology
 QUBOTools.adjacency
 ```
 
 ## Normal Forms
+
+```@docs
+QUBOTools.DictForm{T}
+QUBOTools.SparseForm{T}
+QUBOTools.DenseForm{T}
+QUBOTools.form
+```
 
 ```@docs
 QUBOTools.qubo
@@ -129,6 +141,13 @@ QUBOTools.success_rate
 ```
 
 ### Time-to-Solution (TTS)
+
 ```@docs
 QUBOTools.tts
+```
+
+### Optimal Time-to-Solution (TTS)
+
+```@docs
+QUBOTools.opt_tts
 ```

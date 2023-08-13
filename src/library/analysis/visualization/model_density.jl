@@ -11,8 +11,8 @@ function ModelDensityPlot(model::Any)
 end
 
 @recipe function plot(plt::ModelDensityPlot{V,T,U,M}) where {V,T,U,M}
-    title --> "Model density"
-    color --> :bwr
+    title  --> "Model density"
+    color  --> :bwr
     xlabel --> "Variable Index"
     ylabel --> "Variable Index"
 

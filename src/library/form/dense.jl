@@ -54,7 +54,7 @@ function DenseForm{T}(Φ::F) where {T,S,F<:AbstractForm{S}}
         Q[i, j] = convert(T, v)
     end
 
-    return DenseForm{T}(n, L, Q, α, β)
+    return DenseForm{T}(n, L, Q, α, β; sense = sense(Φ), domain = domain(Φ))
 end
 
 dimension(Φ::DenseForm)       = Φ.n

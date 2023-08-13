@@ -54,24 +54,23 @@ end
 
 function test_solution_sampleset()
     @testset "⋅ SampleSet" begin
-        let null_set = SampleSet()
-            @test isempty(null_set)
-            @test isempty(null_set.metadata)
+        let null_sol = SampleSet()
+            @test isempty(null_sol)
+            @test isempty(QUBOTools.metadata(null_sol))
 
-            # ~ index ~ #
-            @test size(null_set) == (0,)
-            @test size(null_set, 1) == length(null_set) == 0
-            @test size(null_set, 2) == 1
+            # ~ indexing ~ #
+            @test length(null_sol) == 0
 
-            @test_throws BoundsError null_set[begin]
-            @test_throws BoundsError null_set[end]
+            @test_throws BoundsError null_sol[begin]
+            @test_throws BoundsError null_sol[end]
         end
 
         let metadata = Dict{String,Any}("time" => Dict{String,Any}("total" => 1.0))
-            meta_set = SampleSet(Sample{Float64,Int}[], metadata)
+            meta_sol = SampleSet(Sample{Float64,Int}[], metadata)
 
-            @test isempty(meta_set)
-            @test meta_set.metadata === metadata
+            @test isempty(meta_sol)
+            
+            @test _compare_metadata(QUBOTools.metadata(meta_sol), metadata)
         end
 
         let sol = SampleSet()
@@ -82,14 +81,15 @@ function test_solution_sampleset()
             @test sol isa SampleSet{Float64,Int}
         end
 
-        @test_throws SolutionError SampleSet([
+        @test_throws Exception SampleSet([
             Sample([0, 0], 0.0, 1),
             Sample([0, 0, 1], 0.0, 1),
-        ],)
-        @test_throws SolutionError SampleSet([
+        ])
+        @test_throws Exception SampleSet([
             Sample([0, 0], 0.0, 1),
             Sample([0, 0], 0.1, 1),
-        ],)
+        ])
+
         # ~*~ Merge & Sort ~*~#
         u = Sample{Float64,Int}[
             Sample([0, 0], 0.0, 1),
@@ -116,20 +116,22 @@ function test_solution_sampleset()
                 ["presolve", "decomposition", "binary quadratic polytope cuts"],
         )
 
-        sol = SampleSet(u, metadata)
-        η = SampleSet(v)
+        sol_u = SampleSet(u, metadata)
+        sol_v = SampleSet(v)
 
-        @test sol == η
+        @test _compare_solutions(sol_u, sol_v; compare_metadata = false)
 
-        let θ = copy(sol)
-            @test θ == sol
-            @test QUBOTools.metadata(sol) == metadata
+        let sol_w = copy(sol_u)
+            @test sol_w == sol_u
+            
+            @test _compare_metadata(QUBOTools.metadata(sol_u), metadata)
 
             # Ensure metadata was deepcopied
             metadata["origin"] = "monte carlo"
 
-            @test QUBOTools.metadata(sol) == metadata
-            @test QUBOTools.metadata(θ) != metadata
+            @test _compare_metadata(QUBOTools.metadata(sol_u), metadata)
+
+            @test !_compare_metadata(QUBOTools.metadata(sol_w), metadata)
         end
 
         # ~*~ Model constructor ~*~ #

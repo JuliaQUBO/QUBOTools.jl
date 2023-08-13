@@ -22,7 +22,7 @@ function EnergyFrequencyPlot(model::Any, λ = nothing)
 end
 
 @recipe function plot(plt::EnergyFrequencyPlot{T,U,S}) where {T,U,S}
-    title --> "Solution Summary"
+    title  --> "Solution Summary"
     xlabel --> "Energy"
     ylabel --> "Frequency"
     legend --> nothing
@@ -46,16 +46,17 @@ end
 
     if plt.λ !== nothing
         @series begin
-            legend --> "Ground Energy"
-            color --> :red
-            seriestype := :vline
+            legend     --> "Ground Energy"
+            color      --> :red
+            seriestype :=  :vline
 
             ([plt.λ],)
         end
     end
 
-    seriestype := :bar
-    fillrange  := z
+    linewidth  --> 0.0
+    seriestype  := :bar
+    fillrange   := z
 
     return (x, y)
 end
