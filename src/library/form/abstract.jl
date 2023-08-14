@@ -80,7 +80,7 @@ function topology(Φ::F, k::Integer) where {T,F<:AbstractForm{T}}
 end
 
 function cast(t::Domain, Φ::F) where {T,F<:AbstractForm{T}}
-    return cast(domain(Φ) => t, Φ)
+    return cast((domain(Φ) => t), Φ)
 end
 
 function cast((s, t)::Route{S}, A::AbstractArray{T,N}) where {S<:Sense,T,N}
@@ -98,8 +98,8 @@ function cast((s, t)::Route{S}, Φ::F) where {S<:Sense,T,F<:AbstractForm{T}}
         return Φ
     else
         n = dimension(Φ)
-        L = cast(s => t, linear_form(Φ))
-        Q = cast(s => t, quadratic_form(Φ))
+        L = cast((s => t), linear_form(Φ))
+        Q = cast((s => t), quadratic_form(Φ))
         α = scale(Φ)
         β = -offset(Φ)
 
@@ -113,9 +113,9 @@ function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:AbstractForm{T}}
     if s === t
         return Φ
     elseif s === 𝔹 && t === 𝕊 || s === 𝕊 && t === 𝔹
-        return F(cast(s => t, NormalForm{T}(Φ)))
+        return F(cast((s => t), NormalForm{T}(Φ)))
     else
-        casting_error(s => t, Φ)
+        casting_error((s => t), Φ)
 
         return nothing
     end

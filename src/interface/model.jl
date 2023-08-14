@@ -239,3 +239,10 @@ function read_model end
     write_model(::IO, ::AbstractModel, ::AbstractFormat)
 """
 function write_model end
+
+@doc raw"""
+    attach!(model::AbstractModel{V,T,U}, sol::AbstractSolution{T,U}) where {V,T,U}
+
+Attaches solution to model, replacing existing data and solution metadata.
+"""
+function attach! end

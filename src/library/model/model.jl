@@ -179,7 +179,7 @@ function Model{V,T,U}(
 end
 
 function form(model::Model; domain = QUBOTools.domain(model))
-    return cast(QUBOTools.domain(model) => domain, model.form)
+    return cast((QUBOTools.domain(model) => domain), model.form)
 end
 
 dimension(model::Model)       = dimension(form(model))
@@ -200,7 +200,7 @@ solution(model::Model) = model.solution
 
 function start(model::Model, index::Integer; domain = QUBOTools.domain(model))
     if haskey(model.start, index)
-        return cast(QUBOTools.domain(model) => domain, model.start[index])
+        return cast((QUBOTools.domain(model) => domain), model.start[index])
     else
         return nothing
     end
@@ -257,4 +257,10 @@ function cast(route::Route{S}, model::Model{V,T,U}) where {S<:Sense,V,T,U}
         solution = cast(route, solution(model)),
         start    = deepcopy(start(model)),
     )
+end
+
+function attach!(model::Model{V,T,U}, sol::SampleSet{T,U}) where {V,T,U}
+    model.solution = cast((frame(sol) => frame(model)), sol)
+
+    return model.solution
 end

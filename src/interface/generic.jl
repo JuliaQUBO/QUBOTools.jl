@@ -36,8 +36,3 @@ The linear terms, quadratic terms and constant offset of a model will have its s
     That means that no copying will take place automatically, thus `copy` should be called explicitly when necessary.
 """
 function cast end
-
-@doc raw"""
-    validate(obj)
-"""
-function validate end

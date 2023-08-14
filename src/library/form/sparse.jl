@@ -83,6 +83,12 @@ frame(Φ::SparseForm)           = Φ.frame
 sense(Φ::SparseForm)           = sense(frame(Φ))
 domain(Φ::SparseForm)          = domain(frame(Φ))
 
+function value(Φ::F, ψ::State{U}) where {T,U,F<:SparseForm{T}}
+    _, L, Q, α, β = Φ
+
+    return α * (L' * ψ + ψ' * Q * ψ + β)
+end
+
 function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:SparseForm{T}}
     @assert domain(Φ) == s
 

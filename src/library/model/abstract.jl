@@ -51,9 +51,9 @@ function form(
     Φ = form(model)
 
     if !(Φ isa F)
-        return cast(QUBOTools.domain(model) => domain, Φ)
+        return cast((QUBOTools.domain(model) => domain), Φ)
     else
-        return cast(QUBOTools.domain(model) => domain, F(Φ))
+        return cast((QUBOTools.domain(model) => domain), F(Φ))
     end
 end
 

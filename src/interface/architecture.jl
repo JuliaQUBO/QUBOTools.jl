@@ -36,6 +36,11 @@ function architecture end
 architecture(::Any) = GenericArchitecture()
 
 @doc raw"""
+    AbstractDevice
+"""
+abstract type AbstractDevice{A<:AbstractArchitecture} end
+
+@doc raw"""
     layout(::Any)
 
 Returns the layout of a device or architecture, i.e., a mapping between integers

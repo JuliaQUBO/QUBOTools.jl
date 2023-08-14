@@ -67,8 +67,8 @@ function domain(frame::Frame)
 end
 
 @doc raw"""
-    cast((s,t)::Route{Frame}, obj::Any)
+    cast((s,t)::Route{Frame}, item::Any)
 """
-function cast((s, t)::Route{Frame}, obj::Any)
-    return cast(sense(s) => sense(t), cast(domain(s) => domain(t), obj))
+function cast((s, t)::Route{Frame}, item::Any)
+    return cast((sense(s) => sense(t)), cast((domain(s) => domain(t)), item))
 end
