@@ -1,11 +1,12 @@
 module QUBOTools
 
-using Printf
-using HDF5
-using JSON
-using JSONSchema
+import Printf
+import HDF5
+import JSON
+import JSONSchema
 using Graphs
 using LinearAlgebra
+import NetworkLayout
 using SparseArrays
 using Statistics
 using RecipesBase

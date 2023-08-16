@@ -16,7 +16,7 @@ function write_model(io::IO, model::AbstractModel, fmt::HFS)
             q
         ]
 
-        @printf("%2d %2d %2d %2d    %2d %2d %2d %2d    %8d\n", args...)
+        Printf.@printf(io, "%2d %2d %2d %2d    %2d %2d %2d %2d    %8d\n", args...)
     end
 
     for ((i, j), Q) in chimera.quadratic_terms
@@ -26,7 +26,7 @@ function write_model(io::IO, model::AbstractModel, fmt::HFS)
             Q
         ]
 
-        @sprintf("%2d %2d %2d %2d    %2d %2d %2d %2d    %8d\n", args...)
+        Printf.@printf(io, "%2d %2d %2d %2d    %2d %2d %2d %2d    %8d\n", args...)
     end
 
     return nothing

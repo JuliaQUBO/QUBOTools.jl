@@ -124,9 +124,9 @@ function Base.show(io::IO, model::AbstractModel)
             io,
             """
             Density:
-            ▷ Linear ……………… $(@sprintf("%0.2f", 100.0 * linear_density(model)))%
-            ▷ Quadratic ……… $(@sprintf("%0.2f", 100.0 * quadratic_density(model)))%
-            ▷ Total ………………… $(@sprintf("%0.2f", 100.0 * density(model)))%
+            ▷ Linear ……………… $(Printf.@sprintf("%0.2f", 100.0 * linear_density(model)))%
+            ▷ Quadratic ……… $(Printf.@sprintf("%0.2f", 100.0 * quadratic_density(model)))%
+            ▷ Total ………………… $(Printf.@sprintf("%0.2f", 100.0 * density(model)))%
             """,
         )
     end

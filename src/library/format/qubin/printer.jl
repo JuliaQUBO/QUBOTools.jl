@@ -40,7 +40,7 @@ function _write_model(
     model::M,
     fmt::QUBin,
 ) where {V,T,U,M<:AbstractModel{V,T,U}}
-    create_group(fp, "model")
+    HDF5.create_group(fp, "model")
 
     _write_model_variables(fp, model, fmt)
     _write_model_form(fp, model, fmt)
@@ -64,26 +64,26 @@ function _write_model_form(
     model::M,
     ::QUBin,
 ) where {V,T,U,M<:AbstractModel{V,T,U}}
-    create_group(fp["model"], "form")
+    HDF5.create_group(fp["model"], "form")
 
     n, L, Q, α, β, s, x = QUBOTools.form(model, QUBOTools.SparseForm{T})
 
     fp["model"]["form"]["dimension"] = n
 
-    create_group(fp["model"]["form"], "linear")
+    HDF5.create_group(fp["model"]["form"], "linear")
 
     li, lv = findnz(L)
 
-    write(create_dataset(fp["model"]["form"]["linear"], "i", Int, size(li)), li)
-    write(create_dataset(fp["model"]["form"]["linear"], "v", T, size(lv)), lv)
+    write(HDF5.create_dataset(fp["model"]["form"]["linear"], "i", Int, size(li)), li)
+    write(HDF5.create_dataset(fp["model"]["form"]["linear"], "v", T, size(lv)), lv)
 
-    create_group(fp["model"]["form"], "quadratic")
+    HDF5.create_group(fp["model"]["form"], "quadratic")
 
     qi, qj, qv = findnz(Q)
 
-    write(create_dataset(fp["model"]["form"]["quadratic"], "i", Int, size(qi)), qi)
-    write(create_dataset(fp["model"]["form"]["quadratic"], "j", Int, size(qj)), qj)
-    write(create_dataset(fp["model"]["form"]["quadratic"], "v", T, size(qv)), qv)
+    write(HDF5.create_dataset(fp["model"]["form"]["quadratic"], "i", Int, size(qi)), qi)
+    write(HDF5.create_dataset(fp["model"]["form"]["quadratic"], "j", Int, size(qj)), qj)
+    write(HDF5.create_dataset(fp["model"]["form"]["quadratic"], "v", T, size(qv)), qv)
 
     fp["model"]["form"]["scale"]  = α
     fp["model"]["form"]["offset"] = β
@@ -110,7 +110,7 @@ function _write_solution(
     model::M,
     fmt::QUBin,
 ) where {V,T,U,M<:AbstractModel{V,T,U}}
-    create_group(fp, "solution")
+    HDF5.create_group(fp, "solution")
 
     sol = QUBOTools.solution(model)
 
@@ -129,7 +129,7 @@ function _write_solution_data(
     sol::AbstractSolution{T,U},
     ::QUBin,
 ) where {T,U}
-    create_group(fp["solution"], "data")
+    HDF5.create_group(fp["solution"], "data")
 
     if isempty(sol)
         ψ = zeros(U, 0, 0)
@@ -141,9 +141,9 @@ function _write_solution_data(
         r = reads.(sol)
     end
 
-    write(create_dataset(fp["solution"]["data"], "state", U, size(ψ)), ψ)
-    write(create_dataset(fp["solution"]["data"], "value", T, size(λ)), λ)
-    write(create_dataset(fp["solution"]["data"], "reads", Int, size(r)), r)
+    write(HDF5.create_dataset(fp["solution"]["data"], "state", U, size(ψ)), ψ)
+    write(HDF5.create_dataset(fp["solution"]["data"], "value", T, size(λ)), λ)
+    write(HDF5.create_dataset(fp["solution"]["data"], "reads", Int, size(r)), r)
 
     return nothing
 end

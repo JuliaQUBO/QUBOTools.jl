@@ -28,7 +28,7 @@ function test_bqpjson_format()
         @testset "bool" begin
             for i = 0:2
                 file_path =
-                    joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "bool.json")
+                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.json")
                 temp_path = "$(tempname()).bool.json"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -48,7 +48,7 @@ function test_bqpjson_format()
         @testset "spin" begin
             for i = 0:2
                 file_path =
-                    joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "spin.json")
+                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.json")
                 temp_path = "$(tempname()).spin.json"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -74,7 +74,7 @@ function test_qubo_format()
         fmt = QUBOTools.QUBO(QUBOTools.DWaveStyle())
 
         for i = 0:2
-            file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "bool.qubo")
+            file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qubo")
             temp_path = "$(tempname()).bool.qubo"
 
             src_model = QUBOTools.read_model(file_path, fmt)
@@ -97,7 +97,7 @@ end
 function test_qubist_format()
     @testset "⋅ Qubist" begin
         for i = 0:2
-            file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "spin.qh")
+            file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.qh")
             temp_path = "$(tempname()).spin.qh"
 
             src_model = QUBOTools.read_model(file_path)
@@ -121,7 +121,7 @@ function test_qubin_format()
     @testset "⋅ QUBin" begin
         @testset "bool" begin
             for i = 0:2
-                file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "bool.qb")
+                file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qb")
                 temp_path = "$(tempname()).bool.qb"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -140,7 +140,7 @@ function test_qubin_format()
 
         @testset "spin" begin
             for i = 0:2
-                file_path = joinpath(__TEST_PATH__, "data", @sprintf("%02d", i), "spin.qb")
+                file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.qb")
                 temp_path = "$(tempname()).spin.qb"
 
                 src_model = QUBOTools.read_model(file_path)

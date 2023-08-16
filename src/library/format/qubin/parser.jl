@@ -100,7 +100,7 @@ function _parse_solution(
     return SampleSet{T,U}(data, metadata; sense, domain)
 end
 
-function _parse_solution_data(fp::HDF5.File, fmt::QUBin)
+function _parse_solution_data(fp::HDF5.File, ::QUBin)
     ψ = read(fp["solution"]["data"]["state"])
     λ = read(fp["solution"]["data"]["value"])
     r = read(fp["solution"]["data"]["reads"])
@@ -112,6 +112,6 @@ function _parse_solution_data(ψ::Matrix{U}, λ::Vector{T}, r::Vector{Int}) wher
     return Sample{T,U}[Sample{T,U}(ψ[i, :], λ[i], r[i]) for i in eachindex(ψ)]
 end
 
-function _parse_solution_metadata(fp::HDF5.File, fmt::QUBin)
+function _parse_solution_metadata(fp::HDF5.File, ::QUBin)
     return JSON.parse(read(fp["solution"]["metadata"]))
 end
