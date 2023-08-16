@@ -1,7 +1,13 @@
-function write_model(io::IO, model::AbstractModel, fmt::QUBO)
+function write_model(io::IO, model::AbstractModel{V,T,U}, fmt::QUBO) where {V,T,U}
     data = Dict{Symbol,Any}(
-        :linear_terms    => linear_terms(model),
-        :quadratic_terms => quadratic_terms(model),
+        :linear_terms    => Dict{Int,T}(
+            variable(model, i) => v
+            for (i, v) in linear_terms(model)
+        ),
+        :quadratic_terms => Dict{Tuple{Int,Int},T}(
+            (variable(model, i), variable(model, j)) => v
+            for ((i, j), v) in quadratic_terms(model)
+        ),
         :linear_size     => linear_size(model),
         :quadratic_size  => quadratic_size(model),
         :scale           => scale(model),

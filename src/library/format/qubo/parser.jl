@@ -17,7 +17,7 @@ function read_model(io::IO, fmt::QUBO)
     end
 
     return Model{Int,Float64,Int}(
-        Set{Int}(1:data[:dimension]),
+        Set{Int}(0:data[:dimension]-1),
         data[:linear_terms],
         data[:quadratic_terms];
         scale       = data[:scale],

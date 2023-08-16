@@ -149,6 +149,13 @@ If order doesn't matter, use [`variable_set`](@ref) instead.
 function variables end
 
 @doc raw"""
+    variable(model::AbstractModel{V}, i::Integer)::V where {V}
+
+Given an index, returns the corresponding varaible.
+"""
+function variable end
+
+@doc raw"""
     variable_set(model)::Set
     variable_set(model::AbstractModel{V})::Set{V} where {V}
 
@@ -174,7 +181,7 @@ Returns a vector that maps indices into their corresponding variables.
 
     variable_inv(model::AbstractModel{V}, i::Integer)::V where {V}
 
-Given an index, returns the corresponding varaible.
+Given an index, returns the corresponding varaible, as does [`variable`](@ref).
 """
 function variable_inv end
 
