@@ -26,16 +26,18 @@ Base.size(s::Sample)                 = (length(s),)
 Base.getindex(s::Sample, i::Integer) = state(s, i)
 Base.collect(s::Sample)              = collect(state(s))
 
-function cast(route::Pair{X,Y}, s::Sample{T,U}) where {T,U,X<:Domain,Y<:Domain}
+dimension(s::Sample) = length(s)
+
+function cast(route::Route{D}, s::Sample{T,U}) where {T,U,D<:Domain}
     return Sample{T,U}(cast(route, state(s)), value(s), reads(s))
 end
 
-function cast(::Pair{S,S}, s::Sample{T,U}) where {S<:Sense,T,U}
-    return Sample{T,U}(state(s), value(s), reads(s))
-end
-
-function cast(::Pair{A,B}, s::Sample{T,U}) where {T,U,A<:Sense,B<:Sense}
-    return Sample{T,U}(state(s), -value(s), reads(s))
+function cast((s,t)::Route{S}, sample::Sample{T,U}) where {S<:Sense,T,U}
+    if s === t
+        return sample
+    else
+        return Sample{T,U}(state(sample), -value(sample), reads(sample))
+    end
 end
 
 raw"""
@@ -54,7 +56,8 @@ Sorts a vector of samples by
     1. Energy value, in ascending order
     2. Sampling Frequency, in descending order
 """
-function _sort_and_merge(data::V) where {T,U,V<:AbstractVector{Sample{T,U}}}
+function _sort_and_merge(data::V, sense::Sense) where {T,U,V<:AbstractVector{Sample{T,U}}}
+    sign  = sense === Min ? 1.0 : -1.0
     bits  = nothing
     cache = sizehint!(Dict{Vector{U},Sample{T,U}}(), length(data))
 
@@ -81,5 +84,5 @@ function _sort_and_merge(data::V) where {T,U,V<:AbstractVector{Sample{T,U}}}
         cache[state(merged)] = merged
     end
 
-    return sort!(collect(values(cache)); by = s -> (value(s), -reads(s)))
+    return sort!(collect(values(cache)); by = s -> (sign * value(s), -reads(s)))
 end

@@ -28,13 +28,15 @@ struct SampleSet{T,U} <: AbstractSolution{T,U}
         sense::Union{Sense,Symbol} = :min,
         domain::Union{Domain,Symbol} = :bool,
     ) where {T,U,S<:Sample{T,U},V<:AbstractVector{S}}
-        data = _sort_and_merge(data)
+        frame = Frame(sense, domain)
+
+        data = _sort_and_merge(data, QUBOTools.sense(frame))
 
         if isnothing(metadata)
             metadata = Dict{String,Any}()
         end
 
-        return new{T,U}(data, metadata, Frame(sense, domain))
+        return new{T,U}(data, metadata, frame)
     end
 
     function SampleSet{T,U}(
@@ -73,17 +75,25 @@ end
 SampleSet{T}(args...; kws...) where {T} = SampleSet{T,Int}(args...; kws...)
 SampleSet(args...; kws...)              = SampleSet{Float64}(args...; kws...)
 
-Base.copy(sol::SampleSet{T,U}) where {T,U} = SampleSet{T,U}(
-    collect(sol),
-    deepcopy(metadata(sol));
-    sense = sense(sol),
-    domain = domain(sol),
-)
-
-Base.:(==)(sol::SampleSet{T,U}, η::SampleSet{T,U}) where {T,U} = (sol.data == η.data)
+function Base.copy(sol::SampleSet{T,U}) where {T,U}
+    return SampleSet{T,U}(
+        collect(sol),
+        deepcopy(metadata(sol));
+        sense  = sense(sol),
+        domain = domain(sol),
+    )
+end
 
 Base.length(sol::SampleSet)  = length(sol.data)
 Base.isempty(sol::SampleSet) = isempty(sol.data)
+
+function dimension(sol::SampleSet)
+    if isempty(sol)
+        return 0
+    else
+        return dimension(first(sol))
+    end
+end
 
 Base.collect(sol::SampleSet)              = collect(sol.data)
 Base.getindex(sol::SampleSet, i::Integer) = sol.data[i]
@@ -97,20 +107,32 @@ frame(sol::SampleSet)  = sol.frame
 sense(sol::SampleSet)  = sense(frame(sol))
 domain(sol::SampleSet) = domain(frame(sol))
 
-function cast(route::Route{S}, sol::SampleSet{T,U}) where {T,U,S<:Sense}
-    return SampleSet{T,U}(
-        Vector{Sample{T,U}}(cast.(route, sol)),
-        deepcopy(metadata(sol));
-        sense  = last(route),
-        domain = domain(sol),
-    )
+function cast((s,t)::Route{S}, sol::SampleSet{T,U}) where {T,U,S<:Sense}
+    if s === t
+        return sol
+    else
+        return SampleSet{T,U}(
+            Vector{Sample{T,U}}(cast.(s => t, sol)),
+            deepcopy(metadata(sol));
+            sense  = t,
+            domain = domain(sol),
+        )
+    end
 end
 
-function cast(route::Route{D}, sol::SampleSet{T,U}) where {T,U,D<:Domain}
-    return SampleSet{T,U}(
-        Vector{Sample{T,U}}(cast.(route, sol)),
-        deepcopy(metadata(sol));
-        sense  = sense(sol),
-        domain = last(route),
-    )
+function cast((s,t)::Route{D}, sol::SampleSet{T,U}) where {T,U,D<:Domain}
+    if s === t
+        return sol
+    elseif s === 𝔹 && t === 𝕊 || s === 𝕊 && t === 𝔹
+        return SampleSet{T,U}(
+            Vector{Sample{T,U}}(cast.(s => t, sol)),
+            deepcopy(metadata(sol));
+            sense  = sense(sol),
+            domain = t,
+        )
+    else
+        casting_error(s => t, sol)
+
+        return nothing
+    end
 end

@@ -151,14 +151,10 @@ function _parse_comment_metadata!(
     key = string(m[1])
     val = string(m[2])
 
-    if key == "id"
-        data[:id] = tryparse(Int, val)
-    elseif key == "scale"
+    if key == "scale"
         data[:scale] = tryparse(Float64, val)
     elseif key == "offset"
         data[:offset] = tryparse(Float64, val)
-    elseif key == "description"
-        data[:description] = val
     else
         data[:metadata][key] = JSON.parse(val)
     end

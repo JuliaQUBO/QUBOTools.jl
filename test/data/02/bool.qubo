@@ -1,5 +1,5 @@
 c id : 2
-c description : Model 2 ~ Simple model with solutions
+c description : "Model 2 ~ Simple model with solutions"
 c scale : 2.7
 c offset : 1.93
 p qubo 0 6 3 2

@@ -3,7 +3,7 @@
 # and also to directly access the test interface.
 
 function _compare_frames(src::QUBOTools.Frame, dst::QUBOTools.Frame)::Bool
-    QUBOTools.sense(src) === QUBOTools.sense(dst)   || return false
+    QUBOTools.sense(src) === QUBOTools.sense(dst) || return false
     QUBOTools.domain(src) === QUBOTools.domain(dst) || return false
 
     return true
@@ -19,28 +19,15 @@ function _compare_models(
     # absolute approximation tolerance
     atol::Float64 = 1E-6,
 )::Bool where {V,T,U,M<:QUBOTools.AbstractModel{V,T,U}}
-    _compare_frames(
-        QUBOTools.frame(src),
-        QUBOTools.frame(dst),
-    ) || return false
+    _compare_frames(QUBOTools.frame(src), QUBOTools.frame(dst)) || return false
 
-    _compare_variables(
-        QUBOTools.variables(src),
-        QUBOTools.variables(dst),
-    ) || return false
+    _compare_variables(QUBOTools.variables(src), QUBOTools.variables(dst)) || return false
 
-    _compare_forms(
-        QUBOTools.form(src),
-        QUBOTools.form(dst);
-        atol
-    ) || return false
+    _compare_forms(QUBOTools.form(src), QUBOTools.form(dst); atol) || return false
 
     if compare_metadata
-        _compare_metadata(
-            QUBOTools.metadata(src),
-            QUBOTools.metadata(dst);
-            atol
-        ) || return false
+        _compare_metadata(QUBOTools.metadata(src), QUBOTools.metadata(dst); atol) ||
+            return false
     end
 
     if compare_solutions
@@ -67,35 +54,25 @@ function _compare_forms(
     # absolute approximation tolerance
     atol::Float64 = 1E-6,
 )::Bool where {T,F<:QUBOTools.AbstractForm{T}}
-    _compare_frames(
-        QUBOTools.frame(src),
-        QUBOTools.frame(dst),
-    ) || return false
+    _compare_frames(QUBOTools.frame(src), QUBOTools.frame(dst)) || return false
 
-    QUBOTools.dimension(src) == QUBOTools.dimension(dst)         || return false
-    isapprox(QUBOTools.scale(src), QUBOTools.scale(dst); atol)   || return false
+    QUBOTools.dimension(src) == QUBOTools.dimension(dst) || return false
+    isapprox(QUBOTools.scale(src), QUBOTools.scale(dst); atol) || return false
     isapprox(QUBOTools.offset(src), QUBOTools.offset(dst); atol) || return false
 
     src_lt = Dict{Int,T}(QUBOTools.linear_terms(src))
     dst_lt = Dict{Int,T}(QUBOTools.linear_terms(dst))
 
     for i in union(keys(src_lt), keys(dst_lt))
-        isapprox(
-            get(src_lt, i, zero(T)),
-            get(dst_lt, i, zero(T));
-            atol
-        ) || return false
+        isapprox(get(src_lt, i, zero(T)), get(dst_lt, i, zero(T)); atol) || return false
     end
 
     src_qt = Dict{Tuple{Int,Int},T}(QUBOTools.quadratic_terms(src))
     dst_qt = Dict{Tuple{Int,Int},T}(QUBOTools.quadratic_terms(dst))
 
     for (i, j) in union(keys(src_qt), keys(dst_qt))
-        isapprox(
-            get(src_qt, (i, j), zero(T)),
-            get(dst_qt, (i, j), zero(T));
-            atol
-        ) || return false
+        isapprox(get(src_qt, (i, j), zero(T)), get(dst_qt, (i, j), zero(T)); atol) ||
+            return false
     end
 
     return true
@@ -118,11 +95,8 @@ function _compare_solutions(
     end
 
     if compare_metadata
-        _compare_metadata(
-            QUBOTools.metadata(src),
-            QUBOTools.metadata(dst);
-            atol
-        ) || return false
+        _compare_metadata(QUBOTools.metadata(src), QUBOTools.metadata(dst); atol) ||
+            return false
     end
 
     return true
@@ -134,11 +108,28 @@ function _compare_samples(
     # absolute approximation tolerance
     atol::Float64 = 1E-6,
 )::Bool where {T,U,S<:QUBOTools.AbstractSample{T,U}}
-    QUBOTools.reads(src) == QUBOTools.reads(dst)               || return false
-    QUBOTools.state(src) == QUBOTools.state(dst)               || return false
+    QUBOTools.reads(src) == QUBOTools.reads(dst) || return false
+    QUBOTools.state(src) == QUBOTools.state(dst) || return false
     isapprox(QUBOTools.value(src), QUBOTools.value(dst); atol) || return false
 
     return true
+end
+
+function _compare_metadata(src::T, dst::U; kws...)::Bool where {T,U}
+    return false # different types -> false
+end
+
+function _compare_metadata(src::T, dst::T; kws...)::Bool where {T}
+    return src == dst # same type -> ==
+end
+
+function _compare_metadata(
+    src::Float64,
+    dst::Float64;
+    # absolute approximation tolerance
+    atol::Float64 = 1E-6,
+)::Bool
+    return isapprox(src, dst; atol)
 end
 
 function _compare_metadata(
@@ -151,17 +142,9 @@ function _compare_metadata(
         haskey(src, key) && haskey(dst, key) || return false
 
         src_val = src[key]
-        dst_val = src[key]
+        dst_val = dst[key]
 
-        typeof(src_val) === typeof(dst_val) || return false
-
-        if src_val isa Dict{String,Any}
-            _compare_metadata(src_val, dst_val; atol) || return false
-        elseif src_val isa Float64
-            isapprox(src_val, dst_val; atol) || return false
-        else
-            src_val == dst_val || return false
-        end
+        _compare_metadata(src_val, dst_val; atol) || return false
     end
 
     return true
