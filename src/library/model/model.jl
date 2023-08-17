@@ -185,6 +185,7 @@ end
 dimension(model::Model)       = dimension(form(model))
 linear_terms(model::Model)    = linear_terms(form(model))
 quadratic_terms(model::Model) = quadratic_terms(form(model))
+
 scale(model::Model)           = scale(form(model))
 offset(model::Model)          = offset(form(model))
 
@@ -198,15 +199,19 @@ variable_inv(model::Model) = model.variables.inv
 metadata(model::Model) = model.metadata
 solution(model::Model) = model.solution
 
-function start(model::Model, index::Integer; domain = QUBOTools.domain(model))
-    if haskey(model.start, index)
-        return cast((QUBOTools.domain(model) => domain), model.start[index])
+function start(model::Model{V,T,U}, i::Integer; domain = QUBOTools.domain(model)) where {V,T,U}
+    if !(1 <= i <= dimension(model))
+        error("Index '$i' is out of bounds [1, $(dimension(model))]")
+
+        return nothing
+    elseif haskey(model.start, i)
+        return cast((QUBOTools.domain(model) => domain), model.start[i])
     else
         return nothing
-    end
+    end 
 end
 
-function start(model::Model{T,V,U}; domain = QUBOTools.domain(model)) where {T,V,U}
+function start(model::Model{V,T,U}; domain = QUBOTools.domain(model)) where {V,T,U}
     return Dict{Int,U}(i => start(model, i; domain) for i in keys(model.start))
 end
 
@@ -263,4 +268,18 @@ function attach!(model::Model{V,T,U}, sol::SampleSet{T,U}) where {V,T,U}
     model.solution = cast((frame(sol) => frame(model)), sol)
 
     return model.solution
+end
+
+function attach!(model::Model{V,T,U}, sol::Dict{V,U}) where {V,T,U}
+    cache = sizehint!(Dict{Int,U}(), length(sol))
+
+    for (v, s) in sol
+        i = index(model, v)
+
+        cache[i] = s
+    end
+
+    copy!(model.start, cache)
+
+    return model.start
 end

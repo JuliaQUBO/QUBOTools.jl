@@ -26,6 +26,10 @@ function variable_map(model::AbstractModel{V,T}, v::V) where {V,T}
     end
 end
 
+function index(model::AbstractModel{V,T,U}, v::V) where {V,T,U}
+    return variable_map(model, v)
+end
+
 function variable_inv(model::AbstractModel, i::Integer)
     mapping = variable_inv(model)::AbstractVector
 
@@ -38,7 +42,9 @@ function variable_inv(model::AbstractModel, i::Integer)
     end
 end
 
-variable(model::AbstractModel, i::Integer) = variable_inv(model, i)
+function variable(model::AbstractModel, i::Integer)
+    return variable_inv(model, i)
+end
 
 function start(model::AbstractModel{V,T}, v::V) where {V,T}
     return get(start(model), v, nothing)
@@ -104,18 +110,12 @@ function Base.copy!(target::X, source::Y) where {X<:AbstractModel,Y<:AbstractMod
 end
 
 function Base.show(io::IO, model::AbstractModel)
-    println(
-        io,
-        """
-        $(name(model)) [$(sense(model)), $(domain(model))]
-        ▷ Variables ……… $(dimension(model))  
-        """,
-    )
-
     if isempty(model)
         println(
             io,
             """
+            QUBOTools Model [$(sense(model)), $(domain(model))]
+
             The model is empty.
             """,
         )
@@ -125,11 +125,32 @@ function Base.show(io::IO, model::AbstractModel)
         println(
             io,
             """
+            QUBOTools Model [$(sense(model)), $(domain(model))]
+            ▷ Variables ……… $(dimension(model))  
+
             Density:
-            ▷ Linear ……………… $(Printf.@sprintf("%0.2f", 100.0 * linear_density(model)))%
-            ▷ Quadratic ……… $(Printf.@sprintf("%0.2f", 100.0 * quadratic_density(model)))%
-            ▷ Total ………………… $(Printf.@sprintf("%0.2f", 100.0 * density(model)))%
+            ▷ Linear ……………… $(Printf.@sprintf("%6.2f", 100.0 * linear_density(model)))%
+            ▷ Quadratic ……… $(Printf.@sprintf("%6.2f", 100.0 * quadratic_density(model)))%
+            ▷ Total ………………… $(Printf.@sprintf("%6.2f", 100.0 * density(model)))%
             """,
+        )
+    end
+
+    if isempty(start(model))
+        print(
+            io,
+            """
+            There are no warm-start values.
+
+            """
+        )
+    else
+        print(
+            io,
+            """
+            Warm-start:
+            ▷ Sites ………………… $(length(start(model)))/$(dimension(model))
+            """
         )
     end
 
@@ -138,10 +159,9 @@ function Base.show(io::IO, model::AbstractModel)
             io,
             """
             There are no solutions available.
+
             """,
         )
-
-        return nothing
     else
         sol = solution(model)
         n = length(sol)
@@ -158,4 +178,8 @@ function Base.show(io::IO, model::AbstractModel)
     end
 
     return nothing
+end
+
+function layout(::AbstractModel, G::Graphs.AbstractGraph = QUBOTools.topology(model))
+    return NetworkLayout.layout(NetworkLayout.Shell(), G)
 end

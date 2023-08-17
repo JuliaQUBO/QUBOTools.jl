@@ -27,8 +27,6 @@ export BoolDomain, SpinDomain
 # Exports: Solution Interface
 export Sample, SampleSet
 
-# Exports: Supported Model Formats
-
 # Interface definitions
 include("interface/form.jl")
 include("interface/model.jl")
@@ -74,5 +72,6 @@ include("library/analysis/metrics/model.jl")
 
 include("library/analysis/visualization/energy_frequency.jl")
 include("library/analysis/visualization/model_density.jl")
+include("library/analysis/visualization/system_layout.jl")
 
 end # module

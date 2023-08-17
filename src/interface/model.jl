@@ -151,7 +151,7 @@ function variables end
 @doc raw"""
     variable(model::AbstractModel{V}, i::Integer)::V where {V}
 
-Given an index, returns the corresponding varaible.
+Given an index, returns the corresponding variable.
 """
 function variable end
 
@@ -162,6 +162,13 @@ function variable end
 Returns the set of variables of a given model.
 """
 function variable_set end
+
+@doc raw"""
+    index(model::AbstractModel{V}, v::V)::Int where {V}
+
+Given a variable, returns the corresponding index.
+"""
+function index end
 
 @doc raw"""
     variable_map(model::AbstractModel{V})::Dict{V,Int} where {V}
