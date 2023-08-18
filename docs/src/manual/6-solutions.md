@@ -25,7 +25,7 @@ The `"total"` entry in the `"time"` dictionary is reserved for it.
 
 #### Effective Time
 
-Aimed at recording the time spent exclusively by the solving method, e.g., the actual usage of a QPU.
+Aimed at recording the time spent exclusively by the solving method, e.g., the actual usage of a Quantum Processing Unit (QPU).
 It will be stored in the the `"effective"` entry in the `"time"` dictionary.
 
 #### Other Measurements
