@@ -11,7 +11,17 @@ QUBOTools.backend
 ## Variable System
 
 ```@docs
-QUBOTools.varlt
+QUBOTools.index
+QUBOTools.indices
+QUBOTools.variable
+QUBOTools.variables
+QUBOTools.variable_set
+QUBOTools.variable_map
+QUBOTools.variable_inv
+```
+
+```@docs
+QUBOTools.PBO.varlt
 ```
 
 ## Variable Domains
@@ -73,13 +83,6 @@ QUBOTools.linear_terms
 QUBOTools.quadratic_terms
 QUBOTools.scale
 QUBOTools.offset
-```
-
-```@docs
-QUBOTools.variables
-QUBOTools.variable_set
-QUBOTools.variable_map
-QUBOTools.variable_inv
 ```
 
 ```@docs
