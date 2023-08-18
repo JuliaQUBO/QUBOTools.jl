@@ -1,6 +1,6 @@
 name = "QUBOTools"
 uuid = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"
-authors = ["pedromxavier <pedroxavier@psr-inc.com>", "pedroripper <pedroripper@psr-inc.com>", "AndradeTiago <tiago.andrade@psr-inc.com>", "joaquimg <joaquim@psr-inc.com>", "bernalde <dbernalneira@usra.edu>"]
+authors = ["pedromxavier <pedroxavier@psr-inc.com>", "pedroripper <pedroripper@psr-inc.com>", "AndradeTiago <tiago.andrade@psr-inc.com>", "joaquimg <joaquim@psr-inc.com>", "bernalde <dbernaln@purdue.edu>"]
 version = "0.10.0"
 
 [deps]
