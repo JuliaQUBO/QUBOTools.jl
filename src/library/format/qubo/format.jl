@@ -41,7 +41,7 @@ style(::QUBO{S}) where {S} = S
 format(::Val{:dwave}, ::Val{:qubo})  = QUBO(DWaveStyle())
 format(::Val{:mqlib}, ::Val{:qubo})  = QUBO(MQLibStyle())
 format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO(DWaveStyle())
-format(::Val{:qubo})                 = QUBO()
+format(::Val{:qubo})                 = QUBO(DWaveStyle())
 
 include("parser.jl")
 include("printer.jl")

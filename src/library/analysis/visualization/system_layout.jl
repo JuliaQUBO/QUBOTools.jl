@@ -29,14 +29,12 @@ end
 
         @series begin
             color  := :gray
-            zcolor := α * Q[u, v]
             legend := nothing
 
             ([x[u], x[v]], [y[u], y[v]])
         end
     end
 
-    color        := :bwr
     zcolor       := α * z
     seriestype   := :scatter
     colorbar     := true
