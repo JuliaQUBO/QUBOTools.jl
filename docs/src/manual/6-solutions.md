@@ -20,7 +20,7 @@ When present, it must be itself a dictionary with positive numeric values.
 
 #### Total Time
 
-This measurement accounts for the complete sampling period, incluing: data manipulation, connection with the solver, problem embedding, solution post-processing and other related tasks.
+This measurement accounts for the complete sampling period, including: data manipulation, connection with the solver, problem embedding, solution post-processing, and other related tasks.
 The `"total"` entry in the `"time"` dictionary is reserved for it.
 
 #### Effective Time
