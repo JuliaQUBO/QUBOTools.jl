@@ -6,7 +6,7 @@ Optimization results and metadata are stored in a specialized data structre.
 
 A solution instance should contain an array of samples, where each sample is a 3-tuple ``(\psi, \lambda, r)``.
 Moreover, ``\psi \in \mathbb{U}^{n} \sim \mathbb{B}^{n}`` is the state vector, ``\lambda \in \mathbb{R}`` is the associated energy value and ``r \in \mathbb{N}`` is the number of reads, i. e., the multiplicity of the sample.
-Samples should be sorted by increasing values of ``\lambda``, then by decreasing number of reads, and lastly by increasing lexicographic order of their state vectors.
+Samples should be sorted by increasing values of ``\lambda``, then by decreasing the number of reads, and lastly by increasing the lexicographic order of their state vectors.
 
 ## Metadata
 
