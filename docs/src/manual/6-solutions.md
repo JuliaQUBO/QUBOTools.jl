@@ -38,4 +38,4 @@ Since different time records might intersect, there are no restrictions regardin
 
 ### Origin
 
-When used, `"origin"` field is a string referring to the method used for solving the problem, which could be the name a cloud platform or even hardware identification details.
+When used, the `"origin"` field is a string referring to the method used for solving the problem, which could be the name of a cloud platform or even hardware identification details.
