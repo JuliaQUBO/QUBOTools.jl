@@ -1,12 +1,18 @@
 @doc raw"""
     AbstractSolution{T,U<:Integer}
 
-By definitioon,
+By definitioon, a solution is an ordered set of samples.
+
+See [`AbstractSample`](@ref).
 """
 abstract type AbstractSolution{T,U<:Integer} end
 
 @doc raw"""
     AbstractSample{T,U<:Integer}
+
+A sample is a triple ``(\psi, \lambda, r)`` where ``\psi \in \mathbb{U}^{n} \sim \mathbb{B}^{n}`` is
+the sampled vector, ``\lambda \in \mathbb{R}`` is the associated energy value and ``r \in \mathbb{N}``
+is the number of reads, i. e., the multiplicity of the sample.
 """
 abstract type AbstractSample{T,U<:Integer} end
 
@@ -16,38 +22,40 @@ abstract type AbstractSample{T,U<:Integer} end
 const State{U<:Integer} = AbstractVector{U}
 
 @doc raw"""
-    solution(model)::AbstractSolution{T,U} where {T,U<:Integer}
+    solution(model) where {T,U<:Integer}
 
 Returns the model's current solution.
 """
 function solution end
 
 @doc raw"""
-    sample(model, i::Integer)::AbstractSample{T,U} where {T,U<:Integer}
+    sample(model, i::Integer) where {T,U<:Integer}
 
 Returns the ``i``-th sample on the model's current solution, if available.
 """
 function sample end
 
 @doc raw"""
-    state(sample::AbstractSample{T,U})::AbstractVector{U} where {T,U<:Integer}
+    state(sample::AbstractSample{T,U}) where {T,U<:Integer}
 
-    state(model, i::Integer)::AbstractVector{U} where {U<:Integer}
+Returns a vector containing the assingment of each variable in a sample.
 
-Returns the state vector corresponding to the ``i``-th sample on the model's current solution, if available.
+    state(model, i::Integer) where {U<:Integer}
+
+Returns a vector corresponding to the bitstring of the ``i``-th sample on the model's current solution, if available.
 """
 function state end
 
 @doc raw"""
-    reads(model)::Integer
-    reads(solution::AbstractSolution)::Integer
+    reads(model)
+    reads(solution::AbstractSolution)
 
 Returns the total amount of reads from each sample, combined.
 
-    reads(model, i::Integer)::Integer
-    reads(solution::AbstractSolution, i::Integer)::Integer
+    reads(model, i::Integer)
+    reads(solution::AbstractSolution, i::Integer)
 
-Returns the read frequency of the ``i``-th sample on the model's current solution, if available.
+Returns the sampling frequency of the ``i``-th sample on the model's current solution, if available.
 """
 function reads end
 
