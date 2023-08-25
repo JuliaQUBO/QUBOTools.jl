@@ -39,51 +39,88 @@ where ``n_{q}`` is the number of non-zero quadratic terms and ``n`` the number o
 function quadratic_density end
 
 @doc raw"""
-    tts(sol::SampleSet{T,<:Any}, λ::T, s::Float64=0.99) where {T}
+    time_to_target(sol::AbstractSolution{T}, λ::T, s::Float64=0.99) where {T}
 
-Computes the _time to solution_ (TTS) from the optimal objective value and a sample set.
+Computes the _time-to-target_ (TTT) given the solution and the target threshold ``\lambda``.
 The success factor ``s`` defaults to ``0.99``.
 
-    tts(t::Float64, p::Float64, s::Float64=0.99)
+    time_to_target(t::Float64, p::Float64, s::Float64=0.99)
 
-Computes the _time to solution_ (TTS) given the effective time ``t`` spent running the algorithm and the success probability ``p``.
+Computes the _time-to-target_ (TTT) given the effective time ``t`` spent running the algorithm
+and the success probability ``p``.
 The success factor ``s`` defaults to ``0.99``.
 
 ```math
-\text{tts}(t, p; s) = t \frac{\log(1 - s)}{\log(1 - p)}
+\text{ttt}(t, p; s) = t \frac{\log(1 - s)}{\log(1 - p)}
 ```
 """
-function tts end
+function time_to_target end
 
 @doc raw"""
-    opt_tts(solution::AbstractVector{S}, λ::T, s::Float64 = 0.99, q::Float64 = 0.5) where {T,U,S<:AbstractSolution{T,U}}
+    ttt
 
-Computes the _optimal time-to-solution_ (optTTS) from the ground-state value and a vector of solutions given a probability ``s`` and a quantile ``q``.
-
-The success factor ``s`` defaults to ``0.99`` and the quantile ``q`` defaults to ``0.5``, i.e., the median.
-
-```math
-\textrm{optTTS}(t, p; s, q) = \left\langle t \frac{\log(1 - s)}{\log(1 - p)} \right\rangle_{q}
-```
+Alias for [`time_to_target`](@ref).
 """
-function opt_tts end
+const ttt = time_to_target
+
+# @doc raw"""
+#     opt_ttt(
+#         r::Function,
+#         solutions::AbstractVector{S},
+#         λ::T,
+#         s::Float64 = 0.99,
+#         q::Float64 = 0.5,
+#     ) where {T,U,S<:AbstractSolution{T,U}}
+
+#     opt_ttt(
+#         solutions::AbstractVector{S},
+#         λ::T,
+#         s::Float64 = 0.99,
+#         q::Float64 = 0.5,
+#         r::Float64 = 1.0,
+#     ) where {T,U,S<:AbstractSolution{T,U}}
+
+# Computes the _optimal time-to-target_ (optTTT) from a list of solutions given a threshold ``\lambda``,
+# a probability ``s``, a quantile ``q`` and a parallelization factor ``r(n)`` where ``n`` is the number of spins.
+
+# ```math
+# \textrm{optTTT}(\mathbf{t}; s, q) = \min_{t} \left\langle t \frac{\log(1 - s)}{\log(1 - p(t))} \right\rangle_{q} \frac{1}{r(n)}
+# ```
+
+# The success factor ``s`` defaults to ``0.99`` and the quantile ``q`` defaults to ``0.5`` (the median).
+# No parallelism is assumed, i.e. ``k = 1`` by default.
+
+# - ``t`` is the time the algorithm spent running.
+# - ``r(n)`` is the parallelization factor, i.e., how many replicas of the same instance can be run in parallel.
+# - ``p_{i}(t)`` is the probability that the optimal solution is found for the ``i``-th instance.
+# - ``p_{i}'(t) = 1 - (1 - p_{i}(t))^{r(n)}`` is the probability that at least one of the replicas will reach the target energy.
+# - ``\left\langle\,\cdot\,\right\rangle_{q}`` denotes taking the ``q``-th quantile over the distribution of instances.
+
+# Let ``R_{s}`` be the number of runs required to find the target solution at least once with probability ``s``.
+# Then, ``s = 1 - (1 - p_{i}'(t))^{R_{s}}`` and ``\textrm{TTT} = t R_{s}``.
+
+# ## References
+# [^Kowalsky]:
+#     **3-Regular 3-XORSAT Planted Solutions Benchmark of Classical and Quantum Heuristic Optimizers**, _Matthew Kowalsky_, _Tameem Albash_, _Itay Hen_, _Daniel A. Lidar_. [{arXiv}](https://arxiv.org/abs/2103.08464)
+# """
+# function opt_ttt end
 
 @doc raw"""
-    success_rate(sol::SampleSet{T,<:Any}, λ::T) where {T}
+    success_rate(sol::AbstractSolution{T}, λ::T) where {T}
 
-Returns the success rate according to the given sample set and the optimal objective value ``\lambda``.
+Returns the success rate according to the given solution and the target objective value ``\lambda``.
 """
 function success_rate end
 
 @doc raw"""
-    total_time(sol::SampleSet)
+    total_time(sol::AbstractSolution)
 
 Retrieves the total time spent during the whole solution gathering process, as experienced by the user.
 """
 function total_time end
 
 @doc raw"""
-    effective_time(sol::SampleSet)
+    effective_time(sol::AbstractSolution)
 
 Retrieves the time spent by the algorithm in the strict sense, that is, excluding time spent with data access, precompilation and other activities.
 That said, it is assumed that ``t_{\text{effective}} \le t_{\text{total}}``.

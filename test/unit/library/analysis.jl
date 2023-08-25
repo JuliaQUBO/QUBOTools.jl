@@ -13,18 +13,18 @@ function test_metrics()
             ),
         )
 
-        @testset "⋅ TTS" begin
+        @testset "⋅ Time-to-Target" begin
             @test QUBOTools.total_time(s) == 2.0
             @test QUBOTools.effective_time(s) == 1.0
 
             @test QUBOTools.success_rate(s, e) ≈ 0.1 atol = 1e-8
-            @test QUBOTools.tts(s, e) ≈ 43.708690653 atol = 1e-8
+            @test QUBOTools.ttt(s, e) ≈ 43.708690653 atol = 1e-8
 
             let s = QUBOTools.SampleSet()
                 @test isnan(QUBOTools.total_time(s))
                 @test isnan(QUBOTools.effective_time(s))
                 @test isnan(QUBOTools.success_rate(s, 0.0))
-                @test isnan(QUBOTools.tts(s, 0.0))
+                @test isnan(QUBOTools.ttt(s, 0.0))
             end
 
             let s = QUBOTools.SampleSet(
@@ -34,7 +34,7 @@ function test_metrics()
                 @test isnan(QUBOTools.total_time(s))
                 @test isnan(QUBOTools.effective_time(s))
                 @test isnan(QUBOTools.success_rate(s, 0.0))
-                @test isnan(QUBOTools.tts(s, 0.0))
+                @test isnan(QUBOTools.ttt(s, 0.0))
             end
 
             let s = QUBOTools.SampleSet(
@@ -44,7 +44,7 @@ function test_metrics()
                 @test QUBOTools.total_time(s) == 1.0
                 @test QUBOTools.effective_time(s) == 1.0
                 @test isnan(QUBOTools.success_rate(s, 0.0))
-                @test isnan(QUBOTools.tts(s, 0.0))
+                @test isnan(QUBOTools.ttt(s, 0.0))
             end
         end
 
