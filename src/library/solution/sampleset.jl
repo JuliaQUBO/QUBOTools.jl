@@ -1,33 +1,35 @@
 @doc raw"""
     SampleSet{T,U}(
         data::Vector{Sample{T,U}},
-        metadata::Dict{String,Any};
+        metadata::Union{Dict{String,Any},Nothing} = nothing;
         sense::Union{Sense,Symbol}   = :min,
         domain::Union{Domain,Symbol} = :bool,
     ) where {T,U}
 
-It compresses repeated states by adding up the `reads` field.
-It was inspired by [^dwave], with a few tweaks.
+Reference implementation of [`AbstractSolution{T,U}`](@ref).
 
-!!! info
-    A `SampleSet{T,U}` was designed to be read-only.
-    It is optimized to support queries over the solution set.
+It was inspired by D-Wave Ocean SDK's SampleSet[^dwave], with a few tweaks. For example,
+samples are automatically sorted upon instantiation and repeated samples are merged by
+adding up their `reads` field. Also, the solution frame is stored, allowing for queries
+and [`cast`](@ref) operations.
 
 ## References
+
 [^dwave]:
-    [ocean docs](https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/S.html#dimod.SampleSet)
+    [ocean docs](https://docs.ocean.dwavesys.com/en/stable/docs_dimod/reference/sampleset.html#id1)
 """
 struct SampleSet{T,U} <: AbstractSolution{T,U}
     data::Vector{Sample{T,U}}
     metadata::Dict{String,Any}
     frame::Frame
 
+    # Canonical constructor
     function SampleSet{T,U}(
-        data::V,
+        data::AbstractVector{S},
         metadata::Union{Dict{String,Any},Nothing} = nothing;
-        sense::Union{Sense,Symbol} = :min,
+        sense::Union{Sense,Symbol}   = :min,
         domain::Union{Domain,Symbol} = :bool,
-    ) where {T,U,S<:Sample{T,U},V<:AbstractVector{S}}
+    ) where {T,U,S<:Sample{T,U}}
         frame = Frame(sense, domain)
 
         data = _sort_and_merge(data, QUBOTools.sense(frame))
@@ -39,24 +41,23 @@ struct SampleSet{T,U} <: AbstractSolution{T,U}
         return new{T,U}(data, metadata, frame)
     end
 
+    # Short-cut: Empty Set + Metadata
     function SampleSet{T,U}(
-        metadata::Dict{String,Any};
+        metadata::Union{Dict{String,Any},Nothing} = nothing;
         sense::Union{Sense,Symbol}   = :min,
         domain::Union{Domain,Symbol} = :bool,
     ) where {T,U}
+        if isnothing(metadata)
+            metadata = Dict{String,Any}()
+        end
+
         return new{T,U}(Sample{T,U}[], metadata, Frame(sense, domain))
     end
 end
 
-function SampleSet{T,U}(;
-    sense::Union{Sense,Symbol}   = :min,
-    domain::Union{Domain,Symbol} = :bool,
-) where {T,U}
-    return SampleSet{T,U}(Sample{T,U}[], Dict{String,Any}(); sense, domain)
-end
-
+# Fallback constructor
 function SampleSet{T,U}(
-    x,
+    src::Any,
     Ψ::AbstractVector{S},
     metadata::Union{Dict{String,Any},Nothing} = nothing,
 ) where {T,U,S<:State{U}}
@@ -64,7 +65,7 @@ function SampleSet{T,U}(
 
     for i in eachindex(data)
         ψ = Ψ[i]
-        λ = value(x, ψ)
+        λ = value(src, ψ)
 
         data[i] = Sample{T,U}(ψ, λ)
     end
@@ -72,8 +73,9 @@ function SampleSet{T,U}(
     return SampleSet{T,U}(data, metadata; sense = sense(x), domain = domain(x))
 end
 
+# Type Aliases
 SampleSet{T}(args...; kws...) where {T} = SampleSet{T,Int}(args...; kws...)
-SampleSet(args...; kws...)              = SampleSet{Float64}(args...; kws...)
+SampleSet(args...; kws...)              = SampleSet{Float64,Int}(args...; kws...)
 
 function Base.copy(sol::SampleSet{T,U}) where {T,U}
     return SampleSet{T,U}(
