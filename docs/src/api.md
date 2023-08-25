@@ -60,8 +60,8 @@ QUBOTools.solution
 ```@docs
 QUBOTools.state
 QUBOTools.value
-QUBOTools.reads
 QUBOTools.energy
+QUBOTools.reads
 ```
 
 ## Models
@@ -112,6 +112,9 @@ QUBOTools.quadratic_size
 QUBOTools.density
 QUBOTools.linear_density
 QUBOTools.quadratic_density
+```
+
+```@docs
 QUBOTools.topology
 QUBOTools.adjacency
 ```
@@ -119,15 +122,18 @@ QUBOTools.adjacency
 ## Normal Forms
 
 ```@docs
-QUBOTools.DictForm{T}
-QUBOTools.SparseForm{T}
-QUBOTools.DenseForm{T}
 QUBOTools.form
 ```
 
 ```@docs
 QUBOTools.qubo
 QUBOTools.ising
+```
+
+```@docs
+QUBOTools.DictForm{T}
+QUBOTools.SparseForm{T}
+QUBOTools.DenseForm{T}
 ```
 
 ## Benchmarking
@@ -143,14 +149,9 @@ QUBOTools.effective_time
 QUBOTools.success_rate
 ```
 
-### Time-to-Solution (TTS)
+### Time-to-Target (TTT)
 
 ```@docs
-QUBOTools.tts
-```
-
-### Optimal Time-to-Solution (TTS)
-
-```@docs
-QUBOTools.opt_tts
+QUBOTools.time_to_target
+QUBOTools.ttt
 ```
