@@ -1,13 +1,18 @@
 @doc raw"""
     density(model)::Float64
 
-Computes the density ``\rho`` of non-zero terms in a model, according to the expression
+Computes the density ``\rho`` of non-zero terms in a model, according to the expression[^qplib]
 ```math
 \rho = \frac{n_{\ell} + 2 n_{q}}{n^{2}}
 ```
 where ``n_{\ell}`` is the number of non-zero linear terms, ``n_{q}` the number of quadratic ones and ``n`` the number of variables.
 
 If the model is empty, returns `NaN`.
+
+## References
+
+[^qplib]:
+    [QPLIB: A Library of Quadratic Programming Instances](https://qplib.zib.de/doc.html#objquaddensity)
 """
 function density end
 
