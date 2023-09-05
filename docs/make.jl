@@ -1,14 +1,15 @@
 using Documenter
+using DocumenterDiagrams
 using QUBOTools
 
 # Set up to run docstrings with jldoctest
 DocMeta.setdocmeta!(QUBOTools, :DocTestSetup, :(using QUBOTools); recursive = true)
 
 makedocs(;
-    modules = [QUBOTools],
+    modules = [QUBOTools, QUBOTools.PBO],
     doctest = true,
-    clean = true,
-    format = Documenter.HTML(
+    clean   = true,
+    format  = Documenter.HTML(
         assets           = ["assets/extra_styles.css", "assets/favicon.ico"],
         mathengine       = Documenter.KaTeX(),
         sidebar_sitename = false,
@@ -28,7 +29,7 @@ makedocs(;
         ],
         "Formats" => [
             "BQPJSON"  => "formats/BQPJSON.md",
-            "HFS"      => "formats/HFS.md",
+            # "HFS"      => "formats/HFS.md",
             "MiniZinc" => "formats/MiniZinc.md",
             "Qubist"   => "formats/Qubist.md",
             "QUBO"     => "formats/QUBO.md",

@@ -8,7 +8,7 @@ QUBOTools.Qubist
 
 ## Example
 
-```
+```text
 7 2
 1 1 0.75
 2 2 -3.0

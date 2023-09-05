@@ -42,6 +42,7 @@ julia> using QUBOTools
 ## Design Goals
 
 The objective of this package is to provide:
+
 - Fast and reliable I/O, including conversion between formats.
 - Model & Solution Analysis through data queries, metrics and plot recipes.
 - Generic yet complete backend for powering other applications.

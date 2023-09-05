@@ -2,7 +2,7 @@
 
 ## Fallback dispatch
 
-When extending `QUBOTools`, one must implement a method for [`QUBOTools.backend`](@ref). 
+When extending `QUBOTools`, one must implement a method for [`QUBOTools.backend`](@ref).
 
 ```@docs
 QUBOTools.backend
@@ -15,9 +15,6 @@ QUBOTools.index
 QUBOTools.indices
 QUBOTools.variable
 QUBOTools.variables
-QUBOTools.variable_set
-QUBOTools.variable_map
-QUBOTools.variable_inv
 ```
 
 ```@docs
@@ -37,8 +34,6 @@ QUBOTools.domain
 
 ```@docs
 QUBOTools.Sense
-QUBOTools.Min
-QUBOTools.Max
 QUBOTools.sense
 ```
 
@@ -52,8 +47,8 @@ QUBOTools.cast
 ## Solution Interface
 
 ```@docs
-QUBOTools.Sample{T,U}
-QUBOTools.SampleSet{T,U}
+QUBOTools.Sample
+QUBOTools.SampleSet
 QUBOTools.solution
 ```
 
@@ -67,8 +62,8 @@ QUBOTools.reads
 ## Models
 
 ```@docs
-QUBOTools.AbstractModel{V,T,U}
-QUBOTools.Model{V,T,U}
+QUBOTools.AbstractModel
+QUBOTools.Model
 ```
 
 ```@docs
@@ -139,12 +134,14 @@ QUBOTools.DenseForm{T}
 ## Benchmarking
 
 ### Timing
+
 ```@docs
 QUBOTools.total_time
 QUBOTools.effective_time
 ```
 
 ### Solution Quality
+
 ```@docs
 QUBOTools.success_rate
 ```

@@ -8,7 +8,7 @@ QUBOTools.BQPJSON
 
 ## Example
 
-```
+```json
 {
     "id": 2,
     "version": "1.0.0",

@@ -51,72 +51,48 @@ where $J \in \mathbb{R}^{n \times n}$ is triangular and $\mathbf{h} \in \mathbb{
 ## Getting Started
 
 ### Installation
-```julia
-julia> import Pkg
 
-julia> Pkg.add("QUBOTools")
+```julia
+import Pkg
+
+Pkg.add("QUBOTools")
 ```
 
 ### Basic Usage
+
 ```julia
-julia> using QUBOTools
+using QUBOTools
 
-julia> model = QUBOTools.read_model("problem.json")
+model = QUBOTools.read_model("problem.json")
 
-julia> QUBOTools.write_model("problem.qubo", model)
+QUBOTools.write_model("problem.qubo", model)
 ```
 
 ## Supported Formats
+
 The `r` and `w` marks indicate that reading and writing modes are available for the corresponding file format, respectively.
 
 ### [BQPJSON](/docs/models/BQPJSON.md) `rw`
+
 The [BQPJSON](https://bqpjson.readthedocs.io) format was designed at [LANL-ANSI](https://github.com/lanl-ansi) to represent Binary Quadratic Programs in a platform-independet fashion.
 This is accomplished by using `.json` files validated using a well-defined [JSON Schema](/src/models/bqpjson.schema.json).
 
 ### [QUBO](/docs/models/QUBOTools.md) `rw`
+
 The QUBO specification appears as the input format in many of D-Wave's applications.
 A brief explanation about it can be found in [qbsolv](https://github.com/arcondello/qbsolv#qbsolv-qubo-input-file-format)'s repository README. 
 
 ### [Qubist](/docs/models/Qubist.md) `rw`
+
 This is the simplest of all current supported formats.
 
 ### [MiniZinc](/docs/models/MiniZinc.md) `rw`
+
 [MiniZinc](https://www.minizinc.org) is a constraint modelling language that can be used as input for many solvers.
 
 ### [HFS](/docs/models/HFS.md) `w`
+
 HFS is a very low-level mapping of weights to D-Wave's chimera graph.
-
-### Conversion Flowchart
-**Bold arrows** indicate that a bijective (modulo rounding erros) conversion is available.
-**Regular arrows** indicate that some non-critical information might get lost in the process, such as problem metadata.
-**Dashed arrows** tell that even though a format conversion exists, important information such as scale and offset factors will be neglected.
-
-```mermaid
-flowchart TD;
-    MODEL["QUBOTools Model"];
-
-    BQPJSON["BQPJSON<br><code>Bool</code><br><code>Spin</code>"];
-
-    HFS(["HFS<br><code>Bool</code>"]);
-
-    MINIZINC(["MiniZinc<br><code>Bool</code><br><code>Spin</code>"]);
-
-    QUBO["QUBO<br><code>Bool</code>"];
-
-    QUBIST["Qubist<br><code>Spin</code>"];
-
-
-    QUBIST -.-> MODEL;
-
-    MODEL --> HFS;
-    MODEL --> QUBIST;
-
-    MODEL <==> MINIZINC;
-
-    MODEL <==> BQPJSON;
-    QUBO  <==> MODEL;
-    
-```
 
 <div align="center">
     <h2>PSR Quantum Optimization Toolchain</h2>

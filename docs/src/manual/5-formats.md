@@ -7,7 +7,7 @@
 |  [Qubist](../formats/Qubist.md)  |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ❌     |
 |    [QUBO](../formats/QUBO.md)    |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
 
-## Custom File Format
+## Defining a Custom File Format
 
 ```@example file-format
 using QUBOTools

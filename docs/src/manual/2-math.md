@@ -20,6 +20,7 @@ The vector ``\mathbf{\ell} \in \mathbb{R}^{n}`` stores the linear terms and ``Q 
 Available domains are represented by the `BoolDomain` and `SpinDomain` types, respectively, ``x \in \mathbb{B} = \lbrace 0, 1 \rbrace`` and ``s \in \mathbb{S} = \lbrace -1, 1 \rbrace``.
 
 Conversion between domains follows the identity
+
 ```math
 \left\lbrace\begin{align*}
     s &= 2x - 1          \\

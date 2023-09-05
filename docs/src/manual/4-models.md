@@ -1,11 +1,12 @@
 # Models
 
-This package defines [`AbstractModel{V,T,U}`](@ref) as an abstract type for QUBO models.
-`V` is a type for indexing variables, usually an integer or string-like type.
+This package defines [`AbstractModel`](@ref) as an abstract type for QUBO models.
+`V` is a type for representing variables, usually an integer or string-like type.
 The problem's coefficients are stored under the `T` type, that also represents the energy values corresponding to each solution.
 When solution state vectors are sampled, their entries will be of the integer type `U`.
+Since values are binary, using integer types smaller than `Int64` is a reasonable choice.
 
-## Standard Model Implementation
+## Reference Implementation
 
 QUBOTools also exports the `Model{V,T,U} <: AbstractModel{V,T,U}` type, designed to work as standard backend for other applications to be built atop.
 
