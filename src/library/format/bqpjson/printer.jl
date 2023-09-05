@@ -1,70 +1,71 @@
-function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
-    data = Dict{Symbol,Any}(
-        :linear_terms    => Dict{String,Any}[],
-        :quadratic_terms => Dict{String,Any}[],
-        :offset          => offset(model),
-        :scale           => scale(model),
-        :id              => id(model),
-        :version         => fmt.version,
-        :variable_domain => _BQPJSON_VARIABLE_DOMAIN(domain(model)),
-        :variable_ids    => variables(model),
-        :description     => description(model),
-        :metadata        => metadata(model),
-        :solution        => solution(model),
+function write_model(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V<:Integer}
+    if fmt.version === v"1.0.0"
+        _print_bqpjson_model_v1_0_0(io, model, fmt)
+    else
+        format_error("Invalid BQPJSON version '$(fmt.version)'")
+    end
+    
+    return nothing
+end
+
+function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V<:Integer}
+    json_data = Dict{String,Any}(
+        "id"              => 0,
+        "variable_domain" => _BQPJSON_VARIABLE_DOMAIN(domain(model)),
+        "linear_terms"    => Dict{String,Any}[],
+        "quadratic_terms" => Dict{String,Any}[],
+        "variable_ids"    => variables(model),
+        "scale"           => scale(model),
+        "offset"          => offset(model),
+        "metadata"        => Dict{String,Any}(),
+        "version"         => string(fmt.version),
     )
 
     for (i, l) in linear_terms(model)
         push!(
-            data[:linear_terms],
-            Dict{String,Any}("id" => variable_inv(model, i), "coeff" => l),
+            json_data["linear_terms"],
+            Dict{String,Any}("id" => variable(model, i), "coeff" => l),
         )
     end
 
     for ((i, j), q) in quadratic_terms(model)
         push!(
-            data[:quadratic_terms],
+            json_data["quadratic_terms"],
             Dict{String,Any}(
-                "id_head" => variable_inv(model, i),
-                "id_tail" => variable_inv(model, j),
+                "id_head" => variable(model, i),
+                "id_tail" => variable(model, j),
                 "coeff"   => q,
             ),
         )
     end
 
-    sort!(data[:linear_terms]; by = (lt) -> lt["id"])
-    sort!(data[:quadratic_terms]; by = (qt) -> (qt["id_head"], qt["id_tail"]))
+    sort!(json_data["linear_terms"]; by = (lt) -> lt["id"])
+    sort!(json_data["quadratic_terms"]; by = (qt) -> (qt["id_head"], qt["id_tail"]))
 
-    json_data = Dict{String,Any}(
-        "id"              => data[:id],
-        "variable_domain" => data[:variable_domain],
-        "linear_terms"    => data[:linear_terms],
-        "quadratic_terms" => data[:quadratic_terms],
-        "variable_ids"    => data[:variable_ids],
-        "offset"          => data[:offset],
-        "scale"           => data[:scale],
-        "metadata"        => data[:metadata],
-    )
-
-    if isnothing(data[:version])
-        json_data["version"] = string(_BQPJSON_VERSION_LATEST)
-    else
-        json_data["version"] = string(data[:version])
+    for (k, v) in metadata(model)
+        if k == "id" && !isnothing(v)
+            json_data["id"] = v
+        elseif k == "description" && !isnothing(v)
+            json_data["description"] = v
+        else
+            json_data["metadata"][k] = v
+        end
     end
 
-    if !isnothing(data[:description])
-        json_data["description"] = data[:description]
-    end
+    sol = solution(model)
 
-    if !isnothing(data[:solution])
+    if !isempty(sol)
         sol_id = 0
 
         solutions = Dict{String,Any}[]
 
-        for s in data[:solution]
+        for s in sol
             assignment = Dict{String,Any}[
-                Dict{String,Any}("id" => i, "value" => state(s, i)) for
-                i in values(variable_map(model))
+                Dict{String,Any}("id" => i, "value" => state(s, i))
+                for i in indices(model)
             ]
+
+            evaluation = value(s)
 
             for _ = 1:reads(s)
                 push!(
@@ -72,7 +73,7 @@ function write_model(io::IO, model::AbstractModel, fmt::BQPJSON)
                     Dict{String,Any}(
                         "id"         => (sol_id += 1),
                         "assignment" => assignment,
-                        "evaluation" => value(sample),
+                        "evaluation" => evaluation,
                     ),
                 )
             end

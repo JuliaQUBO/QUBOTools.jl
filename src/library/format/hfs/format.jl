@@ -23,5 +23,4 @@ end
 
 format(::Val{:hfs}) = HFS()
 
-include("chimera.jl")
 include("printer.jl")

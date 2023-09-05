@@ -1,37 +1,13 @@
-function name(model::AbstractModel)
-    return get(metadata(model), "name", "")
+function Base.isempty(model::AbstractModel)
+    return iszero(dimension(model))
 end
 
 function indices(model::AbstractModel)
     return collect(1:dimension(model))
 end
 
-function variables(model::AbstractModel{V,T}) where {V,T}
-    return collect(variable_inv(model))
-end
-
-function variable_set(model::AbstractModel{V,T}) where {V,T}
-    return Set{V}(variable_inv(model))
-end
-
-function variable_map(model::AbstractModel{V,T}, v::V) where {V,T}
-    mapping = variable_map(model)
-
-    if haskey(mapping, v)
-        return mapping[v]
-    else
-        error("Variable '$v' does not belong to the model")
-
-        return nothing
-    end
-end
-
-function index(model::AbstractModel{V,T,U}, v::V) where {V,T,U}
-    return variable_map(model, v)
-end
-
-function variable_inv(model::AbstractModel, i::Integer)
-    mapping = variable_inv(model)::AbstractVector
+function variable(model::AbstractModel{V}, i::Integer) where {V}
+    mapping = variables(model)::AbstractVector{V}
 
     if 1 <= i <= length(mapping)
         return mapping[i]
@@ -40,10 +16,6 @@ function variable_inv(model::AbstractModel, i::Integer)
 
         return nothing
     end
-end
-
-function variable(model::AbstractModel, i::Integer)
-    return variable_inv(model, i)
 end
 
 function start(model::AbstractModel{V,T}, v::V) where {V,T}

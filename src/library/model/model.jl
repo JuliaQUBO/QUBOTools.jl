@@ -98,8 +98,6 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         return Model{V,T,U}(
             Φ,
             variables_map;
-            sense,
-            domain,
             metadata,
             solution,
             start,
@@ -182,19 +180,29 @@ function form(model::Model; domain = QUBOTools.domain(model))
     return cast((QUBOTools.domain(model) => domain), model.form)
 end
 
-dimension(model::Model)       = dimension(form(model))
+dimension(model::Model) = dimension(form(model))
+
+function index(model::Model{V}, v::V) where {V}
+    if haskey(model.variables.map, v)
+        return model.variables.map[v]
+    else
+        error("Variable '$v' does not belong to the model.")
+
+        return nothing
+    end
+end
+
+variables(model::Model) = model.variables.inv
+
 linear_terms(model::Model)    = linear_terms(form(model))
 quadratic_terms(model::Model) = quadratic_terms(form(model))
 
-scale(model::Model)           = scale(form(model))
-offset(model::Model)          = offset(form(model))
+scale(model::Model)  = scale(form(model))
+offset(model::Model) = offset(form(model))
 
 frame(model::Model)  = frame(model.form)
 sense(model::Model)  = sense(frame(model))
 domain(model::Model) = domain(frame(model))
-
-variable_map(model::Model) = model.variables.map
-variable_inv(model::Model) = model.variables.inv
 
 metadata(model::Model) = model.metadata
 solution(model::Model) = model.solution
@@ -224,10 +232,6 @@ function Base.empty!(model::Model{V,T,U}) where {V,T,U}
     empty!(model.start)
 
     return model
-end
-
-function Base.isempty(model::Model)
-    return iszero(dimension(model))
 end
 
 function Base.copy(model::Model{V,T,U}) where {V,T,U}

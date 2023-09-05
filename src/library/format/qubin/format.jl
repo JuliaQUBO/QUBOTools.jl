@@ -1,3 +1,8 @@
+@doc raw"""
+    QUBin()
+
+HDF5-based reference format for storing QUBOTools models and solutions.
+"""
 struct QUBin <: AbstractFormat end
 
 # Hints:

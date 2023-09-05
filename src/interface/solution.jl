@@ -1,11 +1,7 @@
 @doc raw"""
-    AbstractSolution{T,U<:Integer}
-
-By definitioon, a solution is an ordered set of samples.
-
-See [`AbstractSample`](@ref).
+    State{U<:Integer}
 """
-abstract type AbstractSolution{T,U<:Integer} end
+const State{U<:Integer} = AbstractVector{U}
 
 @doc raw"""
     AbstractSample{T,U<:Integer}
@@ -17,9 +13,13 @@ is the number of reads, i. e., the multiplicity of the sample.
 abstract type AbstractSample{T,U<:Integer} end
 
 @doc raw"""
-    State{U<:Integer}
+    AbstractSolution{T,U<:Integer}
+
+By definitioon, a solution is an ordered set of samples.
+
+See [`AbstractSample`](@ref).
 """
-const State{U<:Integer} = AbstractVector{U}
+abstract type AbstractSolution{T,U<:Integer} end
 
 @doc raw"""
     solution(model) where {T,U<:Integer}

@@ -9,10 +9,8 @@ where ``n_{\ell}`` is the number of non-zero linear terms, ``n_{q}` the number o
 
 If the model is empty, returns `NaN`.
 
-## References
-
 [^qplib]:
-    [QPLIB: A Library of Quadratic Programming Instances](https://qplib.zib.de/doc.html#objquaddensity)
+    **QPLIB: A Library of Quadratic Programming Instances** [{docs}](https://qplib.zib.de/doc.html#objquaddensity)
 """
 function density end
 

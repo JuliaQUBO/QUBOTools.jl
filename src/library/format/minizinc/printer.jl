@@ -1,89 +1,84 @@
-function write_model(io::IO, model::AbstractModel, fmt::MiniZinc)
-    data = Dict{Symbol,Any}(
-        :dimension           => dimension(model),
-        :linear_terms        => linear_terms(model),
-        :quadratic_terms     => quadratic_terms(model),
-        :variable_inv        => variable_inv(model),
-        :scale               => scale(model),
-        :offset              => offset(model),
-        :sense               => sense(model),
-        :domain              => domain(model),
-        :metadata            => metadata(model),
-        # MiniZinc-specific:
-        :mzn_variables       => Dict{Int,String}(),
-        :mzn_objective_terms => String[],
-        :mzn_objective_expr  => "0",
-    )
-
-    _print_metadata(io, data, fmt)
-    _print_domain(io, data, fmt)
-    _print_variables!(io, data, fmt)
-    _print_objective!(io, data, fmt)
+function write_model(io::IO, model::AbstractModel{V}, fmt::MiniZinc) where {V<:Integer}
+    _print_metadata(io, model, fmt)
+    _print_domain(io, model, fmt)
+    _print_variables(io, model, fmt)
+    _print_objective(io, model, fmt)
+    _print_sense(io, model, fmt)
 
     return nothing
 end
 
-function _print_metadata(io::IO, data::Dict{Symbol,Any}, ::MiniZinc)
-    for (k, v) in data[:metadata]
+function _print_metadata(io::IO, model::AbstractModel, ::MiniZinc)
+    for (k, v) in metadata(model)
         println(io, "% $(k) : $(JSON.json(v))")
     end
 
     return nothing
 end
 
-function _print_domain(io::IO, data::Dict{Symbol,Any}, ::MiniZinc)
-    if data[:domain] === BoolDomain
+function _print_domain(io::IO, model::AbstractModel, ::MiniZinc)
+    X = domain(model)
+
+    if X === BoolDomain
         println(io, "set of int: Domain = {0,1};")
-    elseif data[:domain] === SpinDomain
+    elseif X === SpinDomain
         println(io, "set of int: Domain = {-1,1};")
     else
-        error("Invalid domain '$(data[:domain])'")
+        error("Invalid domain '$(X)'")
     end
 
     return nothing
 end
 
-function _print_variables!(io::IO, data::Dict{Symbol,Any}, ::MiniZinc)
-    for i = 1:data[:dimension]
-        k = data[:variable_inv][i]
-
-        data[:mzn_variables][k] = "x$(k)"
+function _print_variables(io::IO, model::AbstractModel, ::MiniZinc)
+    for i = indices(model)
+        k = variable(model, i)
         
-        println(io, "var Domain: $(data[:mzn_variables][k]);")
+        println(io, "var Domain: x$(k);")
     end
 
     return nothing
 end
 
-function _print_objective!(io::IO, data::Dict{Symbol,Any}, ::MiniZinc)
-    println(io, "float: scale = $(data[:scale]);")
-    println(io, "float: offset = $(data[:offset]);")
+function _print_objective(io::IO, model::AbstractModel, ::MiniZinc)
+    objective_terms = String[]
 
-    for (i, v) in data[:linear_terms]
-        xi = data[:mzn_variables][data[:variable_inv][i]]
+    println(io, "float: scale = $(scale(model));")
+    println(io, "float: offset = $(offset(model));")
 
-        push!(data[:mzn_objective_terms], "$(v)*$(xi)")
+    for (i, v) in linear_terms(model)
+        xi = "x$(variable(model, i))"
+
+        push!(objective_terms, "$(v)*$(xi)")
     end
 
-    for ((i, j), v) in data[:quadratic_terms]
-        xi = data[:mzn_variables][data[:variable_inv][i]]
-        xj = data[:mzn_variables][data[:variable_inv][j]]
+    for ((i, j), v) in quadratic_terms(model)
+        xi = "x$(variable(model, i))"
+        xj = "x$(variable(model, j))"
 
-        push!(data[:mzn_objective_terms], "$(v)*$(xi)*$(xj)")
+        push!(objective_terms, "$(v)*$(xi)*$(xj)")
     end
 
-    if !isempty(data[:mzn_objective_terms])
-        data[:mzn_objective_expr] = join(data[:mzn_objective_terms], " + ")
+    if !isempty(objective_terms)
+        objective_expr = join(objective_terms, " + ")
+
+        println(io, "var float: objective = scale * ($(objective_expr) + offset);") 
+    else
+        println(io, "var float: objective = scale * offset;")
     end
 
-    println(io, "var float: objective = scale * ($(data[:mzn_objective_expr]) + offset);")
+    return nothing
+end
 
-    if data[:sense] === Min
+function _print_sense(io::IO, model::AbstractModel, ::MiniZinc)
+    s = sense(model)
+
+    if s === Min
         println(io, "solve minimize objective;")
-    elseif data[:sense] === Max
+    elseif s === Max
         println(io, "solve maximize objective;")
     else
-        error("Invalid sense '$(data[:sense])'")
+        error("Invalid sense '$(s)'")
     end
 
     return nothing

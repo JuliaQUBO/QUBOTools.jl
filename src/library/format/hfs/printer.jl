@@ -3,7 +3,12 @@ function write_model(io::IO, model::AbstractModel, fmt::HFS)
         return write(io, "0 0")
     end
 
-    chimera = Chimera(model, fmt)
+    chimera = Chimera(
+        model,
+        fmt.chimera_cell_size,
+        fmt.chimera_degree,
+        fmt.chimera_precision,
+    )
 
     # Output the hfs data file
     # it is a header followed by linear terms and then quadratic terms
@@ -11,8 +16,8 @@ function write_model(io::IO, model::AbstractModel, fmt::HFS)
 
     for (i, q) in chimera.linear_terms
         args = [
-            collect(chimera.coordinates[variable_inv(model, i)])
-            collect(chimera.coordinates[variable_inv(model, i)])
+            collect(chimera.coordinates[variable(model, i)])
+            collect(chimera.coordinates[variable(model, i)])
             q
         ]
 
@@ -21,8 +26,8 @@ function write_model(io::IO, model::AbstractModel, fmt::HFS)
 
     for ((i, j), Q) in chimera.quadratic_terms
         args = [
-            collect(chimera.coordinates[variable_inv(model, i)])
-            collect(chimera.coordinates[variable_inv(model, j)])
+            collect(chimera.coordinates[variable(model, i)])
+            collect(chimera.coordinates[variable(model, j)])
             Q
         ]
 

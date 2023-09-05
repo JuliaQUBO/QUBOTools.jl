@@ -10,9 +10,8 @@ import NetworkLayout
 using SparseArrays
 using Statistics
 using RecipesBase
-using PseudoBooleanOptimization
-using PseudoBooleanOptimization: varlt
-const PBO = PseudoBooleanOptimization
+import PseudoBooleanOptimization as PBO
+import PseudoBooleanOptimization: varlt
 
 const ↑ = -1 # \uparrow[tab]
 const ↓ = +1 # \downarrow[tab]
@@ -33,7 +32,7 @@ include("interface/model.jl")
 include("interface/solution.jl")
 include("interface/format.jl")
 include("interface/architecture.jl")
-# include("interface/device.jl")
+include("interface/device.jl")
 include("interface/analysis.jl")
 include("interface/generic.jl")
 include("interface/fallback.jl")
@@ -61,8 +60,8 @@ include("library/model/model.jl")
 
 include("library/format/abstract.jl")
 include("library/format/bqpjson/format.jl")
-# include("library/format/hfs/format.jl")
-# include("library/format/minizinc/format.jl")
+include("library/format/hfs/format.jl")
+include("library/format/minizinc/format.jl")
 include("library/format/qubist/format.jl")
 include("library/format/qubo/format.jl")
 include("library/format/qubin/format.jl")
@@ -70,8 +69,16 @@ include("library/format/qubin/format.jl")
 include("library/analysis/metrics/solution.jl")
 include("library/analysis/metrics/model.jl")
 
+include("library/architecture/abstract.jl")
+include("library/architecture/generic.jl")
+
+include("library/device/abstract.jl")
+include("library/device/generic.jl")
+
 include("library/analysis/visualization/energy_frequency.jl")
 include("library/analysis/visualization/model_density.jl")
 include("library/analysis/visualization/system_layout.jl")
+
+include("library/dwave/dwave.jl")
 
 end # module

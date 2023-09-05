@@ -76,7 +76,7 @@ function syntax_error(msg::Union{String,Nothing} = nothing)
     return nothing
 end
 
-function syntax_warning(msg::String)
+function syntax_warning(msg::AbstractString)
     @warn "Syntax Warning: $msg"
 
     return nothing

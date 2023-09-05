@@ -1,1 +1,3 @@
-layout(device::AbstractDevice{A}) where {A} = layout(architecture(device))
+function layout(device::AbstractDevice{A}) where {A}
+    return layout(architecture(device))
+end

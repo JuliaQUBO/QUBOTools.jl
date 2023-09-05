@@ -4,14 +4,6 @@
 abstract type AbstractArchitecture end
 
 @doc raw"""
-    GenericArchitecture()
-
-This type is used to reach fallback implementations for [`AbstractArchitecture`](@ref) and, therefore,
-should not have any methods directely related to it.
-"""
-struct GenericArchitecture <: AbstractArchitecture end
-
-@doc raw"""
     architecture(::Any)
 
 This function makes it possible to infer the solver's architecture from its type.
@@ -32,13 +24,6 @@ architecture(::Solver) = SolverArchitecture()
 ```
 """
 function architecture end
-
-architecture(::Any) = GenericArchitecture()
-
-@doc raw"""
-    AbstractDevice
-"""
-abstract type AbstractDevice{A<:AbstractArchitecture} end
 
 @doc raw"""
     layout(::Any)
