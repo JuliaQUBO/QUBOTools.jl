@@ -30,7 +30,7 @@ function name end
 @doc raw"""
     Domain
 
-Enum representing binary variable domains.
+Enum representing binary variable domains, `BoolDomain` and `SpinDomain`.
 """
 @enum Domain begin
     BoolDomain
@@ -42,8 +42,12 @@ Base.Broadcast.broadcastable(X::Domain) = Ref(X)
 @doc raw"""
     BoolDomain
 
+Represents the boolean domain ``\mathbb{B} = \lbrace{0, 1}\rbrace``.
+
+## Properties
+
 ```math
-x \in \mathbb{B} = \lbrace{0, 1}\rbrace
+x \in \mathbb{B}, n \in \mathbb{N} \implies x^{n} = x
 ```
 """
 BoolDomain
@@ -53,8 +57,12 @@ const 𝔹 = BoolDomain
 @doc raw"""
     SpinDomain
 
+Represents the spin domain ``\mathbb{S} = \lbrace{-1, 1}\rbrace``.
+
+## Properties
+
 ```math
-s \in \mathbb{S} = \lbrace{-1, 1}\rbrace
+s \in \mathbb{S}, n \in \mathbb{N} \implies s^{2n} = 1
 ```
 """
 SpinDomain
@@ -85,9 +93,9 @@ Returns the constant offset factor of a model.
 function offset end
 
 @doc raw"""
-    Domain
+    Sense
 
-Enum representing the minimization and maximization objective senses.
+Enum representing the minimization and maximization objective senses, `Min` and `Max`.
 """
 @enum Sense begin
     Min
@@ -210,7 +218,8 @@ function quadratic_size end
 @doc raw"""
     topology(model) where {T}
 
-Returns a [`Graphs.jl`]-compatible graph representing the quadratic interactions between variables in the model.
+Returns a [`Graphs.jl`](https://github.com/JuliaGraphs/Graphs.jl)-compatible graph
+representing the quadratic interactions between variables in the model.
 """
 function topology end
 

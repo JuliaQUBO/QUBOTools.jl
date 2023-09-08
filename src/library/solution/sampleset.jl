@@ -6,7 +6,7 @@
         domain::Union{Domain,Symbol} = :bool,
     ) where {T,U}
 
-Reference implementation of [`AbstractSolution`](@ref).
+Reference implementation of [`QUBOTools.AbstractSolution`](@ref).
 
 It was inspired by D-Wave's SampleSet[^dwave], with a few tweaks. For example, samples
 are automatically sorted upon instantiation and repeated samples are merged by adding

@@ -10,6 +10,7 @@ import NetworkLayout
 using SparseArrays
 using Statistics
 using RecipesBase
+using Random
 import PseudoBooleanOptimization as PBO
 import PseudoBooleanOptimization: varlt
 
@@ -30,6 +31,7 @@ export Sample, SampleSet
 include("interface/form.jl")
 include("interface/model.jl")
 include("interface/solution.jl")
+include("interface/synthesis.jl")
 include("interface/format.jl")
 include("interface/architecture.jl")
 include("interface/device.jl")
@@ -58,9 +60,12 @@ include("library/model/abstract.jl")
 include("library/model/variable_map.jl")
 include("library/model/model.jl")
 
+include("library/synthesis/abstract.jl")
+include("library/synthesis/sherrington_kirkpatrick.jl")
+include("library/synthesis/wishart.jl")
+
 include("library/format/abstract.jl")
 include("library/format/bqpjson/format.jl")
-include("library/format/hfs/format.jl")
 include("library/format/minizinc/format.jl")
 include("library/format/qubist/format.jl")
 include("library/format/qubo/format.jl")
@@ -79,6 +84,6 @@ include("library/analysis/visualization/energy_frequency.jl")
 include("library/analysis/visualization/model_density.jl")
 include("library/analysis/visualization/system_layout.jl")
 
-include("library/dwave/dwave.jl")
+# include("extra/dwave/dwave.jl")
 
 end # module

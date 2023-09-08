@@ -15,6 +15,7 @@ end
     color  --> :bwr
     xlabel --> "Variable Index"
     ylabel --> "Variable Index"
+    size   --> (500, 500)
 
     n, L, Q, α, _ = DenseForm{T}(form(plt.model))
 

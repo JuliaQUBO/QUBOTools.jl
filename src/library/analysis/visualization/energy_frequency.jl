@@ -44,19 +44,22 @@ end
         λ = x[i]
     end
 
-    if plt.λ !== nothing
+    if !isnothing(plt.λ)
         @series begin
             legend     --> "Ground Energy"
             color      --> :red
             seriestype :=  :vline
+            linestyle  :=  :dash
 
             ([plt.λ],)
         end
     end
 
-    linewidth  --> 0.0
+    linewidth  --> 1.0
     seriestype  := :bar
     fillrange   := z
-
+    color      --> :green
+    # colorbar    := true
+    
     return (x, y)
 end

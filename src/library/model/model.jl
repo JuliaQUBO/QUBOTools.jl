@@ -287,3 +287,35 @@ function attach!(model::Model{V,T,U}, sol::Dict{V,U}) where {V,T,U}
 
     return model.start
 end
+
+function Model{V,T,U}(f::F; kws...) where {V,T,U,F<:PBO.AbstractFunction{V,T}}
+    L = Dict{V,T}()
+    Q = Dict{Tuple{V,V},T}()
+    β = zero(T)
+
+    for (ω, c) in f
+        if length(ω) == 0
+            β += c
+        elseif length(ω) == 1
+            i, = ω
+
+            L[i] = get(L, i, zero(T)) + c
+        elseif length(ω) == 2
+            i, j = ω
+
+            Q[(i, j)] = get(Q, (i, j), zero(T)) + c
+        else
+            throw(
+                DomainError(
+                    length(ω),
+                    """
+                    Can't create QUBO model from a high-order pseudo-Boolean function.
+                    Consider using `PseudoBooleanOptimization.quadratize`.
+                    """
+                )
+            )
+        end
+    end
+
+    return Model{V,T,U}(L, Q; scale = β, sense = :min, domain = :bool, kws...)
+end

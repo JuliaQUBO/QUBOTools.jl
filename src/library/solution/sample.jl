@@ -1,7 +1,7 @@
 @doc raw"""
     Sample{T,U}(state::Vector{U}, value::T, reads::Integer = 1) where{T,U}
 
-This is the reference implementation for [`AbstractSample`](@ref).
+This is the reference implementation for [`QUBOTools.AbstractSample`](@ref).
 
 """
 struct Sample{T<:Real,U<:Integer} <: AbstractSample{T,U}

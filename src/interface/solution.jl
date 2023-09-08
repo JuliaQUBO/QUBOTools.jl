@@ -1,10 +1,10 @@
 @doc raw"""
-    State{U<:Integer}
+    State
 """
 const State{U<:Integer} = AbstractVector{U}
 
 @doc raw"""
-    AbstractSample{T,U<:Integer}
+    AbstractSample
 
 A sample is a triple ``(\psi, \lambda, r)`` where ``\psi \in \mathbb{U}^{n} \sim \mathbb{B}^{n}`` is
 the sampled vector, ``\lambda \in \mathbb{R}`` is the associated energy value and ``r \in \mathbb{N}``
@@ -13,11 +13,11 @@ is the number of reads, i. e., the multiplicity of the sample.
 abstract type AbstractSample{T,U<:Integer} end
 
 @doc raw"""
-    AbstractSolution{T,U<:Integer}
+    AbstractSolution
 
 By definitioon, a solution is an ordered set of samples.
 
-See [`AbstractSample`](@ref).
+See [`QUBOTools.AbstractSample`](@ref).
 """
 abstract type AbstractSolution{T,U<:Integer} end
 

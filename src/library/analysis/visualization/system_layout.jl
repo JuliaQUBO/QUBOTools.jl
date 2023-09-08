@@ -11,10 +11,10 @@ function SystemLayoutPlot(model::Any)
 end
 
 @recipe function plot(plt::SystemLayoutPlot{V,T,U,M}) where {V,T,U,M}
-    title  --> "System Layout"
-    color  --> :blue
+    title --> "System Layout"
+    size  --> (500, 500)
 
-    n, L, Q, α = QUBOTools.form(plt.model)
+    n, L, _, α = QUBOTools.form(plt.model)
 
     G = QUBOTools.topology(plt.model)
     ℓ = QUBOTools.layout(plt.model, G)
@@ -41,6 +41,7 @@ end
     aspect_ratio := :equal
     legend       := nothing
     markersize   := 5
+    grid        --> false
 
     return (x, y)
 end
