@@ -4,6 +4,7 @@
 
 module DWave
 
+import Graphs
 import ..QUBOTools
 
 @doc raw"""
@@ -11,22 +12,8 @@ import ..QUBOTools
 """
 abstract type DWaveArchitecture <: QUBOTools.AbstractArchitecture end
 
-@doc raw"""
-    cell_size
-"""
-function cell_size end
-
-@doc raw"""
-    precision
-"""
-function precision end
-
-@doc raw"""
-    degree
-"""
-function degree end
-
 include("device.jl")
 include("chimera.jl")
+include("hfs/format.jl")
 
 end
