@@ -6,17 +6,13 @@ using QUBOTools
 DocMeta.setdocmeta!(QUBOTools, :DocTestSetup, :(using QUBOTools); recursive = true)
 
 makedocs(;
-    modules = [QUBOTools, QUBOTools.PBO],
-    doctest = true,
-    clean   = true,
-    format  = Documenter.HTML(
-        assets           = ["assets/extra_styles.css", "assets/favicon.ico"],
-        mathengine       = Documenter.KaTeX(),
-        sidebar_sitename = false,
-    ),
+    modules  = [QUBOTools, QUBOTools.PBO],
+    doctest  = true,
+    clean    = true,
     sitename = "QUBOTools.jl",
-    authors = "Pedro Xavier and Pedro Ripper and Tiago Andrade and Joaquim Garcia and David Bernal",
-    pages = [
+    authors  = "Pedro Maciel Xavier and Pedro Ripper and Tiago Andrade and Joaquim Garcia and David E. Bernal Neira",
+    workdir  = @__DIR__,
+    pages    = [
         "Home" => "index.md",
         "Manual" => [
             "Introduction"             => "manual/1-start.md",
@@ -31,12 +27,17 @@ makedocs(;
             "BQPJSON"  => "formats/BQPJSON.md",
             # "HFS"      => "formats/HFS.md",
             "MiniZinc" => "formats/MiniZinc.md",
+            "QUBin"    => "formats/QUBin.md",
             "Qubist"   => "formats/Qubist.md",
             "QUBO"     => "formats/QUBO.md",
         ],
         "API Reference" => "api.md",
     ],
-    workdir = @__DIR__
+    format   = Documenter.HTML(
+        assets           = ["assets/extra_styles.css", "assets/favicon.ico"],
+        mathengine       = Documenter.KaTeX(),
+        sidebar_sitename = false,
+    ),
 )
 
 if "--skip-deploy" ∈ ARGS

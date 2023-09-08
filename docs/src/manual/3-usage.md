@@ -18,12 +18,10 @@ model = QUBOTools.read_model(path)
 ```
 
 !!! info
-    The [`read_model`](@ref) and [`write_model`](@ref) methods will try to infer the file format from the file extension.
+    The [`QUBOTools.read_model`](@ref) and [`QUBOTools.write_model`](@ref) methods will try to infer the file format from the file extension.
     The format can be manually set by passing an extra optional parameter after the source path.
 
 ## Data Access
-
-When querying a model, one should rely on the provided methods, whose definitions are listed in the [API Reference](@ref api-reference).
 
 ```@example manual
 QUBOTools.description(model)

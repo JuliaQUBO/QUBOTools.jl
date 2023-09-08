@@ -44,10 +44,22 @@ QUBOTools.Frame
 QUBOTools.cast
 ```
 
-## Solution Interface
+## Models
 
 ```@docs
+QUBOTools.AbstractModel
+QUBOTools.Model
+```
+
+## Solutions
+
+```@docs
+QUBOTools.AbstractSample
 QUBOTools.Sample
+```
+
+```@docs
+QUBOTools.AbstractSolution
 QUBOTools.SampleSet
 QUBOTools.solution
 ```
@@ -57,18 +69,6 @@ QUBOTools.state
 QUBOTools.value
 QUBOTools.energy
 QUBOTools.reads
-```
-
-## Models
-
-```@docs
-QUBOTools.AbstractModel
-QUBOTools.Model
-```
-
-```@docs
-QUBOTools.AbstractFormat
-QUBOTools.format
 ```
 
 ## Data Access
@@ -84,6 +84,13 @@ QUBOTools.offset
 QUBOTools.metadata
 QUBOTools.id
 QUBOTools.description
+```
+
+## File Formats
+
+```@docs
+QUBOTools.AbstractFormat
+QUBOTools.format
 ```
 
 ## I/O
@@ -114,9 +121,10 @@ QUBOTools.topology
 QUBOTools.adjacency
 ```
 
-## Normal Forms
+## Model Forms
 
 ```@docs
+QUBOTools.AbstractForm
 QUBOTools.form
 ```
 

@@ -2,39 +2,55 @@
 
 ## Models
 
-```@example model-analysis
-using QUBOTools
+```@setup analysis
+using Random
 
-L = Dict{Int,Float64}(1 => 0.5, 2 => 2.0, 3 => -3.0)
-Q = Dict{Tuple{Int,Int},Float64}((1,2) => 2.0, (1,3) => -2.0, (2,3) => 0.5)
-
-m = QUBOTools.Model{Int,Float64,Int}(L, Q; domain=:bool, sense=:min)
+Random.seed!(0)
 ```
 
-```@example model-analysis
+```@example analysis
+using QUBOTools
+
+n = 8
+
+# Generates a Sherrington-Kirpatrick model
+model = QUBOTools.generate(QUBOTools.SK(n))
+```
+
+### Model Density
+
+```@example analysis
 using Plots
 
-p = QUBOTools.ModelDensityPlot(m)
+plot(QUBOTools.ModelDensityPlot(model))
+```
 
-plot(p)
+### System Layout
+
+```@example analysis
+plot(QUBOTools.SystemLayoutPlot(model))
 ```
 
 ## Solutions
 
-```@example solution-analysis
-using QUBOTools
-using Plots
+```@example analysis
+samples = Sample{Float64,Int}[]
 
-sol = SampleSet([
-    Sample([0, 0], 0.5,  8),
-    Sample([0, 1], 1.2, 10),
-    Sample([1, 0], 1.8, 12),
-    Sample([1, 1], 1.5,  4),
-])
+for i = 1:5
+    ψ = rand(0:1, n)
+    λ = QUBOTools.value(model, ψ)
+    r = rand(1:10)
 
-λ = 0.5 # ground state
+    push!(samples, Sample(ψ, λ, r))
+end
 
-p = QUBOTools.EnergyFrequencyPlot(sol, λ)
+solution = SampleSet(samples)
+```
 
-plot(p)
+### Energy Frequency
+
+```@example analysis
+λ = -100.0 # threshold
+
+plot(QUBOTools.EnergyFrequencyPlot(solution, λ))
 ```

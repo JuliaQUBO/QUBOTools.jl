@@ -1,6 +1,6 @@
 # Solutions
 
-A solution, as defined by the [`AbstractSolution`](@ref) interface, is an ordered set of samples.
+A solution, as defined by the [`QUBOTools.AbstractSolution`](@ref) interface, is an ordered set of samples.
 
 ## Sample records
 
@@ -10,7 +10,7 @@ Samples should be sorted by increasing values of ``\lambda``, then by decreasing
 
 ## Reference Implementation
 
-Optimization results and metadata are stored in a specialized data structre, the [`SampleSet`](@ref).
+Optimization results and metadata are stored in a specialized data structre, the [`QUBOTools.SampleSet`](@ref).
 
 ## Metadata
 
