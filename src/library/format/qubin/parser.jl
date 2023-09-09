@@ -109,7 +109,7 @@ function _parse_solution_data(fp::HDF5.File, ::QUBin)
 end
 
 function _parse_solution_data(ψ::Matrix{U}, λ::Vector{T}, r::Vector{Int}) where {T,U}
-    return Sample{T,U}[Sample{T,U}(ψ[i, :], λ[i], r[i]) for i in eachindex(ψ)]
+    return Sample{T,U}[Sample{T,U}(ψ[i, :], λ[i], r[i]) for i in eachindex(λ)]
 end
 
 function _parse_solution_metadata(fp::HDF5.File, ::QUBin)
