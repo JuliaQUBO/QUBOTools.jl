@@ -1,8 +1,7 @@
 @doc raw"""
     Wishart{T}(n::Integer, m::Integer)
 
-Represents the Wishart model on ``n`` variables whose ``W`` matrix
-has ``m`` columns.
+Represents the Wishart model on ``n`` variables whose ``W`` matrix has ``m`` columns.
 """
 struct Wishart{T} <: AbstractProblem{T}
     n::Int
