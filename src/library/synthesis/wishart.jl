@@ -8,19 +8,28 @@ struct Wishart{T} <: AbstractProblem{T}
     n::Int
     m::Int
 
-    function Wishart{T}(n::Integer, m::Integer) where {T}
-        return new{T}(n, m)
+    discretize::Bool
+    precision::Int
+
+    function Wishart{T}(n::Integer, m::Integer; discretize::Bool = false, precision::Integer = 0) where {T}
+        @assert precision >= 0
+
+        return new{T}(n, m, discretize, precision)
     end
 end
 
-Wishart(n::Integer, m::Integer) = Wishart{Float64}(n, m)
+function Wishart(n::Integer, m::Integer; discretize::Bool = false, precision::Integer = 0)
+    return Wishart{Float64}(n, m; discretize, precision)
+end
 
 function generate(rng, problem::Wishart{T}) where {T}
     f = PBO.wishart(
         rng,
         PBO.PBF{Int,T},
         problem.n,
-        problem.m,
+        problem.m;
+        discretize_bonds = problem.discretize,
+        precision        = problem.precision,
     )
 
     return Model{Int,T,Int}(
