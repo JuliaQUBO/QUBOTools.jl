@@ -17,7 +17,7 @@ end
     ylabel --> "Variable Index"
     size   --> (500, 500)
 
-    n, L, Q, α, _ = DenseForm{T}(form(plt.model))
+    n, L, Q, α = DenseForm{T}(form(plt.model))
 
     t = collect(1:(n÷10+1):n)
     z = α * (Symmetric(Q / 2) + diagm(L))

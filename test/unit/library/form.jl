@@ -139,41 +139,57 @@ function test_form_dict()
         Ψ = QUBOTools.DictForm{Float64}(3, h, J, 1.0, -22.75; sense = :max, domain = :spin)
 
         @testset "Constructor" begin
-            @test Φ̄ == QUBOTools.DictForm{Float64}(
-                3,
-                Dict{Int,Float64}(1 => 11.0, 2 => 13.0, 3 => 15.0),
-                Dict{Tuple{Int,Int},Float64}((1, 2) => 4.0, (2, 3) => 5.0),
-                1.0,
-                1.0;
-                sense = :min,
-                domain = :bool,
+            @test _compare_forms(
+                Φ̄,
+                QUBOTools.DictForm{Float64}(
+                    3,
+                    Dict{Int,Float64}(1 => 11.0, 2 => 13.0, 3 => 15.0),
+                    Dict{Tuple{Int,Int},Float64}((1, 2) => 4.0, (2, 3) => 5.0),
+                    1.0,
+                    1.0;
+                    sense  = :min,
+                    domain = :bool,
+                );
+                atol = 0.0,
             )
-            @test Φ == QUBOTools.DictForm{Float64}(
-                3,
-                Dict{Int,Float64}(1 => -11.0, 2 => -13.0, 3 => -15.0),
-                Dict{Tuple{Int,Int},Float64}((1, 2) => -4.0, (2, 3) => -5.0),
-                1.0,
-                -1.0;
-                sense = :max,
-                domain = :bool,
+            @test _compare_forms(
+                Φ,
+                QUBOTools.DictForm{Float64}(
+                    3,
+                    Dict{Int,Float64}(1 => -11.0, 2 => -13.0, 3 => -15.0),
+                    Dict{Tuple{Int,Int},Float64}((1, 2) => -4.0, (2, 3) => -5.0),
+                    1.0,
+                    -1.0;
+                    sense  = :max,
+                    domain = :bool,
+                );
+                atol = 0.0,
             )
-            @test Ψ̄ == QUBOTools.DictForm{Float64}(
-                3,
-                Dict{Int,Float64}(1 => 6.5, 2 => 8.75, 3 => 8.75),
-                Dict{Tuple{Int,Int},Float64}((1, 2) => 1.00, (2, 3) => 1.25),
-                1.0,
-                22.75;
-                sense = :min,
-                domain = :spin,
+            @test _compare_forms(
+                Ψ̄,
+                QUBOTools.DictForm{Float64}(
+                    3,
+                    Dict{Int,Float64}(1 => 6.5, 2 => 8.75, 3 => 8.75),
+                    Dict{Tuple{Int,Int},Float64}((1, 2) => 1.00, (2, 3) => 1.25),
+                    1.0,
+                    22.75;
+                    sense  = :min,
+                    domain = :spin,
+                );
+                atol = 0.0,
             )
-            @test Ψ == QUBOTools.DictForm{Float64}(
-                3,
-                Dict{Int,Float64}(1 => -6.5, 2 => -8.75, 3 => -8.75),
-                Dict{Tuple{Int,Int},Float64}((1, 2) => -1.00, (2, 3) => -1.25),
-                1.0,
-                -22.75;
-                sense = :max,
-                domain = :spin,
+            @test _compare_forms(
+                Ψ,
+                QUBOTools.DictForm{Float64}(
+                    3,
+                    Dict{Int,Float64}(1 => -6.5, 2 => -8.75, 3 => -8.75),
+                    Dict{Tuple{Int,Int},Float64}((1, 2) => -1.00, (2, 3) => -1.25),
+                    1.0,
+                    -22.75;
+                    sense  = :max,
+                    domain = :spin,
+                );
+                atol = 0.0,
             )
         end
 
@@ -237,61 +253,74 @@ function test_form_sparse()
         )
 
         @testset "Constructor" begin
-            @test Φ̄ ≈ QUBOTools.SparseForm{Float64}(
-                3,
-                sparse([11.0, 13.0, 15.0]),
-                sparse([
-                    0.0 4.0 0.0
-                    0.0 0.0 5.0
-                    0.0 0.0 0.0
-                ]),
-                1.0,
-                1.0;
-                sense = :min,
-                domain = :bool,
-            ) atol = 1E-10
-
-            @test Φ ≈ QUBOTools.SparseForm{Float64}(
-                3,
-                sparse([-11.0, -13.0, -15.0]),
-                sparse([
-                    -0.0 -4.0 -0.0
-                    -0.0 -0.0 -5.0
-                    -0.0 -0.0 -0.0
-                ]),
-                1.0,
-                -1.0;
-                sense = :max,
-                domain = :bool,
-            ) atol = 1E-10
-
-            @test Ψ̄ ≈ QUBOTools.SparseForm{Float64}(
-                3,
-                sparse([6.50, 8.75, 8.75]),
-                sparse([
-                    0.00 1.00 0.00
-                    0.00 0.00 1.25
-                    0.00 0.00 0.00
-                ]),
-                1.0,
-                22.75;
-                sense = :min,
-                domain = :spin,
-            ) atol = 1E-10
-
-            @test Ψ ≈ QUBOTools.SparseForm{Float64}(
-                3,
-                sparse([-6.50, -8.75, -8.75]),
-                sparse([
-                    -0.00 -1.00 -0.00
-                    -0.00 -0.00 -1.25
-                    -0.00 -0.00 -0.00
-                ]),
-                1.0,
-                -22.75;
-                sense = :max,
-                domain = :spin,
-            ) atol = 1E-10
+            @test _compare_forms(
+                Φ̄,
+                QUBOTools.SparseForm{Float64}(
+                    3,
+                    sparse([11.0, 13.0, 15.0]),
+                    sparse([
+                        0.0 4.0 0.0
+                        0.0 0.0 5.0
+                        0.0 0.0 0.0
+                    ]),
+                    1.0,
+                    1.0;
+                    sense = :min,
+                    domain = :bool,
+                );
+                atol = 1E-10,
+            )
+            @test _compare_forms(
+                Φ,
+                QUBOTools.SparseForm{Float64}(
+                    3,
+                    sparse([-11.0, -13.0, -15.0]),
+                    sparse([
+                        -0.0 -4.0 -0.0
+                        -0.0 -0.0 -5.0
+                        -0.0 -0.0 -0.0
+                    ]),
+                    1.0,
+                    -1.0;
+                    sense = :max,
+                    domain = :bool,
+                );
+                atol = 1E-10,
+            )
+            @test _compare_forms(
+                Ψ̄,
+                QUBOTools.SparseForm{Float64}(
+                    3,
+                    sparse([6.50, 8.75, 8.75]),
+                    sparse([
+                        0.00 1.00 0.00
+                        0.00 0.00 1.25
+                        0.00 0.00 0.00
+                    ]),
+                    1.0,
+                    22.75;
+                    sense = :min,
+                    domain = :spin,
+                );
+                atol = 1E-10,
+            )
+            @test _compare_forms(
+                Ψ,
+                QUBOTools.SparseForm{Float64}(
+                    3,
+                    sparse([-6.50, -8.75, -8.75]),
+                    sparse([
+                        -0.00 -1.00 -0.00
+                        -0.00 -0.00 -1.25
+                        -0.00 -0.00 -0.00
+                    ]),
+                    1.0,
+                    -22.75;
+                    sense = :max,
+                    domain = :spin,
+                );
+                atol = 1E-10,
+            )
         end
 
         test_form_cast(Φ̄, Φ, Ψ̄, Ψ)
@@ -345,61 +374,74 @@ function test_form_dense()
         Ψ = QUBOTools.DenseForm{Float64}(3, h, J, 1.0, -22.75; sense = :max, domain = :spin)
 
         @testset "Constructor" begin
-            @test Φ̄ ≈ QUBOTools.DenseForm{Float64}(
-                3,
-                [11.0, 13.0, 15.0],
-                [
-                    0.0 4.0 0.0
-                    0.0 0.0 5.0
-                    0.0 0.0 0.0
-                ],
-                1.0,
-                1.0;
-                sense = :min,
-                domain = :bool,
-            ) atol = 1E-10
-
-            @test Φ ≈ QUBOTools.DenseForm{Float64}(
-                3,
-                [-11.0, -13.0, -15.0],
-                [
-                    -0.0 -4.0 -0.0
-                    -0.0 -0.0 -5.0
-                    -0.0 -0.0 -0.0
-                ],
-                1.0,
-                -1.0;
-                sense = :max,
-                domain = :bool,
-            ) atol = 1E-10
-
-            @test Ψ̄ ≈ QUBOTools.DenseForm{Float64}(
-                3,
-                [6.50, 8.75, 8.75],
-                [
-                    0.00 1.00 0.00
-                    0.00 0.00 1.25
-                    0.00 0.00 0.00
-                ],
-                1.0,
-                22.75;
-                sense = :min,
-                domain = :spin,
-            ) atol = 1E-10
-
-            @test Ψ ≈ QUBOTools.DenseForm{Float64}(
-                3,
-                [-6.50, -8.75, -8.75],
-                [
-                    -0.00 -1.00 -0.00
-                    -0.00 -0.00 -1.25
-                    -0.00 -0.00 -0.00
-                ],
-                1.0,
-                -22.75;
-                sense = :max,
-                domain = :spin,
-            ) atol = 1E-10
+            @test _compare_forms(
+                Φ̄,
+                QUBOTools.DenseForm{Float64}(
+                    3,
+                    [11.0, 13.0, 15.0],
+                    [
+                        0.0 4.0 0.0
+                        0.0 0.0 5.0
+                        0.0 0.0 0.0
+                    ],
+                    1.0,
+                    1.0;
+                    sense = :min,
+                    domain = :bool,
+                );
+                atol = 1E-10,
+            )
+            @test _compare_forms(
+                Φ,
+                QUBOTools.DenseForm{Float64}(
+                    3,
+                    [-11.0, -13.0, -15.0],
+                    [
+                        -0.0 -4.0 -0.0
+                        -0.0 -0.0 -5.0
+                        -0.0 -0.0 -0.0
+                    ],
+                    1.0,
+                    -1.0;
+                    sense = :max,
+                    domain = :bool,
+                );
+                atol = 1E-10,
+            )
+            @test _compare_forms(
+                Ψ̄,
+                QUBOTools.DenseForm{Float64}(
+                    3,
+                    [6.50, 8.75, 8.75],
+                    [
+                        0.00 1.00 0.00
+                        0.00 0.00 1.25
+                        0.00 0.00 0.00
+                    ],
+                    1.0,
+                    22.75;
+                    sense = :min,
+                    domain = :spin,
+                );
+                atol = 1E-10,
+            )
+            @test _compare_forms(
+                Ψ,
+                QUBOTools.DenseForm{Float64}(
+                    3,
+                    [-6.50, -8.75, -8.75],
+                    [
+                        -0.00 -1.00 -0.00
+                        -0.00 -0.00 -1.25
+                        -0.00 -0.00 -0.00
+                    ],
+                    1.0,
+                    -22.75;
+                    sense = :max,
+                    domain = :spin,
+                );
+                atol = 1E-10,
+            )
         end
 
         test_form_cast(Φ̄, Φ, Ψ̄, Ψ)

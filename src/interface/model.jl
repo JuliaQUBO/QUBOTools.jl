@@ -133,6 +133,14 @@ Returns the model description as a `String` or `nothing`.
 function description end
 
 @doc raw"""
+    data(form)
+    data(sol::AbstractSolution)
+
+Retrieves the raw data behind solution and form wrappers.
+"""
+function data end
+
+@doc raw"""
     metadata(model::AbstractModel)
     metadata(sol::AbstractSolution)
 

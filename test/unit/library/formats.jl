@@ -71,7 +71,7 @@ end
 
 function test_qubo_format()
     @testset "⋅ QUBO" begin
-        fmt = QUBOTools.QUBO(QUBOTools.DWaveStyle())
+        fmt = QUBOTools.QUBO(:dwave)
 
         for i = 0:2
             file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qubo")

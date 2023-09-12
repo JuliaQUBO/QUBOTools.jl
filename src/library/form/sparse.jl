@@ -1,157 +1,131 @@
-const LinearSparseForm{T}    = SparseVector{T}
-const QuadraticSparseForm{T} = SparseMatrixCSC{T}
+@doc raw"""
+    SparseLinearForm{T}
+"""
+struct SparseLinearForm{T} <: AbstractLinearForm{T}
+    data::SparseVector{T,Int}
+end
+
+function SparseLinearForm{T}(n::Integer, lf::LF) where {T,S,LF<:AbstractLinearForm{S}}
+    data = spzeros(T, n)
+
+    for (i, v) in linear_terms(lf)
+        data[i] = convert(T, v)
+    end
+
+    return SparseLinearForm{T}(data)
+end
+
+function SparseLinearForm{T}(n::Integer, k::Integer) where {T}
+    data = sizehint!(spzeros(T, n), k)
+
+    return SparseLinearForm{T}(data)
+end
+
+data(lf::SparseLinearForm) = lf.data
+
+function linear_terms(lf::SparseLinearForm)
+    L = data(lf)
+
+    return (i => v for (i, v) in zip(findnz(L)...))
+end
+
+function linear_size(lf::SparseLinearForm)
+    L = data(lf)
+
+    return nnz(L)
+end
+
+
+function Base.getindex(lf::SparseLinearForm, i::Integer)
+    return getindex(data(lf), i)
+end
+
+function Base.setindex!(lf::SparseLinearForm{T}, v::T, i::Integer) where {T}
+    setindex!(data(lf), v, i)
+    
+    return v
+end
+
 
 @doc raw"""
-    SparseForm{T}
+    SparseQuadraticForm{T}
 """
-struct SparseForm{T} <: AbstractForm{T}
-    n::Int
-    L::LinearSparseForm{T}
-    Q::QuadraticSparseForm{T}
-    α::T
-    β::T
-
-    frame::Frame
-
-    function SparseForm{T}(
-        n::Integer,
-        L::LinearSparseForm{T},
-        Q::QuadraticSparseForm{T},
-        α::T                         = one(T),
-        β::T                         = zero(T);
-        sense::Union{Sense,Symbol}   = :min,
-        domain::Union{Domain,Symbol} = :bool,
-    ) where {T}
-        frame = Frame(sense, domain)
-
-        l = spzeros(T, n)
-        q = spzeros(T, n, n)
-
-        for (i, v) in zip(findnz(L)...)
-            iszero(v) && continue
-
-            l[i] += v
-        end
-
-        for (i, j, v) in zip(findnz(Q)...)
-            iszero(v) && continue
-
-            if i == j
-                l[i] += v
-            elseif i > j
-                q[j, i] += v
-            else # i < j
-                q[i, j] += v
-            end
-        end
-
-        dropzeros!(l)
-        dropzeros!(q)
-
-        return new{T}(n, l, q, α, β, frame)
-    end
+struct SparseQuadraticForm{T} <: AbstractQuadraticForm{T}
+    data::SparseMatrixCSC{T,Int}
 end
 
-function SparseForm{T}(Φ::F) where {T,S,F<:AbstractForm{S}}
-    n = dimension(Φ)
-    L = spzeros(T, n)::LinearSparseForm{T}
-    Q = spzeros(T, n, n)::QuadraticSparseForm{T}
-    α = convert(T, scale(Φ))
-    β = convert(T, offset(Φ))
+function SparseQuadraticForm{T}(n::Integer, qf::QF) where {T,S,QF<:AbstractQuadraticForm{S}}
+    data = zeros(T, n, n)
 
-    for (i, v) in linear_terms(Φ)
-        L[i] = convert(T, v)
+    for ((i, j), v) in quadratic_terms(qf)
+        data[i, j] = convert(T, v)
     end
 
-    for ((i, j), v) in quadratic_terms(Φ)
-        Q[i, j] = convert(T, v)
-    end
-
-    return SparseForm{T}(n, L, Q, α, β; sense = sense(Φ), domain = domain(Φ))
+    return SparseQuadraticForm{T}(data)
 end
 
-dimension(Φ::SparseForm)       = Φ.n
-linear_form(Φ::SparseForm)     = Φ.L
-quadratic_form(Φ::SparseForm)  = Φ.Q
-linear_terms(Φ::SparseForm)    = (i => v for (i, v) in zip(findnz(Φ.L)...))
-quadratic_terms(Φ::SparseForm) = ((i, j) => v for (i, j, v) in zip(findnz(Φ.Q)...))
-linear_size(Φ::SparseForm)     = nnz(Φ.L)
-quadratic_size(Φ::SparseForm)  = nnz(Φ.Q)
-scale(Φ::SparseForm)           = Φ.α
-offset(Φ::SparseForm)          = Φ.β
-frame(Φ::SparseForm)           = Φ.frame
-sense(Φ::SparseForm)           = sense(frame(Φ))
-domain(Φ::SparseForm)          = domain(frame(Φ))
+function SparseQuadraticForm{T}(n::Integer, k::Integer) where {T}
+    data = sizehint!(spzeros(T, n, n), k)
 
-function value(Φ::F, ψ::State{U}) where {T,U,F<:SparseForm{T}}
-    _, L, Q, α, β = Φ
-
-    return α * (L' * ψ + ψ' * Q * ψ + β)
+    return SparseQuadraticForm{T}(data)
 end
 
-function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:SparseForm{T}}
-    @assert domain(Φ) == s
+data(qf::SparseQuadraticForm) = qf.data
 
-    if s === t
-        return Φ
-    elseif s === 𝔹 && t === 𝕊
-        n, L, Q, α, β = Φ
+function quadratic_terms(qf::SparseQuadraticForm)
+    Q = data(qf)
 
-        h = spzeros(T, n)
-        J = spzeros(T, n, n)
-
-        for (i, v) in zip(findnz(L)...)
-            h[i] += v / 2
-            β    += v / 2
-        end
-
-        for (i, j, v) in zip(findnz(Q)...)
-            J[i, j] += v / 4
-            h[i]    += v / 4
-            h[j]    += v / 4
-            β       += v / 4
-        end
-
-        return F(n, h, J, α, β; sense = sense(Φ), domain = t)
-    elseif s === 𝕊 && t === 𝔹
-        n, h, J, α, β = Φ
-
-        L = spzeros(T, n)
-        Q = spzeros(T, n, n)
-
-        for (i, v) in zip(findnz(h)...)
-            L[i] += 2v
-            β    -= v
-        end
-
-        for (i, j, v) in zip(findnz(J)...)
-            Q[i, j] += 4v
-            L[i]    -= 2v
-            L[j]    -= 2v
-            β       += v
-        end
-
-        return F(n, L, Q, α, β; sense = sense(Φ), domain = t)
-    else
-        casting_error(s => t, Φ)
-
-        return nothing
-    end
+    return ((i, j) => v for (i, j, v) in zip(findnz(Q)...))
 end
 
-function form(
-    n::Int,
-    L::LinearSparseForm{T},
-    Q::QuadraticSparseForm{T},
-    α::T,
-    β::T;
-    sense::Sense,
-    domain::Domain,
+function quadratic_size(qf::SparseQuadraticForm)
+    Q = data(qf)
+
+    return nnz(Q)
+end
+
+
+function Base.getindex(qf::SparseQuadraticForm, i::Integer, j::Integer)
+    return getindex(data(qf), i, j)
+end
+
+function Base.setindex!(qf::SparseQuadraticForm{T}, v::T, i::Integer, j::Integer) where {T}
+    setindex!(data(qf), v, i, j)
+
+    return v
+end
+
+
+const SparseForm{T} = Form{T,SparseLinearForm{T},SparseQuadraticForm{T}}
+
+function SparseForm{T}(
+    n::Integer,
+    L::AbstractVector{T},
+    Q::AbstractMatrix{T},
+    α::T = one(T),
+    β::T = zero(T);
+    sense::Union{Symbol,Sense} = :min,
+    domain::Union{Symbol,Domain} = :bool,
 ) where {T}
-    return SparseForm{T}(n, L, Q, α, β; sense, domain)
+    l = spzeros(T, n)
+    q = spzeros(T, n, n)
+
+    for i = 1:n
+        l[i] = L[i] + Q[i, i]
+    end
+
+    for i = 1:n, j = (i+1):n
+        q[i, j] = Q[i, j] + Q[j, i]
+    end
+
+    return Form{T}(n, SparseLinearForm{T}(l), SparseQuadraticForm{T}(q), α, β; sense, domain)
 end
 
-# Choose sparse as normal Φ
-const LinearNormalForm{T}    = LinearSparseForm{T}
-const QuadraticNormalForm{T} = QuadraticSparseForm{T}
-const NormalForm{T}          = SparseForm{T}
+
+function formtype(::Val{:sparse}, ::Type{T} = Float64) where {T}
+    return SparseForm{T}
+end
+
+function formtype(::Type{SparseMatrixCSC}, ::Type{T} = Float64) where {T}
+    return SparseForm{T}
+end

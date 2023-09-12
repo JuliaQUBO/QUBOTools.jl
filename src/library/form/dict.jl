@@ -1,183 +1,164 @@
-const LinearDictForm{T}    = Dict{Int,T}
-const QuadraticDictForm{T} = Dict{Tuple{Int,Int},T}
+@doc raw"""
+    DictLinearForm{T}
+"""
+struct DictLinearForm{T} <: AbstractLinearForm{T}
+    data::Dict{Int,T}
+end
+
+function DictLinearForm(lf::DictLinearForm{T}) where {T}
+    return DictLinearForm{T}(data(lf))
+end
+
+function DictLinearForm{T}(::Integer, lf::LF) where {T,S,LF<:AbstractLinearForm{S}}
+    data = sizehint!(Dict{Int,T}(), linear_size(lf))
+
+    for (i, v) in linear_terms(lf)
+        data[i] = convert(T, v)
+    end
+
+    return DictLinearForm{T}(data)
+end
+
+function DictLinearForm{T}(::Integer, k::Integer) where {T}
+    data = sizehint!(Dict{Int,T}(), k)
+
+    return DictLinearForm{T}(data)
+end
+
+data(lf::DictLinearForm) = lf.data
+
+function linear_terms(lf::DictLinearForm)
+    return data(lf)
+end
+
+function linear_size(lf::DictLinearForm)
+    L = data(lf)
+
+    return length(L)
+end
+
+function Base.getindex(lf::DictLinearForm{T}, i::Integer) where {T}
+    return get(data(lf), i, zero(T))
+end
+
+function Base.setindex!(lf::DictLinearForm{T}, v::T, i::Integer) where {T}
+    if iszero(v)
+        delete!(data(lf), i)
+    else
+        setindex!(data(lf), v, i)
+    end
+
+    return v
+end
+
 
 @doc raw"""
-    DictForm{T}
+    DictQuadraticForm{T}
 """
-struct DictForm{T} <: AbstractForm{T}
-    n::Int
-    L::LinearDictForm{T}
-    Q::QuadraticDictForm{T}
-    α::T
-    β::T
+struct DictQuadraticForm{T} <: AbstractQuadraticForm{T}
+    data::Dict{Tuple{Int,Int},T}
+end
 
-    frame::Frame
+function DictQuadraticForm(qf::DictQuadraticForm{T}) where {T}
+    return DictQuadraticForm{T}(data(qf))
+end
 
-    function DictForm{T}(
-        n::Integer,
-        L::LinearDictForm{T},
-        Q::QuadraticDictForm{T},
-        α::T                         = one(T),
-        β::T                         = zero(T);
-        sense::Union{Sense,Symbol}   = :min,
-        domain::Union{Domain,Symbol} = :bool,
-    ) where {T}
-        frame = Frame(sense, domain)
+function DictQuadraticForm{T}(::Integer, qf::QF) where {T,S,QF<:AbstractQuadraticForm{S}}
+    data = sizehint!(Dict{Tuple{Int,Int},T}(), quadratic_size(qf))
 
-        l = sizehint!(LinearDictForm{T}(), length(L))
-        q = sizehint!(QuadraticDictForm{T}(), length(Q))
+    for ((i, j), v) in quadratic_terms(qf)
+        data[i, j] = convert(T, v)
+    end
 
-        for (i, v) in L
-            iszero(v) && continue
+    return DictQuadraticForm{T}(data)
+end
 
+function DictQuadraticForm{T}(::Integer, k::Integer) where {T}
+    data = sizehint!(Dict{Tuple{Int,Int},T}(), k)
+
+    return DictQuadraticForm{T}(data)
+end
+
+
+data(qf::DictQuadraticForm) = qf.data
+
+function quadratic_terms(qf::DictQuadraticForm)
+    return data(qf)
+end
+
+function quadratic_size(qf::DictQuadraticForm)
+    Q = data(qf)
+
+    return length(Q)
+end
+
+
+function Base.getindex(qf::DictQuadraticForm{T}, i::Integer, j::Integer) where {T}
+    @assert i < j
+
+    return get(data(qf), (i, j), zero(T))
+end
+
+function Base.setindex!(qf::DictQuadraticForm{T}, v::T, i::Integer, j::Integer) where {T}
+    @assert i < j
+
+    if iszero(v)
+        delete!(data(qf), (i, j))
+    else
+        setindex!(data(qf), v, i, j)
+    end
+
+    return v
+end
+
+const DictForm{T} = Form{T,DictLinearForm{T},DictQuadraticForm{T}}
+
+function DictForm{T}(
+    n::Integer,
+    L::Dict{Int,T},
+    Q::Dict{Tuple{Int,Int},T},
+    α::T = one(T),
+    β::T = zero(T);
+    sense::Union{Symbol,Sense} = :min,
+    domain::Union{Symbol,Domain} = :bool,
+) where {T}
+    l = sizehint!(Dict{Int,T}(), length(L))
+    q = sizehint!(Dict{Tuple{Int,Int},T}(), length(Q))
+
+    for (i, v) in L
+        iszero(v) && continue
+
+        l[i] = get(l, i, zero(T)) + v
+
+        iszero(l[i]) && delete!(l, i)
+    end
+
+    for ((i, j), v) in Q
+        iszero(v) && continue
+
+        if i == j
             l[i] = get(l, i, zero(T)) + v
 
             iszero(l[i]) && delete!(l, i)
+        elseif i > j
+            q[(j, i)] = get(q, (j, i), zero(T)) + v
+
+            iszero(q[(j, i)]) && delete!(q, (j, i))
+        else # i < j
+            q[(i, j)] = get(q, (i, j), zero(T)) + v
+
+            iszero(q[(i, j)]) && delete!(q, (i, j))
         end
-
-        for ((i, j), v) in Q
-            iszero(v) && continue
-
-            if i == j
-                l[i] = get(l, i, zero(T)) + v
-
-                iszero(l[i]) && delete!(l, i)
-            elseif i > j
-                q[(j, i)] = get(q, (j, i), zero(T)) + v
-
-                iszero(q[(j, i)]) && delete!(q, (j, i))
-            else # i < j
-                q[(i, j)] = get(q, (i, j), zero(T)) + v
-
-                iszero(q[(i, j)]) && delete!(q, (i, j))
-            end
-        end
-
-        return new{T}(n, l, q, α, β, frame)
-    end
-end
-
-function DictForm{T}(Φ::F) where {T,S,F<:AbstractForm{S}}
-    n = dimension(Φ)
-    L = LinearDictForm{T}(linear_terms(Φ))
-    Q = QuadraticDictForm{T}(quadratic_terms(Φ))
-    α = convert(T, scale(Φ))
-    β = convert(T, offset(Φ))
-
-    return DictForm{T}(n, L, Q, α, β; sense = sense(Φ), domain = domain(Φ))
-end
-
-dimension(Φ::DictForm)       = Φ.n
-linear_form(Φ::DictForm)     = Φ.L
-quadratic_form(Φ::DictForm)  = Φ.Q
-linear_terms(Φ::DictForm)    = linear_form(Φ)
-quadratic_terms(Φ::DictForm) = quadratic_form(Φ)
-scale(Φ::DictForm)           = Φ.α
-offset(Φ::DictForm)          = Φ.β
-frame(Φ::DictForm)           = Φ.frame
-sense(Φ::DictForm)           = sense(frame(Φ))
-domain(Φ::DictForm)          = domain(frame(Φ))
-
-function cast((s, t)::Route{S}, L::LinearDictForm{T}) where {S<:Sense,T}
-    if s === t
-        return L
-    else
-        return LinearDictForm{T}(i => -v for (i, v) in L)
-    end
-end
-
-function cast((s, t)::Route{S}, Q::QuadraticDictForm{T}) where {S<:Sense,T}
-    if s === t
-        return Q
-    else
-        return QuadraticDictForm{T}(ij => -v for (ij, v) in Q)
-    end
-end
-
-function cast((s, t)::Route{D}, Φ::F) where {D<:Domain,T,F<:DictForm{T}}
-    @assert domain(Φ) === s
-
-    if s === t
-        return Φ
-    elseif s === 𝔹 && t === 𝕊
-        n, L, Q, α, β = Φ
-
-        h = sizehint!(LinearDictForm{T}(), length(L))
-        J = sizehint!(QuadraticDictForm{T}(), length(Q))
-
-        for (i, v) in L
-            h[i] = get(h, i, zero(T)) + v / 2
-            β += v / 2
-        end
-
-        for ((i, j), v) in Q
-            J[(i, j)] = get(J, (i, j), zero(T)) + v / 4
-            h[i]      = get(h, i, zero(T)) + v / 4
-            h[j]      = get(h, j, zero(T)) + v / 4
-            β         += v / 4
-        end
-
-        return F(n, h, J, α, β; sense = sense(Φ), domain = t)
-    elseif s === 𝕊 && t === 𝔹
-        n, h, J, α, β = Φ
-
-        L = sizehint!(LinearDictForm{T}(), length(h))
-        Q = sizehint!(QuadraticDictForm{T}(), length(J))
-
-        for (i, v) in h
-            L[i] = get(L, i, zero(T)) + 2v
-            β    -= v
-        end
-
-        for ((i, j), v) in J
-            Q[(i, j)] = get(Q, (i, j), zero(T)) + 4v
-            L[i]      = get(L, i, zero(T)) - 2v
-            L[j]      = get(L, j, zero(T)) - 2v
-            β         += v
-        end
-
-        return F(n, L, Q, α, β; sense = sense(Φ), domain = t)
-    else
-        casting_error(s => t, Φ)
-
-        return nothing
-    end
-end
-
-function value(Φ::DictForm, ψ::State{U}) where {U}
-    _, L, Q, α, β = Φ
-
-    return value(L, Q, ψ, α, β)
-end
-
-function value(
-    L::AbstractDict{Int,T},
-    Q::AbstractDict{Tuple{Int,Int},T},
-    ψ::State{U},
-    α::T = one(T),
-    β::T = zero(T),
-) where {T,U}
-    e = zero(T)
-
-    for (i, c) in L
-        e += ψ[i] * c
     end
 
-    for ((i, j), c) in Q
-        e += ψ[i] * ψ[j] * c
-    end
-
-    return α * (e + β)
+    return Form{T}(n, DictLinearForm{T}(l), DictQuadraticForm{T}(q), α, β; sense, domain)
 end
 
-function form(
-    n::Int,
-    L::LinearDictForm{T},
-    Q::QuadraticDictForm{T},
-    α::T,
-    β::T;
-    sense::Sense,
-    domain::Domain,
-) where {T}
-    return DictForm{T}(n, L, Q, α, β; sense, domain)
+
+function formtype(::Val{:dict}, ::Type{T} = Float64) where {T}
+    return DictForm{T}
+end
+
+function formtype(::Type{Dict}, ::Type{T} = Float64) where {T}
+    return DictForm{T}
 end

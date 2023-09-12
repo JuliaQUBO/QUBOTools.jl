@@ -13,11 +13,9 @@ function backend(::M) where {M}
 end
 
 # Data access
-domain(src)          = domain(backend(src))
 scale(src)           = scale(backend(src))
 offset(src)          = offset(backend(src))
-sense(src)           = sense(backend(src))
-name(src)            = name(backend(src))
+frame(src)           = frame(backend(src))
 id(src)              = id(backend(src))
 description(src)     = description(backend(src))
 metadata(src)        = metadata(backend(src))

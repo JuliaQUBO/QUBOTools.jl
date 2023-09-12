@@ -24,12 +24,12 @@ function read_solution(fp::HDF5.File, fmt::QUBin)
 end
 
 function _parse_model(
-    form::SparseForm{T},
-    variables::VariableMap{V};
+    form::Form{T,SparseLinearForm{T},SparseQuadraticForm{T}},
+    variable_map::VariableMap{V};
     metadata::Dict{String,Any},
     solution::SampleSet{T,U},
 ) where {V,T,U}
-    return Model{V,T,U}(form, variables; metadata, solution)
+    return Model{V,T,U}(variable_map, form; metadata, solution)
 end
 
 function _parse_model_form(fp::HDF5.File, ::QUBin)
@@ -38,13 +38,13 @@ function _parse_model_form(fp::HDF5.File, ::QUBin)
     li = read(fp["model"]["form"]["linear"]["i"])
     lv = read(fp["model"]["form"]["linear"]["v"])
 
-    L = sparsevec(li, lv)
+    L = SparseLinearForm(sparsevec(li, lv))
 
     qi = read(fp["model"]["form"]["quadratic"]["i"])
     qj = read(fp["model"]["form"]["quadratic"]["j"])
     qv = read(fp["model"]["form"]["quadratic"]["v"])
 
-    Q = sparse(qi, qj, qv)
+    Q = SparseQuadraticForm(sparse(qi, qj, qv))
 
     α = read(fp["model"]["form"]["scale"])
     β = read(fp["model"]["form"]["offset"])
@@ -57,14 +57,14 @@ end
 
 function _parse_model_form(
     n::Int,
-    L::LinearSparseForm{T},
-    Q::QuadraticSparseForm{T},
+    L::SparseLinearForm{T},
+    Q::SparseQuadraticForm{T},
     α::T,
     β::T;
     sense::Sense,
     domain::Domain,
 ) where {T}
-    return SparseForm{T}(n, L, Q, α, β; sense, domain)
+    return Form{T}(n, L, Q, α, β; sense, domain)
 end
 
 function _parse_model_variables(fp::HDF5.File, ::QUBin)

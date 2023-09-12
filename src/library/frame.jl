@@ -58,8 +58,16 @@ end
 
 String(x::Domain) = String(Symbol(x))
 
+function sense(obj::Any)
+    return sense(frame(obj))
+end
+
 function sense(frame::Frame)
     return frame.sense
+end
+
+function domain(obj)
+    return domain(frame(obj))
 end
 
 function domain(frame::Frame)

@@ -1,5 +1,5 @@
 @doc raw"""
-    Model{V,T,U} <: AbstractModel{V,T,U}
+    Model{V,T,U,F<:AbstractForm{T}} <: AbstractModel{V,T,U}
 
 Reference [`AbstractModel`](@ref) implementation.
 
@@ -11,11 +11,11 @@ Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuM
 By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
 
 """
-mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
-    # Coefficients & Factors
-    form::NormalForm{T}
+mutable struct Model{V,T,U,F<:AbstractForm{T}} <: AbstractModel{V,T,U}
     # Variable Mapping
-    variables::VariableMap{V}
+    variable_map::VariableMap{V}
+    # Coefficients, Factors & Frame
+    form::F
     # Metadata
     metadata::Dict{String,Any}
     # Solution
@@ -25,41 +25,8 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
 
     # Canonical Constructor - Normal Form
     function Model{V,T,U}(
-        Φ::NormalForm{T},
-        variable_map::VariableMap{V};
-        metadata::Union{Dict{String,Any},Nothing} = nothing,
-        solution::Union{SampleSet{T,U},Nothing} = nothing,
-        start::Union{Dict{Int,U},Nothing} = nothing,
-        # Extra Metadata
-        id::Union{Integer,Nothing} = nothing,
-        description::Union{String,Nothing} = nothing,
-    ) where {V,T,U}
-        if metadata === nothing
-            metadata = Dict{String,Any}()
-        end
-
-        if solution === nothing
-            solution = SampleSet{T,U}()
-        end
-
-        if start === nothing
-            start = Dict{Int,U}()
-        end
-
-        if id !== nothing
-            metadata["id"] = id
-        end
-
-        if description !== nothing
-            metadata["description"] = description
-        end
-
-        return new{V,T,U}(Φ, variable_map, metadata, solution, start)
-    end
-
-    function Model{V,T,U}(
-        Φ::F,
-        variable_map::VariableMap{V};
+        variable_map::VariableMap{V},
+        form::F;
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         solution::Union{SampleSet{T,U},Nothing} = nothing,
         start::Union{Dict{Int,U},Nothing} = nothing,
@@ -67,44 +34,64 @@ mutable struct Model{V,T,U} <: AbstractModel{V,T,U}
         id::Union{Integer,Nothing} = nothing,
         description::Union{String,Nothing} = nothing,
     ) where {V,T,U,F<:AbstractForm{T}}
-        return Model{V,T,U}(
-            NormalForm{T}(Φ),
-            variable_map;
-            metadata,
-            solution,
-            start,
-            id,
-            description,
-        )
+        if isnothing(metadata)
+            metadata = Dict{String,Any}()
+        end
+
+        if isnothing(solution)
+            solution = SampleSet{T,U}()
+        end
+
+        if isnothing(start)
+            start = Dict{Int,U}()
+        end
+
+        if !isnothing(id)
+            metadata["id"] = id
+        end
+
+        if !isnothing(description)
+            metadata["description"] = description
+        end
+
+        return new{V,T,U,F}(variable_map, form, metadata, solution, start)
     end
+end
 
-    # Empty Model
-    function Model{V,T,U}(;
-        scale::T = one(T),
-        offset::T = zero(T),
-        sense::Union{Sense,Symbol} = :min,
-        domain::Union{Domain,Symbol} = :bool,
-        metadata::Union{Dict{String,Any},Nothing} = nothing,
-        solution::Union{SampleSet{T,U},Nothing} = nothing,
-        start::Union{Dict{Int,U},Nothing} = nothing,
-        # Extra Metadata
-        id::Union{Integer,Nothing} = nothing,
-        description::Union{String,Nothing} = nothing,
-    ) where {V,T,U}
-        Φ = NormalForm{T}(0, spzeros(T, 0), spzeros(T, 0, 0), scale, offset; sense, domain)
+# Empty Model
+function Model{V,T,U}(;
+    scale::T = one(T),
+    offset::T = zero(T),
+    sense::Union{Sense,Symbol} = :min,
+    domain::Union{Domain,Symbol} = :bool,
+    metadata::Union{Dict{String,Any},Nothing} = nothing,
+    solution::Union{SampleSet{T,U},Nothing} = nothing,
+    start::Union{Dict{Int,U},Nothing} = nothing,
+    # Extra Metadata
+    id::Union{Integer,Nothing} = nothing,
+    description::Union{String,Nothing} = nothing,
+) where {V,T,U}
+    variables_map = VariableMap{V}(V[])
 
-        variables_map = VariableMap{V}(V[])
+    form = Form{T}(
+        0,
+        SparseLinearForm{T}(spzeros(T, 0)),
+        SparseQuadraticForm{T}(spzeros(T, 0, 0)),
+        scale,
+        offset;
+        sense,
+        domain,
+    )
 
-        return Model{V,T,U}(
-            Φ,
-            variables_map;
-            metadata,
-            solution,
-            start,
-            id,
-            description,
-        )
-    end
+    return Model{V,T,U}(
+        variables_map,
+        form;
+        metadata,
+        solution,
+        start,
+        id,
+        description,
+    )
 end
 
 # Dict Constructors
@@ -171,20 +158,29 @@ function Model{V,T,U}(
         end
     end
 
-    Φ = NormalForm{T}(n, L, Q, α, β; sense, domain)
+    dropzeros!(L)
+    dropzeros!(Q)
 
-    return Model{V,T,U}(Φ, variable_map; kws...)
+    form = Form{T}(
+        n,
+        SparseLinearForm{T}(L),
+        SparseQuadraticForm{T}(Q),
+        α,
+        β;
+        sense,
+        domain,
+    )
+
+    return Model{V,T,U}(variable_map, form; kws...)
 end
 
-function form(model::Model; domain = QUBOTools.domain(model))
-    return cast((QUBOTools.domain(model) => domain), model.form)
-end
+form(model::Model) = model.form
 
 dimension(model::Model) = dimension(form(model))
 
 function index(model::Model{V}, v::V) where {V}
-    if haskey(model.variables.map, v)
-        return model.variables.map[v]
+    if haskey(model.variable_map.map, v)
+        return model.variable_map.map[v]
     else
         error("Variable '$v' does not belong to the model.")
 
@@ -192,7 +188,7 @@ function index(model::Model{V}, v::V) where {V}
     end
 end
 
-variables(model::Model) = model.variables.inv
+variables(model::Model) = model.variable_map.inv
 
 linear_terms(model::Model)    = linear_terms(form(model))
 quadratic_terms(model::Model) = quadratic_terms(form(model))
@@ -223,10 +219,10 @@ function start(model::Model{V,T,U}; domain = QUBOTools.domain(model)) where {V,T
     return Dict{Int,U}(i => start(model, i; domain) for i in keys(model.start))
 end
 
-function Base.empty!(model::Model{V,T,U}) where {V,T,U}
-    model.form      = NormalForm{T}()
-    model.variables = VariableMap{V}(V[])
-    model.solution  = SampleSet{T,U}()
+function Base.empty!(model::Model{V,T,U,F}) where {V,T,U,F}
+    model.form         = F()
+    model.variable_map = VariableMap{V}(V[])
+    model.solution     = SampleSet{T,U}()
 
     empty!(model.metadata)
     empty!(model.start)
@@ -234,12 +230,12 @@ function Base.empty!(model::Model{V,T,U}) where {V,T,U}
     return model
 end
 
-function Base.copy(model::Model{V,T,U}) where {V,T,U}
-    return copy!(Model{V,T,U}(), model)
+function Base.copy(model::Model{V,T,U,F}) where {V,T,U,F}
+    return copy!(Model{V,T,U,F}(), model)
 end
 
-function Base.copy!(target::Model{V,T,U}, source::AbstractModel{V,T,U}) where {V,T,U}
-    target.form      = NormalForm{T}(form(source))
+function Base.copy!(target::Model{V}, source::AbstractModel{V}) where {V}
+    target.form      = copy(form(source))
     target.variables = VariableMap{V}(variables(source))
     target.metadata  = deepcopy(metadata(source))
     target.solution  = copy(solution(source))
@@ -251,7 +247,7 @@ end
 function cast(route::Route{D}, model::Model{V,T,U}) where {D<:Domain,V,T,U}
     return Model{V,T,U}(
         cast(route, form(model)),
-        model.variables;
+        model.variable_map;
         metadata = deepcopy(metadata(model)),
         solution = cast(route, solution(model)),
         start    = start(model; domain = last(route)),
@@ -261,7 +257,7 @@ end
 function cast(route::Route{S}, model::Model{V,T,U}) where {S<:Sense,V,T,U}
     return Model{V,T,U}(
         cast(route, form(model)),
-        model.variables;
+        model.variable_map;
         metadata = deepcopy(metadata(model)),
         solution = cast(route, solution(model)),
         start    = deepcopy(start(model)),
@@ -317,5 +313,5 @@ function Model{V,T,U}(f::F; kws...) where {V,T,U,F<:PBO.AbstractFunction{V,T}}
         end
     end
 
-    return Model{V,T,U}(L, Q; scale = β, sense = :min, domain = :bool, kws...)
+    return Model{V,T,U}(L, Q; offset = β, sense = :min, domain = :bool, kws...)
 end

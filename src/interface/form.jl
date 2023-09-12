@@ -21,11 +21,24 @@ Returns the QUBO form stored within a model.
 function form end
 
 @doc raw"""
+    formtype(spec::Any)
+
+Returns a form type according to the given specification.
+"""
+function formtype end
+
+
+abstract type AbstractLinearForm{T} end
+
+@doc raw"""
     linear_form(Φ::F) where {T,F<:AbstractForm{T}}
 
 Returns the linear part of the QUBO form.
 """
 function linear_form end
+
+
+abstract type AbstractQuadraticForm{T} end
 
 @doc raw"""
     quadratic_form(Φ::F) where {T,F<:AbstractForm{T}}
@@ -34,7 +47,8 @@ Returns the quadratic part of the QUBO form.
 """
 function quadratic_form end
 
-# Model's Normal Forms
+
+
 @doc raw"""
     qubo(model::AbstractModel{<:BoolDomain})
     qubo(model::AbstractModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)

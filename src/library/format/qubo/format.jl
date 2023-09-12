@@ -1,47 +1,29 @@
 @doc raw"""
-    DWaveStyle <: AbstractStyle
-
-This style is used by some of the D-Wave libraries[^qbsolv].
-
-[^qbsolv]: qbsolv Documentation [{docs}](https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/source/format.html)
-"""
-struct DWaveStyle <: AbstractStyle end
-
-@doc raw"""
-    MQLibStyle <: AbstractStyle
-
-This is the style of the primary I/O format used to access the MQLib heuristic library.
-"""
-struct MQLibStyle <: AbstractStyle end
-
-@doc raw"""
     QUBO()
-    QUBO(style::AbstractStyle)
-
+    QUBO(style::Symbol)
 """
-struct QUBO{S} <: AbstractFormat
-    QUBO() = new{nothing}()
-    QUBO(::S) where {S<:AbstractStyle} = new{S}()
+struct QUBO <: AbstractFormat
+    style::Union{Symbol,Nothing}
 
-    function QUBO(style::Symbol)
-        if style === :dwave || style === :qbsolv
-            return QUBO(DWaveStyle())
+    function QUBO(style::Union{Symbol,Nothing})
+        if isnothing(style)
+            return new(nothing)
+        elseif style === :dwave || style === :qbsolv
+            return new(:dwave)
         elseif style === :mqlib
-            return QUBO(MQLibStyle())
+            return new(:mqlib)
         else
-            error("Unkown style '$style' for QUBO files")
+            error("Unkown style '$style' for QUBO files. Options are: ':dwave', ':qbsolv' and ':mqlib'.")
 
             return nothing
         end
     end
 end
 
-style(::QUBO{S}) where {S} = S
-
-format(::Val{:dwave}, ::Val{:qubo})  = QUBO(DWaveStyle())
-format(::Val{:mqlib}, ::Val{:qubo})  = QUBO(MQLibStyle())
-format(::Val{:qbsolv}, ::Val{:qubo}) = QUBO(DWaveStyle())
-format(::Val{:qubo})                 = QUBO(DWaveStyle())
+format(::Val{:dwave})  = QUBO(:dwave)
+format(::Val{:mqlib})  = QUBO(:mqlib)
+format(::Val{:qbsolv}) = QUBO(:qbsolv)
+format(::Val{:qubo})   = QUBO(:dwave) # defaults to dwave style
 
 include("parser.jl")
 include("printer.jl")

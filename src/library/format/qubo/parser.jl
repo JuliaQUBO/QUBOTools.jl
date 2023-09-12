@@ -33,16 +33,21 @@ end
 function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::QUBO)
     isempty(line) && return nothing
 
-    _parse_entry!(data, line, fmt) && return nothing
-    _parse_comment!(data, line, fmt) && return nothing
-    _parse_header!(data, line, fmt) && return nothing
+    _parse_entry!(data, line, fmt, Val(fmt.style)) && return nothing
+    _parse_comment!(data, line, fmt, Val(fmt.style)) && return nothing
+    _parse_header!(data, line, fmt, Val(fmt.style)) && return nothing
 
     syntax_error("$line")
 
     return nothing
 end
 
-function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO)
+function _parse_entry!(
+    data::Dict{Symbol,Any},
+    line::AbstractString,
+    ::QUBO,
+    ::Val{_},
+) where {_}
     L = data[:linear_terms]
     Q = data[:quadratic_terms]
 
@@ -65,11 +70,7 @@ function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO)
     return true
 end
 
-function _parse_entry!(
-    data::Dict{Symbol,Any},
-    line::AbstractString,
-    ::QUBO{S},
-) where {S<:MQLibStyle}
+function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO, ::Val{:mqlib})
     L = data[:linear_terms]
     Q = data[:quadratic_terms]
 
@@ -94,15 +95,11 @@ function _parse_entry!(
     return true
 end
 
-function _parse_header!(::Dict{Symbol,Any}, ::AbstractString, ::QUBO)
+function _parse_header!(::Dict{Symbol,Any}, ::AbstractString, ::QUBO, ::Val{_}) where {_}
     return false
 end
 
-function _parse_header!(
-    data::Dict{Symbol,Any},
-    line::AbstractString,
-    ::QUBO{S},
-) where {S<:DWaveStyle}
+function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO, ::Val{:dwave})
     m = match(r"^p\s+qubo\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)$", line)
 
     if isnothing(m)
@@ -116,11 +113,7 @@ function _parse_header!(
     return true
 end
 
-function _parse_header!(
-    data::Dict{Symbol,Any},
-    line::AbstractString,
-    ::QUBO{S},
-) where {S<:MQLibStyle}
+function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO, ::Val{:mqlib})
     m = match(r"^([0-9]+)\s+([0-9]+)$", line)
 
     if isnothing(m)
@@ -133,15 +126,16 @@ function _parse_header!(
     return true
 end
 
-function _parse_comment!(::Dict{Symbol,Any}, ::AbstractString, ::QUBO)
+function _parse_comment!(::Dict{Symbol,Any}, ::AbstractString, ::QUBO, ::Val{_}) where {_}
     return false
 end
 
 function _parse_comment_metadata!(
     data::Dict{Symbol,Any},
     content::AbstractString,
-    ::QUBO{S},
-) where {S<:Union{DWaveStyle,MQLibStyle}}
+    ::QUBO,
+    ::Union{Val{:dwave},Val{:mqlib}},
+)
     m = match(r"^([a-zA-Z][a-zA-Z0-9_]+)\s*:\s*(.+)$", content)
 
     if isnothing(m)
@@ -165,8 +159,9 @@ end
 function _parse_comment!(
     data::Dict{Symbol,Any},
     line::AbstractString,
-    fmt::QUBO{S},
-) where {S<:DWaveStyle}
+    fmt::QUBO,
+    style::Val{:dwave},
+)
     m = match(r"^c\s*(.+)?$", line)
 
     if isnothing(m)
@@ -181,7 +176,7 @@ function _parse_comment!(
         return true
     end
 
-    _parse_comment_metadata!(data, content, fmt)
+    _parse_comment_metadata!(data, content, fmt, style)
 
     return true
 end
@@ -189,8 +184,9 @@ end
 function _parse_comment!(
     data::Dict{Symbol,Any},
     line::AbstractString,
-    fmt::QUBO{S},
-) where {S<:MQLibStyle}
+    fmt::QUBO,
+    style::Val{:mqlib},
+)
     m = match(r"^\#\s*(.+)?$", line)
 
     if isnothing(m)
@@ -205,7 +201,7 @@ function _parse_comment!(
         return true
     end
 
-    _parse_comment_metadata!(data, content, fmt)
+    _parse_comment_metadata!(data, content, fmt, style)
 
     return true
 end

@@ -66,7 +66,7 @@ function _write_model_form(
 ) where {V,T,U,M<:AbstractModel{V,T,U}}
     HDF5.create_group(fp["model"], "form")
 
-    n, L, Q, α, β, s, x = QUBOTools.form(model, QUBOTools.SparseForm{T})
+    n, L, Q, α, β, s, x = QUBOTools.form(model, :sparse)
 
     fp["model"]["form"]["dimension"] = n
 
