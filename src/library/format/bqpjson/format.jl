@@ -19,7 +19,7 @@ function _BQPJSON_VALIDATE_DOMAIN(x::Integer, X::Domain)
     if X === 𝔹
         return (x == 0) || (x == 1)
     elseif X === 𝕊
-        return (s == ↑) || (s == ↓)
+        return (s == ↓) || (s == ↑)
     else
         error("Invalid domain '$X'")
 

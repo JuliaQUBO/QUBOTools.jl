@@ -1,30 +1,30 @@
 function test_solution_states()
     @testset "⋅ States" begin
         # ~ Short-Circuit ~ #
-        @test QUBOTools.cast((𝕊 => 𝕊), [↑, ↓, ↑]) == [↑, ↓, ↑]
         @test QUBOTools.cast((𝕊 => 𝕊), [↓, ↑, ↓]) == [↓, ↑, ↓]
+        @test QUBOTools.cast((𝕊 => 𝕊), [↑, ↓, ↑]) == [↑, ↓, ↑]
         @test QUBOTools.cast((𝕊 => 𝕊), [0, 1, 0]) == [0, 1, 0]
         @test QUBOTools.cast((𝕊 => 𝕊), [1, 0, 1]) == [1, 0, 1]
-        @test QUBOTools.cast((𝔹 => 𝔹), [↑, ↓, ↑]) == [↑, ↓, ↑]
         @test QUBOTools.cast((𝔹 => 𝔹), [↓, ↑, ↓]) == [↓, ↑, ↓]
+        @test QUBOTools.cast((𝔹 => 𝔹), [↑, ↓, ↑]) == [↑, ↓, ↑]
         @test QUBOTools.cast((𝔹 => 𝔹), [0, 1, 0]) == [0, 1, 0]
         @test QUBOTools.cast((𝔹 => 𝔹), [1, 0, 1]) == [1, 0, 1]
 
         # ~ Broadcasting ~ #
         @test QUBOTools.cast.((𝕊 => 𝕊), [[1, 0, 1], [0, 1, 0]]) == [[1, 0, 1], [0, 1, 0]]
-        @test QUBOTools.cast.((𝕊 => 𝕊), [[↓, ↑, ↓], [↑, ↓, ↑]]) == [[↓, ↑, ↓], [↑, ↓, ↑]]
+        @test QUBOTools.cast.((𝕊 => 𝕊), [[↑, ↓, ↑], [↓, ↑, ↓]]) == [[↑, ↓, ↑], [↓, ↑, ↓]]
         @test QUBOTools.cast.((𝔹 => 𝔹), [[1, 0, 1], [0, 1, 0]]) == [[1, 0, 1], [0, 1, 0]]
-        @test QUBOTools.cast.((𝔹 => 𝔹), [[↓, ↑, ↓], [↑, ↓, ↑]]) == [[↓, ↑, ↓], [↑, ↓, ↑]]
+        @test QUBOTools.cast.((𝔹 => 𝔹), [[↑, ↓, ↑], [↓, ↑, ↓]]) == [[↑, ↓, ↑], [↓, ↑, ↓]]
 
         # ~ State Conversion ~ #
-        @test QUBOTools.cast((𝔹 => 𝕊), [1, 0, 1]) == [↓, ↑, ↓]
-        @test QUBOTools.cast((𝔹 => 𝕊), [0, 1, 0]) == [↑, ↓, ↑]
-        @test QUBOTools.cast((𝕊 => 𝔹), [↓, ↑, ↓]) == [1, 0, 1]
-        @test QUBOTools.cast((𝕊 => 𝔹), [↑, ↓, ↑]) == [0, 1, 0]
+        @test QUBOTools.cast((𝔹 => 𝕊), [1, 0, 1]) == [↑, ↓, ↑]
+        @test QUBOTools.cast((𝔹 => 𝕊), [0, 1, 0]) == [↓, ↑, ↓]
+        @test QUBOTools.cast((𝕊 => 𝔹), [↑, ↓, ↑]) == [1, 0, 1]
+        @test QUBOTools.cast((𝕊 => 𝔹), [↓, ↑, ↓]) == [0, 1, 0]
 
         # ~ Broadcasting ~ #
-        @test QUBOTools.cast.((𝔹 => 𝕊), [[1, 0, 1], [0, 1, 0]]) == [[↓, ↑, ↓], [↑, ↓, ↑]]
-        @test QUBOTools.cast.((𝕊 => 𝔹), [[↓, ↑, ↓], [↑, ↓, ↑]]) == [[1, 0, 1], [0, 1, 0]]
+        @test QUBOTools.cast.((𝔹 => 𝕊), [[1, 0, 1], [0, 1, 0]]) == [[↑, ↓, ↑], [↓, ↑, ↓]]
+        @test QUBOTools.cast.((𝕊 => 𝔹), [[↑, ↓, ↑], [↓, ↑, ↓]]) == [[1, 0, 1], [0, 1, 0]]
     end
 
     return nothing
@@ -149,10 +149,10 @@ function test_solution_sampleset()
         )
         spin_sol = SampleSet{Float64,Int}(
             Sample{Float64,Int}[
-                Sample([↑, ↑], -4.0, 1),
-                Sample([↑, ↓], -3.0, 2),
-                Sample([↓, ↑], -2.0, 3),
-                Sample([↓, ↓], -1.0, 4),
+                Sample([↓, ↓], -4.0, 1),
+                Sample([↓, ↑], -3.0, 2),
+                Sample([↑, ↓], -2.0, 3),
+                Sample([↑, ↑], -1.0, 4),
             ];
             sense  = :max,
             domain = :spin,
@@ -183,10 +183,10 @@ function test_solution_sampleset()
         @test_throws Exception QUBOTools.state(bool_sol, 0)
         @test_throws Exception QUBOTools.state(bool_sol, 5)
 
-        @test QUBOTools.state(spin_sol, 1) == [↓, ↓]
-        @test QUBOTools.state(spin_sol, 2) == [↓, ↑]
-        @test QUBOTools.state(spin_sol, 3) == [↑, ↓]
-        @test QUBOTools.state(spin_sol, 4) == [↑, ↑]
+        @test QUBOTools.state(spin_sol, 1) == [↑, ↑]
+        @test QUBOTools.state(spin_sol, 2) == [↑, ↓]
+        @test QUBOTools.state(spin_sol, 3) == [↓, ↑]
+        @test QUBOTools.state(spin_sol, 4) == [↓, ↓]
 
         @test_throws Exception QUBOTools.state(spin_sol, 0)
         @test_throws Exception QUBOTools.state(spin_sol, 5)

@@ -27,10 +27,10 @@ function test_model(V = Symbol, T = Float64, U = Int)
             description = "A QUBO Model",
             solution    = SampleSet{T,U}(
                 [
-                    Sample{T,U}([↑, ↓, ↑, ↓, ↑, ↓, ↑, ↓], 4.0, 1),
-                    Sample{T,U}([↓, ↑, ↓, ↑, ↓, ↑, ↓, ↑], 3.0, 2),
-                    Sample{T,U}([↓, ↑, ↓, ↑, ↑, ↓, ↑, ↓], 2.0, 3),
-                    Sample{T,U}([↑, ↓, ↑, ↓, ↓, ↑, ↓, ↑], 1.0, 4),
+                    Sample{T,U}([↓, ↑, ↓, ↑, ↓, ↑, ↓, ↑], 4.0, 1),
+                    Sample{T,U}([↑, ↓, ↑, ↓, ↑, ↓, ↑, ↓], 3.0, 2),
+                    Sample{T,U}([↑, ↓, ↑, ↓, ↓, ↑, ↓, ↑], 2.0, 3),
+                    Sample{T,U}([↓, ↑, ↓, ↑, ↑, ↓, ↑, ↓], 1.0, 4),
                 ];
                 sense  = :max,
                 domain = :spin,
@@ -81,10 +81,10 @@ function test_model(V = Symbol, T = Float64, U = Int)
                 @test QUBOTools.id(model) == 33
                 @test QUBOTools.description(model) == "A QUBO Model"
 
-                @test QUBOTools.state(model, 1) == [↑, ↓, ↑, ↓, ↑, ↓, ↑, ↓]
-                @test QUBOTools.state(model, 2) == [↓, ↑, ↓, ↑, ↓, ↑, ↓, ↑]
-                @test QUBOTools.state(model, 3) == [↓, ↑, ↓, ↑, ↑, ↓, ↑, ↓]
-                @test QUBOTools.state(model, 4) == [↑, ↓, ↑, ↓, ↓, ↑, ↓, ↑]
+                @test QUBOTools.state(model, 1) == [↓, ↑, ↓, ↑, ↓, ↑, ↓, ↑]
+                @test QUBOTools.state(model, 2) == [↑, ↓, ↑, ↓, ↑, ↓, ↑, ↓]
+                @test QUBOTools.state(model, 3) == [↑, ↓, ↑, ↓, ↓, ↑, ↓, ↑]
+                @test QUBOTools.state(model, 4) == [↓, ↑, ↓, ↑, ↑, ↓, ↑, ↓]
 
                 @test QUBOTools.value(model, 1) == 4.0
                 @test QUBOTools.value(model, 2) == 3.0

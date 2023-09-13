@@ -96,19 +96,19 @@
     <g mask="url(#textmask)">
         <text class="data" fill="url(#grad-r)">
             <textPath href="#path-r" startOffset="50%">
-                0 1 1 1 0 1 0 1 0 1 1 0 1 1 0 1 ↓ ↑ ↑ ↑ ↓ ↑ ↓ ↑ ↓ ↑ ↑ ↓ ↑ ↑ ↓ ↑ ↓
+                0 1 1 1 0 1 0 1 0 1 1 0 1 1 0 1 ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
             </textPath>
         </text>
 
         <text class="data" fill="url(#grad-g)">
             <textPath href="#path-g" startOffset="50%">
-                0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 ↓ ↓ ↑ ↓ ↓ ↑ ↓ ↓ ↓ ↓ ↓ ↓ ↑ ↓ ↓ ↓ ↓
+                0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
             </textPath>
         </text>
 
         <text class="data" fill="url(#grad-v)">
             <textPath href="#path-v" startOffset="50%">
-                0 1 1 0 0 0 1 1 1 1 0 1 1 0 0 0 ↓ ↑ ↑ ↓ ↓ ↓ ↑ ↑ ↑ ↑ ↓ ↑ ↑ ↓ ↓ ↓ ↑
+                0 1 1 0 0 0 1 1 1 1 0 1 1 0 0 0 ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
             </textPath>
         </text>
     </g>
