@@ -108,21 +108,26 @@ end
 
 function form(
     src::AbstractModel{V,T,U},
-    type::Symbol;
-    sense::Union{Sense,Symbol}   = QUBOTools.sense(src),
+    spec::Symbol,
+    type::Type = T;
+    sense::Union{Sense,Symbol} = QUBOTools.sense(src),
     domain::Union{Domain,Symbol} = QUBOTools.domain(src),
 ) where {V,T,U}
-    return form(src, formtype(Val(type), T); sense, domain)
+    return form(src, formtype(spec, type); sense, domain)
 end
 
-function formtype(::Val{type}) where {type}
-    error("Unknown form type specifier '$(type)'.")
+function formtype(spec::Symbol, ::Type{T} = Float64) where {T}
+    return formtype(Val(spec), T)
+end
+
+function formtype(::Val{spec}, ::Type = Float64) where {spec}
+    error("Unknown form type specifier '$(spec)'.")
 
     return nothing
 end
 
-function formtype(::Type{type}) where {type}
-    error("Unknown form type specifier '$(type)'.")
+function formtype(::Type{spec}, ::Type = Float64) where {spec}
+    error("Unknown form type specifier '$(spec)'.")
 
     return nothing
 end

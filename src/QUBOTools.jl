@@ -14,12 +14,11 @@ using Random
 import PseudoBooleanOptimization as PBO
 import PseudoBooleanOptimization: varlt
 
-const ↓ = -1 # \uparrow[tab]
-const ↑ = +1 # \downarrow[tab]
+const ↓ = -1 # \downarrow[tab]
+const ↑ = +1 # \uparrow[tab]
 
 # Exports: Symbols
-export ↓, ↑
-export 𝔹, 𝕊
+export ↓, ↑, 𝔹, 𝕊
 
 # Exports: Solution Interface
 export Sample, SampleSet

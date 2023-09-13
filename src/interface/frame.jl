@@ -20,7 +20,9 @@ const Route{X} = Pair{X,X}
 @doc raw"""
 
 
-Recasting the sense of a model preserves its meaning:
+Recasting the sense of a model preserves its meaning but the linear terms,
+quadratic terms and constant offset of a model will have its signs reversed,
+so does the overall objective function.
 
 ```math
 \begin{array}{ll}
@@ -29,10 +31,9 @@ Recasting the sense of a model preserves its meaning:
 \end{array}
 ```
 
-The linear terms, quadratic terms and constant offset of a model will have its signs reversed.
-
 !!! warn
     Casting to the same (sense, domain) frame is a no-op.
-    That means that no copying will take place automatically, thus `copy` should be called explicitly when necessary.
+    That means that no copying will take place automatically, and therefore
+    `copy` should be called explicitly when necessary.
 """
 function cast end
