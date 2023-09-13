@@ -2,14 +2,12 @@
     Model{V,T,U,F<:AbstractForm{T}} <: AbstractModel{V,T,U}
 
 Reference [`AbstractModel`](@ref) implementation.
+It is intended to be the stardard in-memory representation for QUBO models.
 
-It is intended to be the core engine behind the target codecs.
+## [MathOptInterface](https://github.com/jump-dev/MathOptInterface.jl)/[JuMP](https://jump.dev) Integration
 
-## MathOptInterface/JuMP
-
-Both `V <: Any` and `T <: Real` parameters exist to support MathOptInterface/JuMP integration.
-By choosing `V = MOI.VariableIndex` and `T` matching `Optimizer{T}` the hard work should be done.
-
+Both `V` and `T` parameters exist to support MathOptInterface/JuMP integration.
+This is made possible by choosing `V` to match `MOI.VariableIndex` and `T` as in `Optimizer{T}`.
 """
 mutable struct Model{V,T,U,F<:AbstractForm{T}} <: AbstractModel{V,T,U}
     # Variable Mapping
@@ -178,17 +176,8 @@ form(model::Model) = model.form
 
 dimension(model::Model) = dimension(form(model))
 
-function index(model::Model{V}, v::V) where {V}
-    if haskey(model.variable_map.map, v)
-        return model.variable_map.map[v]
-    else
-        error("Variable '$v' does not belong to the model.")
-
-        return nothing
-    end
-end
-
-variables(model::Model) = model.variable_map.inv
+index(model::Model{V}, v::V) where {V} = index(model.variable_map, v)
+variables(model::Model)                = model.variable_map.inv
 
 linear_terms(model::Model)    = linear_terms(form(model))
 quadratic_terms(model::Model) = quadratic_terms(form(model))
@@ -196,9 +185,7 @@ quadratic_terms(model::Model) = quadratic_terms(form(model))
 scale(model::Model)  = scale(form(model))
 offset(model::Model) = offset(form(model))
 
-frame(model::Model)  = frame(model.form)
-sense(model::Model)  = sense(frame(model))
-domain(model::Model) = domain(frame(model))
+frame(model::Model) = frame(form(model))
 
 metadata(model::Model) = model.metadata
 solution(model::Model) = model.solution

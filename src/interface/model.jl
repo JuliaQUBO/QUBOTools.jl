@@ -1,11 +1,9 @@
 @doc raw"""
     AbstractModel{V,T,U}
 
-Represents an abstract QUBO Model and should support most of the queries made available
-by `QUBOTools`.
-```
+Represents an abstract QUBO Model.
 
-As shown in the example above, implementing a method for the [`backend`](@ref) function
+As shown in the example above, implementing a method for the [`QUBOTools.backend`](@ref) function
 gives access to most fallback implementations.
 """
 abstract type AbstractModel{V,T,U} end
@@ -14,18 +12,10 @@ abstract type AbstractModel{V,T,U} end
     backend(model)::AbstractModel
     backend(model::AbstractModel)::AbstractModel
 
-Retrieves the model's backend.
-Implementing this function allows one to profit from fallback implementations of the other methods.
+Accesses the model's backend.
+Implementing this function allows one to profit from fallback implementations of other methods.
 """
 function backend end
-
-# Data access
-@doc raw"""
-    name(model)::Union{String,Nothing}
-
-Returns a string for the model's name, or nothing.
-"""
-function name end
 
 @doc raw"""
     Domain
@@ -62,7 +52,7 @@ Represents the spin domain ``\mathbb{S} = \lbrace{-1, 1}\rbrace``.
 ## Properties
 
 ```math
-s \in \mathbb{S}, n \in \mathbb{N} \implies s^{2n} = 1
+s \in \mathbb{S}, n \in \mathbb{Z} \implies s^{2n} = 1, s^{2n + 1} = s
 ```
 """
 SpinDomain
@@ -175,15 +165,15 @@ function index end
 @doc raw"""
     indices(model)
 
-Returns a sorted vector that matches the variable indices.
-It is equivalent to `variable_map.(model, variables(model))`
+Returns a sorted vector ``[1, \dots, n]`` that matches the variable indices,
+where ``n`` is the model's dimension.
 """
 function indices end
 
 @doc raw"""
     variable(model::AbstractModel, i::Integer)
 
-Given an index `i`, returns the corresponding variable.
+Given an index ``i``, returns the corresponding variable.
 """
 function variable end
 

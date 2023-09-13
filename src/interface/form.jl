@@ -48,7 +48,6 @@ Returns the quadratic part of the QUBO form.
 function quadratic_form end
 
 
-
 @doc raw"""
     qubo(model::AbstractModel{<:BoolDomain})
     qubo(model::AbstractModel{<:BoolDomain}, ::Type{Dict}, T::Type = Float64)

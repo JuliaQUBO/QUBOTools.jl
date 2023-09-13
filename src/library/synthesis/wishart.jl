@@ -45,4 +45,3 @@ function generate(rng, problem::Wishart{T}) where {T}
         )
     )
 end
-

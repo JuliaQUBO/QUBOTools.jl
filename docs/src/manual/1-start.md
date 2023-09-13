@@ -10,15 +10,27 @@ This manual aims to explain the fundamental concepts behind loading, manipulatin
 using QUBOTools
 
 path = joinpath(@__DIR__, "data", "problem.json")
+```
 
+### Reading a Model
+
+```@example quick-start
 model = QUBOTools.read_model(path)
+```
+
+### Visualization
+
+```@example quick-start
+using Plots
+
+plot(QUBOTools.ModelDensityPlot(model))
 ```
 
 ## Table of Contents
 
 ```@contents
 Pages = [
-    "2-model.md",
+    "2-math.md",
     "3-usage.md",
     "4-models.md",
     "5-formats",

@@ -30,13 +30,13 @@ export Sample, SampleSet
 # Interface definitions
 include("interface/form.jl")
 include("interface/model.jl")
+include("interface/frame.jl")
 include("interface/solution.jl")
 include("interface/synthesis.jl")
 include("interface/format.jl")
 include("interface/architecture.jl")
 include("interface/device.jl")
 include("interface/analysis.jl")
-include("interface/generic.jl")
 include("interface/fallback.jl")
 
 # Error types and messages

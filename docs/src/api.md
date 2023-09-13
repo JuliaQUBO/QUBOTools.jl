@@ -2,7 +2,7 @@
 
 ## Fallback dispatch
 
-When extending `QUBOTools`, one must implement a method for [`QUBOTools.backend`](@ref).
+When extending `QUBOTools`, one might want to implement a method for [`QUBOTools.backend`](@ref).
 
 ```@docs
 QUBOTools.backend
@@ -18,10 +18,14 @@ QUBOTools.variables
 ```
 
 ```@docs
+QUBOTools.VariableMap
+```
+
+```@docs
 QUBOTools.PBO.varlt
 ```
 
-## Variable Domains
+## Objective & Domain Frames
 
 ```@docs
 QUBOTools.Domain
@@ -30,18 +34,21 @@ QUBOTools.SpinDomain
 QUBOTools.domain
 ```
 
-## Objective Sense
-
 ```@docs
 QUBOTools.Sense
 QUBOTools.sense
 ```
 
-## Frame Casting
-
 ```@docs
 QUBOTools.Frame
+QUBOTools.frame
 QUBOTools.cast
+```
+
+### Errors
+
+```@docs
+QUBOTools.CastingError
 ```
 
 ## Models
@@ -51,11 +58,57 @@ QUBOTools.AbstractModel
 QUBOTools.Model
 ```
 
+## Model Forms
+
+```@docs
+QUBOTools.AbstractForm
+QUBOTools.AbstractLinearForm
+QUBOTools.AbstractQuadraticForm
+QUBOTools.form
+QUBOTools.linear_form
+QUBOTools.quadratic_form
+```
+
+```@docs
+QUBOTools.qubo
+QUBOTools.ising
+```
+
+### Underlying Data Structures
+
+```@docs
+QUBOTools.Form
+QUBOTools.formtype
+```
+
+```@docs
+QUBOTools.DictForm
+QUBOTools.DictLinearForm
+QUBOTools.DictQuadraticForm
+```
+
+```@docs
+QUBOTools.DenseForm
+QUBOTools.DenseLinearForm
+QUBOTools.DenseQuadraticForm
+```
+
+```@docs
+QUBOTools.SparseForm
+QUBOTools.SparseLinearForm
+QUBOTools.SparseQuadraticForm
+```
+
 ## Solutions
+
+```@docs
+QUBOTools.State
+```
 
 ```@docs
 QUBOTools.AbstractSample
 QUBOTools.Sample
+QUBOTools.sample
 ```
 
 ```@docs
@@ -71,6 +124,12 @@ QUBOTools.energy
 QUBOTools.reads
 ```
 
+### Solution Errors
+
+```@docs
+QUBOTools.SolutionError
+```
+
 ## Data Access
 
 ```@docs
@@ -81,19 +140,30 @@ QUBOTools.offset
 ```
 
 ```@docs
+QUBOTools.data
+```
+
+```@docs
 QUBOTools.metadata
 QUBOTools.id
 QUBOTools.description
 ```
 
-## File Formats
+```@docs
+QUBOTools.start
+```
+
+```@docs
+QUBOTools.attach!
+```
+
+## File Formats & I/O
 
 ```@docs
 QUBOTools.AbstractFormat
 QUBOTools.format
+QUBOTools.version
 ```
-
-## I/O
 
 ```@docs
 QUBOTools.read_model
@@ -105,7 +175,14 @@ QUBOTools.read_solution
 QUBOTools.write_solution
 ```
 
-## Metrics and other queries
+### Format & I/O Errors
+
+```@docs
+QUBOTools.FormatError
+QUBOTools.SyntaxError
+```
+
+## Model Metrics
 
 ```@docs
 QUBOTools.dimension
@@ -121,25 +198,36 @@ QUBOTools.topology
 QUBOTools.adjacency
 ```
 
-## Model Forms
+## System Specification
 
 ```@docs
-QUBOTools.AbstractForm
-QUBOTools.form
+QUBOTools.AbstractArchitecture
+QUBOTools.GenericArchitecture
+QUBOTools.architecture
 ```
 
 ```@docs
-QUBOTools.qubo
-QUBOTools.ising
+QUBOTools.AbstractDevice
+QUBOTools.GenericDevice
 ```
 
 ```@docs
-QUBOTools.DictForm{T}
-QUBOTools.SparseForm{T}
-QUBOTools.DenseForm{T}
+QUBOTools.layout
 ```
 
-## Benchmarking
+## Problem Synthesis
+
+```@docs
+QUBOTools.AbstractProblem
+QUBOTools.generate
+```
+
+```@docs
+QUBOTools.SherringtonKirkpatrick
+QUBOTools.Wishart
+```
+
+## Solution Metrics
 
 ### Timing
 
@@ -159,4 +247,16 @@ QUBOTools.success_rate
 ```@docs
 QUBOTools.time_to_target
 QUBOTools.ttt
+```
+
+### Hamming Distance
+
+```@docs
+QUBOTools.hamming_distance
+```
+
+## Visualization
+
+```@docs
+QUBOTools.AbstractVisualization
 ```
