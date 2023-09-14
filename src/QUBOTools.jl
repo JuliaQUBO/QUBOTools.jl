@@ -77,6 +77,7 @@ include("library/architecture/generic.jl")
 include("library/device/abstract.jl")
 include("library/device/generic.jl")
 
+include("library/analysis/visualization/abstract.jl")
 include("library/analysis/visualization/energy_frequency.jl")
 include("library/analysis/visualization/model_density.jl")
 include("library/analysis/visualization/system_layout.jl")

@@ -111,6 +111,12 @@ function Base.setindex!(qf::DictQuadraticForm{T}, v::T, i::Integer, j::Integer) 
     return v
 end
 
+@doc raw"""
+    DictForm{T}
+
+This QUBO form is built using dictionaries for both the linear and quadratic
+terms.
+"""
 const DictForm{T} = Form{T,DictLinearForm{T},DictQuadraticForm{T}}
 
 function DictForm{T}(

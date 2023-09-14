@@ -103,6 +103,12 @@ function Base.setindex!(qf::DenseQuadraticForm{T}, v::T, i::Integer, j::Integer)
     return v
 end
 
+@doc raw"""
+    DenseForm{T}
+
+This QUBO form is built using a vector for the linear terms and a matrix for
+storing the quadratic terms.
+"""
 const DenseForm{T} = Form{T,DenseLinearForm{T},DenseQuadraticForm{T}}
 
 function DenseForm{T}(

@@ -116,6 +116,7 @@ function form(
     return form(src, formtype(spec, type); sense, domain)
 end
 
+
 function formtype(spec::Symbol, ::Type{T} = Float64) where {T}
     return formtype(Val(spec), T)
 end
@@ -130,6 +131,15 @@ function formtype(::Type{spec}, ::Type = Float64) where {spec}
     error("Unknown form type specifier '$(spec)'.")
 
     return nothing
+end
+
+
+function qubo(src::AbstractModel{V,T,U}, args...; kws...) where {V,T,U}
+    return form(src, args...; kws..., domain = :bool)
+end
+
+function ising(src::AbstractModel{V,T,U}, args...; kws...) where {V,T,U}
+    return form(src, args...; kws..., domain = :spin)
 end
 
 

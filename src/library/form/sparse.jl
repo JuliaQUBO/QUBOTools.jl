@@ -95,7 +95,12 @@ function Base.setindex!(qf::SparseQuadraticForm{T}, v::T, i::Integer, j::Integer
     return v
 end
 
+@doc raw"""
+    SparseForm{T}
 
+This QUBO form is built using a sparse vector for the linear terms and a sparse
+matrix for the quadratic ones.
+"""
 const SparseForm{T} = Form{T,SparseLinearForm{T},SparseQuadraticForm{T}}
 
 function SparseForm{T}(

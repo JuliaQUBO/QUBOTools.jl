@@ -29,19 +29,28 @@ end
 
     x = value.(plt.solution)
     y = reads.(plt.solution)
-    n = length(y)
+    n = length(plt.solution)
     z = zeros(Int, n)
-    λ = nothing
 
-    for i = 1:n
+    for i = 2:n
         # Since values are sorted, if two consecutive ones
         # are approximate, we are stacking them together 
-        if λ !== nothing && λ ≈ x[i]
+        if x[i] ≈ x[i-1]
+            x[i] = x[i-1]
             z[i] = y[i-1]
-            y[i] = y[i] + z[i]
+            y[i] += z[i]
         end
+    end
 
-        λ = x[i]
+    @series begin
+        # linewidth  --> 1.0
+        seriestype  := :bar
+        fillrange   := z
+        # color      --> :green
+        # colorbar    := true
+        # bar_width --> 2.0
+
+        (x, y)
     end
 
     if !isnothing(plt.λ)
@@ -55,11 +64,5 @@ end
         end
     end
 
-    linewidth  --> 1.0
-    seriestype  := :bar
-    fillrange   := z
-    color      --> :green
-    # colorbar    := true
-    
-    return (x, y)
+    return nothing
 end

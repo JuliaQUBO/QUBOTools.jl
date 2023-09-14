@@ -113,7 +113,6 @@ function Base.show(io::IO, model::AbstractModel)
             io,
             """
             There are no warm-start values.
-
             """
         )
     else
@@ -126,12 +125,13 @@ function Base.show(io::IO, model::AbstractModel)
         )
     end
 
+    println(io)
+
     if isempty(solution(model))
         print(
             io,
             """
             There are no solutions available.
-
             """,
         )
     else
