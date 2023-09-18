@@ -25,6 +25,7 @@ end
     title  --> "Solution Summary"
     xlabel --> "Energy"
     ylabel --> "Frequency"
+    legend --> :outertop
 
     x = value.(plt.solution)
     y = reads.(plt.solution)

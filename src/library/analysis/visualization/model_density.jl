@@ -15,7 +15,6 @@ end
     color  --> :balance
     xlabel --> "Variable Index"
     ylabel --> "Variable Index"
-    size   --> (500, 500)
     margin --> (0.5, :cm)
 
     n, L, Q, α = form(plt.model, :dense)
