@@ -34,12 +34,12 @@ plot(QUBOTools.SystemLayoutPlot(model))
 ## Solutions
 
 ```@setup analysis
-function magical_solution_method(model)
+function magical_solution_method(model, k = 12)
     n = QUBOTools.dimension(model)
 
     samples = Sample{Float64,Int}[]
 
-    for _ = 1:5
+    for _ = 1:k
         ψ = rand(0:1, n)
         λ = QUBOTools.value(model, ψ)
         r = rand(1:10)
@@ -58,7 +58,7 @@ solution = magical_solution_method(model)
 ### Energy Frequency
 
 ```@example analysis
-λ = minimum(QUBOTools.value.(solution)) - 1.0 # threshold
+λ = minimum(QUBOTools.value, solution) # threshold
 
 plot(QUBOTools.EnergyFrequencyPlot(solution, λ))
 ```

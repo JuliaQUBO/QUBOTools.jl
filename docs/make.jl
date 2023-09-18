@@ -25,7 +25,6 @@ makedocs(;
         ],
         "Formats" => [
             "BQPJSON"  => "formats/BQPJSON.md",
-            # "HFS"      => "formats/HFS.md",
             "MiniZinc" => "formats/MiniZinc.md",
             "QUBin"    => "formats/QUBin.md",
             "Qubist"   => "formats/Qubist.md",

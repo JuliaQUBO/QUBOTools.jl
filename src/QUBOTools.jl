@@ -5,6 +5,7 @@ import HDF5
 import JSON
 import JSONSchema
 using Graphs
+using GeometryBasics
 using LinearAlgebra
 import NetworkLayout
 using SparseArrays
@@ -32,6 +33,7 @@ include("interface/synthesis.jl")
 include("interface/format.jl")
 include("interface/architecture.jl")
 include("interface/device.jl")
+include("interface/layout.jl")
 include("interface/analysis.jl")
 include("interface/fallback.jl")
 

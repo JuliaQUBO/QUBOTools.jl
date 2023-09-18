@@ -57,7 +57,7 @@ Sorts a vector of samples by
     2. Sampling Frequency, in descending order
 """
 function _sort_and_merge(data::V, sense::Sense) where {T,U,V<:AbstractVector{Sample{T,U}}}
-    sign  = sense === Min ? 1.0 : -1.0
+    sign  = sense === Min ? one(T) : -one(T)
     bits  = nothing
     cache = sizehint!(Dict{Vector{U},Sample{T,U}}(), length(data))
 
@@ -84,5 +84,13 @@ function _sort_and_merge(data::V, sense::Sense) where {T,U,V<:AbstractVector{Sam
         cache[state(merged)] = merged
     end
 
-    return sort!(collect(values(cache)); by = s -> (sign * value(s), -reads(s)))
+    return sort!(
+        collect(values(cache));
+        lt = (u, v) -> begin
+            λu = sign * value(u)
+            λv = sign * value(v)
+
+            return λu ≈ λv ? reads(v) < reads(u) : λu < λv
+        end
+    )
 end

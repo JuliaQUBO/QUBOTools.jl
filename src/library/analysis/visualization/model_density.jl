@@ -11,21 +11,23 @@ function ModelDensityPlot(model::Any)
 end
 
 @recipe function plot(plt::ModelDensityPlot{V,T,U,M}) where {V,T,U,M}
-    title  --> "Model density"
-    color  --> :bwr
+    title  --> "Model Density"
+    color  --> :balance
     xlabel --> "Variable Index"
     ylabel --> "Variable Index"
     size   --> (500, 500)
+    margin --> (0.5, :cm)
 
-    n, L, Q, α = DenseForm{T}(form(plt.model))
+    n, L, Q, α = form(plt.model, :dense)
 
     t = collect(1:(n÷10+1):n)
     z = α * (Symmetric(Q / 2) + diagm(L))
-    L = maximum(abs.(z))
+    
+    Γ = maximum(abs.(z))
 
     xticks       := t
     yticks       := t
-    clims        := (-L, L)
+    clims        := (-Γ, Γ)
     yflip        := true
     xmirror      := true
     seriestype   := :heatmap

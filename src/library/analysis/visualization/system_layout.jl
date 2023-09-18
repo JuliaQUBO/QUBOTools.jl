@@ -1,46 +1,62 @@
-struct SystemLayoutPlot{V,T,U,M<:AbstractModel{V,T,U}} <: AbstractVisualization
-    model::M
+struct SystemLayoutPlot{N,G<:Graphs.AbstractGraph,T} <: AbstractVisualization
+    n::Integer
+    layout::Layout{N,G}
+    weight::SparseMatrixCSC{T,Int}
 
-    function SystemLayoutPlot(model::M) where {V,T,U,M<:AbstractModel{V,T,U}}
-        return new{V,T,U,M}(model)
+    function SystemLayoutPlot(n::Integer, layout::Layout{N,G}, weight::SparseMatrixCSC{T,Int}) where {N,G,T}
+        return new{N,G,T}(n, layout, weight)
     end
+end 
+
+# Model constructor
+function SystemLayoutPlot(model::M) where {V,T,U,M<:AbstractModel{V,T,U}}
+    layout = QUBOTools.layout(model)
+
+    n, L, Q, α = form(model, :sparse)
+    weight = α * (Q + spdiagm(L))
+
+    return SystemLayoutPlot(n, layout, weight)
 end
 
-function SystemLayoutPlot(model::Any)
-    return SystemLayoutPlot(backend(model))
-end
+# Fallback dispatch
+SystemLayoutPlot(model) = SystemLayoutPlot(backend(model))
 
-@recipe function plot(plt::SystemLayoutPlot{V,T,U,M}) where {V,T,U,M}
-    title --> "System Layout"
-    size  --> (500, 500)
+@recipe function plot(plt::SystemLayoutPlot{2,G,T}) where {G,T}
+    title  --> "System Layout"
+    margin --> (0.5, :cm)
 
-    n, L, _, α = QUBOTools.form(plt.model)
+    g = QUBOTools.topology(plt.layout)
+    P = QUBOTools.geometry(plt.layout)
 
-    G = QUBOTools.topology(plt.model)
-    ℓ = QUBOTools.layout(plt.model, G)
+    W = plt.weight
+    Γ = maximum(abs, W)
 
-    x = first.(ℓ)
-    y = last.(ℓ)
-    z = [L[i] for i = 1:n]
+    x = map(p -> p[1], P)
+    y = map(p -> p[2], P)
+    z = [W[i, i] for i = 1:plt.n]
 
-    for e in Graphs.edges(G)
+
+    for e in Graphs.edges(g)
         u = Graphs.src(e)
         v = Graphs.dst(e)
 
         @series begin
-            color  := :gray
-            legend := nothing
+            line_z    := [W[u, v]]
+            legend    := nothing
+            color    --> :balance
 
             ([x[u], x[v]], [y[u], y[v]])
         end
     end
 
-    zcolor       := α * z
+    marker_z     := z
     seriestype   := :scatter
-    colorbar     := true
     aspect_ratio := :equal
-    legend       := nothing
     markersize   := 5
+    clims        := (-Γ, Γ)
+    color       --> :balance
+    colorbar     := true
+    legend       := nothing
     grid        --> false
 
     return (x, y)

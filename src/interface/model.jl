@@ -214,21 +214,6 @@ Counts the number of non-zero quadratic terms in the model.
 function quadratic_size end
 
 @doc raw"""
-    topology(model) where {T}
-
-Returns a [`Graphs.jl`](https://github.com/JuliaGraphs/Graphs.jl)-compatible graph
-representing the quadratic interactions between variables in the model.
-"""
-function topology end
-
-@doc raw"""
-    adjacency
-
-An alias for [`topology`](@ref).
-"""
-const adjacency = topology
-
-@doc raw"""
     read_model(::AbstractString)
     read_model(::AbstractString, ::AbstractFormat)
     read_model(::IO, ::AbstractFormat)

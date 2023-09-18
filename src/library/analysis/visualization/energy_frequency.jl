@@ -25,7 +25,6 @@ end
     title  --> "Solution Summary"
     xlabel --> "Energy"
     ylabel --> "Frequency"
-    legend --> nothing
 
     x = value.(plt.solution)
     y = reads.(plt.solution)
@@ -42,26 +41,30 @@ end
         end
     end
 
-    @series begin
-        # linewidth  --> 1.0
-        seriestype  := :bar
-        fillrange   := z
-        # color      --> :green
-        # colorbar    := true
-        # bar_width --> 2.0
-
-        (x, y)
-    end
-
     if !isnothing(plt.λ)
         @series begin
-            legend     --> "Ground Energy"
-            color      --> :red
-            seriestype :=  :vline
-            linestyle  :=  :dash
+            label         --> "Energy Threshold"
+            color         --> :gray
+            seriestype     := :vline
+            linestyle      := :dash
+            colorbar_entry := :false
+            z_order        := :front
 
             ([plt.λ],)
         end
+    end
+
+    @series begin
+        label      --> nothing
+        linewidth  --> 0
+        color      --> :redblue
+        seriestype  := :bar
+        fillrange   := z
+        colorbar    := false
+        fill_z      := y
+        z_order     := :back
+
+        (x, y)
     end
 
     return nothing

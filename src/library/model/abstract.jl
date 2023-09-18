@@ -152,6 +152,9 @@ function Base.show(io::IO, model::AbstractModel)
     return nothing
 end
 
-function layout(::AbstractModel, G::Graphs.AbstractGraph = QUBOTools.topology(model))
-    return NetworkLayout.layout(NetworkLayout.Shell(), G)
+function layout(model::AbstractModel)
+    g = QUBOTools.topology(model)
+    P = NetworkLayout.layout(NetworkLayout.Shell(; Ptype = Float64), g)
+
+    return Layout(g, P)
 end
