@@ -85,5 +85,6 @@ include("library/analysis/visualization/model_density.jl")
 include("library/analysis/visualization/system_layout.jl")
 
 # include("extra/dwave/dwave.jl")
+include("extra/moi/spin.jl")
 
 end # module

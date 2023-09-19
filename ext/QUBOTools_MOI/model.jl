@@ -28,7 +28,7 @@ function _is_unconstrained(model::MOI.ModelLike)
 end
 
 
-function _parse_moi_model(::Type{T}, model::MOI.ModelLike)
+function _parse_moi_model(::Type{T}, model::MOI.ModelLike) where {T}
     if MOI.is_empty(model)
         return QUBOTools.Model{VI,T,Int}(;
             sense  = :min,

@@ -12,3 +12,5 @@ end
 function MOIU._to_string(::MOIU._PrintOptions{MIME"text/latex"}, ::Spin)
     return raw"\in \left\lbrace{}{\pm 1}\right\rbrace{}"
 end
+
+QUBOTools.__moi_spin_set() = Spin
