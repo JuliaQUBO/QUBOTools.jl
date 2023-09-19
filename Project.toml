@@ -18,13 +18,21 @@ RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
+[weakdeps]
+MathOptInterface = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
+
+[extensions]
+QUBOTools_MOI = ["MathOptInterface"]
+
 [compat]
+GeometryBasics = "0.4"
 Graphs = "1"
 HDF5 = "0.16.15"
 JSON = "0.21.3"
 JSONSchema = "1"
+MathOptInterface = "1"
 NetworkLayout = "0.4.5"
 PseudoBooleanOptimization = "0.1"
 RecipesBase = "1"
 Statistics = "1"
-julia = "1.6"
+julia = "1.9"
