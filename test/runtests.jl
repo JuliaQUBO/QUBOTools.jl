@@ -3,6 +3,10 @@ using Printf
 using SparseArrays
 using RecipesBase
 using QUBOTools
+using MathOptInterface
+
+const MOI = MathOptInterface
+const VI = MOI.VariableIndex
 
 const __TEST_PATH__ = @__DIR__
 

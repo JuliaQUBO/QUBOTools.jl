@@ -1,3 +1,1 @@
-function QUBOTools.varlt(u::VI, v::VI)
-    return QUBOTools.varlt(u.value, v.value)
-end 
+QUBOTools.varlt(u::VI, v::VI) = QUBOTools.varlt(u.value, v.value) 

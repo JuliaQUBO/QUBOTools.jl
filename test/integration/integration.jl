@@ -1,12 +1,10 @@
-include("qubodrivers.jl")
-include("toqubo.jl")
-include("qubo.jl")
+include("ext/ext.jl")
+include("packages/packages.jl")
 
 function test_integration()
     @testset "⊚ ⊚ Integration Tests" verbose = true begin
-        test_qubodrivers_jl()
-        test_toqubo_jl()
-        test_qubo_jl()
+        test_extensions()
+        test_packages()
     end
 
     return nothing
