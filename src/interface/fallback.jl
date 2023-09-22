@@ -24,8 +24,10 @@ id(src)              = id(backend(src))
 description(src)     = description(backend(src))
 metadata(src)        = metadata(backend(src))
 index(src, v)        = index(backend(src), v)
+hasindex(src, i)     = hasindex(backend(src), i)
 indices(src)         = indices(backend(src))
 variable(src, i)     = variable(backend(src), i)
+hasvariable(src, v)  = hasvariable(backend(src), v)
 variables(src)       = variables(backend(src))
 
 # Model's Normal Forms
