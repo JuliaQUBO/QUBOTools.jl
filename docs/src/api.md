@@ -13,8 +13,10 @@ QUBOTools.backend
 ```@docs
 QUBOTools.index
 QUBOTools.indices
+QUBOTools.hasindex
 QUBOTools.variable
 QUBOTools.variables
+QUBOTools.hasvariable
 ```
 
 ```@docs
@@ -196,6 +198,7 @@ QUBOTools.quadratic_density
 ```@docs
 QUBOTools.topology
 QUBOTools.adjacency
+QUBOTools.geometry
 ```
 
 ## System Specification
@@ -212,6 +215,7 @@ QUBOTools.GenericDevice
 ```
 
 ```@docs
+QUBOTools.Layout
 QUBOTools.layout
 ```
 

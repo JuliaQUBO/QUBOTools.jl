@@ -2,9 +2,9 @@
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterDiagrams = "a106ebf2-4182-4cba-90d4-44cd3cc36e85"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-PseudoBooleanOptimization = "c8fa9a04-bc42-452d-8558-dc51757be744"
 QUBOTools = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"
 
 [compat]
-Documenter = "~0.27"
+Documenter = "1"
+DocumenterDiagrams = "1"
 Plots = "~1.38"

@@ -12,6 +12,7 @@ makedocs(;
     sitename = "QUBOTools.jl",
     authors  = "Pedro Maciel Xavier and Pedro Ripper and Tiago Andrade and Joaquim Garcia and David E. Bernal Neira",
     workdir  = @__DIR__,
+    warnonly = [:missing_docs],
     pages    = [
         "Home" => "index.md",
         "Manual" => [
