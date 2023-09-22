@@ -48,16 +48,26 @@ function test_model(V = Symbol, T = Float64, U = Int)
                 @test QUBOTools.indices(model)   == collect(1:8)
                 @test QUBOTools.variables(model) == [:w, :x, :y, :z, :α, :β, :γ, :ξ]
 
+                @test QUBOTools.hasvariable(model, :u) === false
                 @test_throws Exception QUBOTools.index(model, :u)
+                @test QUBOTools.hasvariable(model, :w) === true
                 @test QUBOTools.index(model, :w) == 1
+                @test QUBOTools.hasvariable(model, :x) === true
                 @test QUBOTools.index(model, :x) == 2
+                @test QUBOTools.hasvariable(model, :y) === true
                 @test QUBOTools.index(model, :y) == 3
+                @test QUBOTools.hasvariable(model, :δ) === false
                 @test_throws Exception QUBOTools.index(model, :δ)
 
+                @test QUBOTools.hasindex(model, 0) === false
                 @test_throws Exception QUBOTools.variable(model, 0)
+                @test QUBOTools.hasindex(model, 1) === true
                 @test QUBOTools.variable(model, 1) == :w
+                @test QUBOTools.hasindex(model, 2) === true
                 @test QUBOTools.variable(model, 2) == :x
+                @test QUBOTools.hasindex(model, 3) === true
                 @test QUBOTools.variable(model, 3) == :y
+                @test QUBOTools.hasindex(model, 9) === false
                 @test_throws Exception QUBOTools.variable(model, 9)
 
                 @test Dict(QUBOTools.linear_terms(model)) == Dict(

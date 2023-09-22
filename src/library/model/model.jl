@@ -176,8 +176,21 @@ form(model::Model) = model.form
 
 dimension(model::Model) = dimension(form(model))
 
-index(model::Model{V}, v::V) where {V} = index(model.variable_map, v)
-variables(model::Model)                = model.variable_map.inv
+function index(model::Model{V}, v::V) where {V}
+    if hasvariable(model, v)
+        return index(model.variable_map, v)
+    else
+        error("Variable '$v' does not belong to the model")
+
+        return nothing
+    end
+end
+
+variables(model::Model) = model.variable_map.inv
+
+function hasvariable(model::Model{V}, v::V) where {V}
+    return haskey(model.variable_map.map, v)
+end
 
 linear_terms(model::Model)    = linear_terms(form(model))
 quadratic_terms(model::Model) = quadratic_terms(form(model))
@@ -191,7 +204,7 @@ metadata(model::Model) = model.metadata
 solution(model::Model) = model.solution
 
 function start(model::Model{V,T,U}, i::Integer; domain = QUBOTools.domain(model)) where {V,T,U}
-    if !(1 <= i <= dimension(model))
+    if !hasindex(model, i)
         error("Index '$i' is out of bounds [1, $(dimension(model))]")
 
         return nothing

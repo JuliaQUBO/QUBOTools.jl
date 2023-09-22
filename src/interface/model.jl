@@ -163,6 +163,13 @@ Given a variable, returns the corresponding index.
 function index end
 
 @doc raw"""
+    hasindex(model::AbstractModel, i::Integer)::Bool
+
+Given an index, returns whether it is valid for rhe model.
+"""
+function hasindex end
+
+@doc raw"""
     indices(model)
 
 Returns a sorted vector ``[1, \dots, n]`` that matches the variable indices,
@@ -173,9 +180,16 @@ function indices end
 @doc raw"""
     variable(model::AbstractModel, i::Integer)
 
-Given an index ``i``, returns the corresponding variable.
+Given an index, returns the corresponding variable.
 """
 function variable end
+
+@doc raw"""
+    hasvariable(model::AbstractModel{V}, v::V)::Bool where {V}
+
+Given a variable, tells if it belongs to the model.
+"""
+function hasvariable end
 
 @doc raw"""
     variables(model)

@@ -6,10 +6,14 @@ function indices(model::AbstractModel)
     return collect(1:dimension(model))
 end
 
-function variable(model::AbstractModel{V}, i::Integer) where {V}
-    mapping = variables(model)::AbstractVector{V}
+function hasindex(model::AbstractModel, i::Integer)
+    return 1 <= i <= dimension(model)
+end
 
-    if 1 <= i <= length(mapping)
+function variable(model::AbstractModel{V}, i::Integer) where {V}
+    if hasindex(model, i)
+        mapping = variables(model)::AbstractVector{V}
+
         return mapping[i]
     else
         error("Variable with index '$i' does not belong to the model")
@@ -18,8 +22,8 @@ function variable(model::AbstractModel{V}, i::Integer) where {V}
     end
 end
 
-function start(model::AbstractModel{V,T}, v::V) where {V,T}
-    return get(start(model), v, nothing)
+function hasvariable(model::AbstractModel{V}, v::V) where {V}
+    return v ∈ variables(model)
 end
 
 # ~*~ Model's Normal Forms ~*~ #
