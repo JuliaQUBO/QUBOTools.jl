@@ -28,47 +28,29 @@ function topology(Φ::F) where {T,F<:AbstractForm{T}}
     return Graphs.Graph(E)
 end
 
-function topology(Φ::F, k::Integer) where {T,F<:AbstractForm{T}}
-    N = Set{Int}()
 
-    for ((i, j), _) in quadratic_terms(Φ)
-        if i == k
-            push!(N, j)
-        elseif j == k
-            push!(N, i)
-        end
-    end
-
-    return N
-end
-
-
-function value(Φ::F, ψ::State{U}) where {T,U,F<:AbstractForm{T}}
-    L = linear_form(Φ)
-    Q = quadratic_form(Φ)
+function value(ψ::State{U}, Φ::F) where {T,U,F<:AbstractForm{T}}
+    L = data(linear_form(Φ))
+    Q = data(quadratic_form(Φ))
     α = scale(Φ)
     β = offset(Φ)
 
-    return α * (value(L, ψ) + value(Q, ψ) + β)
+    return value(ψ, L, Q, α, β)
 end
 
-function value(lf::LF, ψ::State{U}) where {T,U,LF<:AbstractLinearForm{T}}
-    return value(data(lf), ψ)
+function value(ψ::State{U}, L, Q, α::T = one(T), β::T = zero(T)) where {T,U}
+    return α * (value(ψ, L) + value(ψ, Q) + β)
 end
 
-function value(qf::QF, ψ::State{U}) where {T,U,QF<:AbstractQuadraticForm{T}}
-    return value(data(qf), ψ)
-end
-
-function value(L::AbstractVector{T}, ψ::State{U}) where {T,U}
+function value(ψ::State{U}, L::AbstractVector{T}) where {T,U}
     return L' * ψ
 end
 
-function value(Q::AbstractMatrix{T}, ψ::State{U}) where {T,U}
+function value(ψ::State{U}, Q::AbstractMatrix{T}) where {T,U}
     return ψ' * Q * ψ
 end
 
-function value(L::AbstractDict{Int,T}, ψ::State{U}) where {T,U}
+function value(ψ::State{U}, L::AbstractDict{Int,T}) where {T,U}
     s = zero(T)
 
     for (i, v) in L
@@ -78,7 +60,7 @@ function value(L::AbstractDict{Int,T}, ψ::State{U}) where {T,U}
     return s
 end
 
-function value(Q::AbstractDict{Tuple{Int,Int},T}, ψ::State{U}) where {T,U}
+function value(ψ::State{U}, Q::AbstractDict{Tuple{Int,Int},T}) where {T,U}
     s = zero(T)
 
     for ((i, j), v) in Q

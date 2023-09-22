@@ -59,7 +59,7 @@ function value(model::AbstractModel, index::Integer)
 end
 
 function value(model::AbstractModel, ψ::State{U}) where {U}
-    return value(form(model), ψ)
+    return value(ψ, form(model))
 end
 
 # Queries: Dimensions

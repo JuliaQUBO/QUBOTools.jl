@@ -142,5 +142,3 @@ function test_moi_spin_model()
 
     return nothing
 end
-
-end
