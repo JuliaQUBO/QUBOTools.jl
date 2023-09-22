@@ -151,7 +151,7 @@ function _extract_bool_model(
         β += f.constant
     end
 
-    return Model{VI,T,Int}(
+    return QUBOTools.Model{VI,T,Int}(
         L, Q;
         offset = β,
         sense  = QUBOTools.sense(MOI.get(model, MOI.ObjectiveSense())),
@@ -210,7 +210,7 @@ function _extract_spin_model(
         β += f.constant
     end
 
-    return Model{VI,T,Int}(
+    return QUBOTools.Model{VI,T,Int}(
         L, Q;
         offset = β,
         sense  = QUBOTools.sense(MOI.get(model, MOI.ObjectiveSense())),

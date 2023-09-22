@@ -14,10 +14,10 @@ function qubo_parsing_error(msg::AbstractString; ads::Bool = true)
 end
 
 function Base.showerror(io::IO, e::QUBOParsingError)
-    show(io, e.msg)
+    print(io, e.msg)
 
     if e.ads
-        show(
+        println(
             io,
             """
             It seems that the current model could not be converted to QUBO in a straightforward fashion 🙁

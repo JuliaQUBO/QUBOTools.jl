@@ -5,8 +5,19 @@ using RecipesBase
 using QUBOTools
 using MathOptInterface
 
-const MOI = MathOptInterface
-const VI = MOI.VariableIndex
+# using QUBODrivers
+# using ToQUBO
+# using QUBO
+
+const MOI    = MathOptInterface
+const MOIU   = MOI.Utilities
+const VI     = MOI.VariableIndex
+const SAF{T} = MOI.ScalarAffineFunction{T}
+const SAT{T} = MOI.ScalarAffineTerm{T}
+const SQF{T} = MOI.ScalarQuadraticFunction{T}
+const SQT{T} = MOI.ScalarQuadraticTerm{T}
+
+const Spin = QUBOTools.__moi_spin_set()
 
 const __TEST_PATH__ = @__DIR__
 
