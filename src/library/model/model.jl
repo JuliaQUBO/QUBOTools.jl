@@ -257,7 +257,19 @@ function attach!(model::Model{V,T,U}, sol::SampleSet{T,U}) where {V,T,U}
     return model.solution
 end
 
+function attach!(model::Model{V,T,U}, (v,s)::Pair{V,U}) where {V,T,U}
+    i = index(model, v)
+
+    model.start[i] = s
+
+    return (i, s)
+end
+
 function attach!(model::Model{V,T,U}, sol::Dict{V,U}) where {V,T,U}
+    # This operation is meant to be atomic, i.e., when attaching a warm-start
+    # dict to the model, if the operation fails during variable mapping, the
+    # original dict is left unchanged. This is why the attach!(model, v => s)
+    # method is not used here.
     cache = sizehint!(Dict{Int,U}(), length(sol))
 
     for (v, s) in sol
