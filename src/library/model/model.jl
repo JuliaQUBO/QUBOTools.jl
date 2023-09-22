@@ -270,7 +270,7 @@ function attach!(model::Model{V,T,U}, sol::SampleSet{T,U}) where {V,T,U}
     return model.solution
 end
 
-function attach!(model::Model{V,T,U}, (v,s)::Pair{V,Union{U,Nothing}}) where {V,T,U}
+function attach!(model::Model{V,T,U}, (v,s)::Pair{V,S}) where {V,T,U,S<:Union{U,Nothing}}
     i = index(model, v)
 
     if !isnothing(s)

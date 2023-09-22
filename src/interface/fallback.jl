@@ -36,12 +36,14 @@ qubo(src, args...; kws...)  = qubo(backend(src), args...; kws...)
 ising(src, args...; kws...) = ising(backend(src), args...; kws...)
 
 # Solution queries
-state(src, i)  = state(backend(src), i)
-value(src, i)  = value(backend(src), i)
-reads(src)     = reads(backend(src))
-reads(src, i)  = reads(backend(src), i)
-sample(src, i) = sample(backend(src), i)
-solution(src)  = solution(backend(src))
+state(src, i)               = state(backend(src), i)
+value(src, i)               = value(backend(src), i)
+reads(src)                  = reads(backend(src))
+reads(src, i)               = reads(backend(src), i)
+sample(src, i)              = sample(backend(src), i)
+solution(src)               = solution(backend(src))
+start(src, args...; kws...) = start(backend(src), args...; kws...)
+attach!(src, x)             = attach!(backend(src), x)
 
 # Data queries
 dimension(src)      = dimension(backend(src))
