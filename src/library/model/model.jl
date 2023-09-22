@@ -270,10 +270,14 @@ function attach!(model::Model{V,T,U}, sol::SampleSet{T,U}) where {V,T,U}
     return model.solution
 end
 
-function attach!(model::Model{V,T,U}, (v,s)::Pair{V,U}) where {V,T,U}
+function attach!(model::Model{V,T,U}, (v,s)::Pair{V,Union{U,Nothing}}) where {V,T,U}
     i = index(model, v)
 
-    model.start[i] = s
+    if !isnothing(s)
+        model.start[i] = s
+    else
+        delete!(model.start, i)
+    end
 
     return (i, s)
 end
