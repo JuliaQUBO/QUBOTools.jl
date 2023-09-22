@@ -209,7 +209,7 @@ function start(model::Model{V,T,U}, i::Integer; domain = QUBOTools.domain(model)
 
         return nothing
     elseif haskey(model.start, i)
-        return cast((QUBOTools.domain(model) => domain), model.start[i])
+        return cast((QUBOTools.domain(model) => QUBOTools.domain(domain)), model.start[i])
     else
         return nothing
     end 
