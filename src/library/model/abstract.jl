@@ -2,6 +2,10 @@ function Base.isempty(model::AbstractModel)
     return iszero(dimension(model))
 end
 
+function Base.broadcastable(model::AbstractModel)
+    return Ref(model) # Broadcast over model as scalar
+end
+
 function indices(model::AbstractModel)
     return collect(1:dimension(model))
 end
@@ -42,20 +46,28 @@ function form(
 end
 
 # ~*~ Data queries ~*~ #
-function state(model::AbstractModel, index::Integer)
-    return state(solution(model), index)
+function hassample(model::AbstractModel, i::Integer)
+    return hassample(solution(model), i)
+end
+
+function sample(model::AbstractModel, i::Integer)
+    return sample(solution(model), i)
+end
+
+function state(model::AbstractModel, i::Integer)
+    return state(solution(model), i)
 end
 
 function reads(model::AbstractModel)
     return reads(solution(model))
 end
 
-function reads(model::AbstractModel, index::Integer)
-    return reads(solution(model), index)
+function reads(model::AbstractModel, i::Integer)
+    return reads(solution(model), i)
 end
 
-function value(model::AbstractModel, index::Integer)
-    return value(solution(model), index)
+function value(model::AbstractModel, i::Integer)
+    return value(solution(model), i)
 end
 
 function value(model::AbstractModel, ψ::State{U}) where {U}
@@ -67,9 +79,20 @@ dimension(model::AbstractModel)      = dimension(form(model))
 linear_size(model::AbstractModel)    = linear_size(form(model))
 quadratic_size(model::AbstractModel) = quadratic_size(form(model))
 
-# Queries: Topology
-topology(model::AbstractModel)             = topology(form(model))
-topology(model::AbstractModel, k::Integer) = adjacency(form(model), k)
+# Queries: Layout, Topology & Geometry
+topology(model::AbstractModel) = topology(form(model))
+geometry(model::AbstractModel) = geometry(topology(model))
+
+function geometry(g::AbstractGraph)
+    return NetworkLayout.layout(NetworkLayout.Shell(; Ptype = Float64), g)
+end
+
+function layout(model::AbstractModel)
+    g = QUBOTools.topology(model)
+    P = QUBOTools.geometry(g)
+
+    return Layout(g, P)
+end
 
 # Queries: Metadata
 function id(model::AbstractModel)
@@ -140,8 +163,8 @@ function Base.show(io::IO, model::AbstractModel)
         )
     else
         sol = solution(model)
-        n = length(sol)
-        z = sense(model) === Min ? value(sol[begin]) : value(sol[end])
+        n   = length(sol)
+        z   = value(sol, 1)
 
         print(
             io,
@@ -154,11 +177,4 @@ function Base.show(io::IO, model::AbstractModel)
     end
 
     return nothing
-end
-
-function layout(model::AbstractModel)
-    g = QUBOTools.topology(model)
-    P = NetworkLayout.layout(NetworkLayout.Shell(; Ptype = Float64), g)
-
-    return Layout(g, P)
 end

@@ -3,6 +3,7 @@ using Printf
 using SparseArrays
 using RecipesBase
 using QUBOTools
+using Graphs
 using MathOptInterface
 
 # using QUBODrivers

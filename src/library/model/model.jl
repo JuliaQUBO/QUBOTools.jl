@@ -27,21 +27,13 @@ mutable struct Model{V,T,U,F<:AbstractForm{T}} <: AbstractModel{V,T,U}
         form::F;
         metadata::Union{Dict{String,Any},Nothing} = nothing,
         solution::Union{SampleSet{T,U},Nothing} = nothing,
-        start::Union{Dict{Int,U},Nothing} = nothing,
+        start::Union{Dict{V,U},Nothing} = nothing,
         # Extra Metadata
         id::Union{Integer,Nothing} = nothing,
         description::Union{String,Nothing} = nothing,
     ) where {V,T,U,F<:AbstractForm{T}}
         if isnothing(metadata)
             metadata = Dict{String,Any}()
-        end
-
-        if isnothing(solution)
-            solution = SampleSet{T,U}()
-        end
-
-        if isnothing(start)
-            start = Dict{Int,U}()
         end
 
         if !isnothing(id)
@@ -52,7 +44,17 @@ mutable struct Model{V,T,U,F<:AbstractForm{T}} <: AbstractModel{V,T,U}
             metadata["description"] = description
         end
 
-        return new{V,T,U,F}(variable_map, form, metadata, solution, start)
+        model = new{V,T,U,F}(variable_map, form, metadata, SampleSet{T,U}(), Dict{Int,U}())
+
+        if !isnothing(solution)
+            attach!(model, solution)
+        end
+
+        if !isnothing(start)
+            attach!(model, start)
+        end
+        
+        return model
     end
 end
 
@@ -64,7 +66,7 @@ function Model{V,T,U}(;
     domain::Union{Domain,Symbol} = :bool,
     metadata::Union{Dict{String,Any},Nothing} = nothing,
     solution::Union{SampleSet{T,U},Nothing} = nothing,
-    start::Union{Dict{Int,U},Nothing} = nothing,
+    start::Union{Dict{V,U},Nothing} = nothing,
     # Extra Metadata
     id::Union{Integer,Nothing} = nothing,
     description::Union{String,Nothing} = nothing,

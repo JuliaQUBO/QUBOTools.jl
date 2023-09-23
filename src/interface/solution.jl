@@ -29,11 +29,18 @@ Returns the model's current solution.
 function solution end
 
 @doc raw"""
-    sample(model, i::Integer) where {T,U<:Integer}
+    sample(model, i::Integer)
 
 Returns the ``i``-th sample on the model's current solution, if available.
 """
 function sample end
+
+@doc raw"""
+    hassample(solution::AbstractSolution, i::Integer)
+
+Tells if the ``i``-th sample is available on the solution.
+"""
+function hassample end
 
 @doc raw"""
     state(sample::AbstractSample{T,U}) where {T,U<:Integer}

@@ -111,6 +111,7 @@ QUBOTools.State
 QUBOTools.AbstractSample
 QUBOTools.Sample
 QUBOTools.sample
+QUBOTools.hassample
 ```
 
 ```@docs
