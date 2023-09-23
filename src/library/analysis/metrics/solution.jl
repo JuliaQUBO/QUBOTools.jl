@@ -65,30 +65,30 @@ function time_to_target(t::Float64, p::Float64, s::Float64 = 0.99)
     return t * log(1 - s) / log(1 - p)
 end
 
-function opt_tts(
-    solution::AbstractVector{S},
-    λ::T,
-    s::Float64 = 0.99,
-    q::Float64 = 0.5,
-) where {T,U,S<:AbstractSolution{T,U}}
-    if isempty(solution)
-        return NaN
-    end
+# function opt_tts(
+#     solution::AbstractVector{S},
+#     λ::T,
+#     s::Float64 = 0.99,
+#     q::Float64 = 0.5,
+# ) where {T,U,S<:AbstractSolution{T,U}}
+#     if isempty(solution)
+#         return NaN
+#     end
 
-    t = effective_time.(solution)
-    p = success_rate.(solution, λ)
+#     t = effective_time.(solution)
+#     p = success_rate.(solution, λ)
 
-    return opt_tts(t, p, s, q)
-end
+#     return opt_tts(t, p, s, q)
+# end
 
-function opt_tts(
-    t::AbstractVector{T},
-    p::AbstractVector{T},
-    s::Float64 = 0.99,
-    q::Float64 = 0.5,
-) where {T}
-    return quantile(time_to_target.(t, p, s), q)
-end
+# function opt_tts(
+#     t::AbstractVector{T},
+#     p::AbstractVector{T},
+#     s::Float64 = 0.99,
+#     q::Float64 = 0.5,
+# ) where {T}
+#     return quantile(time_to_target.(t, p, s), q)
+# end
 
 function hamming_distance(ψ::State{U}, φ::State{U}) where {U}
     @assert length(ψ) == length(φ)
