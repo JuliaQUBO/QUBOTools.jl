@@ -183,8 +183,6 @@ function index(model::Model{V}, v::V) where {V}
         return index(model.variable_map, v)
     else
         error("Variable '$v' does not belong to the model")
-
-        return nothing
     end
 end
 
@@ -208,8 +206,6 @@ solution(model::Model) = model.solution
 function start(model::Model{V,T,U}, i::Integer; domain = QUBOTools.domain(model)) where {V,T,U}
     if !hasindex(model, i)
         error("Index '$i' is out of bounds [1, $(dimension(model))]")
-
-        return nothing
     elseif haskey(model.start, i)
         return cast((QUBOTools.domain(model) => QUBOTools.domain(domain)), model.start[i])
     else

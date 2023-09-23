@@ -10,8 +10,6 @@ function _BQPJSON_VARIABLE_DOMAIN(X::Domain)
         return "spin"
     else
         error("Invalid domain '$X'")
-
-        return nothing
     end
 end
 
@@ -22,8 +20,6 @@ function _BQPJSON_VALIDATE_DOMAIN(x::Integer, X::Domain)
         return (s == ↓) || (s == ↑)
     else
         error("Invalid domain '$X'")
-
-        return nothing
     end
 end
 

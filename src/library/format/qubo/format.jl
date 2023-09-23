@@ -13,9 +13,7 @@ struct QUBO <: AbstractFormat
         elseif style === :mqlib
             return new(:mqlib)
         else
-            error("Unkown style '$style' for QUBO files. Options are: ':dwave', ':qbsolv' and ':mqlib'.")
-
-            return nothing
+            error("Unkown style '$style' for QUBO files. Options are: ':dwave', ':qbsolv' and ':mqlib'")
         end
     end
 end

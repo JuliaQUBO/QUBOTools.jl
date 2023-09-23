@@ -140,7 +140,5 @@ function cast((s, t)::Route{D}, Φ::Form{T,LF,QF}) where {D<:Domain,T,LF<:Abstra
         return Form{T,LF,QF}(n, L, Q, α, β; sense = sense(Φ), domain = t)
     else
         casting_error((s => t), Φ)
-
-        return nothing
     end
 end

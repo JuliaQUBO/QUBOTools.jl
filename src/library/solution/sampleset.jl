@@ -132,7 +132,5 @@ function cast((s,t)::Route{D}, sol::SampleSet{T,U}) where {T,U,D<:Domain}
         )
     else
         casting_error(s => t, sol)
-
-        return nothing
     end
 end

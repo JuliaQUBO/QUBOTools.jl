@@ -35,8 +35,6 @@ function index(vm::VariableMap{V}, v::V) where {V}
         return vm.map[v]
     else
         error("Variable '$v' does not belong to the mapping")
-
-        return nothing
     end
 end
 
@@ -47,7 +45,5 @@ function variable(vm::VariableMap, i::Integer)
         return vm.inv[i]
     else
         error("Variable index '$i' is out of range '[1, $n]'")
-
-        return nothing
     end
 end

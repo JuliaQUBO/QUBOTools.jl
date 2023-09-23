@@ -21,8 +21,6 @@ end
 
 function solution_error(msg::Union{String,Nothing} = nothing)
     throw(SolutionError(msg))
-
-    return nothing
 end
 
 @doc raw"""
@@ -47,8 +45,6 @@ end
 
 function format_error(msg::Union{String,Nothing} = nothing)
     throw(FormatError(msg))
-
-    return nothing
 end
 
 @doc raw"""
@@ -72,8 +68,6 @@ end
 
 function syntax_error(msg::Union{String,Nothing} = nothing)
     throw(SyntaxError(msg))
-
-    return nothing
 end
 
 function syntax_warning(msg::AbstractString)
@@ -103,8 +97,6 @@ end
 
 function casting_error(msg::Union{String,Nothing} = nothing)
     throw(CastingError(msg))
-
-    return nothing
 end
 
 function casting_error((s, t)::Route{X}, ::T) where {X,T}

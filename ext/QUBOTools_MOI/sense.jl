@@ -5,7 +5,5 @@ function QUBOTools.sense(s::MOI.OptimizationSense)
         return QUBOTools.sense(:max)
     else
         error("Invalid sense for QUBO: '$sense'")
-
-        return nothing
     end
 end

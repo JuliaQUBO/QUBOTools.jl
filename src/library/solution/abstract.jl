@@ -38,8 +38,6 @@ function sample(sol::AbstractSolution, i::Integer)
         return getindex(sol, i)
     else
         error("Sample with index '$i' does not belong to the solution")
-
-        return nothing
     end
 end
 

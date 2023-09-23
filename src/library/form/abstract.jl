@@ -104,15 +104,11 @@ function formtype(spec::Symbol, ::Type{T} = Float64) where {T}
 end
 
 function formtype(::Val{spec}, ::Type = Float64) where {spec}
-    error("Unknown form type specifier '$(spec)'.")
-
-    return nothing
+    error("Unknown form type specifier '$(spec)'")
 end
 
 function formtype(::Type{spec}, ::Type = Float64) where {spec}
-    error("Unknown form type specifier '$(spec)'.")
-
-    return nothing
+    error("Unknown form type specifier '$(spec)'")
 end
 
 

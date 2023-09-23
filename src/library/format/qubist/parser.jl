@@ -24,8 +24,6 @@ function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::Qubist)
     _parse_header!(data, line, fmt) && return nothing
 
     syntax_error("'$line'")
-
-    return nothing
 end
 
 function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)

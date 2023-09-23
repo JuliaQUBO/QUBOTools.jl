@@ -9,8 +9,6 @@ end
 
 function qubo_parsing_error(msg::AbstractString; ads::Bool = true)
     throw(QUBOParsingError(msg; ads))
-
-    return nothing
 end
 
 function Base.showerror(io::IO, e::QUBOParsingError)

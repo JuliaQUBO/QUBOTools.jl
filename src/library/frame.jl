@@ -7,8 +7,6 @@ function sense(s::Symbol)
         return Max
     else
         error("Invalid sense '$s', options are ':min' and ':max'")
-
-        return nothing
     end
 end
 
@@ -21,8 +19,6 @@ function Base.Symbol(s::Sense)
         return :max
     else
         error("Invalid sense '$s', options are 'Min' and 'Max'")
-
-        return nothing
     end
 end
 
@@ -37,8 +33,6 @@ function domain(x::Symbol)
         return SpinDomain
     else
         error("Invalid domain '$x', options are ':bool' and ':spin'")
-
-        return nothing
     end
 end
 
@@ -51,8 +45,6 @@ function Base.Symbol(x::Domain)
         return :spin
     else
         error("Invalid domain '$x', options are 'BoolDomain' and 'SpinDomain'")
-
-        return nothing
     end
 end
 

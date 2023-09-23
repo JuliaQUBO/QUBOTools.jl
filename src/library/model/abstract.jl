@@ -21,8 +21,6 @@ function variable(model::AbstractModel{V}, i::Integer) where {V}
         return mapping[i]
     else
         error("Variable with index '$i' does not belong to the model")
-
-        return nothing
     end
 end
 

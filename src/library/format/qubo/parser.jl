@@ -38,8 +38,6 @@ function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::QUBO)
     _parse_header!(data, line, fmt, Val(fmt.style)) && return nothing
 
     syntax_error("$line")
-
-    return nothing
 end
 
 function _parse_entry!(
