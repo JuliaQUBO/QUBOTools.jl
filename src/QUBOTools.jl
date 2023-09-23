@@ -84,7 +84,9 @@ include("library/analysis/visualization/energy_frequency.jl")
 include("library/analysis/visualization/model_density.jl")
 include("library/analysis/visualization/system_layout.jl")
 
+# Extras
 # include("extra/dwave/dwave.jl")
-include("extra/moi/spin.jl")
+include("extra/moi/spin_set.jl")
+include("extra/moi/qubo_model.jl")
 
 end # module

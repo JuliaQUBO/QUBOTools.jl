@@ -19,5 +19,5 @@ end
 # packages call it, assigning its return value to a constant, e.g.,
 # 
 #     const Spin = QUBOTools.__moi_spin_set()
-
+#
 QUBOTools.__moi_spin_set() = Spin

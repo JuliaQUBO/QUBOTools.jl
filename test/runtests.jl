@@ -18,7 +18,8 @@ const SAT{T} = MOI.ScalarAffineTerm{T}
 const SQF{T} = MOI.ScalarQuadraticFunction{T}
 const SQT{T} = MOI.ScalarQuadraticTerm{T}
 
-const Spin = QUBOTools.__moi_spin_set()
+const Spin      = QUBOTools.__moi_spin_set()
+const QUBOModel = QUBOTools.__moi_qubo_model()
 
 const __TEST_PATH__ = @__DIR__
 
