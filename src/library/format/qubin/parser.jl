@@ -97,7 +97,7 @@ function _parse_solution(
     sense::Sense,
     domain::Domain,
 ) where {T,U}
-    return SampleSet{T,U}(data, metadata; sense, domain)
+    return SampleSet{T,U}(data; metadata, sense, domain)
 end
 
 function _parse_solution_data(fp::HDF5.File, ::QUBin)

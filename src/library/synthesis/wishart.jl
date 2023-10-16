@@ -42,7 +42,7 @@ function generate(rng, problem::Wishart{T}) where {T}
         precision        = problem.precision,
     )
 
-    return Model{Int,T,Int}(
+    model = Model{Int,T,Int}(
         f;
         start    = x,
         metadata = Dict{String,Any}(
@@ -56,4 +56,22 @@ function generate(rng, problem::Wishart{T}) where {T}
             ),
         ),
     )
+
+    if !isnothing(x)
+        sol = SampleSet{T,Int}(
+            model, x;
+            metadata = Dict{String,Any}(
+                "origin" => "Planted",
+                "status" => "optimal",
+                "time"   => Dict{String,Any}(
+                    "total"     => NaN,
+                    "effective" => NaN,
+                ),
+            )
+        )
+
+        attach!(model, sol)
+    end
+
+    return model
 end

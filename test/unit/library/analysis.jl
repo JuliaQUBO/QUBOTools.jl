@@ -17,10 +17,12 @@ function test_solution_metrics()
                         QUBOTools.Sample([0, 1, 0], 2.0, 2),
                         QUBOTools.Sample([0, 1, 1], 3.0, 3),
                         QUBOTools.Sample([1, 0, 0], 4.0, 4),
-                    ],
-                    Dict{String,Any}(
+                    ];
+                    metadata = Dict{String,Any}(
                         "time" => Dict{String,Any}("total" => 2.0, "effective" => 1.0),
                     ),
+                    sense  = :min,
+                    domain = :bool,
                 )
 
                 @test QUBOTools.total_time(sol) == 2.0
@@ -39,8 +41,8 @@ function test_solution_metrics()
 
             let λ = 0.0,
                 sol = QUBOTools.SampleSet(
-                    QUBOTools.Sample{Float64,Int}[],
-                    Dict{String,Any}("time" => Dict{String,Any}()),
+                    QUBOTools.Sample{Float64,Int}[];
+                    metadata = Dict{String,Any}("time" => Dict{String,Any}()),
                 )
 
                 @test isnan(QUBOTools.total_time(sol))
@@ -51,8 +53,8 @@ function test_solution_metrics()
 
             let λ = 0.0,
                 sol = QUBOTools.SampleSet(
-                    QUBOTools.Sample{Float64,Int}[],
-                    Dict{String,Any}("time" => Dict{String,Any}("total" => 1.0)),
+                    QUBOTools.Sample{Float64,Int}[];
+                    metadata = Dict{String,Any}("time" => Dict{String,Any}("total" => 1.0)),
                 )
 
                 @test QUBOTools.total_time(sol) == 1.0
@@ -70,17 +72,18 @@ function test_solution_metrics()
                         QUBOTools.Sample([0, 1, 0], 2.0, 2),
                         QUBOTools.Sample([0, 1, 1], 3.0, 3),
                         QUBOTools.Sample([1, 0, 0], 4.0, 4),
-                    ],
-                    Dict{String,Any}(
+                    ];
+                    metadata = Dict{String,Any}(
                         "time" => Dict{String,Any}("total" => 2.0, "effective" => 1.0),
-                    );
-                    sense = :max,
+                    ),
+                    sense  = :max,
+                    domain = :bool,
                 )
 
                 @test QUBOTools.total_time(sol) == 2.0
                 @test QUBOTools.effective_time(sol) == 1.0
 
-                @test QUBOTools.success_rate(sol, λ) ≈ 0.4      atol = 1e-8
+                @test QUBOTools.success_rate(sol, λ) ≈ 0.4 atol = 1e-8
                 @test QUBOTools.ttt(sol, λ) ≈ 9.015151103887694 atol = 1e-8
             end
         end
@@ -137,7 +140,7 @@ function test_model_metrics()
                     (2, 3) => 0.5,
                     (2, 4) => -1.0,
                     (3, 4) => 1.0,
-                )
+                ),
             )
 
             @test QUBOTools.linear_density(m) ≈ 1.0 atol = 1e-8

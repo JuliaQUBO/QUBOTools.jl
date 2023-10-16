@@ -18,13 +18,13 @@ up their `reads` field. Also, the solution frame is stored, allowing for queries
 """
 struct SampleSet{T,U} <: AbstractSolution{T,U}
     data::Vector{Sample{T,U}}
-    metadata::Dict{String,Any}
     frame::Frame
+    metadata::Dict{String,Any}
 
     # Canonical constructor
     function SampleSet{T,U}(
-        data::AbstractVector{S},
-        metadata::Union{Dict{String,Any},Nothing} = nothing;
+        data::AbstractVector{S};
+        metadata::Union{Dict{String,Any},Nothing} = nothing,
         sense::Union{Sense,Symbol}   = :min,
         domain::Union{Domain,Symbol} = :bool,
     ) where {T,U,S<:Sample{T,U}}
@@ -36,12 +36,12 @@ struct SampleSet{T,U} <: AbstractSolution{T,U}
             metadata = Dict{String,Any}()
         end
 
-        return new{T,U}(data, metadata, frame)
+        return new{T,U}(data, frame, metadata)
     end
 
     # Short-cut: Empty Set + Metadata
-    function SampleSet{T,U}(
-        metadata::Union{Dict{String,Any},Nothing} = nothing;
+    function SampleSet{T,U}(;
+        metadata::Union{Dict{String,Any},Nothing} = nothing,
         sense::Union{Sense,Symbol}   = :min,
         domain::Union{Domain,Symbol} = :bool,
     ) where {T,U}
@@ -49,26 +49,43 @@ struct SampleSet{T,U} <: AbstractSolution{T,U}
             metadata = Dict{String,Any}()
         end
 
-        return new{T,U}(Sample{T,U}[], metadata, Frame(sense, domain))
+        return new{T,U}(Sample{T,U}[], Frame(sense, domain), metadata)
     end
 end
 
-# Fallback constructor
+# States vector constructor
 function SampleSet{T,U}(
     src::Any,
-    Ψ::AbstractVector{S},
+    states::AbstractVector{S};
     metadata::Union{Dict{String,Any},Nothing} = nothing,
 ) where {T,U,S<:State{U}}
-    data = Vector{Sample{T,U}}(undef, length(Ψ))
+    data = Vector{Sample{T,U}}(undef, length(states))
 
-    for i in eachindex(data)
-        ψ = Ψ[i]
+    for i in eachindex(states)
+        ψ = states[i]
         λ = value(src, ψ)
 
         data[i] = Sample{T,U}(ψ, λ)
     end
 
-    return SampleSet{T,U}(data, metadata; sense = sense(x), domain = domain(x))
+    return SampleSet{T,U}(data; metadata, sense = sense(src), domain = domain(src))
+end
+
+# States dict constructor
+function SampleSet{T,U}(
+    src::Any,
+    states::AbstractVector{S};
+    metadata::Union{Dict{String,Any},Nothing} = nothing,
+) where {V,T,U,S<:AbstractDict{V,U}}
+    v = variables(src)
+
+    data = Vector{Vector{U}}(undef, length(states))
+
+    for i in eachindex(states)
+        data[i] = [states[i][vj] for vj in v] 
+    end
+
+    return SampleSet{T,U}(src, data; metadata)
 end
 
 # Type Aliases
@@ -77,10 +94,10 @@ SampleSet(args...; kws...)              = SampleSet{Float64,Int}(args...; kws...
 
 function Base.copy(sol::SampleSet{T,U}) where {T,U}
     return SampleSet{T,U}(
-        collect(sol),
-        deepcopy(metadata(sol));
-        sense  = sense(sol),
-        domain = domain(sol),
+        collect(sol);
+        metadata = deepcopy(metadata(sol)),
+        sense    = sense(sol),
+        domain   = domain(sol),
     )
 end
 
@@ -112,10 +129,10 @@ function cast((s,t)::Route{S}, sol::SampleSet{T,U}) where {T,U,S<:Sense}
         return sol
     else
         return SampleSet{T,U}(
-            Vector{Sample{T,U}}(cast.(s => t, sol)),
-            deepcopy(metadata(sol));
-            sense  = t,
-            domain = domain(sol),
+            Vector{Sample{T,U}}(cast.(s => t, sol));
+            metadata = deepcopy(metadata(sol)),
+            sense    = t,
+            domain   = domain(sol),
         )
     end
 end
@@ -125,10 +142,10 @@ function cast((s,t)::Route{D}, sol::SampleSet{T,U}) where {T,U,D<:Domain}
         return sol
     elseif s === 𝔹 && t === 𝕊 || s === 𝕊 && t === 𝔹
         return SampleSet{T,U}(
-            Vector{Sample{T,U}}(cast.(s => t, sol)),
-            deepcopy(metadata(sol));
-            sense  = sense(sol),
-            domain = t,
+            Vector{Sample{T,U}}(cast.(s => t, sol));
+            metadata = deepcopy(metadata(sol)),
+            sense    = sense(sol),
+            domain   = t,
         )
     else
         casting_error(s => t, sol)

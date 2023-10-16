@@ -67,7 +67,7 @@ function test_solution_sampleset()
         end
 
         let metadata = Dict{String,Any}("time" => Dict{String,Any}("total" => 1.0))
-            meta_sol = SampleSet(Sample{Float64,Int}[], metadata)
+            meta_sol = SampleSet(Sample{Float64,Int}[]; metadata)
 
             @test isempty(meta_sol)
             
@@ -120,7 +120,7 @@ function test_solution_sampleset()
             ],
         )
 
-        sol_u = SampleSet(u, metadata)
+        sol_u = SampleSet(u; metadata)
         sol_v = SampleSet(v)
         sol_w = copy(sol_u)
 
