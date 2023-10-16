@@ -18,6 +18,32 @@ function SystemLayoutPlot(model::M) where {V,T,U,M<:AbstractModel{V,T,U}}
     return SystemLayoutPlot(n, layout, weight)
 end
 
+# Matrix constructor
+function SystemLayoutPlot(W::AbstractMatrix{T}) where {T}
+    if size(W, 1) != size(W, 2)
+        throw(ArgumentError("The weight matrix must be square."))
+    end
+
+    g = QUBOTools.topology(W)
+
+    return SystemLayoutPlot(g, sparse(W))
+end
+
+# Graph-Matrix constructor
+function SystemLayoutPlot(g::G, W::AbstractMatrix{T}) where {G<:AbstractGraph,T}
+    n = Graphs.nv(g)
+
+    if size(W, 1) != size(W, 2)
+        throw(ArgumentError("The weight matrix must be square."))
+    end
+
+    if n != size(W, 1)
+        throw(ArgumentError("The weight matrix must have the same number of rows and columns as the graph has vertices."))
+    end
+    
+    return SystemLayoutPlot(n, QUBOTools.layout(g), sparse(W))
+end
+
 # Fallback dispatch
 SystemLayoutPlot(model) = SystemLayoutPlot(backend(model))
 

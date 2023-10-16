@@ -13,7 +13,7 @@ using Statistics
 using RecipesBase
 using Random
 import PseudoBooleanOptimization as PBO
-import PseudoBooleanOptimization: varlt
+import PseudoBooleanOptimization: varlt, varshow
 
 const ↓ = -1 # \downarrow[tab]
 const ↑ = +1 # \uparrow[tab]
@@ -42,8 +42,9 @@ include("library/error.jl")
 
 # Reference implementations
 include("library/io.jl")
-
 include("library/frame.jl")
+include("library/layout.jl")
+
 include("library/form/abstract.jl")
 include("library/form/form.jl")
 include("library/form/dict.jl")
@@ -86,6 +87,7 @@ include("library/analysis/visualization/system_layout.jl")
 
 # Extras
 # include("extra/dwave/dwave.jl")
+include("extra/moi/num_reads.jl")
 include("extra/moi/spin_set.jl")
 include("extra/moi/qubo_model.jl")
 

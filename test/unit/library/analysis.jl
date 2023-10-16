@@ -9,7 +9,7 @@ end
 
 function test_solution_metrics()
     @testset "⋅ Solution" begin
-        @testset "Time-to-Target" begin
+        @testset "Time-to-Target ⋄ Min" begin
             let λ = 1.0,
                 sol = QUBOTools.SampleSet(
                     QUBOTools.Sample{Float64,Int}[
@@ -59,6 +59,29 @@ function test_solution_metrics()
                 @test QUBOTools.effective_time(sol) == 1.0
                 @test isnan(QUBOTools.success_rate(sol, λ))
                 @test isnan(QUBOTools.ttt(sol, λ))
+            end
+        end
+
+        @testset "Time-to-Target ⋄ Max" begin
+            let λ = 4.0,
+                sol = QUBOTools.SampleSet(
+                    QUBOTools.Sample{Float64,Int}[
+                        QUBOTools.Sample([0, 0, 1], 1.0, 1),
+                        QUBOTools.Sample([0, 1, 0], 2.0, 2),
+                        QUBOTools.Sample([0, 1, 1], 3.0, 3),
+                        QUBOTools.Sample([1, 0, 0], 4.0, 4),
+                    ],
+                    Dict{String,Any}(
+                        "time" => Dict{String,Any}("total" => 2.0, "effective" => 1.0),
+                    );
+                    sense = :max,
+                )
+
+                @test QUBOTools.total_time(sol) == 2.0
+                @test QUBOTools.effective_time(sol) == 1.0
+
+                @test QUBOTools.success_rate(sol, λ) ≈ 0.4      atol = 1e-8
+                @test QUBOTools.ttt(sol, λ) ≈ 9.015151103887694 atol = 1e-8
             end
         end
 

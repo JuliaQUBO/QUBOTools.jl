@@ -13,8 +13,8 @@ function test_variable_ordering()
         @test QUBOTools.varlt(1, 2) === true
         @test QUBOTools.varlt(2, 1) === false
 
-        @test_broken QUBOTools.varlt(1, -1) === true
-        @test_broken QUBOTools.varlt(-1, 1) === false
+        @test QUBOTools.varlt(1, -1) === true
+        @test QUBOTools.varlt(-1, 1) === false
 
         # Symbols
         @test QUBOTools.varlt(:x, :x) === false

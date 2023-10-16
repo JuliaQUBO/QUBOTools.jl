@@ -1,6 +1,8 @@
 function test_moi()
     @testset "□ MathOptInterface" verbose = true begin
         test_moi_variables()
+        test_moi_attributes()
+        test_moi_qubo_model()
         test_moi_model_parser()
     end
 
@@ -10,7 +12,7 @@ end
 function test_moi_variables()
     @testset "⊛ Variables" begin
         # Check if the Spin variable set is defined
-        @test QUBOTools.__moi_spin_set() <: MOI.AbstractScalarSet
+        @test QUBOTools.__moi_spin_set() === Spin
 
         # Check if the variable ordering of variables is behaving accordingly
         @test QUBOTools.varlt(VI(1), VI(1)) === false
@@ -18,13 +20,21 @@ function test_moi_variables()
         @test QUBOTools.varlt(VI(2), VI(1)) === false
 
         # This specific ordering follows as 1, 2, 3, ..., -1, -2, -3, ...
-        # TODO: This is not yet implemented in the latest PBO
-        @test_broken QUBOTools.varlt(VI(1), VI(-1)) === true
-        @test_broken QUBOTools.varlt(VI(-1), VI(1)) === false
+        @test QUBOTools.varlt(VI(1), VI(-1)) === true
+        @test QUBOTools.varlt(VI(-1), VI(1)) === false
     end
 
     return nothing
 end
+
+function test_moi_qubo_model()
+    @testset "⊛ QUBO Model" begin
+        @test QUBOTools.__moi_qubo_model() === QUBOModel 
+    end
+
+    return nothing
+end
+
 
 function test_moi_model_parser()
     @testset "⊛ Model Parser" verbose = true begin
@@ -197,6 +207,16 @@ function test_moi_spin_model_parser()
             @test β ≈ 3.9
 
             @test_throws Exception MOI.add_constrained_variable(moi_model, MOI.ZeroOne())
+        end
+    end
+
+    return nothing
+end
+
+function test_moi_attributes()
+    @testset "⊛ Attributes" verbose = true begin
+        @testset "→ NumberOfReads" begin
+            @test QUBOTools.__moi_num_reads() === NumberOfReads
         end
     end
 

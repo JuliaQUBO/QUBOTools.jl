@@ -41,8 +41,14 @@ function success_rate(solution::AbstractSolution{T,U}, λ::T) where {T,U}
             k = reads(sample)
             r += k
 
-            if value(sample) <= λ
-                s += k
+            if sense(solution) === Min
+                if value(sample) <= λ
+                    s += k
+                end
+            else # sense(solution) === Max
+                if value(sample) >= λ
+                    s += k
+                end
             end
         end
 

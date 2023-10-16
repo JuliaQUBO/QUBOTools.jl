@@ -15,6 +15,13 @@ mutable struct QUBOModel{T,C<:BinaryDomain} <: MOI.ModelLike
     end
 end
 
+# The function takes no arguments and returns the QUBOModel type. Other
+# packages will assign its return value to a constant, e.g.,
+#
+#     const QUBOModel = QUBOTools.__moi_qubo_model()
+#
+QUBOTools.__moi_qubo_model() = QUBOModel
+
 function QUBOModel{T}() where {T}
     return QUBOModel{T,MOI.ZeroOne}()
 end
@@ -153,10 +160,3 @@ function MOI.get(::QUBOModel{T,C}, ::MOI.VariableName, vi::VI) where {T,C<:Binar
         return "s[$(vi.value)]"
     end
 end
-
-# The function takes no arguments and returns the QUBOModel type. Other
-# packages will assign its return value to a constant, e.g.,
-#
-#     const QUBOModel = QUBOTools.__moi_qubo_model()
-#
-QUBOTools.__moi_qubo_model() = QUBOModel

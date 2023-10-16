@@ -12,10 +12,11 @@ const SQF{T}  = MOI.ScalarQuadraticFunction{T}
 const SQT{T}  = MOI.ScalarQuadraticTerm{T}
 
 include("error.jl")
-include("varlt.jl")
+include("variables.jl")
 include("spin_set.jl")
 include("qubo_model.jl")
 include("sense.jl")
 include("model_parser.jl")
+include("num_reads.jl")
 
 end

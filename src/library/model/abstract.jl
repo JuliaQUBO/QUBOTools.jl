@@ -81,17 +81,6 @@ quadratic_size(model::AbstractModel) = quadratic_size(form(model))
 topology(model::AbstractModel) = topology(form(model))
 geometry(model::AbstractModel) = geometry(topology(model))
 
-function geometry(g::AbstractGraph)
-    return NetworkLayout.layout(NetworkLayout.Shell(; Ptype = Float64), g)
-end
-
-function layout(model::AbstractModel)
-    g = QUBOTools.topology(model)
-    P = QUBOTools.geometry(g)
-
-    return Layout(g, P)
-end
-
 # Queries: Metadata
 function id(model::AbstractModel)
     return get(metadata(model), "id", nothing)
