@@ -156,6 +156,7 @@ function test_plots()
     @testset "→ Plots" verbose = true begin
         test_energy_frequency_plot()
         test_model_density_plot()
+        test_system_layout_plot()
     end
 
     return nothing
@@ -213,6 +214,32 @@ function test_model_density_plot()
 
             @test attr[:ylabel] == "Variable Index"
             @test attr[:xlabel] == "Variable Index"
+        end
+    end
+
+    return nothing
+end
+
+function test_system_layout_plot()
+    @testset "⋅ System Layout" begin
+        L = Dict{Int,Float64}(1 => 0.5, 2 => 2.0, 3 => -3.0)
+        Q = Dict{Tuple{Int,Int},Float64}((1, 2) => 2.0, (1, 3) => -2.0, (2, 3) => 0.5)
+
+        m = QUBOTools.Model{Int,Float64,Int}(L, Q; domain = :bool)
+        p = QUBOTools.SystemLayoutPlot(m)
+
+        let r = RecipesBase.apply_recipe(Dict{Symbol,Any}(), p)
+            @test length(r) == 2
+
+            let (x, y) = r[1].args
+                @test x ≈ [1,  -1/2, NaN, 1,   -1/2, NaN,  -1/2,   -1/2] atol = 1E-8 nans = true
+                @test y ≈ [0, 3/√12, NaN, 0, -3/√12, NaN, 3/√12, -3/√12] atol = 1E-8 nans = true
+            end
+
+            let (x, y) = r[2].args
+                @test x ≈ [1,  -1/2,   -1/2] atol = 1E-8
+                @test y ≈ [0, 3/√12, -3/√12] atol = 1E-8
+            end
         end
     end
 

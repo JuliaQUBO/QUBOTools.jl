@@ -61,18 +61,30 @@ SystemLayoutPlot(model) = SystemLayoutPlot(backend(model))
     y = map(p -> p[2], P)
     z = [W[i, i] for i = 1:plt.n]
 
+    m = 3 * Graphs.ne(g)
+
+    X = sizehint!(Float64[], m)
+    Y = sizehint!(Float64[], m)
+    Z = sizehint!(Float64[], m)
 
     for e in Graphs.edges(g)
         u = Graphs.src(e)
         v = Graphs.dst(e)
 
-        @series begin
-            line_z    := [W[u, v]]
-            legend    := nothing
-            color    --> :balance
+        push!(X, x[u], x[v], NaN)
+        push!(Y, y[u], y[v], NaN)
+        push!(Z, W[u, v], W[u, v], NaN)
+    end
 
-            ([x[u], x[v]], [y[u], y[v]])
-        end
+    pop!(X)
+    pop!(Y)
+
+    @series begin
+        line_z := Z
+        legend := nothing
+        color --> :balance
+
+        (X, Y)
     end
 
     marker_z     := z
