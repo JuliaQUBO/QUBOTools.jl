@@ -1,6 +1,7 @@
 using Test
 using Printf
 using SparseArrays
+using Statistics
 using RecipesBase
 using QUBOTools
 using Graphs
