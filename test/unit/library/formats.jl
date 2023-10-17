@@ -18,6 +18,9 @@ function test_format_hints()
         @test QUBOTools.format(:qubo) isa QUBOTools.QUBO
         @test QUBOTools.format("file.qubo") isa QUBOTools.QUBO
 
+        @test QUBOTools.format(:mzn) isa QUBOTools.MiniZinc
+        @test QUBOTools.format("file.mzn") isa QUBOTools.MiniZinc
+
         @test_throws Exception QUBOTools.format(:xyz)
         @test_throws Exception QUBOTools.format("file")
     end
@@ -27,8 +30,7 @@ function test_bqpjson_format()
     @testset "⋅ BQPJSON" begin
         @testset "bool" begin
             for i = 0:2
-                file_path =
-                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.json")
+                file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.json")
                 temp_path = "$(tempname()).bool.json"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -47,8 +49,7 @@ function test_bqpjson_format()
 
         @testset "spin" begin
             for i = 0:2
-                file_path =
-                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.json")
+                file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.json")
                 temp_path = "$(tempname()).spin.json"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -142,7 +143,8 @@ function test_qubin_format()
 
         @testset "spin" begin
             for i = 0:2
-                file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.qb")
+                file_path =
+                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.qb")
                 temp_path = "$(tempname()).spin.qb"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -163,6 +165,74 @@ function test_qubin_format()
     return nothing
 end
 
+function test_minizinc_format()
+    @testset "⋅ MiniZinc" begin
+        @testset "bool" begin
+            let model = QUBOTools.Model{Int,Float64,Int}(
+                    Dict{Int,Float64}(1 => 1.0, 2 => 2.0, 3 => 3.0),
+                    Dict{Tuple{Int,Int},Float64}(
+                        (1, 2) => -12.0,
+                        (1, 3) => -13.0,
+                        (2, 3) => -23.0,
+                    );
+                    scale  =  2.0,
+                    offset = -1.0,
+                    sense  = :min,
+                    domain = :bool,
+                )
+
+                let io = IOBuffer()
+                    QUBOTools.write_model(io, model, QUBOTools.MiniZinc())
+
+                    @test String(take!(io)) == """
+                        set of int: Domain = {0,1};
+                        var Domain: x1;
+                        var Domain: x2;
+                        var Domain: x3;
+                        float: scale = 2.0;
+                        float: offset = -1.0;
+                        var float: objective = scale * (1.0*x1 + 2.0*x2 + 3.0*x3 + -12.0*x1*x2 + -13.0*x1*x3 + -23.0*x2*x3 + offset);
+                        solve minimize objective;
+                        """
+                end
+            end
+        end
+
+        @testset "spin" begin
+            let model = QUBOTools.Model{Int,Float64,Int}(
+                    Dict{Int,Float64}(1 => 1.0, 2 => 2.0, 3 => 3.0),
+                    Dict{Tuple{Int,Int},Float64}(
+                        (1, 2) => -12.0,
+                        (1, 3) => -13.0,
+                        (2, 3) => -23.0,
+                    );
+                    scale  =  2.0,
+                    offset = -1.0,
+                    sense  = :max,
+                    domain = :spin,
+                )
+
+                let io = IOBuffer()
+                    QUBOTools.write_model(io, model, QUBOTools.MiniZinc())
+
+                    @test String(take!(io)) == """
+                        set of int: Domain = {-1,1};
+                        var Domain: x1;
+                        var Domain: x2;
+                        var Domain: x3;
+                        float: scale = 2.0;
+                        float: offset = -1.0;
+                        var float: objective = scale * (1.0*x1 + 2.0*x2 + 3.0*x3 + -12.0*x1*x2 + -13.0*x1*x3 + -23.0*x2*x3 + offset);
+                        solve maximize objective;
+                        """
+                end
+            end
+        end
+    end
+
+    return nothing
+end
+
 function test_formats()
     @testset "→ Formats" verbose = true begin
         test_format_hints()
@@ -170,6 +240,7 @@ function test_formats()
         test_qubin_format()
         test_qubo_format()
         test_qubist_format()
+        test_minizinc_format()
     end
 
     return nothing
