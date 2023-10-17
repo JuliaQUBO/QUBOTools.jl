@@ -71,23 +71,25 @@ end
 
 function test_qubo_format()
     @testset "⋅ QUBO" begin
-        fmt = QUBOTools.QUBO(:dwave)
+        src_fmt = QUBOTools.QUBO(:dwave)
 
         for i = 0:2
             file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qubo")
             temp_path = "$(tempname()).bool.qubo"
 
-            src_model = QUBOTools.read_model(file_path, fmt)
+            src_model = QUBOTools.read_model(file_path, src_fmt)
 
             @test src_model isa QUBOTools.Model
 
-            QUBOTools.write_model(temp_path, src_model, fmt)
+            for dst_fmt in QUBOTools.QUBO.([:dwave, :mqlib])
+                QUBOTools.write_model(temp_path, src_model, dst_fmt)
 
-            dst_model = QUBOTools.read_model(temp_path, fmt)
+                dst_model = QUBOTools.read_model(temp_path, dst_fmt)
 
-            @test dst_model isa QUBOTools.Model
+                @test dst_model isa QUBOTools.Model
 
-            @test _compare_models(src_model, dst_model)
+                @test _compare_models(src_model, dst_model)
+            end
         end
     end
 
