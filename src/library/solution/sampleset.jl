@@ -53,6 +53,22 @@ struct SampleSet{T,U} <: AbstractSolution{T,U}
     end
 end
 
+# Backwards compatibility
+function SampleSet{T,U}(
+    samples::Vector{Sample{T,U}},
+    metadata::Dict{String,Any};
+    kws...,
+) where {T,U}
+    return SampleSet{T,U}(samples; metadata, kws...)
+end
+
+function SampleSet{T,U}(
+    metadata::Dict{String,Any};
+    kws...,
+) where {T,U}
+    return SampleSet{T,U}(; metadata, kws...)
+end
+
 # States vector constructor
 function SampleSet{T,U}(
     src::Any,
