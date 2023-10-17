@@ -133,6 +133,12 @@ function test_model(V = Symbol, T = Float64, U = Int)
                     8 => 0,
                 )
             end
+
+            @testset "Metrics" begin
+                @test QUBOTools.linear_density(model)    ≈ 4/8   # l / n
+                @test QUBOTools.quadratic_density(model) ≈ 10/56 # 2q / (n² - n)
+                @test QUBOTools.density(model)           ≈ 14/64 # (l + 2q) / n²
+            end
         end
 
         model_copy = copy(model)
@@ -150,6 +156,45 @@ function test_model(V = Symbol, T = Float64, U = Int)
             @test !isempty(model_copy)
 
             @test _compare_models(model, model_copy; compare_solutions = true)
+        end
+
+        @testset "⋅ Print" begin
+            let io = IOBuffer()
+                print(io, model)
+
+                @test String(take!(io)) == """
+                    QUBOTools Model
+                    ▷ Sense ………………… Max
+                    ▷ Domain ……………… SpinDomain
+                    ▷ Variables ……… 8
+                    
+                    Density:
+                    ▷ Linear ………………  50.00%
+                    ▷ Quadratic ………  17.86%
+                    ▷ Total …………………  21.88%
+                    
+                    Warm-start:
+                    ▷ Sites ………………… 8/8
+                    
+                    Solutions:
+                    ▷ Samples …………… 4
+                    ▷ Best value …… 4.0
+                    """
+            end
+
+            empty_model = QUBOTools.Model{V,T,U}(; sense = :min, domain = :bool)
+
+            let io = IOBuffer()
+                print(io, empty_model)
+
+                @test String(take!(io)) == """
+                    QUBOTools Model
+                    ▷ Sense ………………… Min
+                    ▷ Domain ……………… BoolDomain
+                    
+                    The model is empty.
+                    """
+            end
         end
     end
 

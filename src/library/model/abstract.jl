@@ -91,16 +91,14 @@ function description(model::AbstractModel)
 end
 
 # ~*~ I/O ~*~ #
-function Base.copy!(target::X, source::Y) where {X<:AbstractModel,Y<:AbstractModel}
-    return copy!(target, convert(X, source))
-end
-
 function Base.show(io::IO, model::AbstractModel)
     if isempty(model)
-        println(
+        print(
             io,
             """
-            QUBOTools Model [$(sense(model)), $(domain(model))]
+            QUBOTools Model
+            ▷ Sense ………………… $(sense(model))
+            ▷ Domain ……………… $(domain(model))
 
             The model is empty.
             """,
@@ -111,8 +109,10 @@ function Base.show(io::IO, model::AbstractModel)
         println(
             io,
             """
-            QUBOTools Model [$(sense(model)), $(domain(model))]
-            ▷ Variables ……… $(dimension(model))  
+            QUBOTools Model
+            ▷ Sense ………………… $(sense(model))
+            ▷ Domain ……………… $(domain(model))
+            ▷ Variables ……… $(dimension(model))
 
             Density:
             ▷ Linear ……………… $(Printf.@sprintf("%6.2f", 100.0 * linear_density(model)))%
