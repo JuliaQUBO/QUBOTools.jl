@@ -34,11 +34,25 @@ function test_model(V = Symbol, T = Float64, U = Int)
                 ];
                 sense  = :max,
                 domain = :spin,
+            ),
+            start      = Dict{V,Int}(
+                :w => ↓,
+                :x => ↑,
+                :y => ↓,
+                :z => ↑,
+                :α => ↑,
+                :β => ↓,
+                :γ => ↑,
+                :ξ => ↓,
             )
         )
 
         @testset "⋅ Constructor" begin
             @test model isa QUBOTools.Model{V,T,U}
+
+            let empty_model = QUBOTools.Model{V,T,U}()
+                @test isempty(empty_model)
+            end
         end
 
         @testset "⋅ Queries" begin
@@ -107,7 +121,35 @@ function test_model(V = Symbol, T = Float64, U = Int)
                 @test QUBOTools.reads(model, 4) == 4
 
                 @test QUBOTools.reads(model) == 10
+
+                @test QUBOTools.start(model; domain = :bool) == Dict{Int,U}(
+                    1 => 0,
+                    2 => 1,
+                    3 => 0,
+                    4 => 1,
+                    5 => 1,
+                    6 => 0,
+                    7 => 1,
+                    8 => 0,
+                )
             end
+        end
+
+        model_copy = copy(model)
+        
+        empty!(model)
+
+        @testset "⋅ Empty" begin
+            @test isempty(model)
+        end
+
+        copy!(model, model_copy)
+
+        @testset "⋅ Copy" begin
+            @test !isempty(model)
+            @test !isempty(model_copy)
+
+            @test _compare_models(model, model_copy; compare_solutions = true)
         end
     end
 

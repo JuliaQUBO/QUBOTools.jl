@@ -53,6 +53,18 @@ function Form{T,LF,QF}(Φ::F) where {T,F<:AbstractForm{T},LF<:AbstractLinearForm
     )
 end
 
+function Base.copy(Φ::Form{T,LF,QF}) where {T,LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
+    return Form{T,LF,QF}(
+        dimension(Φ),
+        copy(linear_form(Φ)),
+        copy(quadratic_form(Φ)),
+        scale(Φ),
+        offset(Φ);
+        sense  = sense(Φ),
+        domain = domain(Φ),
+    )
+end
+
 dimension(Φ::Form)      = Φ.n
 linear_form(Φ::Form)    = Φ.L
 quadratic_form(Φ::Form) = Φ.Q

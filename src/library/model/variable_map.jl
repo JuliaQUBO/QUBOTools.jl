@@ -8,14 +8,26 @@ struct VariableMap{V}
     map::Dict{V,Int}
     inv::Vector{V}
 
+    # Direct Constructor
     function VariableMap{V}(
-        variables::X,
-    ) where {V,X<:Union{AbstractVector{V},AbstractSet{V}}}
-        inv = sort!(collect(variables); lt = varlt)
-        map = Dict{V,Int}(v => i for (i, v) in enumerate(inv))
-
+        map::Dict{V,Int},
+        inv::Vector{V},
+    ) where {V}
         return new(map, inv)
     end
+end
+
+function VariableMap{V}(
+    variables::X,
+) where {V,X<:Union{AbstractVector{V},AbstractSet{V}}}
+    inv = sort!(collect(variables); lt = varlt)
+    map = Dict{V,Int}(v => i for (i, v) in enumerate(inv))
+
+    return VariableMap{V}(map, inv)
+end
+
+function Base.copy(vm::VariableMap{V}) where {V}
+    return VariableMap{V}(copy(vm.map), copy(vm.inv))
 end
 
 function Base.length(vm::VariableMap)

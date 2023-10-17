@@ -21,44 +21,55 @@ mutable struct Model{V,T,U,F<:AbstractForm{T}} <: AbstractModel{V,T,U}
     # Hints
     start::Dict{Int,U}
 
-    # Canonical Constructor - Normal Form
-    function Model{V,T,U}(
+    # Direct Constructor
+    function Model{V,T,U,F}(
         variable_map::VariableMap{V},
-        form::F;
-        metadata::Union{Dict{String,Any},Nothing} = nothing,
-        solution::Union{SampleSet{T,U},Nothing} = nothing,
-        start::Union{Dict{V,U},Nothing} = nothing,
-        # Extra Metadata
-        id::Union{Integer,Nothing} = nothing,
-        description::Union{String,Nothing} = nothing,
+        form::F,
+        metadata::Dict{String,Any},
+        solution::SampleSet{T,U},
+        start::Dict{Int,U},
     ) where {V,T,U,F<:AbstractForm{T}}
-        if isnothing(metadata)
-            metadata = Dict{String,Any}()
-        end
-
-        if !isnothing(id)
-            metadata["id"] = id
-        end
-
-        if !isnothing(description)
-            metadata["description"] = description
-        end
-
-        model = new{V,T,U,F}(variable_map, form, metadata, SampleSet{T,U}(), Dict{Int,U}())
-
-        if !isnothing(solution)
-            attach!(model, solution)
-        end
-
-        if !isnothing(start)
-            attach!(model, start)
-        end
-        
-        return model
+        return new{V,T,U,F}(variable_map, form, metadata, solution, start)
     end
 end
 
-# Empty Model
+# Canonical Constructor - Normal Form
+function Model{V,T,U}(
+    variable_map::VariableMap{V},
+    form::F;
+    metadata::Union{Dict{String,Any},Nothing} = nothing,
+    solution::Union{SampleSet{T,U},Nothing} = nothing,
+    start::Union{Dict{V,U},Nothing} = nothing,
+    # Extra Metadata
+    id::Union{Integer,Nothing} = nothing,
+    description::Union{String,Nothing} = nothing,
+) where {V,T,U,F<:AbstractForm{T}}
+    if isnothing(metadata)
+        metadata = Dict{String,Any}()
+    end
+
+    if !isnothing(id)
+        metadata["id"] = id
+    end
+
+    if !isnothing(description)
+        metadata["description"] = description
+    end
+
+    model = Model{V,T,U,F}(variable_map, form, metadata, SampleSet{T,U}(), Dict{Int,U}())
+
+    if !isnothing(solution)
+        attach!(model, solution)
+    end
+
+    if !isnothing(start)
+        attach!(model, start)
+    end
+
+    return model
+end
+
+# Empty Constructor
 function Model{V,T,U}(;
     scale::T = one(T),
     offset::T = zero(T),
@@ -83,15 +94,7 @@ function Model{V,T,U}(;
         domain,
     )
 
-    return Model{V,T,U}(
-        variables_map,
-        form;
-        metadata,
-        solution,
-        start,
-        id,
-        description,
-    )
+    return Model{V,T,U}(variables_map, form; metadata, solution, start, id, description)
 end
 
 # Dict Constructors
@@ -161,15 +164,8 @@ function Model{V,T,U}(
     dropzeros!(L)
     dropzeros!(Q)
 
-    form = Form{T}(
-        n,
-        SparseLinearForm{T}(L),
-        SparseQuadraticForm{T}(Q),
-        α,
-        β;
-        sense,
-        domain,
-    )
+    form =
+        Form{T}(n, SparseLinearForm{T}(L), SparseQuadraticForm{T}(Q), α, β; sense, domain)
 
     return Model{V,T,U}(variable_map, form; kws...)
 end
@@ -203,14 +199,18 @@ frame(model::Model) = frame(form(model))
 metadata(model::Model) = model.metadata
 solution(model::Model) = model.solution
 
-function start(model::Model{V,T,U}, i::Integer; domain = QUBOTools.domain(model)) where {V,T,U}
+function start(
+    model::Model{V,T,U},
+    i::Integer;
+    domain = QUBOTools.domain(model),
+) where {V,T,U}
     if !hasindex(model, i)
         error("Index '$i' is out of bounds [1, $(dimension(model))]")
     elseif haskey(model.start, i)
         return cast((QUBOTools.domain(model) => QUBOTools.domain(domain)), model.start[i])
     else
         return nothing
-    end 
+    end
 end
 
 function start(model::Model{V,T,U}; domain = QUBOTools.domain(model)) where {V,T,U}
@@ -218,9 +218,18 @@ function start(model::Model{V,T,U}; domain = QUBOTools.domain(model)) where {V,T
 end
 
 function Base.empty!(model::Model{V,T,U,F}) where {V,T,U,F}
-    model.form         = F()
     model.variable_map = VariableMap{V}(V[])
-    model.solution     = SampleSet{T,U}()
+
+    null_form = Form{T}(
+        0,
+        SparseLinearForm{T}(spzeros(T, 0)),
+        SparseQuadraticForm{T}(spzeros(T, 0, 0)),
+        zero(T),
+        zero(T),
+    )
+
+    model.form     = F(null_form)
+    model.solution = SampleSet{T,U}()
 
     empty!(model.metadata)
     empty!(model.start)
@@ -229,15 +238,21 @@ function Base.empty!(model::Model{V,T,U,F}) where {V,T,U,F}
 end
 
 function Base.copy(model::Model{V,T,U,F}) where {V,T,U,F}
-    return copy!(Model{V,T,U,F}(), model)
+    return Model{V,T,U,F}(
+        copy(model.variable_map),
+        copy(model.form),
+        deepcopy(model.metadata),
+        copy(model.solution),
+        copy(model.start),
+    )
 end
 
 function Base.copy!(target::Model{V}, source::AbstractModel{V}) where {V}
-    target.form      = copy(form(source))
-    target.variables = VariableMap{V}(variables(source))
-    target.metadata  = deepcopy(metadata(source))
-    target.solution  = copy(solution(source))
-    target.start     = deepcopy(start(source))
+    target.variable_map = copy(source.variable_map)
+    target.form         = copy(source.form)
+    target.metadata     = deepcopy(source.metadata)
+    target.solution     = copy(source.solution)
+    target.start        = copy(source.start)
 
     return target
 end
@@ -268,7 +283,7 @@ function attach!(model::Model{V,T,U}, sol::SampleSet{T,U}) where {V,T,U}
     return model.solution
 end
 
-function attach!(model::Model{V,T,U}, (v,s)::Pair{V,S}) where {V,T,U,S<:Union{U,Nothing}}
+function attach!(model::Model{V,T,U}, (v, s)::Pair{V,S}) where {V,T,U,S<:Union{U,Nothing}}
     i = index(model, v)
 
     if !isnothing(s)
@@ -321,8 +336,8 @@ function Model{V,T,U}(f::F; kws...) where {V,T,U,F<:PBO.AbstractFunction{V,T}}
                     """
                     Can't create QUBO model from a high-order pseudo-Boolean function.
                     Consider using `PseudoBooleanOptimization.quadratize`.
-                    """
-                )
+                    """,
+                ),
             )
         end
     end

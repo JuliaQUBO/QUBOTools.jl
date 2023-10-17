@@ -1,3 +1,11 @@
+function Base.copy(L::LF) where {LF<:AbstractLinearForm}
+    return LF(copy(data(L)))
+end
+
+function Base.copy(Q::QF) where {QF<:AbstractQuadraticForm}
+    return QF(copy(data(Q)))
+end
+
 function linear_size(Φ::F) where {T,F<:AbstractForm{T}}
     return linear_size(linear_form(Φ))
 end
