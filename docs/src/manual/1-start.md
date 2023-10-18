@@ -2,29 +2,7 @@
 
 ## Introduction
 
-This manual aims to explain the fundamental concepts behind loading, manipulating and analyzing models with QUBOTools.
-
-## Quick Start Guide
-
-```@example quick-start
-using QUBOTools
-
-path = joinpath(@__DIR__, "data", "problem.json")
-```
-
-### Reading a Model
-
-```@example quick-start
-model = QUBOTools.read_model(path)
-```
-
-### Visualization
-
-```@example quick-start
-using Plots
-
-plot(QUBOTools.ModelDensityPlot(model))
-```
+This manual aims to explain the fundamental concepts behind loading, manipulating and analyzing models with [QUBOTools](https://github.com/psrenergy/QUBOTools.jl).
 
 ## Table of Contents
 

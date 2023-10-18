@@ -6,9 +6,9 @@ using QUBOTools
 
 By loading the package with the `using` statement, only a few constants will be dumped in the namespace, most of them model types.
 
-## Basic File I/O
+## File I/O
 
-To read and write QUBO models one is expected to use the `Base.read`/`Base.write` API.
+To read and write models one should use the [`QUBOTools.read_model`](@ref)/[`QUBOTools.write_model`](@ref) API.
 
 ```@example manual
 # File Path
@@ -20,6 +20,7 @@ model = QUBOTools.read_model(path)
 !!! info
     The [`QUBOTools.read_model`](@ref) and [`QUBOTools.write_model`](@ref) methods will try to infer the file format from the file extension.
     The format can be manually set by passing an extra optional parameter after the source path.
+    For more information, see [File Formats](@ref).
 
 ## Data Access
 
@@ -33,6 +34,12 @@ QUBOTools.linear_terms(model) |> collect
 
 ```@example manual
 QUBOTools.quadratic_terms(model) |> collect
+```
+
+### Model Analysis
+
+```@example manual
+QUBOTools.density(model)
 ```
 
 ## File formats
