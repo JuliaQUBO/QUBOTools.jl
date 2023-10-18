@@ -48,7 +48,7 @@ end
 function test_moi_bool_model_parser()
     @testset "→ Bool" begin
         @testset "⋅ Linear" begin
-            moi_model = QUBOModel{Float64,MOI.ZeroOne}()
+            moi_model = MOI.Utilities.Model{Float64}()
 
             v = MOI.add_variables(moi_model, 3)
 
@@ -67,6 +67,10 @@ function test_moi_bool_model_parser()
 
             MOI.set(moi_model, MOI.ObjectiveSense(), MOI.MAX_SENSE)
 
+            @test_throws Exception QUBOTools.Model{Float64}(moi_model)
+
+            MOI.add_constraints(moi_model, v, fill(MOI.ZeroOne(), 3))
+
             qt_model = QUBOTools.Model{Float64}(moi_model)
 
             n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
@@ -78,12 +82,10 @@ function test_moi_bool_model_parser()
             @test Q == [0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 0.0]
             @test α ≈ 1.0
             @test β ≈ 9.9
-
-            @test_throws Exception MOI.add_constrained_variable(moi_model, Spin())
         end
 
         @testset "⋅ Quadratic" begin
-            moi_model = QUBOModel{Float64,MOI.ZeroOne}()
+            moi_model = MOI.Utilities.Model{Float64}()
 
             v = MOI.add_variables(moi_model, 3)
 
@@ -110,6 +112,10 @@ function test_moi_bool_model_parser()
 
             MOI.set(moi_model, MOI.ObjectiveSense(), MOI.MAX_SENSE)
 
+            @test_throws Exception QUBOTools.Model{Float64}(moi_model)
+
+            MOI.add_constraints(moi_model, v, fill(MOI.ZeroOne(), 3))
+
             qt_model = QUBOTools.Model{Float64}(moi_model)
 
             n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
@@ -121,8 +127,6 @@ function test_moi_bool_model_parser()
             @test Q == [0.0 12.0 13.0; 0.0 0.0 23.0; 0.0 0.0 0.0]
             @test α ≈ 1.0
             @test β ≈ 9.9
-
-            @test_throws Exception MOI.add_constrained_variable(moi_model, Spin())
         end
     end
 
