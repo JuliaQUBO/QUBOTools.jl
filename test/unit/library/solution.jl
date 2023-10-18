@@ -160,7 +160,11 @@ function test_solution_sampleset()
 
         # ~*~ Domain translation ~*~ #
         @test length(bool_sol) == 4
+        @test size(bool_sol) == (4,)
+        @test size(bool_sol, 1) == 4
         @test length(spin_sol) == 4
+        @test size(spin_sol) == (4,)
+        @test size(spin_sol, 1) == 4
         @test QUBOTools.dimension(bool_sol) == 2
         @test QUBOTools.dimension(spin_sol) == 2
 
@@ -184,12 +188,36 @@ function test_solution_sampleset()
         @test_throws Exception QUBOTools.state(bool_sol, 5)
 
         @test QUBOTools.state(spin_sol, 1) == [↑, ↑]
+        @test_throws Exception QUBOTools.state(spin_sol, 1, 0)
+        @test QUBOTools.state(spin_sol, 1, 1) == ↑
+        @test QUBOTools.state(spin_sol, 1, 2) == ↑
+        @test_throws Exception QUBOTools.state(spin_sol, 1, 3)
+        
         @test QUBOTools.state(spin_sol, 2) == [↑, ↓]
+        @test_throws Exception QUBOTools.state(spin_sol, 2, 0)
+        @test QUBOTools.state(spin_sol, 2, 1) == ↑
+        @test QUBOTools.state(spin_sol, 2, 2) == ↓
+        @test_throws Exception QUBOTools.state(spin_sol, 2, 3)
+
         @test QUBOTools.state(spin_sol, 3) == [↓, ↑]
+        @test_throws Exception QUBOTools.state(spin_sol, 3, 0)
+        @test QUBOTools.state(spin_sol, 3, 1) == ↓
+        @test QUBOTools.state(spin_sol, 3, 2) == ↑
+        @test_throws Exception QUBOTools.state(spin_sol, 3, 3)
+
         @test QUBOTools.state(spin_sol, 4) == [↓, ↓]
+        @test_throws Exception QUBOTools.state(spin_sol, 4, 0)
+        @test QUBOTools.state(spin_sol, 4, 1) == ↓
+        @test QUBOTools.state(spin_sol, 4, 2) == ↓
+        @test_throws Exception QUBOTools.state(spin_sol, 4, 3)
 
         @test_throws Exception QUBOTools.state(spin_sol, 0)
         @test_throws Exception QUBOTools.state(spin_sol, 5)
+
+        # Iteration
+        for (i, s) in enumerate(spin_sol)
+            @test QUBOTools.sample(spin_sol, i) === s
+        end
 
         # ~ reads ~ #
         @test QUBOTools.reads(bool_sol) == 10

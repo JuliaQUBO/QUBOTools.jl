@@ -25,10 +25,6 @@ function Base.isapprox(x::S, y::S; kws...) where {T,U,S<:AbstractSample{T,U}}
            state(x) == state(y)
 end
 
-Base.firstindex(::AbstractSolution)            = 1
-Base.firstindex(::AbstractSolution, ::Integer) = 1
-Base.lastindex(sol::AbstractSolution)          = length(sol)
-
 function hassample(sol::AbstractSolution, i::Integer)
     return 1 <= i <= length(sol)
 end
@@ -40,6 +36,10 @@ function sample(sol::AbstractSolution, i::Integer)
         error("Sample with index '$i' does not belong to the solution")
     end
 end
+
+Base.firstindex(::AbstractSolution)            = 1
+Base.firstindex(::AbstractSolution, ::Integer) = 1
+Base.lastindex(sol::AbstractSolution)          = length(sol)
 
 function Base.lastindex(sol::AbstractSolution, axis::Integer)
     if axis == 1
