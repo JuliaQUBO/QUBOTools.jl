@@ -11,8 +11,6 @@ struct NumberOfReads <: MOI.AbstractModelAttribute
     end
 end
 
-QUBOTools.__moi_num_reads() = NumberOfReads
-
 function MOI.is_set_by_optimize(::NumberOfReads)
     return true
 end
@@ -28,3 +26,10 @@ function MOI.get(model::MOI.ModelLike, attr::NumberOfReads)
     # will not account for solution multiplicity.
     return 1
 end
+
+# The function takes no arguments and returns the NumberOfReads type.
+# Other packages will assign its return value to a constant, e.g.,
+#
+#     const NumberOfReads = QUBOTools.__moi_num_reads()
+#
+QUBOTools.__moi_num_reads() = NumberOfReads
