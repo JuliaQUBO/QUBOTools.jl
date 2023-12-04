@@ -68,7 +68,15 @@ function time_to_target(solution::AbstractSolution{T,U}, λ::T, s::Float64 = 0.9
 end
 
 function time_to_target(t::Float64, p::Float64, s::Float64 = 0.99)
-    return t * log(1 - s) / log(1 - p)
+    @assert 0 <= p <= 1 && 0 <= s <= 1
+
+    if isnan(p) || isnan(t)
+        return NaN
+    elseif iszero(p)
+        return Inf
+    else
+        return t * log2(1 - s) / log2(1 - p)
+    end
 end
 
 # function opt_tts(
