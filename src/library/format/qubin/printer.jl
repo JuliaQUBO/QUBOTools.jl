@@ -11,17 +11,21 @@ function write_model(
 end
 
 function write_model(
-    fp::HDF5.File,
+    fp::P,
     model::M,
     fmt::QUBin,
-) where {V,T,U,M<:AbstractModel{V,T,U}}
+) where {P<:Union{HDF5.File,HDF5.Group},V,T,U,M<:AbstractModel{V,T,U}}
     _write_model(fp, model, fmt)
     _write_solution(fp, model, fmt)
 
     return nothing
 end
 
-function write_solution(path::AbstractString, sol::S, fmt::QUBin) where {S<:AbstractSolution}
+function write_solution(
+    path::AbstractString,
+    sol::S,
+    fmt::QUBin,
+) where {S<:AbstractSolution}
     HDF5.h5open(path, "w") do fp
         write_solution(fp, sol, fmt)
     end
@@ -36,10 +40,10 @@ function write_solution(fp::HDF5.File, sol::S, fmt::QUBin) where {S<:AbstractSol
 end
 
 function _write_model(
-    fp::HDF5.File,
+    fp::P,
     model::M,
     fmt::QUBin,
-) where {V,T,U,M<:AbstractModel{V,T,U}}
+) where {P<:Union{HDF5.File,HDF5.Group},V,T,U,M<:AbstractModel{V,T,U}}
     HDF5.create_group(fp, "model")
 
     _write_model_variables(fp, model, fmt)
@@ -50,20 +54,20 @@ function _write_model(
 end
 
 function _write_model_variables(
-    fp::HDF5.File,
+    fp::P,
     model::M,
     ::QUBin,
-) where {V,T,U,M<:AbstractModel{V,T,U}}
+) where {P<:Union{HDF5.File,HDF5.Group},V,T,U,M<:AbstractModel{V,T,U}}
     fp["model"]["variables"] = variables(model)
 
     return nothing
 end
 
 function _write_model_form(
-    fp::HDF5.File,
+    fp::P,
     model::M,
     ::QUBin,
-) where {V,T,U,M<:AbstractModel{V,T,U}}
+) where {P<:Union{HDF5.File,HDF5.Group},V,T,U,M<:AbstractModel{V,T,U}}
     HDF5.create_group(fp["model"], "form")
 
     n, L, Q, α, β, s, x = QUBOTools.form(model, :sparse)
@@ -96,20 +100,20 @@ end
 
 
 function _write_model_metadata(
-    fp::HDF5.File,
+    fp::P,
     model::M,
     ::QUBin,
-) where {V,T,U,M<:AbstractModel{V,T,U}}
+) where {P<:Union{HDF5.File,HDF5.Group},V,T,U,M<:AbstractModel{V,T,U}}
     fp["model"]["metadata"] = JSON.json(QUBOTools.metadata(model))
 
     return nothing
 end
 
 function _write_solution(
-    fp::HDF5.File,
+    fp::P,
     model::M,
     fmt::QUBin,
-) where {V,T,U,M<:AbstractModel{V,T,U}}
+) where {P<:Union{HDF5.File,HDF5.Group},V,T,U,M<:AbstractModel{V,T,U}}
     HDF5.create_group(fp, "solution")
 
     sol = QUBOTools.solution(model)
@@ -125,10 +129,10 @@ function _write_solution(
 end
 
 function _write_solution_data(
-    fp::HDF5.File,
+    fp::P,
     sol::AbstractSolution{T,U},
     ::QUBin,
-) where {T,U}
+) where {P<:Union{HDF5.File,HDF5.Group},T,U}
     HDF5.create_group(fp["solution"], "data")
 
     if isempty(sol)
@@ -149,10 +153,10 @@ function _write_solution_data(
 end
 
 function _write_solution_metadata(
-    fp::HDF5.File,
+    fp::P,
     sol::AbstractSolution{T,U},
     ::QUBin,
-) where {T,U}
+) where {P<:Union{HDF5.File,HDF5.Group},T,U}
     fp["solution"]["metadata"] = JSON.json(QUBOTools.metadata(sol))
 
     return nothing

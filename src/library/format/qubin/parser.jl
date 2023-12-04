@@ -4,7 +4,7 @@ function read_model(path::AbstractString, fmt::QUBin)
     end
 end
 
-function read_model(fp::HDF5.File, fmt::QUBin)
+function read_model(fp::P, fmt::QUBin) where {P<:Union{HDF5.File,HDF5.Group}}
     form      = _parse_model_form(fp, fmt)
     variables = _parse_model_variables(fp, fmt)
     metadata  = _parse_model_metadata(fp, fmt)
@@ -19,7 +19,7 @@ function read_solution(path::AbstractString, fmt::QUBin)
     end
 end
 
-function read_solution(fp::HDF5.File, fmt::QUBin)
+function read_solution(fp::P, fmt::QUBin) where {P<:Union{HDF5.File,HDF5.Group}}
     return _parse_solution(fp, fmt)
 end
 
@@ -32,7 +32,7 @@ function _parse_model(
     return Model{V,T,U}(variable_map, form; metadata, solution)
 end
 
-function _parse_model_form(fp::HDF5.File, ::QUBin)
+function _parse_model_form(fp::P, ::QUBin) where {P<:Union{HDF5.File,HDF5.Group}}
     n = read(fp["model"]["form"]["dimension"])
 
     li = read(fp["model"]["form"]["linear"]["i"])
@@ -67,7 +67,7 @@ function _parse_model_form(
     return Form{T}(n, L, Q, α, β; sense, domain)
 end
 
-function _parse_model_variables(fp::HDF5.File, ::QUBin)
+function _parse_model_variables(fp::P, ::QUBin) where {P<:Union{HDF5.File,HDF5.Group}}
     variables = read(fp["model"]["variables"])
 
     return _parse_model_variables(variables)
@@ -77,11 +77,11 @@ function _parse_model_variables(variables::Vector{V}) where {V}
     return VariableMap{V}(variables)
 end
 
-function _parse_model_metadata(fp::HDF5.File, ::QUBin)
+function _parse_model_metadata(fp::P, ::QUBin) where {P<:Union{HDF5.File,HDF5.Group}}
     return JSON.parse(read(fp["model"]["metadata"]))
 end
 
-function _parse_solution(fp::HDF5.File, fmt::QUBin)
+function _parse_solution(fp::P, fmt::QUBin) where {P<:Union{HDF5.File,HDF5.Group}}
     data     = _parse_solution_data(fp, fmt)
     metadata = _parse_solution_metadata(fp, fmt)
 
@@ -100,7 +100,7 @@ function _parse_solution(
     return SampleSet{T,U}(data; metadata, sense, domain)
 end
 
-function _parse_solution_data(fp::HDF5.File, ::QUBin)
+function _parse_solution_data(fp::P, ::QUBin) where {P<:Union{HDF5.File,HDF5.Group}}
     ψ = read(fp["solution"]["data"]["state"])
     λ = read(fp["solution"]["data"]["value"])
     r = read(fp["solution"]["data"]["reads"])
@@ -112,6 +112,6 @@ function _parse_solution_data(ψ::Matrix{U}, λ::Vector{T}, r::Vector{Int}) wher
     return Sample{T,U}[Sample{T,U}(ψ[i, :], λ[i], r[i]) for i in eachindex(λ)]
 end
 
-function _parse_solution_metadata(fp::HDF5.File, ::QUBin)
+function _parse_solution_metadata(fp::P, ::QUBin) where {P<:Union{HDF5.File,HDF5.Group}}
     return JSON.parse(read(fp["solution"]["metadata"]))
 end
