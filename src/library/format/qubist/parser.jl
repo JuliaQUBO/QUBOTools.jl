@@ -8,6 +8,13 @@ function read_model(io::IO, fmt::Qubist)
         _parse_line!(data, strip(line), fmt)
     end
 
+    if !haskey(data, :dimension)
+        data[:dimension] = max(
+            maximum(keys(data[:linear_terms]))
+            maximum(maximum, keys(data[:quadratic_terms]))
+        )
+    end
+
     return Model{Int,Float64,Int}(
         Set{Int}(1:data[:dimension]),
         data[:linear_terms],
