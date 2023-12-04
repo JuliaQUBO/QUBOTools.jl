@@ -75,6 +75,9 @@ function MOI.set(
     ::MOI.ObjectiveSense,
     objective_sense::MOI.OptimizationSense,
 )
+    @assert objective_sense === MOI.MIN_SENSE ||
+            objective_sense === MOI.MAX_SENSE
+
     model.objective_sense = objective_sense
 
     return nothing
