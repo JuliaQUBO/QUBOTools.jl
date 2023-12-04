@@ -10,7 +10,7 @@ function read_model(io::IO, fmt::Qubist)
 
     if !haskey(data, :dimension)
         data[:dimension] = max(
-            maximum(keys(data[:linear_terms]))
+            maximum(keys(data[:linear_terms])),
             maximum(maximum, keys(data[:quadratic_terms]))
         )
     end
