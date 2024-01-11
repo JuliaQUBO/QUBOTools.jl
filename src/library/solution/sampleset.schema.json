@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Solution Metadata",
+    "type": "object",
+    "required": [
+        "time"
+    ],
+    "properties": {
+        "time": {
+            "type": "object",
+            "required" : [
+                "total"
+            ],
+            "properties": {
+                "total": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "effective": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            },
+            "additionalProperties": {
+                "type": "number",
+                "minimum": 0
+            }
+        },
+        "origin": {
+            "type": "string"
+        }
+    }
+}

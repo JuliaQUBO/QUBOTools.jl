@@ -1,59 +1,59 @@
-""" /src/interface/fallback.jl @ QUBOTools.jl
-
-This file contains fallback implementations by calling the model's backend.
-
-This allows for external models to define a QUBOTools-based backend and profit from these queries.
-"""
+# This file contains fallback implementations by calling the model's backend.
+# This allows for external models to define a QUBOTools-based backend and profit
+# from these queries.
 
 function backend(::M) where {M}
-    error(
-        """
-        '$M' has an incomplete inferface for 'QUBOTools'.
-        It should either implement 'backend(::$M)' or the complete 'AbstractModel' API.
-        Run `julia> ?QUBOTools.AbstractModel` for more information.
-        """
-    )
+    error("""
+          '$M' has an incomplete inferface for 'QUBOTools'.
+          It should either implement 'backend(::$M)' or the complete 'AbstractModel' API.
+          Run `julia> ?QUBOTools.AbstractModel` for more information.
+          """)
+
+    return nothing
 end
 
-# ~*~ Data access ~*~ #
-model_name(model)            = model_name(backend(model))
-domain(model)                = domain(backend(model))
-scale(model)                 = scale(backend(model))
-offset(model)                = offset(backend(model))
-sense(model)                 = sense(backend(model))
-id(model)                    = id(backend(model))
-version(model)               = version(backend(model))
-description(model)           = description(backend(model))
-metadata(model)              = metadata(backend(model))
-sampleset(model)             = sampleset(backend(model))
-linear_terms(model)          = linear_terms(backend(model))
-explicit_linear_terms(model) = explicit_linear_terms(backend(model))
-quadratic_terms(model)       = quadratic_terms(backend(model))
-indices(model)               = indices(backend(model))
-variables(model)             = variables(backend(model))
-variable_set(model)          = variable_set(backend(model))
-variable_map(model, args...) = variable_map(backend(model), args...)
-variable_inv(model, args...) = variable_inv(backend(model), args...)
-warm_start(model, args...)   = warm_start(backend(model), args...)
+# Data access
+linear_form(src)     = linear_form(backend(src))
+quadratic_form(src)  = quadratic_form(backend(src))
+linear_terms(src)    = linear_terms(backend(src))
+quadratic_terms(src) = quadratic_terms(backend(src))
+scale(src)           = scale(backend(src))
+offset(src)          = offset(backend(src))
+frame(src)           = frame(backend(src))
+id(src)              = id(backend(src))
+description(src)     = description(backend(src))
+metadata(src)        = metadata(backend(src))
 
-# ~*~ Model's Normal Forms ~*~ #
-qubo(model, args...)  = qubo(backend(model), args...)
-ising(model, args...) = ising(backend(model), args...)
+# Variables
+index(src, v)        = index(backend(src), v)
+hasindex(src, i)     = hasindex(backend(src), i)
+indices(src)         = indices(backend(src))
+variable(src, i)     = variable(backend(src), i)
+hasvariable(src, v)  = hasvariable(backend(src), v)
+variables(src)       = variables(backend(src))
 
-# ~*~ Solution queries ~*~ #
-state(model, args...) = state(backend(model), args...)
-value(model, args...) = value(backend(model), args...)
-reads(model, args...) = reads(backend(model), args...)
+# Model's Normal Forms
+form(src, args...; kws...)  = form(backend(src), args...; kws...)
+qubo(src, args...; kws...)  = qubo(backend(src), args...; kws...)
+ising(src, args...; kws...) = ising(backend(src), args...; kws...)
 
-# ~*~ Data queries ~*~ #
-domain_size(model)        = domain_size(backend(model))
-linear_size(model)        = linear_size(backend(model))
-quadratic_size(model)     = quadratic_size(backend(model))
-density(model)            = density(backend(model))
-linear_density(model)     = linear_density(backend(model))
-quadratic_density(model)  = quadratic_density(backend(model))
-adjacency(model, args...) = adjacency(backend(model), args...)
+# Solution queries
+state(src, i)               = state(backend(src), i)
+value(src, i)               = value(backend(src), i)
+reads(src)                  = reads(backend(src))
+reads(src, i)               = reads(backend(src), i)
+sample(src, i)              = sample(backend(src), i)
+hassample(src, i)           = hassample(backend(src), i)
+solution(src)               = solution(backend(src))
+start(src, args...; kws...) = start(backend(src), args...; kws...)
+attach!(src, x)             = attach!(backend(src), x)
 
-# ~*~ File I/O ~*~ #
-write_model(io, model, args...) = write_model(io, backend(model), args...)
-read_model!(io, model, args...) = read_model!(io, backend(model), args...)
+# Data queries
+dimension(src)      = dimension(backend(src))
+linear_size(src)    = linear_size(backend(src))
+quadratic_size(src) = quadratic_size(backend(src))
+topology(src)       = topology(backend(src))
+
+# File I/O
+write_model(dst, src)      = write_model(dst, backend(src))
+write_model(dst, src, fmt) = write_model(dst, backend(src), fmt)

@@ -2,7 +2,7 @@
 
 ## Fallback dispatch
 
-When extending `QUBOTools`, one must implement a method for [`QUBOTools.backend`](@ref). 
+When extending `QUBOTools`, one might want to implement a method for [`QUBOTools.backend`](@ref).
 
 ```@docs
 QUBOTools.backend
@@ -11,10 +11,23 @@ QUBOTools.backend
 ## Variable System
 
 ```@docs
-QUBOTools.varlt
+QUBOTools.index
+QUBOTools.indices
+QUBOTools.hasindex
+QUBOTools.variable
+QUBOTools.variables
+QUBOTools.hasvariable
 ```
 
-## Variable Domains
+```@docs
+QUBOTools.VariableMap
+```
+
+```@docs
+QUBOTools.PBO.varlt
+```
+
+## Objective & Domain Frames
 
 ```@docs
 QUBOTools.Domain
@@ -23,18 +36,88 @@ QUBOTools.SpinDomain
 QUBOTools.domain
 ```
 
-## Frame Casting
+```@docs
+QUBOTools.Sense
+QUBOTools.sense
+```
 
 ```@docs
+QUBOTools.Frame
+QUBOTools.frame
 QUBOTools.cast
 ```
 
-## Solution Interface
+### Errors
 
 ```@docs
+QUBOTools.CastingError
+```
+
+## Models
+
+```@docs
+QUBOTools.AbstractModel
+QUBOTools.Model
+```
+
+## Model Forms
+
+```@docs
+QUBOTools.AbstractForm
+QUBOTools.AbstractLinearForm
+QUBOTools.AbstractQuadraticForm
+QUBOTools.form
+QUBOTools.linear_form
+QUBOTools.quadratic_form
+```
+
+```@docs
+QUBOTools.qubo
+QUBOTools.ising
+```
+
+### Underlying Data Structures
+
+```@docs
+QUBOTools.Form
+QUBOTools.formtype
+```
+
+```@docs
+QUBOTools.DictForm
+QUBOTools.DictLinearForm
+QUBOTools.DictQuadraticForm
+```
+
+```@docs
+QUBOTools.DenseForm
+QUBOTools.DenseLinearForm
+QUBOTools.DenseQuadraticForm
+```
+
+```@docs
+QUBOTools.SparseForm
+QUBOTools.SparseLinearForm
+QUBOTools.SparseQuadraticForm
+```
+
+## Solutions
+
+```@docs
+QUBOTools.State
+```
+
+```@docs
+QUBOTools.AbstractSample
 QUBOTools.Sample
-QUBOTools.SampleSet{T,U}
-QUBOTools.sampleset
+QUBOTools.sample
+QUBOTools.hassample
+```
+
+```@docs
+QUBOTools.AbstractSolution
+QUBOTools.SampleSet
+QUBOTools.solution
 ```
 
 ```@docs
@@ -44,84 +127,141 @@ QUBOTools.energy
 QUBOTools.reads
 ```
 
-## Models
+### Solution Errors
 
 ```@docs
-QUBOTools.AbstractModel{V,T,U}
-QUBOTools.Model{V,T,U}
-```
-
-```@docs
-QUBOTools.AbstractFormat
-QUBOTools.infer_format
+QUBOTools.SolutionError
 ```
 
 ## Data Access
 
 ```@docs
-QUBOTools.sense
 QUBOTools.linear_terms
-QUBOTools.explicit_linear_terms
 QUBOTools.quadratic_terms
 QUBOTools.scale
 QUBOTools.offset
 ```
 
 ```@docs
-QUBOTools.variable_map
-QUBOTools.variable_inv
-QUBOTools.variable_set
-QUBOTools.variables
+QUBOTools.data
 ```
 
 ```@docs
-QUBOTools.id
-QUBOTools.version
-QUBOTools.description
 QUBOTools.metadata
+QUBOTools.id
+QUBOTools.description
 ```
 
-## I/O
+```@docs
+QUBOTools.start
+```
+
+```@docs
+QUBOTools.attach!
+```
+
+## File Formats & I/O
+
+```@docs
+QUBOTools.AbstractFormat
+QUBOTools.format
+QUBOTools.version
+```
 
 ```@docs
 QUBOTools.read_model
-QUBOTools.read_model!
 QUBOTools.write_model
 ```
 
-## Metrics and other queries
+```@docs
+QUBOTools.read_solution
+QUBOTools.write_solution
+```
+
+### Format & I/O Errors
 
 ```@docs
-QUBOTools.domain_size
+QUBOTools.FormatError
+QUBOTools.SyntaxError
+```
+
+## Model Metrics
+
+```@docs
+QUBOTools.dimension
 QUBOTools.linear_size
 QUBOTools.quadratic_size
 QUBOTools.density
 QUBOTools.linear_density
 QUBOTools.quadratic_density
-QUBOTools.adjacency
 ```
-
-## Normal Forms
 
 ```@docs
-QUBOTools.qubo
-QUBOTools.ising
+QUBOTools.topology
+QUBOTools.adjacency
+QUBOTools.geometry
 ```
 
-## Benchmarking
+## System Specification
+
+```@docs
+QUBOTools.AbstractArchitecture
+QUBOTools.GenericArchitecture
+QUBOTools.architecture
+```
+
+```@docs
+QUBOTools.AbstractDevice
+QUBOTools.GenericDevice
+```
+
+```@docs
+QUBOTools.Layout
+QUBOTools.layout
+```
+
+## Problem Synthesis
+
+```@docs
+QUBOTools.AbstractProblem
+QUBOTools.generate
+```
+
+```@docs
+QUBOTools.SherringtonKirkpatrick
+QUBOTools.Wishart
+```
+
+## Solution Metrics
 
 ### Timing
+
 ```@docs
 QUBOTools.total_time
 QUBOTools.effective_time
 ```
 
 ### Solution Quality
+
 ```@docs
 QUBOTools.success_rate
 ```
 
-### Time-to-Solution (TTS)
+### Time-to-Target (TTT)
+
 ```@docs
-QUBOTools.tts
+QUBOTools.time_to_target
+QUBOTools.ttt
+```
+
+### Hamming Distance
+
+```@docs
+QUBOTools.hamming_distance
+```
+
+## Visualization
+
+```@docs
+QUBOTools.AbstractVisualization
 ```

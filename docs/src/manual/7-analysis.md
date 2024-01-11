@@ -1,35 +1,64 @@
 # Analysis
 
-## Problems
-```@example problem-analysis
-using QUBOTools: Model
+## Models
+
+```@setup analysis
+using Random
+
+Random.seed!(0)
+```
+
+```@example analysis
+using QUBOTools
+
+n = 8
+
+# Generates a Sherrington-Kirpatrick model
+model = QUBOTools.generate(QUBOTools.SK(n))
+```
+
+### Model Density
+
+```@example analysis
+using Plots
+
+plot(QUBOTools.ModelDensityPlot(model))
+```
+
+### System Layout
+
+```@example analysis
+plot(QUBOTools.SystemLayoutPlot(model))
 ```
 
 ## Solutions
 
-### Visualization
+```@setup analysis
+function magical_solution_method(model, k = 12)
+    n = QUBOTools.dimension(model)
 
-```@example problem-analysis
-using Plots
+    samples = Sample{Float64,Int}[]
 
-L = Dict{Int,Float64}(1 => 0.5, 2 => 2.0, 3 => -3.0)
-Q = Dict{Tuple{Int,Int},Float64}((1,2) => 2.0, (1,3) => -2.0, (2,3) => 0.5)
+    for _ = 1:k
+        ψ = rand(0:1, n)
+        λ = QUBOTools.value(model, ψ)
+        r = rand(1:10)
 
-m = Model{Int,Float64,Int}(L, Q; domain=:bool)
+        push!(samples, Sample(ψ, λ, r))
+    end
 
-plot(m)
+    return SampleSet(samples)
+end
 ```
 
-```@example solution-plots
-using Plots
-using QUBOTools
+```@example analysis
+solution = magical_solution_method(model)
+```
 
-s = SampleSet([
-    Sample([0, 0], 0.5,  8),
-    Sample([0, 1], 1.2, 10),
-    Sample([1, 0], 1.8, 12),
-    Sample([1, 1], 1.5,  4),
-])
+### Energy Frequency
 
-plot(s)
+```@example analysis
+λ = minimum(QUBOTools.value, solution) # threshold
+
+plot(QUBOTools.EnergyFrequencyPlot(solution, λ))
 ```

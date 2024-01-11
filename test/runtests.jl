@@ -1,24 +1,34 @@
 using Test
 using Printf
 using SparseArrays
+using Statistics
 using RecipesBase
 using QUBOTools
+using Graphs
+using MathOptInterface
 
-import QUBOTools: ↑, ↓, 𝔹, 𝕊, Max, Min
-import QUBOTools: Domain, Sense, Style
-import QUBOTools: Sample, SampleSet
-import QUBOTools: CodecError, codec_error
-import QUBOTools: SamplingError, sampling_error
-import QUBOTools: FormatError, format_error
-import QUBOTools: SyntaxError, syntax_error
-import QUBOTools: state, value, reads
-import QUBOTools: backend
-import QUBOTools: BQPJSON, HFS, MiniZinc, Qubist, QUBO
-import QUBOTools: cast
+# using QUBODrivers
+# using ToQUBO
+# using QUBO
 
-# ~*~ Include test functions ~*~
-include("assets/assets.jl")
-include("tools/tools.jl")
+const MOI    = MathOptInterface
+const MOIU   = MOI.Utilities
+const VI     = MOI.VariableIndex
+const SAF{T} = MOI.ScalarAffineFunction{T}
+const SAT{T} = MOI.ScalarAffineTerm{T}
+const SQF{T} = MOI.ScalarQuadraticFunction{T}
+const SQT{T} = MOI.ScalarQuadraticTerm{T}
+
+const Spin          = QUBOTools.__moi_spin_set()
+const QUBOModel     = QUBOTools.__moi_qubo_model()
+const NumberOfReads = QUBOTools.__moi_num_reads()
+
+const __TEST_PATH__ = @__DIR__
+
+# Include assets
+include("assets/comparison.jl")
+
+# Include test functions
 include("unit/unit.jl")
 include("integration/integration.jl")
 
@@ -27,6 +37,8 @@ function test_main()
         test_unit()
         test_integration()
     end
+
+    return nothing
 end
 
 test_main() # Here we go!

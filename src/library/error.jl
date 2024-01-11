@@ -1,54 +1,45 @@
-struct CodecError <: Exception
+@doc raw"""
+    SolutionError
+
+Error occurred while gathering solutions.
+"""
+struct SolutionError <: Exception
     msg::Union{String,Nothing}
 
-    function CodecError(msg::Union{String,Nothing} = nothing)
+    function SolutionError(msg::Union{String,Nothing} = nothing)
         new(msg)
     end
 end
 
-function Base.showerror(io::IO, e::CodecError)
+function Base.showerror(io::IO, e::SolutionError)
     if isnothing(e.msg)
-        print(io, "Codec Error")
+        print(io, "Solution Error")
     else
-        print(io, "Codec Error: $(e.msg)")
+        print(io, "Solution Error: $(e.msg)")
     end
 end
 
-function codec_error(msg::Union{String,Nothing} = nothing)
-    throw(CodecError(msg))
+function solution_error(msg::Union{String,Nothing} = nothing)
+    throw(SolutionError(msg))
 end
 
-struct SamplingError <: Exception
-    msg::Union{String,Nothing}
+@doc raw"""
+    FormatError
 
-    function SamplingError(msg::Union{String,Nothing} = nothing)
-        new(msg)
-    end
-end
-
-function Base.showerror(io::IO, e::SamplingError)
-    if isnothing(e.msg)
-        print(io, "Sampling Error")
-    else
-        print(io, "Sampling Error: $(e.msg)")
-    end
-end
-
-function sampling_error(msg::Union{String,Nothing} = nothing)
-    throw(SamplingError(msg))
-end
-
+Error related to the format specification.
+"""
 struct FormatError <: Exception
+    fmt::Any
     msg::Union{String,Nothing}
 
-    FormatError(msg::Union{String,Nothing} = nothing) = new(msg)
+    FormatError(fmt, msg::Union{String,Nothing} = nothing) = new(fmt, msg)
 end
 
 function Base.showerror(io::IO, e::FormatError)
     if isnothing(e.msg)
-        print(io, "Format Error")
+        print(io, "Format Error for '$(e.fmt)'")
     else
-        print(io, "Format Error: $(e.msg)")
+        print(io, "Format Error for '$(e.fmt)': $(e.msg)")
     end
 end
 
@@ -56,6 +47,11 @@ function format_error(msg::Union{String,Nothing} = nothing)
     throw(FormatError(msg))
 end
 
+@doc raw"""
+    SyntaxError
+
+Syntax error while parsing file.
+"""
 struct SyntaxError <: Exception
     msg::Union{String,Nothing}
 
@@ -74,8 +70,35 @@ function syntax_error(msg::Union{String,Nothing} = nothing)
     throw(SyntaxError(msg))
 end
 
-function syntax_warning(msg::String)
+function syntax_warning(msg::AbstractString)
     @warn "Syntax Warning: $msg"
 
     return nothing
+end
+
+@doc raw"""
+    CastingError
+
+Error while casting data between domains or senses.
+"""
+struct CastingError <: Exception
+    msg::Union{String,Nothing}
+
+    CastingError(msg::Union{String,Nothing} = nothing) = new(msg)
+end
+
+function Base.showerror(io::IO, e::CastingError)
+    if isnothing(e.msg)
+        print(io, "Casting Error")
+    else
+        print(io, "Casting Error: $(e.msg)")
+    end
+end
+
+function casting_error(msg::Union{String,Nothing} = nothing)
+    throw(CastingError(msg))
+end
+
+function casting_error((s, t)::Route{X}, ::T) where {X,T}
+    return casting_error("There is no known casting of '$T' from '$s' to '$t'")
 end

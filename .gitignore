@@ -26,5 +26,5 @@ Manifest.toml
 # VSCode
 .vscode
 
-# PythonPlots
+# PythonPlot
 .CondaPkg
