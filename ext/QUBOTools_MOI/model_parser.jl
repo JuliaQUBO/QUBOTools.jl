@@ -46,15 +46,13 @@ function _parse_moi_model(::Type{T}, model::MOI.ModelLike) where {T}
     end
 
     if !_is_quadratic(model)
-        qubo_parsing_error(
-            "The provided model's objective function is not a quadratic polynomial.",
-        )
+        qubo_parsing_error("The provided model's objective function is not a quadratic polynomial.\n")
 
         return nothing
     end
 
     if !_is_unconstrained(model)
-        qubo_parsing_error("The provided model is not unconstrained.")
+        qubo_parsing_error("The provided model is not unconstrained.\n")
     end
 
     Ω = Set{VI}(MOI.get(model, MOI.ListOfVariableIndices()))
@@ -76,16 +74,16 @@ function _parse_moi_model(::Type{T}, model::MOI.ModelLike) where {T}
     # Retrieve Variable Domain
     # Assuming: 𝕊, 𝔹 ⊆ Ω
     if !isempty(𝕊) && !isempty(𝔹)
-        qubo_parsing_error("The given model contains both boolean and spin variables")
+        qubo_parsing_error("The given model contains both boolean and spin variables.\n")
     elseif isempty(𝕊) # QUBO model?
         if 𝔹 != Ω
-            qubo_parsing_error("Not all variables in the given model are boolean")
+            qubo_parsing_error("Not all variables in the given model are boolean.\n")
         else
             return _extract_bool_model(T, model, Ω)
         end
     else # isempty(𝔹) # Ising model?
         if 𝕊 != Ω
-            qubo_parsing_error("Not all variables in the given model are spin")
+            qubo_parsing_error("Not all variables in the given model are spin.\n")
         else
             return _extract_spin_model(T, model, Ω)
         end

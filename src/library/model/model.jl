@@ -334,7 +334,7 @@ function Model{V,T,U}(f::F; kws...) where {V,T,U,F<:PBO.AbstractFunction{V,T}}
                 DomainError(
                     length(ω),
                     """
-                    Can't create QUBO model from a high-order pseudo-Boolean function.
+                    It is not possible to create a QUBO model from a high-order pseudo-Boolean function.
                     Consider using `PseudoBooleanOptimization.quadratize`.
                     """,
                 ),
