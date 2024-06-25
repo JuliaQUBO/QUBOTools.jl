@@ -18,9 +18,11 @@ function Base.showerror(io::IO, e::QUBOParsingError)
         println(
             io,
             """
-            It seems that the current model could not be converted to QUBO in a straightforward fashion 🙁
-            Consider using the `ToQUBO.jl` package, a sophisticated reformulation framework.
-                pkg> add ToQUBO # 😎
+            The current model could not be directly converted to the QUBO format.
+            Consider using the `ToQUBO.jl` package.
+                pkg> add ToQUBO 
+                using JuMP, ToQUBO, YourSolver
+                model = Model(() -> ToQUBO.Optimizer(YourSolver.Optimizer))
             """,
         )
     end

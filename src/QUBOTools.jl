@@ -86,7 +86,6 @@ include("library/analysis/visualization/model_density.jl")
 include("library/analysis/visualization/system_layout.jl")
 
 # Extras
-# include("extra/dwave/dwave.jl")
 include("extra/moi/num_reads.jl")
 include("extra/moi/spin_set.jl")
 include("extra/moi/qubo_model.jl")
