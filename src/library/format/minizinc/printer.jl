@@ -1,4 +1,4 @@
-function write_model(io::IO, model::AbstractModel{V}, fmt::MiniZinc) where {V<:Integer}
+function write_model(io::IO, model::AbstractModel{V}, fmt::MiniZinc) where {V}
     _print_metadata(io, model, fmt)
     _print_domain(io, model, fmt)
     _print_variables(io, model, fmt)
@@ -32,9 +32,7 @@ end
 
 function _print_variables(io::IO, model::AbstractModel, ::MiniZinc)
     for i = indices(model)
-        k = variable(model, i)
-        
-        println(io, "var Domain: x$(k);")
+        println(io, "var Domain: x$(i);")
     end
 
     return nothing
@@ -47,16 +45,11 @@ function _print_objective(io::IO, model::AbstractModel, ::MiniZinc)
     println(io, "float: offset = $(offset(model));")
 
     for (i, v) in linear_terms(model)
-        xi = "x$(variable(model, i))"
-
-        push!(objective_terms, "$(v)*$(xi)")
+        push!(objective_terms, "$(v)*x$(i)")
     end
 
     for ((i, j), v) in quadratic_terms(model)
-        xi = "x$(variable(model, i))"
-        xj = "x$(variable(model, j))"
-
-        push!(objective_terms, "$(v)*$(xi)*$(xj)")
+        push!(objective_terms, "$(v)*x$(i)*x$(j)")
     end
 
     if !isempty(objective_terms)
