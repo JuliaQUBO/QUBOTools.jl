@@ -87,11 +87,11 @@ end
 
 function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{_}) where {_}
     for (i, l) in data[:linear_terms]
-        println(io, "$(i) $(i) $(l)")
+        println(io, "$(i-1) $(i-1) $(l)")
     end
 
     for ((i, j), q) in data[:quadratic_terms]
-        println(io, "$(i) $(j) $(q)")
+        println(io, "$(i-1) $(j-1) $(q)")
     end
 
     return nothing
@@ -101,13 +101,13 @@ function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:dwave})
     println(io, "c linear terms")
 
     for (i, l) in data[:linear_terms]
-        println(io, "$(i) $(i) $(l)")
+        println(io, "$(i-1) $(i-1) $(l)")
     end
 
     println(io, "c quadratic terms")
 
     for ((i, j), q) in data[:quadratic_terms]
-        println(io, "$(i) $(j) $(q)")
+        println(io, "$(i-1) $(j-1) $(q)")
     end
 
     return nothing
@@ -117,7 +117,7 @@ function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:mqlib})
     println(io, "# linear terms")
 
     for (i, l) in data[:linear_terms]
-        println(io, "$(i) $(i) $(l)")
+        println(io, "$(i-1) $(i-1) $(l)")
     end
 
     println(io, "# quadratic terms")
@@ -125,7 +125,7 @@ function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:mqlib})
     for ((i, j), q) in data[:quadratic_terms]
         # NOTE: in MQLib qubo files, quadratic coefficients
         # are halved when written to the file
-        println(io, "$(i) $(j) $(q/2)")
+        println(io, "$(i-1) $(j-1) $(q/2)")
     end
 
     return nothing

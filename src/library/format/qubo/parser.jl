@@ -17,7 +17,7 @@ function read_model(io::IO, fmt::QUBO)
     end
 
     return Model{Int,Float64,Int}(
-        Set{Int}(0:data[:dimension]-1),
+        Set{Int}(1:data[:dimension]),
         data[:linear_terms],
         data[:quadratic_terms];
         scale       = data[:scale],
@@ -55,8 +55,8 @@ function _parse_entry!(
         return false
     end
 
-    i = parse(Int, m[1])
-    j = parse(Int, m[2])
+    i = parse(Int, m[1]) + 1
+    j = parse(Int, m[2]) + 1
     c = parse(Float64, m[3])
 
     if i == j
@@ -78,8 +78,8 @@ function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO, ::V
         return false
     end
 
-    i = parse(Int, m[1])
-    j = parse(Int, m[2])
+    i = parse(Int, m[1]) + 1
+    j = parse(Int, m[2]) + 1
     c = parse(Float64, m[3])
 
     if i == j
