@@ -30,16 +30,19 @@ function test_bqpjson_format()
     @testset "⋅ BQPJSON" begin
         @testset "bool" begin
             for i = 0:2
-                file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.json")
+                file_path =
+                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.json")
                 temp_path = "$(tempname()).bool.json"
 
                 src_model = QUBOTools.read_model(file_path)
+                variables = QUBOTools.variables(src_model)
 
                 @test src_model isa QUBOTools.Model
 
                 QUBOTools.write_model(temp_path, src_model)
 
-                dst_model = QUBOTools.read_model(temp_path)
+                dst_model =
+                    QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
 
                 @test dst_model isa QUBOTools.Model
 
@@ -49,16 +52,19 @@ function test_bqpjson_format()
 
         @testset "spin" begin
             for i = 0:2
-                file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.json")
+                file_path =
+                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.json")
                 temp_path = "$(tempname()).spin.json"
 
                 src_model = QUBOTools.read_model(file_path)
+                variables = QUBOTools.variables(src_model)
 
                 @test src_model isa QUBOTools.Model
 
                 QUBOTools.write_model(temp_path, src_model)
 
-                dst_model = QUBOTools.read_model(temp_path)
+                dst_model =
+                    QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
 
                 @test dst_model isa QUBOTools.Model
 
@@ -75,17 +81,22 @@ function test_qubo_format()
         src_fmt = QUBOTools.QUBO(:dwave)
 
         for i = 0:2
-            file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qubo")
+            file_path =
+                joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qubo")
             temp_path = "$(tempname()).bool.qubo"
 
             src_model = QUBOTools.read_model(file_path, src_fmt)
+            variables = QUBOTools.variables(src_model)
 
             @test src_model isa QUBOTools.Model
 
             for dst_fmt in QUBOTools.QUBO.([:dwave, :mqlib])
                 QUBOTools.write_model(temp_path, src_model, dst_fmt)
 
-                dst_model = QUBOTools.read_model(temp_path, dst_fmt)
+                dst_model = QUBOTools.map_variables(
+                    variables,
+                    QUBOTools.read_model(temp_path, dst_fmt),
+                )
 
                 @test dst_model isa QUBOTools.Model
 
@@ -100,16 +111,18 @@ end
 function test_qubist_format()
     @testset "⋅ Qubist" begin
         for i = 0:2
-            file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.qh")
+            file_path =
+                joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.qh")
             temp_path = "$(tempname()).spin.qh"
 
             src_model = QUBOTools.read_model(file_path)
+            variables = QUBOTools.variables(src_model)
 
             @test src_model isa QUBOTools.Model
 
             QUBOTools.write_model(temp_path, src_model)
 
-            dst_model = QUBOTools.read_model(temp_path)
+            dst_model = QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
 
             @test dst_model isa QUBOTools.Model
 
@@ -124,16 +137,19 @@ function test_qubin_format()
     @testset "⋅ QUBin" begin
         @testset "bool" begin
             for i = 0:2
-                file_path = joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qb")
+                file_path =
+                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qb")
                 temp_path = "$(tempname()).bool.qb"
 
                 src_model = QUBOTools.read_model(file_path)
+                variables = QUBOTools.variables(src_model)
 
                 @test src_model isa QUBOTools.Model
 
                 QUBOTools.write_model(temp_path, src_model)
 
-                dst_model = QUBOTools.read_model(temp_path)
+                dst_model =
+                    QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
 
                 @test dst_model isa QUBOTools.Model
 
@@ -148,12 +164,14 @@ function test_qubin_format()
                 temp_path = "$(tempname()).spin.qb"
 
                 src_model = QUBOTools.read_model(file_path)
+                variables = QUBOTools.variables(src_model)
 
                 @test src_model isa QUBOTools.Model
 
                 QUBOTools.write_model(temp_path, src_model)
 
-                dst_model = QUBOTools.read_model(temp_path)
+                dst_model =
+                    QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
 
                 @test dst_model isa QUBOTools.Model
 
@@ -175,7 +193,7 @@ function test_minizinc_format()
                         (1, 3) => -13.0,
                         (2, 3) => -23.0,
                     );
-                    scale  =  2.0,
+                    scale  = 2.0,
                     offset = -1.0,
                     sense  = :min,
                     domain = :bool,
@@ -206,7 +224,7 @@ function test_minizinc_format()
                         (1, 3) => -13.0,
                         (2, 3) => -23.0,
                     );
-                    scale  =  2.0,
+                    scale  = 2.0,
                     offset = -1.0,
                     sense  = :max,
                     domain = :spin,

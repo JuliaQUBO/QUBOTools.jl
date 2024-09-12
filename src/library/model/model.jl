@@ -344,3 +344,13 @@ function Model{V,T,U}(f::F; kws...) where {V,T,U,F<:PBO.AbstractFunction{V,T}}
 
     return Model{V,T,U}(L, Q; offset = β, sense = :min, domain = :bool, kws...)
 end
+
+function map_variables(::Type{V}, vm::Function, model::AbstractModel{_,T,U}) where {_,V,T,U}
+    new_model = copy(model)::AbstractModel{V,T,U}
+    new_model.variable_map = VariableMap{V}(Dict{Int,V}(i => vm(i)::V for i in indices(model)))
+
+    return new_model
+end
+
+map_variables(vm::Dict{Int,V}, model::AbstractModel) where {V}       = map_variables(V, i -> vm[i], model)
+map_variables(vm::AbstractVector{V}, model::AbstractModel) where {V} = map_variables(V, i -> vm[i], model)
