@@ -17,6 +17,24 @@ struct VariableMap{V}
     end
 end
 
+function VariableMap{V}(vm::Dict{Int,V}) where {V}
+    map = sizehint!(Dict{V,Int}(), length(vm))
+    inv = Vector{V}(undef, length(vm))
+
+    for i = 1:length(vm)
+        if !haskey(vm, i)
+            error("Invalid variable mapping: Mappings should contain values for all indices")
+        else
+            let v = vm[i]
+                map[v] = i
+                inv[i] = v
+            end
+        end
+    end
+
+    return VariableMap{V}(map, inv)
+end
+
 function VariableMap{V}(
     variables::X,
 ) where {V,X<:Union{AbstractVector{V},AbstractSet{V}}}

@@ -1,4 +1,4 @@
-function write_model(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V<:Integer}
+function write_model(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V}
     if fmt.version === v"1.0.0"
         _print_bqpjson_model_v1_0_0(io, model, fmt)
     else
@@ -8,13 +8,13 @@ function write_model(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V<:In
     return nothing
 end
 
-function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V<:Integer}
+function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V}
     json_data = Dict{String,Any}(
         "id"              => 0,
         "variable_domain" => _BQPJSON_VARIABLE_DOMAIN(domain(model)),
         "linear_terms"    => Dict{String,Any}[],
         "quadratic_terms" => Dict{String,Any}[],
-        "variable_ids"    => variables(model),
+        "variable_ids"    => indices(model),
         "scale"           => scale(model),
         "offset"          => offset(model),
         "metadata"        => Dict{String,Any}(),
@@ -24,7 +24,7 @@ function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::BQPJS
     for (i, l) in linear_terms(model)
         push!(
             json_data["linear_terms"],
-            Dict{String,Any}("id" => variable(model, i), "coeff" => l),
+            Dict{String,Any}("id" => i, "coeff" => l),
         )
     end
 
@@ -32,8 +32,8 @@ function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::BQPJS
         push!(
             json_data["quadratic_terms"],
             Dict{String,Any}(
-                "id_head" => variable(model, i),
-                "id_tail" => variable(model, j),
+                "id_head" => i,
+                "id_tail" => j,
                 "coeff"   => q,
             ),
         )
