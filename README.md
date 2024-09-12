@@ -94,11 +94,13 @@ This is the simplest of all current supported formats, where each row contains a
 
 [MiniZinc](https://www.minizinc.org) is a constraint modelling language that can be used as input for many solvers.
 
+---
+
 <div align="center">
     <a href="https://github.com/JuliaQUBO/QUBO.jl">
         <picture>
-            <source media="(prefers-color-scheme: dark)" srcset="https://github.com/JuliaQUBO/QUBO.jl/docs/src/assets/logo-collaboration-dark.svg">
-            <img alt="PSR; UFRJ; Purdue; USRA" src="https://github.com/JuliaQUBO/QUBO.jl/docs/src/assets/logo-collaboration-light.svg">
+            <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JuliaQUBO/QUBO.jl/master/docs/src/assets/logo-collaboration-dark.svg">
+            <img alt="PSR; UFRJ; Purdue; USRA" src="https://raw.githubusercontent.com/JuliaQUBO/QUBO.jl/master/docs/src/assets/logo-collaboration-light.svg">
         </picture>
     </a>
 </div>
