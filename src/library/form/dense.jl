@@ -30,7 +30,7 @@ data(lf::DenseLinearForm) = lf.data
 function linear_terms(lf::DenseLinearForm)
     L = data(lf)
 
-    return (i => L[i] for i = eachindex(L) if !iszero(L[i]))
+    return (i => L[i] for i in eachindex(L) if !iszero(L[i]))
 end
 
 function linear_size(lf::DenseLinearForm)
@@ -124,7 +124,13 @@ function DenseForm{T}(
     q = UpperTriangular{T,Matrix{T}}(zeros(T, n, n))
 
     for i = 1:n
-        l[i] = L[i] + Q[i, i]
+        if QUBOTools.domain(domain) === BoolDomain
+            l[i] = L[i] + Q[i, i]
+        else # QUBOTools.domain(domain) === SpinDomain
+            l[i] = L[i]
+
+            β += Q[i, i]
+        end
     end
 
     for i = 1:n, j = (i+1):n

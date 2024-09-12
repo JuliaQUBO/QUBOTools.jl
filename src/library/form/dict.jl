@@ -143,9 +143,13 @@ function DictForm{T}(
         iszero(v) && continue
 
         if i == j
-            l[i] = get(l, i, zero(T)) + v
+            if QUBOTools.domain(domain) === BoolDomain
+                l[i] = get(l, i, zero(T)) + v
 
-            iszero(l[i]) && delete!(l, i)
+                iszero(l[i]) && delete!(l, i)
+            else # QUBOTools.domain(domain) === SpinDomain
+                β += v
+            end
         elseif i > j
             q[(j, i)] = get(q, (j, i), zero(T)) + v
 

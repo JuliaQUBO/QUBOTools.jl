@@ -117,7 +117,7 @@ function test_form_dict()
         )
         Φ = QUBOTools.DictForm{Float64}(3, L, Q, 1.0, -1.0; sense = :max, domain = :bool)
 
-        h̄ = Dict{Int,Float64}(1 => 6.25, 2 => 8.25, 3 => 8.0)
+        h̄ = Dict{Int,Float64}(1 => 6.50, 2 => 8.75, 3 => 8.75)
         J̄ = Dict{Tuple{Int,Int},Float64}(
             (1, 1) => 0.25,
             (2, 2) => 0.50,
@@ -125,10 +125,9 @@ function test_form_dict()
             (1, 2) => 1.00,
             (2, 3) => 1.25,
         )
-        Ψ̄ =
-            QUBOTools.DictForm{Float64}(3, h̄, J̄, 1.0, 22.75; sense = :min, domain = :spin)
+        Ψ̄ = QUBOTools.DictForm{Float64}(3, h̄, J̄, 1.0, 21.25; sense = :min, domain = :spin)
 
-        h = Dict{Int,Float64}(1 => -6.25, 2 => -8.25, 3 => -8.0)
+        h = Dict{Int,Float64}(1 => -6.50, 2 => -8.75, 3 => -8.75)
         J = Dict{Tuple{Int,Int},Float64}(
             (1, 1) => -0.25,
             (2, 2) => -0.50,
@@ -136,7 +135,7 @@ function test_form_dict()
             (1, 2) => -1.00,
             (2, 3) => -1.25,
         )
-        Ψ = QUBOTools.DictForm{Float64}(3, h, J, 1.0, -22.75; sense = :max, domain = :spin)
+        Ψ = QUBOTools.DictForm{Float64}(3, h, J, 1.0, -21.25; sense = :max, domain = :spin)
 
         @testset "Constructor" begin
             @test _compare_forms(
@@ -220,7 +219,7 @@ function test_form_sparse()
         ])
         Φ = QUBOTools.SparseForm{Float64}(3, L, Q, 1.0, -1.0; sense = :max, domain = :bool)
 
-        h̄ = sparse([6.25, 8.25, 8.0])
+        h̄ = sparse([6.5, 8.75, 8.75])
         J̄ = sparse([
             0.25 1.00 0.00
             0.00 0.50 1.25
@@ -231,12 +230,12 @@ function test_form_sparse()
             h̄,
             J̄,
             1.0,
-            22.75;
+            21.25;
             sense = :min,
             domain = :spin,
         )
 
-        h = sparse([-6.25, -8.25, -8.0])
+        h = sparse([-6.5, -8.75, -8.75])
         J = sparse([
             -0.25 -1.00 -0.00
             -0.00 -0.50 -1.25
@@ -247,7 +246,7 @@ function test_form_sparse()
             h,
             J,
             1.0,
-            -22.75;
+            -21.25;
             sense = :max,
             domain = :spin,
         )
@@ -333,57 +332,66 @@ end
 
 function test_form_dense()
     @testset "⋅ Dense" begin
-        L̄ = [10.0, 11.0, 12.0]
-        Q̄ = [
+        L̄ = ([10.0, 11.0, 12.0])
+        Q̄ = ([
             1.0 4.0 0.0
             0.0 2.0 5.0
             0.0 0.0 3.0
-        ]
-        Φ̄ = QUBOTools.DenseForm{Float64}(3, L̄, Q̄, 1.0, 1.0; sense = :min, domain = :bool)
+        ])
+        Φ̄ =
+            QUBOTools.DenseForm{Float64}(3, L̄, Q̄, 1.0, 1.0; sense = :min, domain = :bool)
 
-        L = [-10.0, -11.0, -12.0]
-        Q = [
+        L = ([-10.0, -11.0, -12.0])
+        Q = ([
             -1.0 -4.0 -0.0
             -0.0 -2.0 -5.0
             -0.0 -0.0 -3.0
-        ]
+        ])
         Φ = QUBOTools.DenseForm{Float64}(3, L, Q, 1.0, -1.0; sense = :max, domain = :bool)
 
-        h̄ = [6.25, 8.25, 8.0]
-        J̄ = [
+        h̄ = ([6.5, 8.75, 8.75])
+        J̄ = ([
             0.25 1.00 0.00
             0.00 0.50 1.25
             0.00 0.00 0.75
-        ]
+        ])
         Ψ̄ = QUBOTools.DenseForm{Float64}(
             3,
             h̄,
             J̄,
             1.0,
-            22.75;
+            21.25;
             sense = :min,
             domain = :spin,
         )
 
-        h = [-6.25, -8.25, -8.0]
-        J = [
+        h = ([-6.5, -8.75, -8.75])
+        J = ([
             -0.25 -1.00 -0.00
             -0.00 -0.50 -1.25
             -0.00 -0.00 -0.75
-        ]
-        Ψ = QUBOTools.DenseForm{Float64}(3, h, J, 1.0, -22.75; sense = :max, domain = :spin)
+        ])
+        Ψ = QUBOTools.DenseForm{Float64}(
+            3,
+            h,
+            J,
+            1.0,
+            -21.25;
+            sense = :max,
+            domain = :spin,
+        )
 
         @testset "Constructor" begin
             @test _compare_forms(
                 Φ̄,
                 QUBOTools.DenseForm{Float64}(
                     3,
-                    [11.0, 13.0, 15.0],
-                    [
+                    ([11.0, 13.0, 15.0]),
+                    ([
                         0.0 4.0 0.0
                         0.0 0.0 5.0
                         0.0 0.0 0.0
-                    ],
+                    ]),
                     1.0,
                     1.0;
                     sense = :min,
@@ -395,12 +403,12 @@ function test_form_dense()
                 Φ,
                 QUBOTools.DenseForm{Float64}(
                     3,
-                    [-11.0, -13.0, -15.0],
-                    [
+                    ([-11.0, -13.0, -15.0]),
+                    ([
                         -0.0 -4.0 -0.0
                         -0.0 -0.0 -5.0
                         -0.0 -0.0 -0.0
-                    ],
+                    ]),
                     1.0,
                     -1.0;
                     sense = :max,
@@ -412,12 +420,12 @@ function test_form_dense()
                 Ψ̄,
                 QUBOTools.DenseForm{Float64}(
                     3,
-                    [6.50, 8.75, 8.75],
-                    [
+                    ([6.50, 8.75, 8.75]),
+                    ([
                         0.00 1.00 0.00
                         0.00 0.00 1.25
                         0.00 0.00 0.00
-                    ],
+                    ]),
                     1.0,
                     22.75;
                     sense = :min,
@@ -429,12 +437,12 @@ function test_form_dense()
                 Ψ,
                 QUBOTools.DenseForm{Float64}(
                     3,
-                    [-6.50, -8.75, -8.75],
-                    [
+                    ([-6.50, -8.75, -8.75]),
+                    ([
                         -0.00 -1.00 -0.00
                         -0.00 -0.00 -1.25
                         -0.00 -0.00 -0.00
-                    ],
+                    ]),
                     1.0,
                     -22.75;
                     sense = :max,

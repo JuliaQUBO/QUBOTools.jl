@@ -116,7 +116,13 @@ function SparseForm{T}(
     q = spzeros(T, n, n)
 
     for i = 1:n
-        l[i] = L[i] + Q[i, i]
+        if QUBOTools.domain(domain) === BoolDomain
+            l[i] = L[i] + Q[i, i]
+        else # QUBOTools.domain(domain) === SpinDomain
+            l[i] = L[i]
+
+            β += Q[i, i]
+        end
     end
 
     for i = 1:n, j = (i+1):n
