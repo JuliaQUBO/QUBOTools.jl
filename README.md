@@ -9,15 +9,15 @@
         <img src="https://img.shields.io/badge/arXiv-2307.02577-b31b1b.svg" alt="arXiv"/>
     </a>
     <a href="https://codecov.io/gh/psrenergy/QUBOTools.jl" > 
-        <img src="https://codecov.io/gh/psrenergy/QUBOTools.jl/branch/main/graph/badge.svg?token=W7QJWS5HI4"/> 
+        <img src="https://codecov.io/gh/JuliaQUBO/QUBOTools.jl/branch/main/graph/badge.svg?token=W7QJWS5HI4"/> 
     </a>
     <a href="/actions/workflows/ci.yml">
-        <img src="https://github.com/psrenergy/QUBOTools.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
+        <img src="https://github.com/JuliaQUBO/QUBOTools.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
     <a href="https://www.youtube.com/watch?v=OTmzlTbqdNo">
         <img src="https://img.shields.io/badge/JuliaCon-2022-9558b2" alt="JuliaCon 2022">
     </a>
-    <a href="https://psrenergy.github.com/QUBOTools.jl/dev">
+    <a href="https://juliaqubo.github.com/QUBOTools.jl/dev">
         <img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Docs">
     </a>
     <a href="https://zenodo.org/badge/latestdoi/508908129">
@@ -72,6 +72,10 @@ QUBOTools.write_model("problem.qubo", model)
 
 The `r` and `w` marks indicate that reading and writing modes are available for the corresponding file format, respectively.
 
+### [QUBin](/docs/models/QUBin.md) `rw`
+
+[QUBOTools](https://github.com/JuliaQUBO/QUBOTools.jl)' home-brewed HDF5-based file format.
+
 ### [BQPJSON](/docs/models/BQPJSON.md) `rw`
 
 The [BQPJSON](https://bqpjson.readthedocs.io) format was designed at [LANL-ANSI](https://github.com/lanl-ansi) to represent Binary Quadratic Programs in a platform-independet fashion.
@@ -84,25 +88,17 @@ A brief explanation about it can be found in [qbsolv](https://github.com/arconde
 
 ### [Qubist](/docs/models/Qubist.md) `rw`
 
-This is the simplest of all current supported formats.
+This is the simplest of all current supported formats, where each row contains a pair of variable indices and their corresponding coefficient value.
 
-### [MiniZinc](/docs/models/MiniZinc.md) `rw`
+### [MiniZinc](/docs/models/MiniZinc.md) `w`
 
 [MiniZinc](https://www.minizinc.org) is a constraint modelling language that can be used as input for many solvers.
 
-### [HFS](/docs/models/HFS.md) `w`
-
-HFS is a very low-level mapping of weights to D-Wave's chimera graph.
-
 <div align="center">
-    <h2>PSR Quantum Optimization Toolchain</h2>
-    <a href="https://github.com/psrenergy/ToQUBO.jl">
-        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/ToQUBO.jl/master/docs/src/assets/logo.svg" alt="ToQUBO.jl" />
-    </a>
-    <a href="https://github.com/psrenergy/QUBODrivers.jl">
-        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/QUBODrivers.jl/master/docs/src/assets/logo.svg" alt="QUBODrivers.jl" />
-    </a>
-    <a href="https://github.com/psrenergy/QUBOTools.jl">
-        <img width="200px" src="https://raw.githubusercontent.com/psrenergy/QUBOTools.jl/main/docs/src/assets/logo.svg" alt="QUBOTools.jl" />
+    <a href="https://github.com/JuliaQUBO/QUBO.jl">
+        <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="https://github.com/JuliaQUBO/QUBO.jl/docs/src/assets/logo-collaboration-dark.svg">
+            <img alt="PSR; UFRJ; Purdue; USRA" src="https://github.com/JuliaQUBO/QUBO.jl/docs/src/assets/logo-collaboration-light.svg">
+        </picture>
     </a>
 </div>
