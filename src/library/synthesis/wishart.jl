@@ -33,6 +33,8 @@ function Wishart(n::Integer, m::Integer; discretize::Bool = false, precision::In
 end
 
 function generate(rng, problem::Wishart{T}) where {T}
+    @_deprecate_generate()
+
     f, x = PBO.wishart(
         rng,
         PBO.PBF{Int,T},
