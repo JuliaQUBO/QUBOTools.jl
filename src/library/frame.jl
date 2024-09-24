@@ -22,7 +22,7 @@ function Base.Symbol(s::Sense)
     end
 end
 
-String(s::Sense) = String(Symbol(s))
+Base.String(s::Sense) = String(Symbol(s))
 
 domain(x::Domain) = x
 
@@ -48,7 +48,7 @@ function Base.Symbol(x::Domain)
     end
 end
 
-String(x::Domain) = String(Symbol(x))
+Base.String(x::Domain) = String(Symbol(x))
 
 function sense(obj::Any)
     return sense(frame(obj))

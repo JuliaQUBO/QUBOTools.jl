@@ -1,5 +1,7 @@
 using Test
 using Printf
+using Pkg
+using Pkg.Types: PkgError
 using SparseArrays
 using Statistics
 using RecipesBase
@@ -19,14 +21,16 @@ const SAT{T} = MOI.ScalarAffineTerm{T}
 const SQF{T} = MOI.ScalarQuadraticFunction{T}
 const SQT{T} = MOI.ScalarQuadraticTerm{T}
 
-const Spin          = QUBOTools.__moi_spin_set()
-const QUBOModel     = QUBOTools.__moi_qubo_model()
-const NumberOfReads = QUBOTools.__moi_num_reads()
+const QUBOTools_MOI = Base.get_extension(QUBOTools, :QUBOTools_MOI)
+const Spin          = QUBOTools_MOI.Spin
+const QUBOModel     = QUBOTools_MOI.QUBOModel
+const NumberOfReads = QUBOTools_MOI.NumberOfReads
 
 const __TEST_PATH__ = @__DIR__
 
 # Include assets
 include("assets/comparison.jl")
+include("assets/foreign_tests.jl")
 
 # Include test functions
 include("unit/unit.jl")

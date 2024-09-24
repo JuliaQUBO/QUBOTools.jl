@@ -21,6 +21,8 @@ end
 const SK{T} = SherringtonKirkpatrick{T}
 
 function generate(rng, problem::SherringtonKirkpatrick{T}) where {T}
+    @_deprecate_generate()
+
     f, x = PBO.sherrington_kirkpatrick(
         rng,
         PBO.PBF{Int,T},
