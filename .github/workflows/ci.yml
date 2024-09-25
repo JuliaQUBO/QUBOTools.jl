@@ -27,6 +27,8 @@ jobs:
           arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          QUBOTOOLS_FOREIGN_TESTS: true
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v2
         with:
