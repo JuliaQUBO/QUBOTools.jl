@@ -48,8 +48,9 @@ end
 SystemLayoutPlot(model) = SystemLayoutPlot(backend(model))
 
 @recipe function plot(plt::SystemLayoutPlot{2,G,T}) where {G,T}
-    title  --> "System Layout"
-    margin --> (0.5, :cm)
+    title      --> "System Layout"
+    margin     --> (0.5, :cm)
+    fontfamily --> "Computer Modern"
 
     g = QUBOTools.topology(plt.layout)
     P = QUBOTools.geometry(plt.layout)

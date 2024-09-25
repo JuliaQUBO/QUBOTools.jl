@@ -22,10 +22,12 @@ function EnergyFrequencyPlot(model::Any, λ = nothing)
 end
 
 @recipe function plot(plt::EnergyFrequencyPlot{T,U,S}) where {T,U,S}
-    title  --> "Solution Summary"
-    xlabel --> "Energy"
-    ylabel --> "Frequency"
-    legend --> :outertop
+    title      --> "Solution Summary"
+    xlabel     --> "Energy"
+    ylabel     --> "Frequency"
+    legend     --> :outertop
+    margin     --> (0.5, :cm)
+    fontfamily --> "Computer Modern"
 
     x = value.(plt.solution)
     y = reads.(plt.solution)

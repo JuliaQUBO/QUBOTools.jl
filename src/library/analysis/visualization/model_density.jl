@@ -11,11 +11,12 @@ function ModelDensityPlot(model::Any)
 end
 
 @recipe function plot(plt::ModelDensityPlot{V,T,U,M}) where {V,T,U,M}
-    title  --> "Model Density"
-    color  --> :balance
-    xlabel --> "Variable Index"
-    ylabel --> "Variable Index"
-    margin --> (0.5, :cm)
+    title      --> "Model Density"
+    color      --> :balance
+    xlabel     --> "Variable Index"
+    ylabel     --> "Variable Index"
+    margin     --> (0.5, :cm)
+    fontfamily --> "Computer Modern"
 
     n, L, Q, α = form(plt.model, :dense)
 

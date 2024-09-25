@@ -34,7 +34,7 @@ plot(QUBOTools.SystemLayoutPlot(model))
 ## Solutions
 
 ```@setup analysis
-function magical_solution_method(model, k = 12)
+function magical_solution_method(model, k = 30)
     n = QUBOTools.dimension(model)
 
     samples = Sample{Float64,Int}[]
@@ -61,4 +61,10 @@ solution = magical_solution_method(model)
 λ = minimum(QUBOTools.value, solution) # threshold
 
 plot(QUBOTools.EnergyFrequencyPlot(solution, λ))
+```
+
+### Energy Distribution
+
+```@example analysis
+plot(QUBOTools.EnergyDistributionPlot(solution))
 ```
