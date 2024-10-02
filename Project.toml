@@ -1,7 +1,7 @@
 name = "QUBOTools"
 uuid = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"
 authors = ["pedromxavier <mail@pedro.ϵλ>", "pedroripper <pedroripper@psr-inc.com>", "AndradeTiago <tiago.andrade@psr-inc.com>", "joaquimg <joaquim@psr-inc.com>", "bernalde <dbernaln@purdue.edu>"]
-version = "0.10.0"
+version = "0.10.1"
 
 [deps]
 GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
@@ -26,14 +26,14 @@ MathOptInterface = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
 QUBOTools_MOI = ["MathOptInterface"]
 
 [compat]
-GeometryBasics = "0.4"
-Graphs = "1"
-HDF5 = "0.16.15"
-JSON = "0.21.3"
-JSONSchema = "1"
-MathOptInterface = "1"
-NetworkLayout = "0.4.5"
+GeometryBasics            = "0.4"
+Graphs                    = "1"
+HDF5                      = "0.16.15"
+JSON                      = "0.21.3"
+JSONSchema                = "1"
+MathOptInterface          = "1"
+NetworkLayout             = "0.4.5"
 PseudoBooleanOptimization = "0.2"
-RecipesBase = "1"
-Statistics = "1"
-julia = "1.9"
+RecipesBase               = "1"
+Statistics                = "1"
+julia                     = "1.9"

@@ -78,8 +78,9 @@ function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::QUBO, ::V
         return false
     end
 
-    i = parse(Int, m[1]) + 1
-    j = parse(Int, m[2]) + 1
+    # NOTE: MQLib format is 1-indexed
+    i = parse(Int, m[1])
+    j = parse(Int, m[2])
     c = parse(Float64, m[3])
 
     if i == j

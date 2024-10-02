@@ -100,6 +100,7 @@ end
 function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:dwave})
     println(io, "c linear terms")
 
+    # NOTE: D-Wave format is 0-indexed
     for (i, l) in data[:linear_terms]
         println(io, "$(i-1) $(i-1) $(l)")
     end
@@ -116,8 +117,9 @@ end
 function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:mqlib})
     println(io, "# linear terms")
 
+    # NOTE: MQLib format is 1-indexed
     for (i, l) in data[:linear_terms]
-        println(io, "$(i-1) $(i-1) $(l)")
+        println(io, "$(i) $(i) $(l)")
     end
 
     println(io, "# quadratic terms")
@@ -125,7 +127,7 @@ function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:mqlib})
     for ((i, j), q) in data[:quadratic_terms]
         # NOTE: in MQLib qubo files, quadratic coefficients
         # are halved when written to the file
-        println(io, "$(i-1) $(j-1) $(q/2)")
+        println(io, "$(i) $(j) $(q/2)")
     end
 
     return nothing
