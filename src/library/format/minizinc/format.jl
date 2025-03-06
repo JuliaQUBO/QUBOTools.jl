@@ -1,8 +1,10 @@
-@doc raw"""
-    MiniZinc
+raw"""
+    Format{:minizinc}()
 """
-struct MiniZinc <: AbstractFormat end
+function Format{:minizinc}()
+    return Format{:minizinc}(Dict{Symbol,Any}())
+end
 
-format(::Val{:mzn}) = MiniZinc()
+infer_format(::Val{:mzn}) = Format{:minizinc}()
 
 include("printer.jl")

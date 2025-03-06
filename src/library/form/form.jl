@@ -39,7 +39,9 @@ function Form{T,LF,QF}(
     return Form{T,LF,QF}(n, L, Q, α, β, frame)
 end
 
-function Form{T,LF,QF}(Φ::F) where {T,F<:AbstractForm{T},LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
+function Form{T,LF,QF}(
+    Φ::F,
+) where {T,F<:AbstractForm{T},LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
     n = dimension(Φ)
 
     return Form{T,LF,QF}(
@@ -53,7 +55,9 @@ function Form{T,LF,QF}(Φ::F) where {T,F<:AbstractForm{T},LF<:AbstractLinearForm
     )
 end
 
-function Base.copy(Φ::Form{T,LF,QF}) where {T,LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
+function Base.copy(
+    Φ::Form{T,LF,QF},
+) where {T,LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
     return Form{T,LF,QF}(
         dimension(Φ),
         copy(linear_form(Φ)),
@@ -72,7 +76,10 @@ scale(Φ::Form)          = Φ.α
 offset(Φ::Form)         = Φ.β
 frame(Φ::Form)          = Φ.frame
 
-function cast((s, t)::Route{S}, Φ::Form{T,LF,QF}) where {S<:Sense,T,LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
+function cast(
+    (s, t)::Route{S},
+    Φ::Form{T,LF,QF},
+) where {S<:Sense,T,LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
     @assert s === sense(Φ)
 
     if s === t
@@ -99,7 +106,10 @@ function cast((s, t)::Route{S}, Φ::Form{T,LF,QF}) where {S<:Sense,T,LF<:Abstrac
     end
 end
 
-function cast((s, t)::Route{D}, Φ::Form{T,LF,QF}) where {D<:Domain,T,LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
+function cast(
+    (s, t)::Route{D},
+    Φ::Form{T,LF,QF},
+) where {D<:Domain,T,LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
     @assert s === domain(Φ)
 
     if s === t
@@ -153,4 +163,16 @@ function cast((s, t)::Route{D}, Φ::Form{T,LF,QF}) where {D<:Domain,T,LF<:Abstra
     else
         casting_error((s => t), Φ)
     end
+end
+
+function Form{T,LF,QF}(
+    n::Integer,
+    L::Any,
+    Q::Any,
+    α::T = one(T),
+    β::T = zero(T);
+    sense::Union{Sense,Symbol} = :min,
+    domain::Union{Domain,Symbol} = :bool,
+) where {T,LF,QF}
+    return Form{T,LF,QF}(n, LF(L), QF(Q), α, β; sense, domain)
 end

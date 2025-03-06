@@ -1,28 +1,32 @@
+function _test_data_path(case::Integer, path...)
+    return abspath(__TEST_PATH__, "data", Printf.@sprintf("%02d", case), path...)
+end
+
 function test_format_hints()
     @testset "⋅ Format Hints" begin
-        @test QUBOTools.format(:bool, :json) isa QUBOTools.BQPJSON
-        @test QUBOTools.format("file.bool.json") isa QUBOTools.BQPJSON
+        @test QUBOTools.infer_format(:bool, :json) isa QUBOTools.Format{:bqpjson}
+        @test QUBOTools.infer_format("file.bool.json") isa QUBOTools.Format{:bqpjson}
 
-        @test QUBOTools.format(:spin, :json) isa QUBOTools.BQPJSON
-        @test QUBOTools.format("file.spin.json") isa QUBOTools.BQPJSON
+        @test QUBOTools.infer_format(:spin, :json) isa QUBOTools.Format{:bqpjson}
+        @test QUBOTools.infer_format("file.spin.json") isa QUBOTools.Format{:bqpjson}
 
-        # @test QUBOTools.format(:hfs) isa QUBOTools.HFS
-        # @test QUBOTools.format("file.hfs") isa QUBOTools.HFS
+        # @test QUBOTools.infer_format(:hfs) isa QUBOTools.HFS
+        # @test QUBOTools.infer_format("file.hfs") isa QUBOTools.HFS
 
-        @test QUBOTools.format(:qb) isa QUBOTools.QUBin
-        @test QUBOTools.format("file.qb") isa QUBOTools.QUBin
+        @test QUBOTools.infer_format(:qb) isa QUBOTools.Format{:qubin}
+        @test QUBOTools.infer_format("file.qb") isa QUBOTools.Format{:qubin}
 
-        @test QUBOTools.format(:qh) isa QUBOTools.Qubist
-        @test QUBOTools.format("file.qh") isa QUBOTools.Qubist
+        @test QUBOTools.infer_format(:qh) isa QUBOTools.Format{:qubist}
+        @test QUBOTools.infer_format("file.qh") isa QUBOTools.Format{:qubist}
 
-        @test QUBOTools.format(:qubo) isa QUBOTools.QUBO
-        @test QUBOTools.format("file.qubo") isa QUBOTools.QUBO
+        @test QUBOTools.infer_format(:qubo) isa QUBOTools.Format{:qubo}
+        @test QUBOTools.infer_format("file.qubo") isa QUBOTools.Format{:qubo}
 
-        @test QUBOTools.format(:mzn) isa QUBOTools.MiniZinc
-        @test QUBOTools.format("file.mzn") isa QUBOTools.MiniZinc
+        @test QUBOTools.infer_format(:mzn) isa QUBOTools.Format{:minizinc}
+        @test QUBOTools.infer_format("file.mzn") isa QUBOTools.Format{:minizinc}
 
-        @test_throws Exception QUBOTools.format(:xyz)
-        @test_throws Exception QUBOTools.format("file")
+        @test_throws Exception QUBOTools.infer_format(:xyz)
+        @test_throws Exception QUBOTools.infer_format("file")
     end
 end
 
@@ -30,8 +34,7 @@ function test_bqpjson_format()
     @testset "⋅ BQPJSON" begin
         @testset "bool" begin
             for i = 0:2
-                file_path =
-                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.json")
+                file_path = _test_data_path(i, "bool.json")
                 temp_path = "$(tempname()).bool.json"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -52,8 +55,7 @@ function test_bqpjson_format()
 
         @testset "spin" begin
             for i = 0:2
-                file_path =
-                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.json")
+                file_path = _test_data_path(i, "spin.json")
                 temp_path = "$(tempname()).spin.json"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -63,8 +65,7 @@ function test_bqpjson_format()
 
                 QUBOTools.write_model(temp_path, src_model)
 
-                dst_model =
-                    QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
+                dst_model = QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
 
                 @test dst_model isa QUBOTools.Model
 
@@ -78,11 +79,10 @@ end
 
 function test_qubo_format()
     @testset "⋅ QUBO" begin
-        src_fmt = QUBOTools.QUBO(:dwave)
+        src_fmt = QUBOTools.Format{:qubo}(; style = :dwave)
 
         for i = 0:2
-            file_path =
-                joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qubo")
+            file_path = _test_data_path(i, "bool.qubo")
             temp_path = "$(tempname()).bool.qubo"
 
             src_model = QUBOTools.read_model(file_path, src_fmt)
@@ -90,7 +90,9 @@ function test_qubo_format()
 
             @test src_model isa QUBOTools.Model
 
-            for dst_fmt in QUBOTools.QUBO.([:dwave, :mqlib])
+            for style in (:dwave, :mqlib)
+                dst_fmt = QUBOTools.Format{:qubo}(; style)
+
                 QUBOTools.write_model(temp_path, src_model, dst_fmt)
 
                 dst_model = QUBOTools.map_variables(
@@ -111,8 +113,7 @@ end
 function test_qubist_format()
     @testset "⋅ Qubist" begin
         for i = 0:2
-            file_path =
-                joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.qh")
+            file_path = _test_data_path(i, "spin.qh")
             temp_path = "$(tempname()).spin.qh"
 
             src_model = QUBOTools.read_model(file_path)
@@ -137,8 +138,7 @@ function test_qubin_format()
     @testset "⋅ QUBin" begin
         @testset "bool" begin
             for i = 0:2
-                file_path =
-                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "bool.qb")
+                file_path = _test_data_path(i, "bool.qb")
                 temp_path = "$(tempname()).bool.qb"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -159,8 +159,7 @@ function test_qubin_format()
 
         @testset "spin" begin
             for i = 0:2
-                file_path =
-                    joinpath(__TEST_PATH__, "data", Printf.@sprintf("%02d", i), "spin.qb")
+                file_path = _test_data_path(i, "spin.qb")
                 temp_path = "$(tempname()).spin.qb"
 
                 src_model = QUBOTools.read_model(file_path)
@@ -200,7 +199,7 @@ function test_minizinc_format()
                 )
 
                 let io = IOBuffer()
-                    QUBOTools.write_model(io, model, QUBOTools.MiniZinc())
+                    QUBOTools.write_model(io, model, QUBOTools.Format{:minizinc}())
 
                     @test String(take!(io)) == """
                         set of int: Domain = {0,1};
@@ -231,7 +230,7 @@ function test_minizinc_format()
                 )
 
                 let io = IOBuffer()
-                    QUBOTools.write_model(io, model, QUBOTools.MiniZinc())
+                    QUBOTools.write_model(io, model, QUBOTools.Format{:minizinc}())
 
                     @test String(take!(io)) == """
                         set of int: Domain = {-1,1};
@@ -251,6 +250,14 @@ function test_minizinc_format()
     return nothing
 end
 
+function test_rudy_format()
+    @testset "⋅ Rudy" begin
+        
+    end
+
+    return nothing
+end
+
 function test_formats()
     @testset "→ Formats" verbose = true begin
         test_format_hints()
@@ -259,6 +266,7 @@ function test_formats()
         test_qubo_format()
         test_qubist_format()
         test_minizinc_format()
+        test_rudy_format()
     end
 
     return nothing

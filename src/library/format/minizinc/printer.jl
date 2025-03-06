@@ -1,4 +1,4 @@
-function write_model(io::IO, model::AbstractModel{V}, fmt::MiniZinc) where {V}
+function write_model(io::IO, model::AbstractModel{V}, fmt::Format{:minizinc}) where {V}
     _print_metadata(io, model, fmt)
     _print_domain(io, model, fmt)
     _print_variables(io, model, fmt)
@@ -8,7 +8,7 @@ function write_model(io::IO, model::AbstractModel{V}, fmt::MiniZinc) where {V}
     return nothing
 end
 
-function _print_metadata(io::IO, model::AbstractModel, ::MiniZinc)
+function _print_metadata(io::IO, model::AbstractModel, ::Format{:minizinc})
     for (k, v) in metadata(model)
         println(io, "% $(k) : $(JSON.json(v))")
     end
@@ -16,7 +16,7 @@ function _print_metadata(io::IO, model::AbstractModel, ::MiniZinc)
     return nothing
 end
 
-function _print_domain(io::IO, model::AbstractModel, ::MiniZinc)
+function _print_domain(io::IO, model::AbstractModel, ::Format{:minizinc})
     X = domain(model)
 
     if X === BoolDomain
@@ -30,7 +30,7 @@ function _print_domain(io::IO, model::AbstractModel, ::MiniZinc)
     return nothing
 end
 
-function _print_variables(io::IO, model::AbstractModel, ::MiniZinc)
+function _print_variables(io::IO, model::AbstractModel, ::Format{:minizinc})
     for i = indices(model)
         println(io, "var Domain: x$(i);")
     end
@@ -38,7 +38,7 @@ function _print_variables(io::IO, model::AbstractModel, ::MiniZinc)
     return nothing
 end
 
-function _print_objective(io::IO, model::AbstractModel, ::MiniZinc)
+function _print_objective(io::IO, model::AbstractModel, ::Format{:minizinc})
     objective_terms = String[]
 
     println(io, "float: scale = $(scale(model));")
@@ -63,7 +63,7 @@ function _print_objective(io::IO, model::AbstractModel, ::MiniZinc)
     return nothing
 end
 
-function _print_sense(io::IO, model::AbstractModel, ::MiniZinc)
+function _print_sense(io::IO, model::AbstractModel, ::Format{:minizinc})
     s = sense(model)
 
     if s === Min

@@ -1,4 +1,4 @@
-function read_model(io::IO, fmt::Qubist)
+function read_model(io::IO, fmt::Format{:qubist})
     data = Dict{Symbol,Any}(
         :linear_terms    => Dict{Int,Float64}(),
         :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
@@ -24,7 +24,7 @@ function read_model(io::IO, fmt::Qubist)
     )
 end
 
-function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::Qubist)
+function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::Format{:qubist})
     isempty(line) && return nothing
 
     _parse_entry!(data, line, fmt) && return nothing
@@ -33,7 +33,7 @@ function _parse_line!(data::Dict{Symbol,Any}, line::AbstractString, fmt::Qubist)
     syntax_error("'$line'")
 end
 
-function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)
+function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::Format{:qubist})
     m = match(r"^\s*([0-9]+)\s+([0-9]+)\s+([+-]?([0-9]*[.])?[0-9]+)\s*$", line)
 
     if isnothing(m)
@@ -57,7 +57,7 @@ function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)
     return true
 end
 
-function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::Qubist)
+function _parse_header!(data::Dict{Symbol,Any}, line::AbstractString, ::Format{:qubist})
     m = match(r"^([0-9]+)\s+([0-9]+)$", line)
 
     if isnothing(m)
