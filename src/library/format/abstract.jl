@@ -12,6 +12,12 @@ function format(path::AbstractString)
     end
 end
 
+function format(::Val)
+    error("Not able to detect file format")
+
+    return nothing
+end
+
 function format(hints::Symbol...)
     return format(Val.(hints)...)
 end

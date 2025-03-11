@@ -2,12 +2,12 @@ struct QUBOParsingError <: Exception
     msg::String
     ads::Bool
 
-    function QUBOParsingError(msg::AbstractString; ads::Bool = true)
+    function QUBOParsingError(msg::AbstractString; ads::Bool = false)
         return new(msg, ads)
     end
 end
 
-function qubo_parsing_error(msg::AbstractString; ads::Bool = true)
+function qubo_parsing_error(msg::AbstractString; ads::Bool = false)
     throw(QUBOParsingError(msg; ads))
 end
 
