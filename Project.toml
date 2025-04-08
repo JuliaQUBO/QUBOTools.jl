@@ -28,7 +28,7 @@ QUBOTools_MOI = ["MathOptInterface"]
 [compat]
 GeometryBasics            = "0.4"
 Graphs                    = "1"
-HDF5                      = "0.16.15"
+HDF5                      = "0.17.2"
 JSON                      = "0.21.3"
 JSONSchema                = "1"
 MathOptInterface          = "1"
