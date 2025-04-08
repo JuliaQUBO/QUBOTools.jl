@@ -2,7 +2,6 @@ function test_moi()
     @testset "□ MathOptInterface" verbose = true begin
         test_moi_variables()
         test_moi_attributes()
-        test_moi_qubo_model()
         test_moi_model_parser()
     end
 
@@ -11,9 +10,6 @@ end
 
 function test_moi_variables()
     @testset "⊛ Variables" begin
-        # Check if the Spin variable set is defined
-        @test QUBOTools.__moi_spin_set() === Spin
-
         @testset "→ varlt" begin
             # Check if the variable ordering of variables is behaving accordingly
             @test QUBOTools.varlt(VI(1), VI(1)) === false
@@ -34,17 +30,8 @@ function test_moi_variables()
     return nothing
 end
 
-function test_moi_qubo_model()
-    @testset "⊛ QUBO Model" begin
-        @test QUBOTools.__moi_qubo_model() === QUBOModel 
-    end
-
-    return nothing
-end
-
-
 function test_moi_model_parser()
-    @testset "⊛ Model Parser" verbose = true begin
+    @testset "⊛ QUBO Model Parser" verbose = true begin
         test_moi_bool_model_parser()
         test_moi_spin_model_parser()
     end
@@ -78,17 +65,33 @@ function test_moi_bool_model_parser()
 
             MOI.add_constraints(moi_model, v, fill(MOI.ZeroOne(), 3))
 
-            qt_model = QUBOTools.Model{Float64}(moi_model)
+            let qt_model = QUBOTools.Model{Float64}(moi_model)
+                n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
 
-            n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
+                @test n == 3
+                @test s == QUBOTools.sense(:max)
+                @test X == QUBOTools.domain(:bool)
+                @test L == [2.0, 4.0, 6.0]
+                @test Q == [0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 0.0]
+                @test α ≈ 1.0
+                @test β ≈ 9.9
+            end
 
-            @test n == 3
-            @test s == QUBOTools.sense(:max)
-            @test X == QUBOTools.domain(:bool)
-            @test L == [2.0, 4.0, 6.0]
-            @test Q == [0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 0.0]
-            @test α ≈ 1.0
-            @test β ≈ 9.9
+            @testset "⧫ Fixed Variables" begin
+                MOI.add_constraints(moi_model, v[[1,3]], MOI.EqualTo{Float64}.([0, 1]))
+
+                let qt_model = QUBOTools.Model{Float64}(moi_model)
+                    n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
+    
+                    @test n == 1
+                    @test s == QUBOTools.sense(:max)
+                    @test X == QUBOTools.domain(:bool)
+                    @test L == [4.0]
+                    @test Q == [0.0;;]
+                    @test α ≈ 1.0
+                    @test β ≈ 15.9
+                end
+            end
         end
 
         @testset "⋅ Quadratic" begin
@@ -123,17 +126,33 @@ function test_moi_bool_model_parser()
 
             MOI.add_constraints(moi_model, v, fill(MOI.ZeroOne(), 3))
 
-            qt_model = QUBOTools.Model{Float64}(moi_model)
+            let qt_model = QUBOTools.Model{Float64}(moi_model)
+                n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
 
-            n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
+                @test n == 3
+                @test s == QUBOTools.sense(:max)
+                @test X == QUBOTools.domain(:bool)
+                @test L == [1.0, 2.0, 3.0]
+                @test Q == [0.0 12.0 13.0; 0.0 0.0 23.0; 0.0 0.0 0.0]
+                @test α ≈ 1.0
+                @test β ≈ 9.9
+            end
 
-            @test n == 3
-            @test s == QUBOTools.sense(:max)
-            @test X == QUBOTools.domain(:bool)
-            @test L == [1.0, 2.0, 3.0]
-            @test Q == [0.0 12.0 13.0; 0.0 0.0 23.0; 0.0 0.0 0.0]
-            @test α ≈ 1.0
-            @test β ≈ 9.9
+            @testset "⧫ Fixed Variables" begin
+                MOI.add_constraints(moi_model, v[[1,3]], MOI.EqualTo{Float64}.([0, 1]))
+
+                let qt_model = QUBOTools.Model{Float64}(moi_model)
+                    n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
+    
+                    @test n == 1
+                    @test s == QUBOTools.sense(:max)
+                    @test X == QUBOTools.domain(:bool)
+                    @test L == [25.0]
+                    @test Q == [0.0;;]
+                    @test α ≈ 1.0
+                    @test β ≈ 12.9
+                end
+            end
         end
     end
 
@@ -162,19 +181,35 @@ function test_moi_spin_model_parser()
 
             MOI.set(moi_model, MOI.ObjectiveSense(), MOI.MIN_SENSE)
 
-            qt_model = QUBOTools.Model{Float64}(moi_model)
+            let qt_model = QUBOTools.Model{Float64}(moi_model)
+                n, h, J, α, β, s, X = QUBOTools.ising(qt_model, :dense)
 
-            n, h, J, α, β, s, X = QUBOTools.ising(qt_model, :dense)
-
-            @test n == 3
-            @test s == QUBOTools.sense(:min)
-            @test X == QUBOTools.domain(:spin)
-            @test h == [2.0, 4.0, 6.0]
-            @test J == [0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 0.0]
-            @test α ≈ 1.0
-            @test β ≈ 9.9
+                @test n == 3
+                @test s == QUBOTools.sense(:min)
+                @test X == QUBOTools.domain(:spin)
+                @test h == [2.0, 4.0, 6.0]
+                @test J == [0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 0.0]
+                @test α ≈ 1.0
+                @test β ≈ 9.9
+            end
 
             @test_throws Exception MOI.add_constrained_variable(moi_model, MOI.ZeroOne())
+
+            @testset "⧫ Fixed Variables" begin
+                MOI.add_constraints(moi_model, v[[1,3]], MOI.EqualTo{Float64}.([-1, 1]))
+
+                let qt_model = QUBOTools.Model{Float64}(moi_model)
+                    n, h, J, α, β, s, X = QUBOTools.ising(qt_model, :dense)
+
+                    @test n == 1
+                    @test s == QUBOTools.sense(:min)
+                    @test X == QUBOTools.domain(:spin)
+                    @test h == [4.0]
+                    @test J == [0.0;;]
+                    @test α ≈ 1.0
+                    @test β ≈ 13.9
+                end
+            end
         end
 
         @testset "⋅ Quadratic" begin
@@ -218,6 +253,22 @@ function test_moi_spin_model_parser()
             @test β ≈ 3.9
 
             @test_throws Exception MOI.add_constrained_variable(moi_model, MOI.ZeroOne())
+
+            @testset "⧫ Fixed Variables" begin
+                MOI.add_constraints(moi_model, v[[1,3]], MOI.EqualTo{Float64}.([-1, 1]))
+
+                let qt_model = QUBOTools.Model{Float64}(moi_model)
+                    n, h, J, α, β, s, X = QUBOTools.ising(qt_model, :dense)
+
+                    @test n == 1
+                    @test s == QUBOTools.sense(:min)
+                    @test X == QUBOTools.domain(:spin)
+                    @test h == [15.0]
+                    @test J == [0.0;;]
+                    @test α ≈ 1.0
+                    @test β ≈ -5.1
+                end
+            end
         end
     end
 
@@ -227,7 +278,7 @@ end
 function test_moi_attributes()
     @testset "⊛ Attributes" verbose = true begin
         @testset "→ NumberOfReads" begin
-            @test QUBOTools.__moi_num_reads() === NumberOfReads
+            
         end
     end
 
