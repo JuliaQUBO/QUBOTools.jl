@@ -4,29 +4,29 @@ end
 
 function test_format_hints()
     @testset "⋅ Format Hints" begin
-        @test QUBOTools.infer_format(:bool, :json) isa QUBOTools.Format{:bqpjson}
-        @test QUBOTools.infer_format("file.bool.json") isa QUBOTools.Format{:bqpjson}
+        @test QUBOTools.infer_format([:bool, :json]) isa QUBOTools.Format{:bqpjson}
+        @test QUBOTools.infer_format(; path = "file.bool.json") isa QUBOTools.Format{:bqpjson}
 
-        @test QUBOTools.infer_format(:spin, :json) isa QUBOTools.Format{:bqpjson}
-        @test QUBOTools.infer_format("file.spin.json") isa QUBOTools.Format{:bqpjson}
+        @test QUBOTools.infer_format([:spin, :json]) isa QUBOTools.Format{:bqpjson}
+        @test QUBOTools.infer_format(; path = "file.spin.json") isa QUBOTools.Format{:bqpjson}
 
-        # @test QUBOTools.infer_format(:hfs) isa QUBOTools.HFS
-        # @test QUBOTools.infer_format("file.hfs") isa QUBOTools.HFS
+        # @test QUBOTools.infer_format([:hfs]) isa QUBOTools.HFS
+        # @test QUBOTools.infer_format(; path = "file.hfs") isa QUBOTools.HFS
 
-        @test QUBOTools.infer_format(:qb) isa QUBOTools.Format{:qubin}
-        @test QUBOTools.infer_format("file.qb") isa QUBOTools.Format{:qubin}
+        @test QUBOTools.infer_format([:qb]) isa QUBOTools.Format{:qubin}
+        @test QUBOTools.infer_format(; path = "file.qb") isa QUBOTools.Format{:qubin}
 
-        @test QUBOTools.infer_format(:qh) isa QUBOTools.Format{:qubist}
-        @test QUBOTools.infer_format("file.qh") isa QUBOTools.Format{:qubist}
+        @test QUBOTools.infer_format([:qh]) isa QUBOTools.Format{:qubist}
+        @test QUBOTools.infer_format(; path = "file.qh") isa QUBOTools.Format{:qubist}
 
-        @test QUBOTools.infer_format(:qubo) isa QUBOTools.Format{:qubo}
-        @test QUBOTools.infer_format("file.qubo") isa QUBOTools.Format{:qubo}
+        @test QUBOTools.infer_format([:qubo]) isa QUBOTools.Format{:qubo}
+        @test QUBOTools.infer_format(; path = "file.qubo") isa QUBOTools.Format{:qubo}
 
-        @test QUBOTools.infer_format(:mzn) isa QUBOTools.Format{:minizinc}
-        @test QUBOTools.infer_format("file.mzn") isa QUBOTools.Format{:minizinc}
+        @test QUBOTools.infer_format([:mzn]) isa QUBOTools.Format{:minizinc}
+        @test QUBOTools.infer_format(; path = "file.mzn") isa QUBOTools.Format{:minizinc}
 
-        @test_throws Exception QUBOTools.infer_format(:xyz)
-        @test_throws Exception QUBOTools.infer_format("file")
+        @test_throws QUBOTools.FormatInferenceError QUBOTools.infer_format([:xyz])
+        @test_throws QUBOTools.FormatInferenceError QUBOTools.infer_format(; path = "file")
     end
 end
 

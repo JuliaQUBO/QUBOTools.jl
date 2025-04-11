@@ -33,6 +33,28 @@ Given the file path, tries to infer the type associated to a QUBO model format.
 function format end
 
 @doc raw"""
+    FormatInferenceError
+"""
+struct FormatInferenceError{S} <: Exception
+    source::S
+
+    FormatInferenceError(source::Vector{Symbol})                = new{Vector{Symbol}}(source)
+    FormatInferenceError(source::S) where {S <: AbstractString} = new{String}(String(source))
+end
+
+function Base.showerror(io::IO, err::FormatInferenceError{S}) where {S <: AbstractString}
+    print(io, "FormatInferenceError: Unable to infer file format from path: '$(err.source)'")
+end
+
+function Base.showerror(io::IO, err::FormatInferenceError{Vector{Symbol}})
+    print(io, "FormatInferenceError: Unable to infer file format from keys: '$(err.source)'")
+end
+
+function format_inference_error(source)
+    throw(FormatInferenceError(source))
+end
+
+@doc raw"""
     infer_format(; path::AbstractString)
 """
 function infer_format end
@@ -40,16 +62,24 @@ function infer_format end
 infer_format(::Val)                = nothing
 infer_format(::Val, hints::Val...) = infer_format(hints...)
 
-function infer_format(; path::AbstractString)
-    fmt = infer_format(_format_hints(path)...)
+function infer_format(hints::Vector{Symbol})::Format
+    fmt = infer_format(Val.(hints)...)
 
-    if isnothing(fmt)
-        error("`QUBOTools` was unable to infer the format from file path '$path'")
-    else
-        @assert fmt isa Format
+    isnothing(fmt) && format_inference_error(hints)
 
-        return fmt
-    end
+    return fmt
+end
+
+function infer_format(; path::AbstractString)::Format
+    hints = _format_hints(path)
+
+    isempty(hints) && format_inference_error(path)
+
+    fmt = infer_format(Val.(hints)...)
+
+    isnothing(fmt) && format_inference_error(path)
+    
+    return fmt
 end
 
 function _format_hints(subpath::AbstractString)
@@ -66,5 +96,5 @@ function _format_hints(subpath::AbstractString)
         end
     end
 
-    return Val.(Iterators.reverse(hints))
+    return reverse(hints)
 end
