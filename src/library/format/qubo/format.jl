@@ -1,18 +1,20 @@
-raw"""
+@doc raw"""
     Format{:qubo}(; style::Union{Symbol,Nothing})
 
 The `style` could be `:dwave`, `:qbsolv`, `:mqlib` or `nothing`.
 """
+const qubo_fmt = Format{:qubo}
+
 function Format{:qubo}(; style::Union{Symbol,Nothing} = nothing)
     if isnothing(style)
-        return Format{:qubo}(Dict{Symbol,Any}())
+        return Format{:qubo}(Dict{Symbol,Any}(:style => nothing))
     elseif style === :dwave || style === :qbsolv
         return Format{:qubo}(Dict{Symbol,Any}(:style => :dwave))
     elseif style === :mqlib
         return Format{:qubo}(Dict{Symbol,Any}(:style => :mqlib))
     else
         error(
-            "Unkown style '$style' for QUBO files. Options are: ':dwave', ':qbsolv' and ':mqlib'",
+            "Unkown style '$style' for QUBO files. Options are: ':dwave', ':qbsolv', ':mqlib', or 'nothing'",
         )
     end
 end

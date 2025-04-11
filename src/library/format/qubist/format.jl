@@ -1,11 +1,11 @@
-raw"""
+@doc raw"""
     Format{:qubist}()
 
 Simple spin-based file format.
 """
-function Format{:qubist}()
-    return Format{:qubist}(Dict{Symbol,Any}())
-end
+const qubist_fmt = Format{:qubist}
+
+Format{:qubist}() = Format{:qubist}(Dict{Symbol,Any}())
 
 infer_format(::Val{:qh}) = Format{:qubist}()
 

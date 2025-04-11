@@ -23,11 +23,13 @@ function _BQPJSON_VALIDATE_DOMAIN(x::Integer, X::Domain)
     end
 end
 
-raw"""
+@doc raw"""
     Format{:bqpjson}(; version::VersionNumber, indent::Integer)
 
 Precise and detailed information found in the [bqpjson docs](https://bqpjson.readthedocs.io)
 """
+const bqpjson_fmt = Format{:bqpjson}
+
 function Format{:bqpjson}(; version::VersionNumber = _BQPJSON_VERSION_LATEST, indent::Integer = 2)
     @assert version ∈ _BQPJSON_VERSION_LIST
     @assert indent >= 0

@@ -1,3 +1,8 @@
+@doc raw"""
+    Format{:rudy}(; domain::Union{Symbol,Domain} = :spin)
+"""
+const rudy_fmt = Format{:rudy}
+
 function Format{:rudy}(; domain::Union{Symbol,Domain} = :spin)
     return Format{:rudy}(
         Dict{Symbol,Any}(

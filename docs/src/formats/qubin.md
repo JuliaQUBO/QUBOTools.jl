@@ -3,5 +3,5 @@
 ## Format
 
 ```@docs
-QUBOTools.QUBin
+QUBOTools.qubin_fmt
 ```

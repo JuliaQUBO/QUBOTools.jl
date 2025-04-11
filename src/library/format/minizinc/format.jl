@@ -1,9 +1,9 @@
-raw"""
+@doc raw"""
     Format{:minizinc}()
 """
-function Format{:minizinc}()
-    return Format{:minizinc}(Dict{Symbol,Any}())
-end
+const minizinc_fmt = Format{:minizinc}
+
+Format{:minizinc}() = Format{:minizinc}(Dict{Symbol,Any}())
 
 infer_format(::Val{:mzn}) = Format{:minizinc}()
 
