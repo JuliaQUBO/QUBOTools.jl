@@ -72,8 +72,8 @@
         </symbol>
 
         <pattern id="pattern" patternUnits="userSpaceOnUse" x="100" y="0" width="400" height="100" style="overflow:visible">
-            <use x="0"   xlink:href="#S-A" width="200" height="100"/>
-            <use x="200" xlink:href="#S-B" width="200" height="100"/>
+            <use x="0"   href="#S-A" width="200" height="100"/>
+            <use x="200" href="#S-B" width="200" height="100"/>
         </pattern>
 
         <mask id="mask">
