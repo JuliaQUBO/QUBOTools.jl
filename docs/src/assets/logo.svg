@@ -24,23 +24,32 @@
         fill: #9558b2;
         stroke-width: 5px;
         }
+
+        .strand{
+            white-space: pre;
+            font-family: monospace;
+            font-size: 15pt;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            stroke-width: 1pt;
+        }
     </style>
 
     <defs>
         <symbol id="S-A" viewBox="0 -50 200 100" overflow="visible">
             <path id="P-A" fill="none" stroke="none" d="M0 -42 C50 -42 150  42 200  42" />
             <path id="P-B" fill="none" stroke="none"  d="M0  42 C50  42 150 -42 200 -42" />
-            <text font-family="monospace" fill="#4063d8" text-anchor="middle" dominant-baseline="middle" font-size="15pt">
+            <text class="strand" fill="#4063d8" stroke="#4063d8">
                 <textPath startOffset="50%" href="#P-A">11010101010101010110</textPath>
             </text>
-            <text font-family="monospace" fill="#cb3c33" text-anchor="middle" dominant-baseline="middle" font-size="15pt">
-                <textPath startOffset="50%" href="#P-B">↓&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;↓&nbsp;&nbsp;↓&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;</textPath>
+            <text class="strand" fill="#cb3c33" stroke="#cb3c33">
+                <textPath startOffset="50%" href="#P-B">↓  ↑  ↑  ↓  ↓  ↑  ↑ </textPath>
             </text>
-            <text font-family="monospace" fill="#389826" text-anchor="middle" dominant-baseline="middle" font-size="15pt">
-                <textPath startOffset="50%" href="#P-B">&nbsp;↓&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;↓&nbsp;&nbsp;↑</textPath>
+            <text class="strand" fill="#389826" stroke="#389826">
+                <textPath startOffset="50%" href="#P-B"> ↓  ↑  ↑  ↑  ↑  ↓  ↑</textPath>
             </text>
-            <text font-family="monospace" fill="#9558b2" text-anchor="middle" dominant-baseline="middle" font-size="15pt">
-                <textPath startOffset="50%" href="#P-B">&nbsp;&nbsp;↑&nbsp;&nbsp;↓&nbsp;&nbsp;↓&nbsp;&nbsp;↓&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;</textPath>
+            <text class="strand" fill="#9558b2" stroke="#9558b2">
+                <textPath startOffset="50%" href="#P-B">  ↑  ↓  ↓  ↓  ↑  ↑  </textPath>
             </text>
         </symbol>
 
@@ -48,16 +57,16 @@
             <path id="P-C" fill="none" stroke="none"  d="M0  42 C50  42 150 -42 200 -42" />
             <path id="P-D" fill="none" stroke="none" d="M0 -42 C50 -42 150  42 200  42" />
             
-            <text font-family="monospace" fill="#cb3c33" text-anchor="middle" dominant-baseline="middle" font-size="15pt">
-                <textPath startOffset="50%" href="#P-D">↓&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;↓&nbsp;&nbsp;↓&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;</textPath>
+            <text class="strand" fill="#cb3c33" stroke="#cb3c33">
+                <textPath startOffset="50%" href="#P-D">↓  ↑  ↑  ↓  ↓  ↑  ↑ </textPath>
             </text>
-            <text font-family="monospace" fill="#389826" text-anchor="middle" dominant-baseline="middle" font-size="15pt">
-                <textPath startOffset="50%" href="#P-D">&nbsp;↓&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;↓&nbsp;&nbsp;↑</textPath>
+            <text class="strand" fill="#389826" stroke="#389826">
+                <textPath startOffset="50%" href="#P-D"> ↓  ↑  ↑  ↑  ↑  ↓  ↑</textPath>
             </text>
-            <text font-family="monospace" fill="#9558b2" text-anchor="middle" dominant-baseline="middle" font-size="15pt">
-                <textPath startOffset="50%" href="#P-D">&nbsp;&nbsp;↑&nbsp;&nbsp;↓&nbsp;&nbsp;↓&nbsp;&nbsp;↓&nbsp;&nbsp;↑&nbsp;&nbsp;↑&nbsp;&nbsp;</textPath>
+            <text class="strand" fill="#9558b2" stroke="#9558b2">
+                <textPath startOffset="50%" href="#P-D">  ↑  ↓  ↓  ↓  ↑  ↑  </textPath>
             </text>
-            <text font-family="monospace" fill="#4063d8" text-anchor="middle" dominant-baseline="middle" font-size="15pt">
+            <text class="strand" fill="#4063d8" stroke="#4063d8">
                 <textPath startOffset="50%" href="#P-C">11010101010101010110</textPath>
             </text>
         </symbol>
@@ -65,50 +74,19 @@
         <pattern id="pattern" patternUnits="userSpaceOnUse" x="100" y="0" width="400" height="100" style="overflow:visible">
             <use x="0"   xlink:href="#S-A" width="200" height="100"/>
             <use x="200" xlink:href="#S-B" width="200" height="100"/>
-
-            <!-- 
-
-            
-
-            <path
-                id="spin-path-2"
-                fill="none"
-                stroke="red"
-                d="M200 0 C250 0 350 100 400 100" />
-
-            <text font-family="monospace" stroke="#cb3c33" text-anchor="middle" dominant-baseline="middle">
-                <textPath href="#spin-path-2">Quick brown fox jumps over the lazy dog.</textPath>
-            </text>
-
-            <path
-                id="bool-path-2"
-                fill="none"
-                stroke="blue"
-                d="M200 100 C250 100 350 0 400 0" />
-
-            <text font-family="monospace" stroke="#4063d8" text-anchor="middle" dominant-baseline="middle">
-                <textPath href="#bool-path-2">0101010101010101010101010101010101010101010101010101011010</textPath>
-            </text> -->
         </pattern>
-        <!-- </defs> -->
-
-        
 
         <mask id="mask">
             <rect x="0" y="0" width="1000" height="1000" fill="white" />
             <rect x="40" y="40" width="920" height="920" fill="black" />
-            <text x="500" y="225" text-anchor="middle" dominant-baseline="central" fill="white" font-size="300" font-family="Helvetica" font-weight="bold">
+            <text x="500" y="225" text-anchor="middle" dominant-baseline="central" fill="white" font-size="205pt" font-family="Helvetica" font-weight="bold">
                 QUBO
             </text>
-            <text x="500" y="775" text-anchor="middle" dominant-baseline="central" fill="white" font-size="300" font-family="Helvetica" font-weight="bold">
+            <text x="500" y="775" text-anchor="middle" dominant-baseline="central" fill="white" font-size="205pt" font-family="Helvetica" font-weight="bold">
                 Tools
             </text>
-            <!-- <rect x="521.5" y="530" width="415" height="220" fill="white" /> -->
         </mask>
     </defs>
-
-    
-
 
     <!-- FRAME -->
     <g mask="url(#mask)">
