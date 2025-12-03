@@ -38,13 +38,13 @@ function _parse_model_form(fp::P, ::Format{:qubin}) where {P<:Union{HDF5.File,HD
     li = read(fp["model"]["form"]["linear"]["i"])
     lv = read(fp["model"]["form"]["linear"]["v"])
 
-    L = SparseLinearForm(sparsevec(li, lv))
+    L = SparseLinearForm(sparsevec(li, lv, n))
 
     qi = read(fp["model"]["form"]["quadratic"]["i"])
     qj = read(fp["model"]["form"]["quadratic"]["j"])
     qv = read(fp["model"]["form"]["quadratic"]["v"])
 
-    Q = SparseQuadraticForm(sparse(qi, qj, qv))
+    Q = SparseQuadraticForm(sparse(qi, qj, qv, n, n))
 
     α = read(fp["model"]["form"]["scale"])
     β = read(fp["model"]["form"]["offset"])

@@ -177,6 +177,30 @@ function test_qubin_format()
                 @test _compare_models(src_model, dst_model)
             end
         end
+
+        # Test sparse array dimensions are preserved when some variables have no terms
+        @testset "sparse dimensions" begin
+            # Create a model where variable 3 has no linear or quadratic terms
+            # This tests that sparse(I, J, V, n, n) correctly sets dimensions
+            src_model = QUBOTools.Model{Int,Float64,Int}(
+                Set{Int}([1, 2, 3]),  # Explicitly include all 3 variables
+                Dict{Int,Float64}(1 => 1.0),  # Only variable 1 has linear term
+                Dict{Tuple{Int,Int},Float64}((1, 2) => 2.0);  # Only (1,2) quadratic term
+                sense  = :min,
+                domain = :bool,
+            )
+
+            temp_path = "$(tempname()).sparse_dim.qb"
+
+            QUBOTools.write_model(temp_path, src_model)
+
+            dst_model = QUBOTools.read_model(temp_path)
+
+            @test dst_model isa QUBOTools.Model
+            @test QUBOTools.dimension(dst_model) == 3  # Must preserve dimension n=3
+            @test QUBOTools.dimension(dst_model) == QUBOTools.dimension(src_model)
+            @test _compare_models(src_model, dst_model)
+        end
     end
 
     return nothing
