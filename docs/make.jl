@@ -1,5 +1,4 @@
 using Documenter
-using DocumenterDiagrams
 using QUBOTools
 
 # Set up to run docstrings with jldoctest
