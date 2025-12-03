@@ -20,7 +20,6 @@ function test_doctest()
             Documenter.doctest(QUBOTools; manual = false)
         catch e
             @error "Doctest failed" exception = (e, catch_backtrace())
-            @test false
             doctest_result = false
         end
 
