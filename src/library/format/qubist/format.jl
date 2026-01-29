@@ -1,10 +1,13 @@
 @doc raw"""
-    Qubist()
+    Format{:qubist}()
 
+Simple spin-based file format.
 """
-struct Qubist <: AbstractFormat end
+const qubist_fmt = Format{:qubist}
 
-format(::Val{:qh}) = Qubist()
+Format{:qubist}() = Format{:qubist}(Dict{Symbol,Any}())
+
+infer_format(::Val{:qh}) = Format{:qubist}()
 
 include("parser.jl")
 include("printer.jl")

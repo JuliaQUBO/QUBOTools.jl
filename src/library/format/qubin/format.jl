@@ -1,14 +1,16 @@
 @doc raw"""
-    QUBin()
+    Format{:qubin}()
 
 HDF5-based reference format for storing QUBOTools models and solutions.
 """
-struct QUBin <: AbstractFormat end
+const qubin_fmt = Format{:qubin}
+
+Format{:qubin}() = Format{:qubin}(Dict{Symbol,Any}())
 
 # Hints:
-format(::Val{:hdf5}) = QUBin()
-format(::Val{:h5})   = QUBin()
-format(::Val{:qb})   = QUBin()
+infer_format(::Val{:hdf5}) = Format{:qubin}()
+infer_format(::Val{:h5})   = Format{:qubin}()
+infer_format(::Val{:qb})   = Format{:qubin}()
 
 include("parser.jl")
 include("printer.jl")

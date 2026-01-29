@@ -6,5 +6,5 @@ Supported file extension is `.qb`.
 ## Format
 
 ```@docs
-QUBOTools.QUBin
+QUBOTools.qubin_fmt
 ```

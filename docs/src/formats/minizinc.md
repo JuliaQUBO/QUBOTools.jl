@@ -3,7 +3,7 @@
 ## Format
 
 ```@docs
-QUBOTools.MiniZinc
+QUBOTools.minizinc_fmt
 ```
 
 ## Example
@@ -11,6 +11,7 @@ QUBOTools.MiniZinc
 ```text
 % id : 1
 % description : Model 1 ~ Simple model with linear terms
+% 
 
 set of int: Domain = {0,1};
 

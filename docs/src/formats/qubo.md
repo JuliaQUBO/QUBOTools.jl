@@ -3,7 +3,7 @@
 ## Format
 
 ```@docs
-QUBOTools.QUBO
+QUBOTools.qubo_fmt
 ```
 
 ## Example

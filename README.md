@@ -20,8 +20,8 @@
     <a href="https://juliaqubo.github.com/QUBOTools.jl/dev">
         <img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Docs">
     </a>
-    <a href="https://zenodo.org/badge/latestdoi/508908129">
-        <img src="https://zenodo.org/badge/508908129.svg" alt="DOI">
+    <a href="https://doi.org/10.5281/zenodo.13879606">
+        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.13879606.svg" alt="DOI">
     </a>
     <br>
     <i>Tools for Quadratic Unconstrained Binary Optimization models in Julia</i>
@@ -70,29 +70,14 @@ QUBOTools.write_model("problem.qubo", model)
 
 ## Supported Formats
 
-The `r` and `w` marks indicate that reading and writing modes are available for the corresponding file format, respectively.
-
-### [QUBin](/docs/src/formats/QUBin.md) `rw`
-
-[QUBOTools](https://github.com/JuliaQUBO/QUBOTools.jl)' home-brewed HDF5-based file format.
-
-### [BQPJSON](/docs/src/formats/BQPJSON.md) `rw`
-
-The [BQPJSON](https://bqpjson.readthedocs.io) format was designed at [LANL-ANSI](https://github.com/lanl-ansi) to represent Binary Quadratic Programs in a platform-independet fashion.
-This is accomplished by using `.json` files validated using a well-defined [JSON Schema](/src/library/format/bqpjson/bqpjson.schema.json).
-
-### [QUBO](/docs/src/formats/QUBO.md) `rw`
-
-The QUBO specification appears as the input format in many of D-Wave's applications.
-A brief explanation about it can be found in [qbsolv](https://github.com/arcondello/qbsolv#qbsolv-qubo-input-file-format)'s repository README. 
-
-### [Qubist](/docs/src/formats/Qubist.md) `rw`
-
-This is the simplest of all current supported formats, where each row contains a pair of variable indices and their corresponding coefficient value.
-
-### [MiniZinc](/docs/src/formats/MiniZinc.md) `w`
-
-[MiniZinc](https://www.minizinc.org) is a constraint modelling language that can be used as input for many solvers.
+|              Format                | Read  | Write | Model | Solutions | Start | Metadata |
+| :--------------------------------: | :---: | :---: | :---: | :-------: | :---: | :------: |
+| [BQPJSON](https://juliaqubo.github.com/QUBOTools.jl/formats/bqpjson.md)   |   ✅   |   ✅   |   ✅   |     ✅     |   ❌   |    ✅     |
+| [MiniZinc](https://juliaqubo.github.com/QUBOTools.jl/formats/minizinc.md) |   ❌   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
+|   [QUBin](https://juliaqubo.github.com/QUBOTools.jl/formats/qubin.md)     |   ✅   |   ✅   |   ✅   |     ✅     |   ✅   |    ✅     |
+|  [Qubist](https://juliaqubo.github.com/QUBOTools.jl/formats/qubist.md)    |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ❌     |
+|    [QUBO](https://juliaqubo.github.com/QUBOTools.jl/formats/qubo.md)      |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
+|    [Rudy](https://juliaqubo.github.com/QUBOTools.jl/formats/rudy.md)      |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
 
 ---
 

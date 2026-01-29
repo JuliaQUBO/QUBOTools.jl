@@ -1,14 +1,14 @@
-function write_model(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V}
-    if fmt.version === v"1.0.0"
+function write_model(io::IO, model::AbstractModel{V}, fmt::Format{:bqpjson}) where {V}
+    if fmt[:version] === v"1.0.0"
         _print_bqpjson_model_v1_0_0(io, model, fmt)
     else
-        format_error("Invalid BQPJSON version '$(fmt.version)'")
+        format_error("Invalid BQPJSON version '$(fmt[:version])'")
     end
     
     return nothing
 end
 
-function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::BQPJSON) where {V}
+function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::Format{:bqpjson}) where {V}
     json_data = Dict{String,Any}(
         "id"              => 0,
         "variable_domain" => _BQPJSON_VARIABLE_DOMAIN(domain(model)),
@@ -18,7 +18,7 @@ function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::BQPJS
         "scale"           => scale(model),
         "offset"          => offset(model),
         "metadata"        => Dict{String,Any}(),
-        "version"         => string(fmt.version),
+        "version"         => string(fmt[:version]),
     )
 
     for (i, l) in linear_terms(model)
@@ -82,7 +82,7 @@ function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::BQPJS
         json_data["solutions"] = solutions
     end
 
-    JSON.print(io, json_data, fmt.indent)
+    JSON.print(io, json_data, fmt[:indent])
 
     return nothing
 end
