@@ -1,10 +1,39 @@
 # QUBin
 
-QUBin is QUBOTools' HDF5-based binary format for storing QUBO models and solutions.
-Supported file extension is `.qb`.
-
 ## Format
 
 ```@docs
 QUBOTools.qubin_fmt
+```
+
+## Structure
+
+Below, an outline of the HDF5 file layout that QUBin files follow:
+
+```text
+🗂️ HDF5.File: (read-only) test/data/02/bool.qb
+├─ 📂 model
+│  ├─ 📂 form
+│  │  ├─ 🔢 dimension
+│  │  ├─ 🔢 domain
+│  │  ├─ 📂 linear
+│  │  │  ├─ 🔢 i
+│  │  │  └─ 🔢 v
+│  │  ├─ 🔢 offset
+│  │  ├─ 📂 quadratic
+│  │  │  ├─ 🔢 i
+│  │  │  ├─ 🔢 j
+│  │  │  └─ 🔢 v
+│  │  ├─ 🔢 scale
+│  │  └─ 🔢 sense
+│  ├─ 🔢 metadata
+│  └─ 🔢 variables
+└─ 📂 solution
+   ├─ 📂 data
+   │  ├─ 🔢 reads
+   │  ├─ 🔢 state
+   │  └─ 🔢 value
+   ├─ 🔢 domain
+   ├─ 🔢 metadata
+   └─ 🔢 sense
 ```
