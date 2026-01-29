@@ -20,8 +20,8 @@
     <a href="https://juliaqubo.github.com/QUBOTools.jl/dev">
         <img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Docs">
     </a>
-    <a href="https://zenodo.org/badge/latestdoi/508908129">
-        <img src="https://zenodo.org/badge/508908129.svg" alt="DOI">
+    <a href="https://doi.org/10.5281/zenodo.13879606">
+        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.13879606.svg" alt="DOI">
     </a>
     <br>
     <i>Tools for Quadratic Unconstrained Binary Optimization models in Julia</i>
