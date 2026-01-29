@@ -1,4 +1,4 @@
-function read_model(io::IO, fmt::BQPJSON)
+function read_model(io::IO, fmt::Format{:bqpjson})
     json_data = JSON.parse(io)
 
     report = JSONSchema.validate(_BQPJSON_SCHEMA, json_data)
@@ -38,20 +38,20 @@ function read_model(io::IO, fmt::BQPJSON)
     )
 end
 
-function _parse_version!(::Dict{Symbol,Any}, json_data::Dict{String,Any}, fmt::BQPJSON)
+function _parse_version!(::Dict{Symbol,Any}, json_data::Dict{String,Any}, fmt::Format{:bqpjson})
     bqpjson_version = VersionNumber(json_data["version"])
 
-    if bqpjson_version !== fmt.version
+    if bqpjson_version !== fmt[:version]
         codec_error("""
                     Invalid BQPJSON version '$(bqpjson_version)'.
-                    The specified codec version is '$(fmt.version)'
+                    The specified codec version is '$(fmt[:version])'
                     """)
     end
 
     return nothing
 end
 
-function _parse_domain!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::BQPJSON)
+function _parse_domain!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::Format{:bqpjson})
     bqpjson_domain = json_data["variable_domain"]
 
     if bqpjson_domain == "boolean"
@@ -65,7 +65,7 @@ function _parse_domain!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::B
     return nothing
 end
 
-function _parse_terms!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::BQPJSON)
+function _parse_terms!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::Format{:bqpjson})
     # Variables
     V = data[:variable_set]
 
@@ -107,7 +107,7 @@ function _parse_terms!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::BQ
     return nothing
 end
 
-function _parse_solutions!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::BQPJSON)
+function _parse_solutions!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::Format{:bqpjson})
     solutions = get(data, "solutions", nothing)
 
     if isnothing(solutions)

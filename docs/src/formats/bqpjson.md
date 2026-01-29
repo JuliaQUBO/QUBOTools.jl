@@ -3,7 +3,7 @@
 ## Format
 
 ```@docs
-QUBOTools.BQPJSON
+QUBOTools.bqpjson_fmt
 ```
 
 ## Example

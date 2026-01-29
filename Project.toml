@@ -1,9 +1,10 @@
 name = "QUBOTools"
 uuid = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"
 authors = ["pedromxavier <mail@pedro.ϵλ>", "pedroripper <pedroripper@psr-inc.com>", "AndradeTiago <tiago.andrade@psr-inc.com>", "joaquimg <joaquim@psr-inc.com>", "bernalde <dbernaln@purdue.edu>"]
-version = "0.10.1"
+version = "0.10.2-dev"
 
 [deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
@@ -26,6 +27,7 @@ MathOptInterface = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
 QUBOTools_MOI = ["MathOptInterface"]
 
 [compat]
+Dates                     = "1"
 GeometryBasics            = "0.4"
 Graphs                    = "1"
 HDF5                      = "0.17.2"

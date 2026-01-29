@@ -3,7 +3,7 @@
 ## Format
 
 ```@docs
-QUBOTools.Qubist
+QUBOTools.qubist_fmt
 ```
 
 ## Example

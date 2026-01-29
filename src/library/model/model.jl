@@ -345,8 +345,8 @@ function Model{V,T,U}(f::F; kws...) where {V,T,U,F<:PBO.AbstractFunction{V,T}}
     return Model{V,T,U}(L, Q; offset = β, sense = :min, domain = :bool, kws...)
 end
 
-function map_variables(::Type{V}, vm::Function, model::AbstractModel{_,T,U}) where {_,V,T,U}
-    new_model = copy(model)::AbstractModel{V,T,U}
+function map_variables(::Type{V}, vm::Function, model::Model{_,T,U,F}) where {_,V,T,U,F}
+    new_model = copy(model)::Model{V,T,U,F}
     new_model.variable_map = VariableMap{V}(Dict{Int,V}(i => vm(i)::V for i in indices(model)))
 
     return new_model

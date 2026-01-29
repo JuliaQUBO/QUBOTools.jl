@@ -12,7 +12,7 @@ makedocs(;
     sitename = "QUBOTools.jl",
     authors  = "Pedro Maciel Xavier and Pedro Ripper and Tiago Andrade and Joaquim Garcia and David E. Bernal Neira",
     workdir  = @__DIR__,
-    warnonly = [:missing_docs],
+    warnonly = [:missing_docs, :docs_block],
     pages    = [
         "Home" => "index.md",
         "Manual" => [
@@ -25,11 +25,12 @@ makedocs(;
             "Analysis"                 => "manual/7-analysis.md",
         ],
         "Formats" => [
-            "BQPJSON"  => "formats/BQPJSON.md",
-            "MiniZinc" => "formats/MiniZinc.md",
-            "QUBin"    => "formats/QUBin.md",
-            "Qubist"   => "formats/Qubist.md",
-            "QUBO"     => "formats/QUBO.md",
+            "BQPJSON"  => "formats/bqpjson.md",
+            "MiniZinc" => "formats/minizinc.md",
+            "QUBin"    => "formats/qubin.md",
+            "Qubist"   => "formats/qubist.md",
+            "QUBO"     => "formats/qubo.md",
+            "Rudy"     => "formats/rudy.md",
         ],
         "API Reference" => "api.md",
     ],
