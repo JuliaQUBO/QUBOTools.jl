@@ -1,6 +1,28 @@
+function is_breaking_version()::Bool
+    v = QUBOTools.__version__()::VersionNumber
+    
+    return iszero(v.patch) && isempty(v.build)
+end
+
 function run_foreign_tests()::Bool
-    return "--run-foreign-tests" ∈ ARGS ||
-           Base.get_bool_env("QUBOTOOLS_FOREIGN_TESTS", false)
+    # Command-line option to be used to force running even with breaking versions
+    if "--run-foreign-tests" ∈ ARGS
+        if is_breaking_version()
+            @warn "This seems to be a breaking version and Foreign Tests might fail."
+        end
+
+        return true
+    elseif Base.get_bool_env("QUBOTOOLS_FOREIGN_TESTS", false)
+        if is_breaking_version()
+            @warn "Skipping Foreign Tests for breaking release."
+
+            return false
+        else
+            return true
+        end
+    else
+        return false
+    end
 end
 
 # Test foreign packages
