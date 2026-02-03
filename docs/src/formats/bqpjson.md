@@ -6,87 +6,63 @@
 QUBOTools.bqpjson_fmt
 ```
 
-## Example
+## Generating BQPJSON Files
+
+```julia
+using QUBOTools
+
+# Create a model
+model = QUBOTools.Model{Int,Float64,Int}(
+    Dict{Int,Float64}(1 => 0.0, 3 => 0.4, 5 => -4.4),
+    Dict{Tuple{Int,Int},Float64}((1, 3) => -0.8, (1, 5) => 6.0);
+    scale = 2.7,
+    offset = 1.93,
+    domain = :bool,
+    metadata = Dict("id" => 2, "description" => "Simple QUBO Problem")
+)
+
+# Write to file
+QUBOTools.write_model("output.bool.json", model)
+```
+
+## Example Output
 
 ```json
 {
-    "id": 2,
-    "version": "1.0.0",
-    "description": "Simple QUBO Problem",
-    "scale": 2.7,
-    "offset": 1.93,
-    "linear_terms": [
-        {
-            "id": 1,
-            "coeff": 0.0
-        },
-        {
-            "id": 3,
-            "coeff": 0.4
-        },
-        {
-            "id": 5,
-            "coeff": -4.4
-        }
-    ],
-    "quadratic_terms": [
-        {
-            "id_head": 1,
-            "coeff": -0.8,
-            "id_tail": 3
-        },
-        {
-            "id_head": 1,
-            "coeff": 6.0,
-            "id_tail": 5
-        }
-    ],
-    "variable_domain": "boolean",
-    "variable_ids": [
-        1,
-        3,
-        5
-    ],
-    "metadata": {},
-    "solutions": [
-        {
-            "evaluation": 6.291,
-            "id": 0,
-            "assignment": [
-                {
-                    "id": 1,
-                    "value": 0
-                },
-                {
-                    "id": 3,
-                    "value": 1
-                },
-                {
-                    "id": 5,
-                    "value": 0
-                }
-            ],
-            "description": "first solution"
-        },
-        {
-            "evaluation": 9.531,
-            "id": 1,
-            "assignment": [
-                {
-                    "id": 1,
-                    "value": 1
-                },
-                {
-                    "id": 3,
-                    "value": 0
-                },
-                {
-                    "id": 5,
-                    "value": 1
-                }
-            ],
-            "description": "second solution"
-        }
-    ]
+  "linear_terms": [
+    {
+      "id": 2,
+      "coeff": 0.4
+    },
+    {
+      "id": 3,
+      "coeff": -4.4
+    }
+  ],
+  "variable_domain": "boolean",
+  "offset": 1.93,
+  "id": 2,
+  "variable_ids": [
+    1,
+    2,
+    3
+  ],
+  "quadratic_terms": [
+    {
+      "id_head": 1,
+      "coeff": -0.8,
+      "id_tail": 2
+    },
+    {
+      "id_head": 1,
+      "coeff": 6.0,
+      "id_tail": 3
+    }
+  ],
+  "metadata": {},
+  "scale": 2.7,
+  "version": "1.0.0",
+  "description": "Simple QUBO Problem"
 }
+
 ```
