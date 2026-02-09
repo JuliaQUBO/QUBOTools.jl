@@ -33,3 +33,7 @@ QUBOTools.write_model("output.spin.qh", model)
 1 3 1.0
 2 3 1.0
 ```
+
+## References
+
+- [dwig (D-Wave Instance Generator)](https://github.com/lanl-ansi/dwig)
