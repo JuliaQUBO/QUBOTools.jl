@@ -66,3 +66,8 @@ QUBOTools.write_model("output.bool.json", model)
 }
 
 ```
+
+## References
+
+- [BQPJSON Documentation](https://bqpjson.readthedocs.io)
+- [BQPJSON Repository (LANL-ANSI)](https://github.com/lanl-ansi/bqpjson)

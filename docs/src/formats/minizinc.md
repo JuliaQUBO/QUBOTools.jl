@@ -39,3 +39,7 @@ float: offset = 0.0;
 var float: objective = scale * (1.3*x1 + -0.7*x2 + offset);
 solve minimize objective;
 ```
+
+## References
+
+- [MiniZinc](https://www.minizinc.org/)

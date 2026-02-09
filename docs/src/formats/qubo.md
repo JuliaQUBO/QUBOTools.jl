@@ -43,3 +43,7 @@ c quadratic terms
 0 1 -0.8
 0 2 6.0
 ```
+
+## References
+
+- [D-Wave qbsolv](https://github.com/dwavesystems/qbsolv)

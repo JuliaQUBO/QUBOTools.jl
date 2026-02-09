@@ -29,3 +29,7 @@ QUBOTools.rudy_fmt
 6 7  11060.58
 7 9  11060.58
 ```
+
+## References
+
+- [Biq Mac Library](https://biqmac.aau.at/)
