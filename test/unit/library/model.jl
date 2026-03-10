@@ -134,6 +134,46 @@ function test_model(V = Symbol, T = Float64, U = Int)
                 )
             end
 
+            @testset "Form conversion" begin
+                converted = QUBOTools.form(model, Matrix)
+
+                @test converted isa QUBOTools.DenseForm{T}
+                @test _compare_forms(
+                    converted,
+                    QUBOTools.form(model, QUBOTools.DenseForm{T});
+                    atol = 0.0,
+                )
+
+                converted32 = QUBOTools.form(model, Matrix, Float32)
+
+                @test converted32 isa QUBOTools.DenseForm{Float32}
+                @test _compare_forms(
+                    converted32,
+                    QUBOTools.form(model, QUBOTools.DenseForm{Float32});
+                    atol = 1E-6,
+                )
+
+                qubo_form = QUBOTools.qubo(model, Matrix)
+
+                @test qubo_form isa QUBOTools.DenseForm{T}
+                @test QUBOTools.domain(qubo_form) === QUBOTools.BoolDomain
+                @test _compare_forms(
+                    qubo_form,
+                    QUBOTools.qubo(model, QUBOTools.DenseForm{T});
+                    atol = 0.0,
+                )
+
+                ising_form = QUBOTools.ising(model, Matrix)
+
+                @test ising_form isa QUBOTools.DenseForm{T}
+                @test QUBOTools.domain(ising_form) === QUBOTools.SpinDomain
+                @test _compare_forms(
+                    ising_form,
+                    QUBOTools.ising(model, QUBOTools.DenseForm{T});
+                    atol = 0.0,
+                )
+            end
+
             @testset "Metrics" begin
                 @test QUBOTools.linear_density(model)    ≈ 4/8   # l / n
                 @test QUBOTools.quadratic_density(model) ≈ 10/56 # 2q / (n² - n)

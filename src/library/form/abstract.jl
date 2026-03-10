@@ -106,6 +106,16 @@ function form(
     return form(src, formtype(spec, type); sense, domain)
 end
 
+function form(
+    src::AbstractModel{V,T,U},
+    spec::Type,
+    type::Type = T;
+    sense::Union{Sense,Symbol} = QUBOTools.sense(src),
+    domain::Union{Domain,Symbol} = QUBOTools.domain(src),
+) where {V,T,U}
+    return form(src, formtype(spec, type); sense, domain)
+end
+
 
 function formtype(spec::Symbol, ::Type{T} = Float64) where {T}
     return formtype(Val(spec), T)
