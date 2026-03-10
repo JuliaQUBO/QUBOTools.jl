@@ -34,13 +34,13 @@ function form(
     ::Type{F};
     sense = QUBOTools.sense(model),
     domain = QUBOTools.domain(model),
-) where {V,T,U,X,F<:AbstractForm{X}}
+) where {V,T,U,X,LF<:AbstractLinearForm{X},QF<:AbstractQuadraticForm{X},F<:Form{X,LF,QF}}
     Φ = form(model)
     n = dimension(Φ)
     Ψ = F(
         n,
-        F.parameters[2](n, linear_form(Φ)),
-        F.parameters[3](n, quadratic_form(Φ)),
+        LF(n, linear_form(Φ)),
+        QF(n, quadratic_form(Φ)),
         convert(X, scale(Φ)),
         convert(X, offset(Φ));
         sense  = QUBOTools.sense(Φ),
