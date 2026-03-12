@@ -16,7 +16,7 @@ end
 function test_integration()
     @testset "⊚ ⊚ Integration Tests" verbose = true begin
         test_extensions()
-        test_doctest()
+        test_docs()
         test_foreign()
     end
 

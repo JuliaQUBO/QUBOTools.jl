@@ -58,6 +58,15 @@ import Pkg
 Pkg.add("QUBOTools")
 ```
 
+### Build the Documentation Locally
+
+From the repository root, use:
+
+```bash
+julia --project=docs -e 'using Pkg; Pkg.develop(path=pwd()); Pkg.instantiate()'
+julia --project=docs docs/make.jl --skip-deploy
+```
+
 ### Basic Usage
 
 ```julia
