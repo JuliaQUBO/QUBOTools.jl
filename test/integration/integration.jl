@@ -1,4 +1,5 @@
 include("ext/ext.jl")
+include("docs.jl")
 
 function test_foreign()
     if run_foreign_tests()
@@ -15,6 +16,7 @@ end
 function test_integration()
     @testset "⊚ ⊚ Integration Tests" verbose = true begin
         test_extensions()
+        test_docs()
         test_foreign()
     end
 
