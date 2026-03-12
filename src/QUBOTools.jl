@@ -6,6 +6,7 @@ import JSON
 import JSONSchema
 import NetworkLayout
 import TOML
+import Dates
 
 using Graphs
 using GeometryBasics
@@ -97,12 +98,12 @@ include("library/synthesis/abstract.jl")
 include("library/synthesis/sherrington_kirkpatrick.jl")
 include("library/synthesis/wishart.jl")
 
-include("library/format/abstract.jl")
 include("library/format/bqpjson/format.jl")
 include("library/format/minizinc/format.jl")
 include("library/format/qubist/format.jl")
 include("library/format/qubo/format.jl")
 include("library/format/qubin/format.jl")
+include("library/format/rudy/format.jl")
 
 include("library/analysis/metrics/solution.jl")
 include("library/analysis/metrics/model.jl")

@@ -13,11 +13,12 @@ const DOCS_PAGES = [
         "Analysis"                 => "manual/7-analysis.md",
     ],
     "Formats" => [
-        "BQPJSON"  => "formats/BQPJSON.md",
-        "MiniZinc" => "formats/MiniZinc.md",
-        "QUBin"    => "formats/QUBin.md",
-        "Qubist"   => "formats/Qubist.md",
-        "QUBO"     => "formats/QUBO.md",
+        "BQPJSON"  => "formats/bqpjson.md",
+        "MiniZinc" => "formats/minizinc.md",
+        "QUBin"    => "formats/qubin.md",
+        "Qubist"   => "formats/qubist.md",
+        "QUBO"     => "formats/qubo.md",
+        "Rudy"     => "formats/rudy.md",
     ],
     "API Reference" => "api.md",
 ]
@@ -37,7 +38,7 @@ function build_docs(; deploy::Bool = false)
         source   = joinpath(@__DIR__, "src"),
         build    = joinpath(@__DIR__, "build"),
         workdir  = @__DIR__,
-        warnonly = [:missing_docs],
+        warnonly = [:missing_docs, :docs_block],
         pages    = DOCS_PAGES,
         format   = Documenter.HTML(
             assets           = ["assets/extra_styles.css", "assets/favicon.ico"],
@@ -49,7 +50,7 @@ function build_docs(; deploy::Bool = false)
     if deploy
         deploydocs(repo = raw"github.com/JuliaQUBO/QUBOTools.jl.git", push_preview = true)
     else
-        @warn "Skipping deployment"
+        @info "Skipping deployment"
     end
 
     return nothing

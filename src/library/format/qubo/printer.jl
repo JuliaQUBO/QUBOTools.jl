@@ -1,4 +1,4 @@
-function write_model(io::IO, model::AbstractModel{V,T,U}, fmt::QUBO) where {V,T,U}
+function write_model(io::IO, model::AbstractModel{V,T,U}, fmt::Format{:qubo}) where {V,T,U}
     data = Dict{Symbol,Any}(
         :linear_terms    => Dict{Int,T}(linear_terms(model)),
         :quadratic_terms => Dict{Tuple{Int,Int},T}(quadratic_terms(model)),
@@ -10,18 +10,18 @@ function write_model(io::IO, model::AbstractModel{V,T,U}, fmt::QUBO) where {V,T,
         :dimension       => dimension(model),
     )
 
-    _print_metadata(io, data, fmt, Val(fmt.style))
-    _print_header(io, data, fmt, Val(fmt.style))
-    _print_entries(io, data, fmt, Val(fmt.style))
+    _print_metadata(io, data, fmt, Val(fmt[:style]))
+    _print_header(io, data, fmt, Val(fmt[:style]))
+    _print_entries(io, data, fmt, Val(fmt[:style]))
 
     return nothing
 end
 
-function _print_header(::IO, ::Dict{Symbol,Any}, ::QUBO, ::Val{_}) where {_}
+function _print_header(::IO, ::Dict{Symbol,Any}, ::Format{:qubo}, ::Val{_}) where {_}
     return nothing
 end
 
-function _print_header(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:dwave})
+function _print_header(io::IO, data::Dict{Symbol,Any}, ::Format{:qubo}, ::Val{:dwave})
     dimension      = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
@@ -31,7 +31,7 @@ function _print_header(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:dwave})
     return nothing
 end
 
-function _print_header(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:mqlib})
+function _print_header(io::IO, data::Dict{Symbol,Any}, ::Format{:qubo}, ::Val{:mqlib})
     dimension      = data[:dimension]
     linear_size    = data[:linear_size]
     quadratic_size = data[:quadratic_size]
@@ -41,7 +41,7 @@ function _print_header(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:mqlib})
     return nothing
 end
 
-function _print_metadata(::IO, ::Dict{Symbol,Any}, ::QUBO, ::Val{_}) where {_}
+function _print_metadata(::IO, ::Dict{Symbol,Any}, ::Format{:qubo}, ::Val{_}) where {_}
     return nothing
 end
 
@@ -49,7 +49,7 @@ function _print_metadata_entry(
     io::IO,
     key::AbstractString,
     val::Any,
-    ::QUBO,
+    ::Format{:qubo},
     ::Val{:dwave},
 )
     println(io, "c $(key) : $(val)")
@@ -57,7 +57,7 @@ function _print_metadata_entry(
     return nothing
 end
 
-function _print_metadata_entry(io::IO, key::AbstractString, val::Any, ::QUBO, ::Val{:mqlib})
+function _print_metadata_entry(io::IO, key::AbstractString, val::Any, ::Format{:qubo}, ::Val{:mqlib})
     println(io, "# $(key) : $(val)")
 
     return nothing
@@ -66,7 +66,7 @@ end
 function _print_metadata(
     io::IO,
     data::Dict{Symbol,Any},
-    fmt::QUBO,
+    fmt::Format{:qubo},
     style::Union{Val{:dwave},Val{:mqlib}},
 )
     scale    = data[:scale]
@@ -85,7 +85,7 @@ function _print_metadata(
     return nothing
 end
 
-function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{_}) where {_}
+function _print_entries(io::IO, data::Dict{Symbol,Any}, ::Format{:qubo}, ::Val{_}) where {_}
     for (i, l) in data[:linear_terms]
         println(io, "$(i-1) $(i-1) $(l)")
     end
@@ -97,7 +97,7 @@ function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{_}) where 
     return nothing
 end
 
-function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:dwave})
+function _print_entries(io::IO, data::Dict{Symbol,Any}, ::Format{:qubo}, ::Val{:dwave})
     println(io, "c linear terms")
 
     # NOTE: D-Wave format is 0-indexed
@@ -114,7 +114,7 @@ function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:dwave})
     return nothing
 end
 
-function _print_entries(io::IO, data::Dict{Symbol,Any}, ::QUBO, ::Val{:mqlib})
+function _print_entries(io::IO, data::Dict{Symbol,Any}, ::Format{:qubo}, ::Val{:mqlib})
     println(io, "# linear terms")
 
     # NOTE: MQLib format is 1-indexed

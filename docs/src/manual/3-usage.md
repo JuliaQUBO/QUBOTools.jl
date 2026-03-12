@@ -50,5 +50,5 @@ One of the main functionalities of this package is to allow fast conversion from
 Achieving this is as simple as writing the loaded model but providing a different specification:
 
 ```@example manual
-QUBOTools.write_model(stdout, model, QUBOTools.Qubist())
+QUBOTools.write_model(stdout, model, QUBOTools.Format{:qubist}())
 ```
