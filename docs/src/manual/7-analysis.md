@@ -6,6 +6,18 @@
 using Random
 
 Random.seed!(0)
+
+const render_visualization = let
+    try
+        @eval import Plots
+        obj -> Plots.plot(obj)
+    catch err
+        @info "Plots is unavailable for these documentation examples; showing the recipe object instead." exception = (err, catch_backtrace())
+        identity
+    end
+end
+
+nothing
 ```
 
 ```@example analysis
@@ -20,15 +32,13 @@ model = QUBOTools.generate(QUBOTools.SK(n))
 ### Model Density
 
 ```@example analysis
-using Plots
-
-plot(QUBOTools.ModelDensityPlot(model))
+render_visualization(QUBOTools.ModelDensityPlot(model))
 ```
 
 ### System Layout
 
 ```@example analysis
-plot(QUBOTools.SystemLayoutPlot(model))
+render_visualization(QUBOTools.SystemLayoutPlot(model))
 ```
 
 ## Solutions
@@ -60,11 +70,11 @@ solution = magical_solution_method(model)
 ```@example analysis
 λ = minimum(QUBOTools.value, solution) # threshold
 
-plot(QUBOTools.EnergyFrequencyPlot(solution, λ))
+render_visualization(QUBOTools.EnergyFrequencyPlot(solution, λ))
 ```
 
 ### Energy Distribution
 
 ```@example analysis
-plot(QUBOTools.EnergyDistributionPlot(solution))
+render_visualization(QUBOTools.EnergyDistributionPlot(solution))
 ```
