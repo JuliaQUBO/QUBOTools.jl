@@ -8,14 +8,28 @@ using Random
 Random.seed!(0)
 
 const render_visualization = let
+    function is_windows_libgrm_failure()
+        Sys.iswindows() || return false
+
+        for item in Base.current_exceptions()
+            msg = sprint(showerror, item.exception)
+
+            if occursin("libGRM", msg)
+                return true
+            end
+        end
+
+        return false
+    end
+
     try
         @eval import Plots
         obj -> Plots.plot(obj)
     catch err
         bt = catch_backtrace()
-        msg = sprint(io -> showerror(io, err, bt))
 
-        if Sys.iswindows() && occursin("libGRM", msg)
+        # Limit the fallback to the known Windows GR artifact issue.
+        if is_windows_libgrm_failure()
             @info "Plots could not initialize on this Windows runner; showing the recipe object instead." exception = (err, bt)
             identity
         else
