@@ -12,8 +12,15 @@ const render_visualization = let
         @eval import Plots
         obj -> Plots.plot(obj)
     catch err
-        @info "Plots is unavailable for these documentation examples; showing the recipe object instead." exception = (err, catch_backtrace())
-        identity
+        bt = catch_backtrace()
+        msg = sprint(io -> showerror(io, err, bt))
+
+        if Sys.iswindows() && occursin("libGRM", msg)
+            @info "Plots could not initialize on this Windows runner; showing the recipe object instead." exception = (err, bt)
+            identity
+        else
+            rethrow()
+        end
     end
 end
 
