@@ -49,6 +49,7 @@ const RUN_CONFIG = configure_environment()
 using Random
 using SparseArrays
 using BenchmarkTools
+using MathOptInterface
 using QUBOTools
 
 include("suites/fixtures.jl")

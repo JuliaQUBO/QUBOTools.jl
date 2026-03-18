@@ -15,6 +15,10 @@ function benchmark_constructors!(suite, fixtures)
             ),
             $CONSTRUCTOR_REPEATS,
         )
+        fixture_group["Model/MOI"] = @benchmarkable repeat_last(
+            () -> QUBOTools.Model($(fixture.moi_model)),
+            $CONSTRUCTOR_REPEATS,
+        )
     end
 
     return suite
