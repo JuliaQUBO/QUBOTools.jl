@@ -28,3 +28,6 @@ Manifest.toml
 
 # PythonPlot
 .CondaPkg
+
+# Local Julia depot (used for testing)
+.julia-depot/

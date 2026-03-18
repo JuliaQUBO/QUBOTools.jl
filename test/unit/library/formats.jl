@@ -180,8 +180,10 @@ function test_qubin_format()
 
         # Test sparse array dimensions are preserved when some variables have no terms
         @testset "sparse dimensions" begin
-            # Create a model where variable 3 has no linear or quadratic terms
-            # This tests that sparse(I, J, V, n, n) correctly sets dimensions
+            # Create a model where variable 3 has no linear or quadratic terms.
+            # Before the fix, the parser created sparse arrays with dimensions
+            # inferred from max indices, giving a length-1 vector and (1,2) matrix
+            # instead of the correct length-3 vector and (3,3) matrix.
             src_model = QUBOTools.Model{Int,Float64,Int}(
                 Set{Int}([1, 2, 3]),  # Explicitly include all 3 variables
                 Dict{Int,Float64}(1 => 1.0),  # Only variable 1 has linear term
@@ -200,6 +202,14 @@ function test_qubin_format()
             @test QUBOTools.dimension(dst_model) == 3  # Must preserve dimension n=3
             @test QUBOTools.dimension(dst_model) == QUBOTools.dimension(src_model)
             @test _compare_models(src_model, dst_model)
+
+            # The critical test: before the parser fix, calling value() with a state
+            # that includes variable 3 would throw DimensionMismatch because the
+            # sparse vector/matrix had wrong dimensions after deserialization.
+            # state [1, 0, 1] has variable 1=1, variable 2=0, variable 3=1
+            @test QUBOTools.value(dst_model, [1, 0, 1]) == 1.0
+            # state [1, 1, 1] has all variables set to 1
+            @test QUBOTools.value(dst_model, [1, 1, 1]) == 3.0
         end
     end
 
