@@ -178,12 +178,11 @@ function test_qubin_format()
             end
         end
 
-        # Test sparse array dimensions are preserved when some variables have no terms
+        # Test sparse array dimensions are preserved when some variables have no terms.
+        # Before the fix, the parser created sparse arrays with dimensions
+        # inferred from max indices, giving a length-1 vector and (1,2) matrix
+        # instead of the correct length-3 vector and (3,3) matrix.
         @testset "sparse dimensions" begin
-            # Create a model where variable 3 has no linear or quadratic terms.
-            # Before the fix, the parser created sparse arrays with dimensions
-            # inferred from max indices, giving a length-1 vector and (1,2) matrix
-            # instead of the correct length-3 vector and (3,3) matrix.
             src_model = QUBOTools.Model{Int,Float64,Int}(
                 Set{Int}([1, 2, 3]),  # Explicitly include all 3 variables
                 Dict{Int,Float64}(1 => 1.0),  # Only variable 1 has linear term
@@ -199,16 +198,21 @@ function test_qubin_format()
             dst_model = QUBOTools.read_model(temp_path)
 
             @test dst_model isa QUBOTools.Model
-            @test QUBOTools.dimension(dst_model) == 3  # Must preserve dimension n=3
             @test QUBOTools.dimension(dst_model) == QUBOTools.dimension(src_model)
             @test _compare_models(src_model, dst_model)
+
+            # Verify that the underlying sparse structures have the correct size.
+            # Before the fix, length(L) == 1 and size(Q) == (1, 2) for this model.
+            dst_form = QUBOTools.form(dst_model)
+            L = QUBOTools.data(QUBOTools.linear_form(dst_form))
+            Q = QUBOTools.data(QUBOTools.quadratic_form(dst_form))
+            @test length(L) == 3
+            @test size(Q) == (3, 3)
 
             # The critical test: before the parser fix, calling value() with a state
             # that includes variable 3 would throw DimensionMismatch because the
             # sparse vector/matrix had wrong dimensions after deserialization.
-            # state [1, 0, 1] has variable 1=1, variable 2=0, variable 3=1
             @test QUBOTools.value(dst_model, [1, 0, 1]) == 1.0
-            # state [1, 1, 1] has all variables set to 1
             @test QUBOTools.value(dst_model, [1, 1, 1]) == 3.0
         end
     end
