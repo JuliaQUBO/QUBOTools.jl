@@ -186,6 +186,38 @@ function test_model(V = Symbol, T = Float64, U = Int)
                     QUBOTools.ising(model, QUBOTools.DenseForm{T});
                     atol = 0.0,
                 )
+
+                for (spec, form_type) in (
+                    SparseMatrixCSC => QUBOTools.SparseForm,
+                    Dict            => QUBOTools.DictForm,
+                )
+                    converted_spec = QUBOTools.form(model, spec)
+                    converted_spec32 = QUBOTools.form(model, spec, Float32)
+                    min_bool_spec = QUBOTools.form(model, spec; sense = :min, domain = :bool)
+
+                    @test converted_spec isa form_type{T}
+                    @test _compare_forms(
+                        converted_spec,
+                        QUBOTools.form(model, form_type{T});
+                        atol = 0.0,
+                    )
+                    @test QUBOTools.value(ψ, converted_spec) ≈ QUBOTools.value(ψ, QUBOTools.form(model))
+
+                    @test converted_spec32 isa form_type{Float32}
+                    @test _compare_forms(
+                        converted_spec32,
+                        QUBOTools.form(model, form_type{Float32});
+                        atol = 1E-6,
+                    )
+
+                    @test QUBOTools.sense(min_bool_spec) === QUBOTools.Min
+                    @test QUBOTools.domain(min_bool_spec) === QUBOTools.BoolDomain
+                    @test _compare_forms(
+                        min_bool_spec,
+                        QUBOTools.form(model, form_type{T}; sense = :min, domain = :bool);
+                        atol = 0.0,
+                    )
+                end
             end
 
             @testset "Metrics" begin
