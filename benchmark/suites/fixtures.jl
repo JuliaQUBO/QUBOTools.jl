@@ -46,6 +46,26 @@ function benchmark_fixture(label::String, n::Int; quadratic_density::Float64)
     )
 end
 
+function benchmark_constructor_fixture(label::String, n::Int; quadratic_density::Float64)
+    rng = MersenneTwister(benchmark_seed(label, n; quadratic_density))
+    variables = [Symbol("x", i) for i in 1:n]
+
+    linear = Dict{Symbol,Float64}(variable => randn(rng) for variable in variables)
+    quadratic = Dict{Tuple{Symbol,Symbol},Float64}()
+
+    for i in 1:(n - 1), j in (i + 1):n
+        if rand(rng) < quadratic_density
+            quadratic[(variables[i], variables[j])] = randn(rng)
+        end
+    end
+
+    return (
+        label = label,
+        linear = linear,
+        quadratic = quadratic,
+    )
+end
+
 function repeat_last(f::F, repeats::Int) where {F}
     result = f()
 
@@ -70,5 +90,13 @@ function benchmark_fixtures()
     return (
         benchmark_fixture("n=128", 128; quadratic_density = 0.08),
         benchmark_fixture("n=384", 384; quadratic_density = 0.03),
+    )
+end
+
+function benchmark_constructor_fixtures()
+    return (
+        benchmark_constructor_fixture("n=128", 128; quadratic_density = 0.08),
+        benchmark_constructor_fixture("n=384", 384; quadratic_density = 0.03),
+        benchmark_constructor_fixture("n=2048", 2048; quadratic_density = 0.01),
     )
 end

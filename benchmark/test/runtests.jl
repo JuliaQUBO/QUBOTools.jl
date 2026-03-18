@@ -27,15 +27,18 @@ end
 
 @testset "Benchmark Suites" begin
     fixtures = benchmark_fixtures()
+    constructor_fixtures = benchmark_constructor_fixtures()
 
     suite = BenchmarkGroup()
     suite["constructors"] = BenchmarkGroup()
     suite["conversions"] = BenchmarkGroup()
     suite["evaluation"] = BenchmarkGroup()
 
-    benchmark_constructors!(suite["constructors"], fixtures)
+    benchmark_constructors!(suite["constructors"], constructor_fixtures)
     benchmark_conversions!(suite["conversions"], fixtures)
     benchmark_evaluation!(suite["evaluation"], fixtures)
+
+    @test haskey(suite["constructors"], "n=2048")
 
     for fixture in fixtures
         conversion_group = suite["conversions"][fixture.label]
