@@ -35,17 +35,7 @@ function form(
     sense = QUBOTools.sense(model),
     domain = QUBOTools.domain(model),
 ) where {V,T,U,X,LF<:AbstractLinearForm{X},QF<:AbstractQuadraticForm{X},F<:Form{X,LF,QF}}
-    Φ = form(model)
-    n = dimension(Φ)
-    Ψ = F(
-        n,
-        LF(n, linear_form(Φ)),
-        QF(n, quadratic_form(Φ)),
-        convert(X, scale(Φ)),
-        convert(X, offset(Φ));
-        sense  = QUBOTools.sense(Φ),
-        domain = QUBOTools.domain(Φ),
-    )
+    Ψ = F(form(model))
 
     return cast((frame(model) => Frame(sense, domain)), Ψ)
 end

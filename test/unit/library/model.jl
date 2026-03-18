@@ -136,13 +136,17 @@ function test_model(V = Symbol, T = Float64, U = Int)
 
             @testset "Form conversion" begin
                 converted = QUBOTools.form(model, Matrix)
+                ψ = QUBOTools.state(model, 1)
 
                 @test converted isa QUBOTools.DenseForm{T}
+                @test QUBOTools.sense(converted) === QUBOTools.Max
+                @test QUBOTools.domain(converted) === QUBOTools.SpinDomain
                 @test _compare_forms(
                     converted,
                     QUBOTools.form(model, QUBOTools.DenseForm{T});
                     atol = 0.0,
                 )
+                @test QUBOTools.value(ψ, converted) ≈ QUBOTools.value(ψ, QUBOTools.form(model))
 
                 converted32 = QUBOTools.form(model, Matrix, Float32)
 
@@ -154,18 +158,28 @@ function test_model(V = Symbol, T = Float64, U = Int)
                 )
 
                 qubo_form = QUBOTools.qubo(model, Matrix)
+                min_qubo = QUBOTools.qubo(model, Matrix; sense = :min)
 
                 @test qubo_form isa QUBOTools.DenseForm{T}
+                @test QUBOTools.sense(qubo_form) === QUBOTools.Max
                 @test QUBOTools.domain(qubo_form) === QUBOTools.BoolDomain
                 @test _compare_forms(
                     qubo_form,
                     QUBOTools.qubo(model, QUBOTools.DenseForm{T});
                     atol = 0.0,
                 )
+                @test QUBOTools.sense(min_qubo) === QUBOTools.Min
+                @test QUBOTools.domain(min_qubo) === QUBOTools.BoolDomain
+                @test _compare_forms(
+                    min_qubo,
+                    QUBOTools.qubo(model, QUBOTools.DenseForm{T}; sense = :min);
+                    atol = 0.0,
+                )
 
                 ising_form = QUBOTools.ising(model, Matrix)
 
                 @test ising_form isa QUBOTools.DenseForm{T}
+                @test QUBOTools.sense(ising_form) === QUBOTools.Max
                 @test QUBOTools.domain(ising_form) === QUBOTools.SpinDomain
                 @test _compare_forms(
                     ising_form,
