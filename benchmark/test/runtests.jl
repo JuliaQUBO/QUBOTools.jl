@@ -1,5 +1,6 @@
 import Pkg
 
+Pkg.develop(; path = normpath(joinpath(@__DIR__, "..", "..")))
 Pkg.instantiate()
 
 using Test
