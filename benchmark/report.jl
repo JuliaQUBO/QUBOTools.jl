@@ -68,11 +68,11 @@ function compare_results(results; keypath = "")
 
             judgment = BenchmarkTools.judge(dev_min, main_min; time_tolerance = TIME_TOLERANCE)
             diff = diff_label(judgment)
+            main_col = "$(BenchmarkTools.prettytime(BenchmarkTools.time(main_min))) ($(BenchmarkTools.prettytime(BenchmarkTools.time(main_median)))) ± $(BenchmarkTools.prettytime(BenchmarkTools.time(main_std)))"
+            dev_col = "$(BenchmarkTools.prettytime(BenchmarkTools.time(dev_min))) ($(BenchmarkTools.prettytime(BenchmarkTools.time(dev_median)))) ± $(BenchmarkTools.prettytime(BenchmarkTools.time(dev_std)))"
+            diff_col = "$(status_label(BenchmarkTools.time(judgment))) ($(diff))"
 
-            push!(
-                report,
-                "| `$case_id` | $(BenchmarkTools.prettytime(BenchmarkTools.time(main_min))) ($(BenchmarkTools.prettytime(BenchmarkTools.time(main_median)))) ± $(BenchmarkTools.prettytime(BenchmarkTools.time(main_std))) | $(BenchmarkTools.prettytime(BenchmarkTools.time(dev_min))) ($(BenchmarkTools.prettytime(BenchmarkTools.time(dev_median)))) ± $(BenchmarkTools.prettytime(BenchmarkTools.time(dev_std))) | $(status_label(BenchmarkTools.time(judgment))) ($(diff)) |",
-            )
+            push!(report, "| `$case_id` | $main_col | $dev_col | $diff_col |")
         end
     end
 
@@ -85,7 +85,7 @@ function write_report(report, data_path)
     open(report_path, "w") do io
         println(io, "# Performance Report - `main` vs. `dev`")
         println(io)
-        println(io, "Timings are reported as `minimum (median) ± std`, and comparison uses a $(BenchmarkTools.prettypercent(TIME_TOLERANCE)) tolerance to reduce false positives on shared runners.")
+        println(io, "Timings are reported for the batched benchmark operations as `minimum (median) ± std`, and comparison uses a $(BenchmarkTools.prettypercent(TIME_TOLERANCE)) tolerance to reduce false positives on shared runners.")
         println(io)
         println(io, "| case | `main` | `dev` | diff |")
         println(io, "| :--- | :----: | :---: | :--: |")

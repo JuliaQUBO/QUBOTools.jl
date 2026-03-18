@@ -22,6 +22,9 @@ jobs:
         with:
           version: "1.10"
           arch: x64
+      - uses: julia-actions/cache@v2
+      - name: Test benchmark harness
+        run: julia --project=benchmark benchmark/test/runtests.jl
 
       - name: Run benchmarks
         run: |

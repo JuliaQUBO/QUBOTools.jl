@@ -51,8 +51,6 @@ using SparseArrays
 using BenchmarkTools
 using QUBOTools
 
-Random.seed!(0)
-
 include("suites/fixtures.jl")
 include("suites/constructors.jl")
 include("suites/conversions.jl")

@@ -20,6 +20,10 @@ function benchmark_conversions!(suite, fixtures)
             () -> QUBOTools.form($(fixture.model), Matrix, Float32),
             $CONVERSION_REPEATS,
         )
+        fixture_group["ising/Matrix"] = @benchmarkable repeat_last(
+            () -> QUBOTools.ising($(fixture.model), Matrix),
+            $CONVERSION_REPEATS,
+        )
         fixture_group["qubo/Matrix"] = @benchmarkable repeat_last(
             () -> QUBOTools.qubo($(fixture.model), Matrix),
             $CONVERSION_REPEATS,

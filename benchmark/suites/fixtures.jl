@@ -1,5 +1,17 @@
+function benchmark_seed(label::String, n::Int; quadratic_density::Float64)
+    state = UInt32(0x811c9dc5)
+
+    for part in (label, string(n), bitstring(quadratic_density))
+        for byte in codeunits(part)
+            state = (state ⊻ UInt32(byte)) * UInt32(0x01000193)
+        end
+    end
+
+    return state
+end
+
 function benchmark_fixture(label::String, n::Int; quadratic_density::Float64)
-    rng = MersenneTwister(hash(label))
+    rng = MersenneTwister(benchmark_seed(label, n; quadratic_density))
     variables = [Symbol("x", i) for i in 1:n]
 
     linear = Dict{Symbol,Float64}(variable => randn(rng) for variable in variables)
