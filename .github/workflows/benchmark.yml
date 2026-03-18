@@ -1,0 +1,47 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  benchmark:
+    name: Julia 1.10 - ubuntu-latest - x64 - ${{ github.event_name }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: "1.10"
+          arch: x64
+      - uses: julia-actions/cache@v2
+      - name: Test benchmark harness
+        run: julia --project=benchmark benchmark/test/runtests.jl
+
+      - name: Run benchmarks
+        run: |
+          julia --project=benchmark benchmark/benchmark.jl --run --main
+          julia --project=benchmark benchmark/benchmark.jl --run --dev
+          julia --project=benchmark benchmark/report.jl --run
+
+      - name: Upload benchmark data
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-data
+          path: benchmark/data/
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: benchmark/data/REPORT.md
+          mode: recreate
+          comment_tag: benchmark-report
