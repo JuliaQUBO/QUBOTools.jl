@@ -49,6 +49,7 @@ const RUN_CONFIG = configure_environment()
 using Random
 using SparseArrays
 using BenchmarkTools
+using MathOptInterface
 using QUBOTools
 
 include("suites/fixtures.jl")
@@ -59,10 +60,11 @@ include("suites/evaluation.jl")
 const SUITE = BenchmarkGroup()
 
 function build_suite!()
+    constructor_fixtures = benchmark_constructor_fixtures()
     fixtures = benchmark_fixtures()
 
     SUITE["constructors"] = BenchmarkGroup()
-    benchmark_constructors!(SUITE["constructors"], fixtures)
+    benchmark_constructors!(SUITE["constructors"], constructor_fixtures)
 
     SUITE["conversions"] = BenchmarkGroup()
     benchmark_conversions!(SUITE["conversions"], fixtures)

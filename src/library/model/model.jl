@@ -33,6 +33,59 @@ mutable struct Model{V,T,U,F<:AbstractForm{T}} <: AbstractModel{V,T,U}
     end
 end
 
+# Internal helper for efficient sparse-form construction from variable dictionaries.
+function _build_sparse_forms(
+    variable_map::VariableMap{V},
+    linear_terms::Dict{V,T},
+    quadratic_terms::Dict{Tuple{V,V},T},
+) where {V,T}
+    n = length(variable_map)
+    map = variable_map.map
+
+    linear_indices = Int[]
+    linear_values = T[]
+    sizehint!(linear_indices, length(linear_terms) + length(quadratic_terms))
+    sizehint!(linear_values, length(linear_terms) + length(quadratic_terms))
+
+    for (v, l) in linear_terms
+        push!(linear_indices, map[v])
+        push!(linear_values, l)
+    end
+
+    quadratic_rows = Int[]
+    quadratic_cols = Int[]
+    quadratic_values = T[]
+    sizehint!(quadratic_rows, length(quadratic_terms))
+    sizehint!(quadratic_cols, length(quadratic_terms))
+    sizehint!(quadratic_values, length(quadratic_terms))
+
+    for ((u, v), q) in quadratic_terms
+        i = map[u]
+        j = map[v]
+
+        if i < j
+            push!(quadratic_rows, i)
+            push!(quadratic_cols, j)
+            push!(quadratic_values, q)
+        elseif j < i
+            push!(quadratic_rows, j)
+            push!(quadratic_cols, i)
+            push!(quadratic_values, q)
+        else # i == j
+            push!(linear_indices, i)
+            push!(linear_values, q)
+        end
+    end
+
+    L = sparsevec(linear_indices, linear_values, n)
+    Q = sparse(quadratic_rows, quadratic_cols, quadratic_values, n, n)
+
+    dropzeros!(L)
+    dropzeros!(Q)
+
+    return L, Q
+end
+
 # Canonical Constructor - Normal Form
 function Model{V,T,U}(
     variable_map::VariableMap{V},
@@ -137,32 +190,9 @@ function Model{V,T,U}(
 
     # Normalize data and store it in the normal form
     n = length(variable_set)
-    L = spzeros(T, n)
-    Q = spzeros(T, n, n)
+    L, Q = _build_sparse_forms(variable_map, linear_terms, quadratic_terms)
     α = scale
     β = offset
-
-    for (v, l) in linear_terms
-        i = variable_map.map[v]
-
-        L[i] += l
-    end
-
-    for ((u, v), q) in quadratic_terms
-        i = variable_map.map[u]
-        j = variable_map.map[v]
-
-        if i < j
-            Q[i, j] += q
-        elseif j < i
-            Q[j, i] += q
-        else # i == j
-            L[i] += q
-        end
-    end
-
-    dropzeros!(L)
-    dropzeros!(Q)
 
     form =
         Form{T}(n, SparseLinearForm{T}(L), SparseQuadraticForm{T}(Q), α, β; sense, domain)
