@@ -20,8 +20,9 @@ times cover batched benchmark operations, so they should be read as relative
 comparison figures rather than per-call timings.
 
 The constructors suite includes both dict-backed model construction and direct
-`MOI.ModelLike` parsing through `QUBOTools.Model(moi_model)` so that
-performance work such as issue `#56` is exercised by the benchmark harness.
+boolean `MOI.ModelLike` parsing through `QUBOTools.Model(moi_model)` so that
+performance work such as issue `#56` is exercised by the benchmark harness on
+the reported QUBO conversion path.
 
 To smoke-test the benchmark harness itself without running the full benchmark,
 use:

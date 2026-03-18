@@ -28,17 +28,19 @@ include("../suites/evaluation.jl")
         sense = :min,
         domain = :bool,
     )
-    moi_model = QUBOTools.Model(constructor_fixture.moi_model)
+    parsed_model = QUBOTools.Model(constructor_fixture.bool_moi_model)
+    psi = [isodd(i) ? 1 : 0 for i in 1:QUBOTools.dimension(dict_model)]
 
     @test fixture_a.linear == fixture_b.linear
     @test fixture_a.quadratic == fixture_b.quadratic
     @test fixture_a.psi == fixture_b.psi
-    @test QUBOTools.dimension(moi_model) == 128
-    @test Dict(QUBOTools.linear_terms(moi_model)) == Dict(QUBOTools.linear_terms(dict_model))
-    @test Dict(QUBOTools.quadratic_terms(moi_model)) == Dict(QUBOTools.quadratic_terms(dict_model))
-    @test QUBOTools.offset(moi_model) == QUBOTools.offset(dict_model)
-    @test QUBOTools.sense(moi_model) === QUBOTools.Min
-    @test QUBOTools.domain(moi_model) === QUBOTools.BoolDomain
+    @test QUBOTools.dimension(parsed_model) == 128
+    @test Dict(QUBOTools.linear_terms(parsed_model)) == Dict(QUBOTools.linear_terms(dict_model))
+    @test Dict(QUBOTools.quadratic_terms(parsed_model)) == Dict(QUBOTools.quadratic_terms(dict_model))
+    @test QUBOTools.offset(parsed_model) == QUBOTools.offset(dict_model)
+    @test QUBOTools.sense(parsed_model) === QUBOTools.Min
+    @test QUBOTools.domain(parsed_model) === QUBOTools.BoolDomain
+    @test QUBOTools.value(parsed_model, psi) ≈ QUBOTools.value(dict_model, psi)
 end
 
 @testset "Benchmark Suites" begin
@@ -55,7 +57,7 @@ end
     benchmark_evaluation!(suite["evaluation"], fixtures)
 
     @test haskey(suite["constructors"], "n=2048")
-    @test haskey(suite["constructors"]["n=2048"], "Model/MOI")
+    @test haskey(suite["constructors"]["n=2048"], "Model/MOI/bool")
 
     for fixture in fixtures
         conversion_group = suite["conversions"][fixture.label]

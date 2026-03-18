@@ -22,7 +22,7 @@ function benchmark_seed(label::String, n::Int; quadratic_density::Float64)
     return state
 end
 
-function benchmark_fixture(label::String, n::Int; quadratic_density::Float64)
+function benchmark_qubo_data(label::String, n::Int; quadratic_density::Float64)
     rng = MersenneTwister(benchmark_seed(label, n; quadratic_density))
     variables = [Symbol("x", i) for i in 1:n]
 
@@ -35,21 +35,27 @@ function benchmark_fixture(label::String, n::Int; quadratic_density::Float64)
         end
     end
 
+    return (; rng, variables, linear, quadratic)
+end
+
+function benchmark_fixture(label::String, n::Int; quadratic_density::Float64)
+    data = benchmark_qubo_data(label, n; quadratic_density)
+
     model = QUBOTools.Model(
-        linear,
-        quadratic;
+        data.linear,
+        data.quadratic;
         scale = 1.0,
         offset = -1.0,
         sense = :max,
         domain = :spin,
     )
 
-    psi = [rand(rng, Bool) ? 1 : -1 for _ in 1:QUBOTools.dimension(model)]
+    psi = [rand(data.rng, Bool) ? 1 : -1 for _ in 1:QUBOTools.dimension(model)]
 
     return (
         label = label,
-        linear = linear,
-        quadratic = quadratic,
+        linear = data.linear,
+        quadratic = data.quadratic,
         model = model,
         psi = psi,
         dense_form = QUBOTools.form(model, Matrix),
@@ -58,7 +64,9 @@ function benchmark_fixture(label::String, n::Int; quadratic_density::Float64)
     )
 end
 
-function benchmark_moi_model(
+# Issue #56 was reported on the boolean/QUBO conversion path coming from ToQUBO,
+# so this benchmark fixture intentionally exercises the ZeroOne parser route.
+function benchmark_bool_moi_model(
     variables::Vector{Symbol},
     linear::Dict{Symbol,Float64},
     quadratic::Dict{Tuple{Symbol,Symbol},Float64};
@@ -95,25 +103,14 @@ function benchmark_moi_model(
 end
 
 function benchmark_constructor_fixture(label::String, n::Int; quadratic_density::Float64)
-    rng = MersenneTwister(benchmark_seed(label, n; quadratic_density))
-    variables = [Symbol("x", i) for i in 1:n]
-
-    linear = Dict{Symbol,Float64}(variable => randn(rng) for variable in variables)
-    quadratic = Dict{Tuple{Symbol,Symbol},Float64}()
-
-    for i in 1:(n - 1), j in (i + 1):n
-        if rand(rng) < quadratic_density
-            quadratic[(variables[i], variables[j])] = randn(rng)
-        end
-    end
-
-    moi_model = benchmark_moi_model(variables, linear, quadratic)
+    data = benchmark_qubo_data(label, n; quadratic_density)
+    bool_moi_model = benchmark_bool_moi_model(data.variables, data.linear, data.quadratic)
 
     return (
         label = label,
-        linear = linear,
-        quadratic = quadratic,
-        moi_model = moi_model,
+        linear = data.linear,
+        quadratic = data.quadratic,
+        bool_moi_model = bool_moi_model,
     )
 end
 
