@@ -134,6 +134,92 @@ function test_model(V = Symbol, T = Float64, U = Int)
                 )
             end
 
+            @testset "Form conversion" begin
+                converted = QUBOTools.form(model, Matrix)
+                ψ = QUBOTools.state(model, 1)
+
+                @test converted isa QUBOTools.DenseForm{T}
+                @test QUBOTools.sense(converted) === QUBOTools.Max
+                @test QUBOTools.domain(converted) === QUBOTools.SpinDomain
+                @test _compare_forms(
+                    converted,
+                    QUBOTools.form(model, QUBOTools.DenseForm{T});
+                    atol = 0.0,
+                )
+                @test QUBOTools.value(ψ, converted) ≈ QUBOTools.value(ψ, QUBOTools.form(model))
+
+                converted32 = QUBOTools.form(model, Matrix, Float32)
+
+                @test converted32 isa QUBOTools.DenseForm{Float32}
+                @test _compare_forms(
+                    converted32,
+                    QUBOTools.form(model, QUBOTools.DenseForm{Float32});
+                    atol = 1E-6,
+                )
+
+                qubo_form = QUBOTools.qubo(model, Matrix)
+                min_qubo = QUBOTools.qubo(model, Matrix; sense = :min)
+
+                @test qubo_form isa QUBOTools.DenseForm{T}
+                @test QUBOTools.sense(qubo_form) === QUBOTools.Max
+                @test QUBOTools.domain(qubo_form) === QUBOTools.BoolDomain
+                @test _compare_forms(
+                    qubo_form,
+                    QUBOTools.qubo(model, QUBOTools.DenseForm{T});
+                    atol = 0.0,
+                )
+                @test QUBOTools.sense(min_qubo) === QUBOTools.Min
+                @test QUBOTools.domain(min_qubo) === QUBOTools.BoolDomain
+                @test _compare_forms(
+                    min_qubo,
+                    QUBOTools.qubo(model, QUBOTools.DenseForm{T}; sense = :min);
+                    atol = 0.0,
+                )
+
+                ising_form = QUBOTools.ising(model, Matrix)
+
+                @test ising_form isa QUBOTools.DenseForm{T}
+                @test QUBOTools.sense(ising_form) === QUBOTools.Max
+                @test QUBOTools.domain(ising_form) === QUBOTools.SpinDomain
+                @test _compare_forms(
+                    ising_form,
+                    QUBOTools.ising(model, QUBOTools.DenseForm{T});
+                    atol = 0.0,
+                )
+
+                for (spec, form_type) in (
+                    SparseMatrixCSC => QUBOTools.SparseForm,
+                    Dict            => QUBOTools.DictForm,
+                )
+                    converted_spec = QUBOTools.form(model, spec)
+                    converted_spec32 = QUBOTools.form(model, spec, Float32)
+                    min_bool_spec = QUBOTools.form(model, spec; sense = :min, domain = :bool)
+
+                    @test converted_spec isa form_type{T}
+                    @test _compare_forms(
+                        converted_spec,
+                        QUBOTools.form(model, form_type{T});
+                        atol = 0.0,
+                    )
+                    @test QUBOTools.value(ψ, converted_spec) ≈ QUBOTools.value(ψ, QUBOTools.form(model))
+
+                    @test converted_spec32 isa form_type{Float32}
+                    @test _compare_forms(
+                        converted_spec32,
+                        QUBOTools.form(model, form_type{Float32});
+                        atol = 1E-6,
+                    )
+
+                    @test QUBOTools.sense(min_bool_spec) === QUBOTools.Min
+                    @test QUBOTools.domain(min_bool_spec) === QUBOTools.BoolDomain
+                    @test _compare_forms(
+                        min_bool_spec,
+                        QUBOTools.form(model, form_type{T}; sense = :min, domain = :bool);
+                        atol = 0.0,
+                    )
+                end
+            end
+
             @testset "Metrics" begin
                 @test QUBOTools.linear_density(model)    ≈ 4/8   # l / n
                 @test QUBOTools.quadratic_density(model) ≈ 10/56 # 2q / (n² - n)

@@ -32,15 +32,12 @@ end
 function form(
     model::AbstractModel{V,T,U},
     ::Type{F};
-    domain = domain(model),
-) where {V,T,U,X,F<:AbstractForm{X}}
-    Φ = form(model)
+    sense = QUBOTools.sense(model),
+    domain = QUBOTools.domain(model),
+) where {V,T,U,X,LF<:AbstractLinearForm{X},QF<:AbstractQuadraticForm{X},F<:Form{X,LF,QF}}
+    Ψ = F(form(model))
 
-    if !(Φ isa F)
-        return cast((QUBOTools.domain(model) => domain), Φ)
-    else
-        return cast((QUBOTools.domain(model) => domain), F(Φ))
-    end
+    return cast((frame(model) => Frame(sense, domain)), Ψ)
 end
 
 # ~*~ Data queries ~*~ #

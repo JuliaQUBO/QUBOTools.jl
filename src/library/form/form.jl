@@ -41,15 +41,15 @@ end
 
 function Form{T,LF,QF}(
     Φ::F,
-) where {T,F<:AbstractForm{T},LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
+) where {T,S,F<:AbstractForm{S},LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
     n = dimension(Φ)
 
     return Form{T,LF,QF}(
         n,
         LF(n, linear_form(Φ)),
         QF(n, quadratic_form(Φ)),
-        scale(Φ),
-        offset(Φ);
+        convert(T, scale(Φ)),
+        convert(T, offset(Φ));
         sense  = sense(Φ),
         domain = domain(Φ),
     )
