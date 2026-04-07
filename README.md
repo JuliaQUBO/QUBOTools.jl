@@ -8,16 +8,16 @@
     <a href="https://arxiv.org/abs/2307.02577">
         <img src="https://img.shields.io/badge/arXiv-2307.02577-b31b1b.svg" alt="arXiv"/>
     </a>
-    <a href="https://codecov.io/gh/psrenergy/QUBOTools.jl" > 
+    <a href="https://codecov.io/gh/JuliaQUBO/QUBOTools.jl" > 
         <img src="https://codecov.io/gh/JuliaQUBO/QUBOTools.jl/branch/main/graph/badge.svg?token=W7QJWS5HI4"/> 
     </a>
-    <a href="/actions/workflows/ci.yml">
+    <a href="https://github.com/JuliaQUBO/QUBOTools.jl/actions/workflows/ci.yml">
         <img src="https://github.com/JuliaQUBO/QUBOTools.jl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
     </a>
     <a href="https://www.youtube.com/watch?v=OTmzlTbqdNo">
         <img src="https://img.shields.io/badge/JuliaCon-2022-9558b2" alt="JuliaCon 2022">
     </a>
-    <a href="https://juliaqubo.github.com/QUBOTools.jl/dev">
+    <a href="https://juliaqubo.github.io/QUBOTools.jl/dev">
         <img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Docs">
     </a>
     <a href="https://doi.org/10.5281/zenodo.13879606">
@@ -81,21 +81,21 @@ QUBOTools.write_model("problem.qubo", model)
 
 |              Format                | Read  | Write | Model | Solutions | Start | Metadata |
 | :--------------------------------: | :---: | :---: | :---: | :-------: | :---: | :------: |
-| [BQPJSON](https://juliaqubo.github.com/QUBOTools.jl/formats/bqpjson.md)   |   ✅   |   ✅   |   ✅   |     ✅     |   ❌   |    ✅     |
-| [MiniZinc](https://juliaqubo.github.com/QUBOTools.jl/formats/minizinc.md) |   ❌   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
-|   [QUBin](https://juliaqubo.github.com/QUBOTools.jl/formats/qubin.md)     |   ✅   |   ✅   |   ✅   |     ✅     |   ✅   |    ✅     |
-|  [Qubist](https://juliaqubo.github.com/QUBOTools.jl/formats/qubist.md)    |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ❌     |
-|    [QUBO](https://juliaqubo.github.com/QUBOTools.jl/formats/qubo.md)      |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
-|    [Rudy](https://juliaqubo.github.com/QUBOTools.jl/formats/rudy.md)      |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
+| [BQPJSON](https://juliaqubo.github.io/QUBOTools.jl/formats/bqpjson.md)   |   ✅   |   ✅   |   ✅   |     ✅     |   ❌   |    ✅     |
+| [MiniZinc](https://juliaqubo.github.io/QUBOTools.jl/formats/minizinc.md) |   ❌   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
+|   [QUBin](https://juliaqubo.github.io/QUBOTools.jl/formats/qubin.md)     |   ✅   |   ✅   |   ✅   |     ✅     |   ✅   |    ✅     |
+|  [Qubist](https://juliaqubo.github.io/QUBOTools.jl/formats/qubist.md)    |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ❌     |
+|    [QUBO](https://juliaqubo.github.io/QUBOTools.jl/formats/qubo.md)      |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
+|    [Rudy](https://juliaqubo.github.io/QUBOTools.jl/formats/rudy.md)      |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
 
 ---
 
 <div align="center">
     <a href="https://github.com/JuliaQUBO/QUBO.jl">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JuliaQUBO/QUBO.jl/refs/heads/master/docs/src/assets/logo-collaboration-dark.png">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/JuliaQUBO/QUBO.jl/refs/heads/master/docs/src/assets/logo-collaboration-light.png">
-      <img alt="QUBO.jl Collaboration" src="">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JuliaQUBO/QUBO.jl/refs/heads/main/docs/src/assets/logo-collaboration-dark.png">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/JuliaQUBO/QUBO.jl/refs/heads/main/docs/src/assets/logo-collaboration-light.png">
+      <img alt="QUBO.jl Collaboration" src="https://raw.githubusercontent.com/JuliaQUBO/QUBO.jl/refs/heads/main/docs/src/assets/logo-collaboration-light.png">
     </picture> 
     </a>
 </div>
