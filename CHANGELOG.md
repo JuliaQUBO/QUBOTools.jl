@@ -1,5 +1,18 @@
 # QUBOTools.jl Changelog
 
+## v0.11.1 (2026-05-21)
+
+### Testing
+
+- Fix test helper compatibility with Julia 1.9.
+- Remove unnecessary `Plots` dependency from the test environment.
+- Keep documentation examples covered in package tests without requiring plot rendering there.
+
+### CI
+
+- Test the advertised Julia floor and latest stable Julia in CI.
+- Run documentation and benchmark workflows on latest stable Julia.
+
 ## v0.11.0 (2026-04-07)
 
 ### Breaking Changes
