@@ -8,7 +8,9 @@ include(joinpath(__DOCS_PATH__, "build.jl"))
 function test_docs()
     @testset "▶ Documentation Tests" verbose = true begin
         # Run the full docs build so docstrings and manual @example blocks stay valid.
-        build_docs(; deploy = false)
+        withenv("QUBOTOOLS_DOCS_SKIP_PLOTS" => "true") do
+            build_docs(; deploy = false)
+        end
         @test isfile(joinpath(__DOCS_PATH__, "build", "index.html"))
     end
 

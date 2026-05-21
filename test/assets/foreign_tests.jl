@@ -1,7 +1,15 @@
 function is_breaking_version()::Bool
     v = QUBOTools.__version__()::VersionNumber
-    
+
     return iszero(v.patch) && isempty(v.build)
+end
+
+function env_bool(name::AbstractString, default::Bool = false)::Bool
+    value = get(ENV, name, nothing)
+
+    isnothing(value) && return default
+
+    return lowercase(value) in ("1", "true", "yes", "on")
 end
 
 function run_foreign_tests()::Bool
@@ -12,7 +20,7 @@ function run_foreign_tests()::Bool
         end
 
         return true
-    elseif Base.get_bool_env("QUBOTOOLS_FOREIGN_TESTS", false)
+    elseif env_bool("QUBOTOOLS_FOREIGN_TESTS", false)
         if is_breaking_version()
             @warn "Skipping Foreign Tests for breaking release."
 
