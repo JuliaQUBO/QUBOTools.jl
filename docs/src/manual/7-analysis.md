@@ -10,8 +10,9 @@ Random.seed!(0)
 const render_visualization = let
     # GitHub's Windows runner intermittently fails to load GR artifacts.
     # Keep the examples executable there by rendering the recipe object instead.
-    if Sys.iswindows() && get(ENV, "CI", "false") == "true"
-        @info "Skipping plot rendering on Windows CI; showing the recipe object instead."
+    if get(ENV, "QUBOTOOLS_DOCS_SKIP_PLOTS", "false") == "true" ||
+       (Sys.iswindows() && get(ENV, "CI", "false") == "true")
+        @info "Skipping plot rendering; showing the recipe object instead."
         identity
     else
         @eval import Plots

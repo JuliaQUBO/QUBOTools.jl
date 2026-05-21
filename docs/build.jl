@@ -1,6 +1,25 @@
 using Documenter
 using QUBOTools
 
+const DOCS_REPOSITORY_ROOT = normpath(joinpath(@__DIR__, ".."))
+const DOCS_REPOSITORY_REMOTE = Remotes.GitHub("JuliaQUBO", "QUBOTools.jl")
+
+function docs_repository_ref(root::AbstractString)
+    try
+        git_root = realpath(
+            readchomp(pipeline(`git -C $(root) rev-parse --show-toplevel`; stderr = devnull)),
+        )
+
+        if git_root == realpath(root)
+            return readchomp(pipeline(`git -C $(root) rev-parse HEAD`; stderr = devnull))
+        end
+    catch
+        return "main"
+    end
+
+    return "main"
+end
+
 const DOCS_PAGES = [
     "Home" => "index.md",
     "Manual" => [
@@ -37,6 +56,12 @@ function build_docs(; deploy::Bool = false)
             source   = joinpath(@__DIR__, "src"),
             build    = joinpath(@__DIR__, "build"),
             workdir  = @__DIR__,
+            remotes  = Dict(
+                DOCS_REPOSITORY_ROOT => (
+                    DOCS_REPOSITORY_REMOTE,
+                    docs_repository_ref(DOCS_REPOSITORY_ROOT),
+                ),
+            ),
             warnonly = [:missing_docs, :docs_block],
             pages    = DOCS_PAGES,
             format   = Documenter.HTML(
