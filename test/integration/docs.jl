@@ -11,7 +11,13 @@ function test_docs()
         withenv("QUBOTOOLS_DOCS_SKIP_PLOTS" => "true") do
             build_docs(; deploy = false)
         end
-        @test isfile(joinpath(__DOCS_PATH__, "build", "index.html"))
+
+        index_path = joinpath(__DOCS_PATH__, "build", "index.html")
+        @test isfile(index_path)
+
+        index_html = read(index_path, String)
+        @test occursin("https://github.com/JuliaQUBO/QUBOTools.jl/blob/main/docs/src/index.md", index_html)
+        @test !occursin("https://github.com/JuliaQUBO/QUBOTools.jl/blob/master/", index_html)
     end
 
     return nothing

@@ -66,6 +66,7 @@ function build_docs(; deploy::Bool = false)
             pages    = DOCS_PAGES,
             format   = Documenter.HTML(
                 assets           = ["assets/extra_styles.css", "assets/favicon.ico"],
+                edit_link        = "main",
                 mathengine       = Documenter.KaTeX(),
                 sidebar_sitename = false,
             ),
