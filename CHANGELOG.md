@@ -1,10 +1,19 @@
 # QUBOTools.jl Changelog
 
-## Unreleased
+## v0.12.0 (2026-05-21)
 
 ### Breaking Changes
 
 - Require Julia 1.10 or newer.
+
+### Documentation
+
+- Configure Documenter with an explicit QUBOTools GitHub remote and `main` edit links.
+- Keep generated documentation links from falling back to `master` when local git remote inference is unavailable.
+
+### Testing
+
+- Add documentation integration assertions for generated edit links.
 
 ## v0.11.1 (2026-05-21)
 
