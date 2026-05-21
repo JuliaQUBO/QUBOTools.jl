@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   benchmark:
-    name: Julia 1.10 - ubuntu-latest - x64 - ${{ github.event_name }}
+    name: Julia 1 - ubuntu-latest - x64 - ${{ github.event_name }}
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
       - uses: julia-actions/setup-julia@v1
         with:
-          version: "1.10"
+          version: "1"
           arch: x64
       - uses: julia-actions/cache@v2
       - name: Test benchmark harness
