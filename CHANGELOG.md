@@ -1,5 +1,11 @@
 # QUBOTools.jl Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+- Require Julia 1.10 or newer.
+
 ## v0.11.1 (2026-05-21)
 
 ### Testing
