@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This manual aims to explain the fundamental concepts behind loading, manipulating and analyzing models with [QUBOTools](https://github.com/psrenergy/QUBOTools.jl).
+This manual aims to explain the fundamental concepts behind loading, manipulating and analyzing models with [QUBOTools](https://github.com/JuliaQUBO/QUBOTools.jl).
 
 ## Table of Contents
 

@@ -18,6 +18,13 @@ function test_docs()
         index_html = read(index_path, String)
         @test occursin("https://github.com/JuliaQUBO/QUBOTools.jl/blob/main/docs/src/index.md", index_html)
         @test !occursin("https://github.com/JuliaQUBO/QUBOTools.jl/blob/master/", index_html)
+
+        manual_start_path = joinpath(__DOCS_PATH__, "build", "manual", "1-start", "index.html")
+        @test isfile(manual_start_path)
+
+        manual_start_html = read(manual_start_path, String)
+        @test occursin("https://github.com/JuliaQUBO/QUBOTools.jl", manual_start_html)
+        @test !occursin("https://github.com/psrenergy/QUBOTools.jl", manual_start_html)
     end
 
     return nothing
