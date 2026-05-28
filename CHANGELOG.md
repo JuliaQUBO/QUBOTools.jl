@@ -1,6 +1,6 @@
 # QUBOTools.jl Changelog
 
-## Unreleased
+## v0.12.1 (2026-05-28)
 
 ### Compatibility
 
