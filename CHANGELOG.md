@@ -6,6 +6,10 @@
 
 - Allow GeometryBasics 0.5 so downstream packages can resolve newer SciML stacks alongside QUBOTools.
 
+### Documentation
+
+- Update the manual introduction link to the canonical JuliaQUBO repository.
+
 ## v0.12.0 (2026-05-21)
 
 ### Breaking Changes
