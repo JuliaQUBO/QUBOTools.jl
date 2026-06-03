@@ -12,4 +12,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Documenter = "1"
+Graphs = "1.14.0"
+MathOptInterface = "1.51.1"
 RecipesBase = "1"
+Statistics = "1.11.1"
