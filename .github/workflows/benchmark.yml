@@ -42,6 +42,6 @@ jobs:
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: thollander/actions-comment-pull-request@v3
         with:
-          filePath: benchmark/data/REPORT.md
+          file-path: benchmark/data/REPORT.md
           mode: recreate
-          comment_tag: benchmark-report
+          comment-tag: benchmark-report
