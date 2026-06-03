@@ -4,7 +4,7 @@ include("docs.jl")
 function test_foreign()
     if run_foreign_tests()
         @testset "▶ Foreign Package Tests" verbose = true begin
-            test_foreign_pkg(Pkg.PackageSpec(name="ToQUBO", rev="master"))
+            test_foreign_pkg(Pkg.PackageSpec(name="ToQUBO", rev="main"))
             test_foreign_pkg("QUBODrivers")
             test_foreign_pkg("QUBO")
         end
