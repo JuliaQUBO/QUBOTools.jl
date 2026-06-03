@@ -78,7 +78,7 @@ function _parse_model_variables(variables::Vector{V}) where {V}
 end
 
 function _parse_model_metadata(fp::P, ::Format{:qubin}) where {P<:Union{HDF5.File,HDF5.Group}}
-    return JSON.parse(read(fp["model"]["metadata"]))
+    return _json_object(JSON.parse(read(fp["model"]["metadata"])))
 end
 
 function _parse_solution(fp::P, fmt::Format{:qubin}) where {P<:Union{HDF5.File,HDF5.Group}}
@@ -113,5 +113,5 @@ function _parse_solution_data(ψ::Matrix{U}, λ::Vector{T}, r::Vector{Int}) wher
 end
 
 function _parse_solution_metadata(fp::P, ::Format{:qubin}) where {P<:Union{HDF5.File,HDF5.Group}}
-    return JSON.parse(read(fp["solution"]["metadata"]))
+    return _json_object(JSON.parse(read(fp["solution"]["metadata"])))
 end
