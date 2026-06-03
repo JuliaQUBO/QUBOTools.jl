@@ -149,7 +149,7 @@ function _parse_comment_metadata!(
     elseif key == "offset"
         data[:offset] = tryparse(Float64, val)
     else
-        data[:metadata][key] = JSON.parse(val)
+        data[:metadata][key] = _json_data(JSON.parse(val))
     end
 
     return nothing

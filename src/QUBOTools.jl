@@ -76,6 +76,7 @@ include("library/error.jl")
 
 # Reference implementations
 include("library/io.jl")
+include("library/json.jl")
 include("library/frame.jl")
 include("library/layout.jl")
 

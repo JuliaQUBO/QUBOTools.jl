@@ -1,5 +1,5 @@
 function read_model(io::IO, fmt::Format{:bqpjson})
-    json_data = JSON.parse(io)
+    json_data = _json_object(JSON.parse(io))
 
     report = JSONSchema.validate(_BQPJSON_SCHEMA, json_data)
 
