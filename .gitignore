@@ -28,3 +28,8 @@ Manifest.toml
 
 # PythonPlot
 .CondaPkg
+
+# Local test and package-manager caches
+.julia-depot/
+__pycache__/
+*.py[cod]
