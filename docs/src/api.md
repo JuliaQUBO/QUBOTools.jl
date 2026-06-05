@@ -118,6 +118,7 @@ QUBOTools.hassample
 QUBOTools.AbstractSolution
 QUBOTools.SampleSet
 QUBOTools.solution
+QUBOTools.sampleset_table
 ```
 
 ```@docs
@@ -176,6 +177,8 @@ QUBOTools.write_model
 ```@docs
 QUBOTools.read_solution
 QUBOTools.write_solution
+QUBOTools.read_samples
+QUBOTools.write_samples
 ```
 
 ### Format & I/O Errors
