@@ -510,6 +510,14 @@ function test_solution_objectives()
         @test projected_breakdown.state == state
         @test projected_breakdown.offset_adjusted_value == 1.0
 
+        sample_breakdown = QUBOTools.objective_breakdown(
+            model,
+            Sample{Float64,Int}([1, 1, 0], 1.0, 1),
+        )
+
+        @test sample_breakdown.state == state
+        @test sample_breakdown.offset_adjusted_value == 1.0
+
         sol = SampleSet{Float64,Int}(
             Sample{Float64,Int}[
                 Sample([1, 1, 0], 1.0, 2),
@@ -518,6 +526,13 @@ function test_solution_objectives()
             sense = :min,
             domain = :bool,
         )
+
+        QUBOTools.attach!(model, sol)
+
+        indexed_breakdown = QUBOTools.objective_breakdown(model, 2)
+
+        @test indexed_breakdown.state == state
+        @test indexed_breakdown.offset_adjusted_value == 1.0
 
         rows = QUBOTools.annotate_objectives!(sol, model; label = :qubo)
 
@@ -536,7 +551,16 @@ function test_solution_objectives()
             domain = :spin,
         )
 
+        @test_throws QUBOTools.SolutionError QUBOTools.objective_breakdown(
+            model,
+            Sample{Float64,Int}([↑, ↑, ↓], -1.0, 1),
+        )
         @test QUBOTools.verify_objective_values(model, flipped_sol)
+
+        flipped_rows = QUBOTools.annotate_objectives!(flipped_sol, model; label = :cast)
+
+        @test flipped_rows[1].state == [1, 1, 0]
+        @test QUBOTools.metadata(flipped_sol)["objectives"]["cast"][1]["state"] == [1, 1, 0]
 
         bad_sol = SampleSet{Float64,Int}(
             Sample{Float64,Int}[
