@@ -128,6 +128,15 @@ QUBOTools.energy
 QUBOTools.reads
 ```
 
+```@docs
+QUBOTools.ObjectiveBreakdown
+QUBOTools.ObjectiveMismatch
+QUBOTools.objective_breakdown
+QUBOTools.annotate_objectives!
+QUBOTools.objective_value_mismatches
+QUBOTools.verify_objective_values
+```
+
 ### Solution Errors
 
 ```@docs

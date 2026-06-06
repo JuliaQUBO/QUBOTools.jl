@@ -88,6 +88,43 @@ An alias for [`value`](@ref).
 const energy = value
 
 @doc raw"""
+    objective_breakdown(model_or_form, state; variables = nothing)
+    objective_breakdown(model, sample)
+
+Return a structured objective-value breakdown for `state`.
+
+The breakdown separates the raw quadratic value, the scaled value, and the
+offset-adjusted value used by [`value`](@ref). When `variables` is provided for
+a model and vector state, the vector is interpreted in that variable order and
+projected to the model's variable order before evaluation.
+"""
+function objective_breakdown end
+
+@doc raw"""
+    annotate_objectives!(sampleset, model; label = :objective, variables = nothing)
+
+Compute objective breakdown rows for each sample and store them under
+`metadata(sampleset)["objectives"][label]`.
+"""
+function annotate_objectives! end
+
+@doc raw"""
+    objective_value_mismatches(model, sampleset; atol = 0, rtol = sqrt(eps(Float64)))
+
+Return detailed records for samples whose stored values do not match model
+evaluation within tolerance.
+"""
+function objective_value_mismatches end
+
+@doc raw"""
+    verify_objective_values(model, sampleset; kws...)
+
+Return `true` when every stored sample value matches model evaluation within the
+given tolerance.
+"""
+function verify_objective_values end
+
+@doc raw"""
     read_solution(::AbstractString)
     read_solution(::AbstractString, ::AbstractFormat)
     read_solution(::IO, ::AbstractFormat)

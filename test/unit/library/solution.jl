@@ -432,12 +432,146 @@ function test_solution_sampleset_io()
     return nothing
 end
 
+function test_solution_objectives()
+    @testset "⋅ Objective Bookkeeping" begin
+        L = [1.0, -2.0, 0.5]
+        Q = [
+            0.0 3.0 0.0
+            0.0 0.0 -1.0
+            0.0 0.0 0.0
+        ]
+        state = [1, 1, 0]
+
+        dense_form = QUBOTools.DenseForm{Float64}(
+            3,
+            L,
+            Q,
+            2.0,
+            -1.5;
+            sense = :min,
+            domain = :bool,
+        )
+        sparse_form = QUBOTools.SparseForm{Float64}(
+            3,
+            sparse(L),
+            sparse(Q),
+            2.0,
+            -1.5;
+            sense = :min,
+            domain = :bool,
+        )
+
+        dense_breakdown = QUBOTools.objective_breakdown(dense_form, state)
+        sparse_breakdown = QUBOTools.objective_breakdown(sparse_form, state)
+
+        @test dense_breakdown.raw_value == 2.0
+        @test dense_breakdown.scaled_value == 4.0
+        @test dense_breakdown.offset_adjusted_value == 1.0
+        @test QUBOTools.value(dense_breakdown) == 1.0
+        @test dense_breakdown.sense === QUBOTools.Min
+        @test dense_breakdown.domain === QUBOTools.BoolDomain
+        @test sparse_breakdown.raw_value == dense_breakdown.raw_value
+        @test sparse_breakdown.offset_adjusted_value == dense_breakdown.offset_adjusted_value
+
+        spin_model = QUBOTools.Model(
+            Dict(:a => 1.0, :b => -2.0),
+            Dict((:a, :b) => 0.5);
+            scale = 0.5,
+            offset = 2.0,
+            sense = :max,
+            domain = :spin,
+        )
+        spin_breakdown = QUBOTools.objective_breakdown(
+            spin_model,
+            Dict(:a => ↑, :b => ↓),
+        )
+
+        @test spin_breakdown.raw_value == 2.5
+        @test spin_breakdown.scaled_value == 1.25
+        @test spin_breakdown.offset_adjusted_value == 2.25
+        @test spin_breakdown.sense === QUBOTools.Max
+        @test spin_breakdown.domain === QUBOTools.SpinDomain
+
+        model = QUBOTools.Model(
+            Dict(:x => 1.0, :y => -2.0, :z => 0.5),
+            Dict((:x, :y) => 3.0, (:y, :z) => -1.0);
+            scale = 2.0,
+            offset = -1.5,
+            sense = :min,
+            domain = :bool,
+        )
+
+        projected_breakdown = QUBOTools.objective_breakdown(
+            model,
+            [0, 1, 1, 0];
+            variables = [:aux, :x, :y, :z],
+        )
+
+        @test projected_breakdown.state == state
+        @test projected_breakdown.offset_adjusted_value == 1.0
+
+        sol = SampleSet{Float64,Int}(
+            Sample{Float64,Int}[
+                Sample([1, 1, 0], 1.0, 2),
+                Sample([0, 0, 0], -3.0, 1),
+            ];
+            sense = :min,
+            domain = :bool,
+        )
+
+        rows = QUBOTools.annotate_objectives!(sol, model; label = :qubo)
+
+        @test length(rows) == 2
+        @test rows[1].offset_adjusted_value == -3.0
+        @test rows[2].offset_adjusted_value == 1.0
+        @test haskey(QUBOTools.metadata(sol), "objectives")
+        @test QUBOTools.metadata(sol)["objectives"]["qubo"][2]["raw_value"] == 2.0
+        @test QUBOTools.verify_objective_values(model, sol)
+
+        flipped_sol = SampleSet{Float64,Int}(
+            Sample{Float64,Int}[
+                Sample([↑, ↑, ↓], -1.0, 1),
+            ];
+            sense = :max,
+            domain = :spin,
+        )
+
+        @test QUBOTools.verify_objective_values(model, flipped_sol)
+
+        bad_sol = SampleSet{Float64,Int}(
+            Sample{Float64,Int}[
+                Sample([1, 1, 0], 1.25, 1),
+            ];
+            sense = :min,
+            domain = :bool,
+        )
+        mismatches = QUBOTools.objective_value_mismatches(model, bad_sol; atol = 1e-9)
+
+        @test !QUBOTools.verify_objective_values(model, bad_sol; atol = 1e-9)
+        @test length(mismatches) == 1
+        @test mismatches[1].index == 1
+        @test mismatches[1].stored_value == 1.25
+        @test mismatches[1].evaluated_value == 1.0
+        @test mismatches[1].difference == 0.25
+
+        @test_throws QUBOTools.SolutionError QUBOTools.objective_breakdown(model, [2, 1, 0])
+        @test_throws QUBOTools.SolutionError QUBOTools.objective_breakdown(
+            model,
+            [1, 0];
+            variables = [:x, :y],
+        )
+    end
+
+    return nothing
+end
+
 function test_solution()
     @testset "→ Solution" verbose = true begin
         test_solution_states()
         test_solution_samples()
         test_solution_sampleset()
         test_solution_sampleset_io()
+        test_solution_objectives()
     end
 
     return nothing
