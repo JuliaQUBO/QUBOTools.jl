@@ -58,6 +58,9 @@ export ↓, ↑, 𝔹, 𝕊
 # Exports: Solution Interface
 export Sample, SampleSet
 export read_samples, sampleset_table, write_samples
+export ObjectiveBreakdown, ObjectiveMismatch
+export annotate_objectives!, objective_breakdown
+export objective_value_mismatches, verify_objective_values
 
 # Interface definitions
 include("interface/form.jl")
@@ -96,6 +99,7 @@ include("library/solution/table.jl")
 include("library/model/abstract.jl")
 include("library/model/variable_map.jl")
 include("library/model/model.jl")
+include("library/model/objective.jl")
 
 include("library/synthesis/abstract.jl")
 include("library/synthesis/sherrington_kirkpatrick.jl")

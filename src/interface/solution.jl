@@ -88,6 +88,51 @@ An alias for [`value`](@ref).
 const energy = value
 
 @doc raw"""
+    objective_breakdown(model_or_form, state; variables = nothing)
+    objective_breakdown(model, sample)
+    objective_breakdown(model, i::Integer)
+
+Return a structured objective-value breakdown for `state`.
+
+The breakdown separates the raw quadratic value, the scaled value, and the
+offset-adjusted value used by [`value`](@ref). When `variables` is provided for
+a model and vector state, the vector is interpreted in that variable order and
+projected to the model's variable order before evaluation. The `sample` and
+integer overloads evaluate state data without a surrounding solution frame, so
+the state is assumed to already be in the model domain; use
+[`annotate_objectives!`](@ref) or [`verify_objective_values`](@ref) when
+evaluating samples from a `SampleSet` whose frame may differ from the model. The
+integer overload interprets `i` as the index of a sample in `solution(model)`.
+"""
+function objective_breakdown end
+
+@doc raw"""
+    annotate_objectives!(sampleset, model; label = :objective, variables = nothing)
+
+Compute objective breakdown rows for each sample and store them under
+`metadata(sampleset)["objectives"][label]`. Stored rows record the evaluated
+state, after any solution-domain cast or variable projection needed to evaluate
+against `model`.
+"""
+function annotate_objectives! end
+
+@doc raw"""
+    objective_value_mismatches(model, sampleset; atol = 0, rtol = sqrt(eps(Float64)))
+
+Return detailed records for samples whose stored values do not match model
+evaluation within tolerance.
+"""
+function objective_value_mismatches end
+
+@doc raw"""
+    verify_objective_values(model, sampleset; kws...)
+
+Return `true` when every stored sample value matches model evaluation within the
+given tolerance.
+"""
+function verify_objective_values end
+
+@doc raw"""
     read_solution(::AbstractString)
     read_solution(::AbstractString, ::AbstractFormat)
     read_solution(::IO, ::AbstractFormat)
