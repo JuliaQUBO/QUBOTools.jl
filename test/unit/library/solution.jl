@@ -342,6 +342,7 @@ function test_solution_sampleset_io()
 
             spin_sol = SampleSet{Float64,Int}(
                 Sample{Float64,Int}[
+                    Sample([↑, ↑, ↑], -4.0, 2),
                     Sample([↓, ↑, ↓], -3.0, 5),
                     Sample([↑, ↓, ↑], -1.0, 7),
                 ];
@@ -360,8 +361,12 @@ function test_solution_sampleset_io()
                 bit_order = :reverse,
             )
 
-            @test !startswith(read(spin_samples_path, String), "#")
-            @test occursin("\"domain\": \"spin\"", read(spin_metadata_path, String))
+            spin_samples_text = read(spin_samples_path, String)
+            spin_metadata_text = read(spin_metadata_path, String)
+
+            @test !startswith(spin_samples_text, "#")
+            @test occursin("1 1 1", spin_samples_text)
+            @test occursin("\"domain\": \"spin\"", spin_metadata_text)
 
             spin_dst = QUBOTools.read_samples(
                 spin_samples_path;
@@ -369,6 +374,43 @@ function test_solution_sampleset_io()
             )
 
             @test _compare_solutions(spin_sol, spin_dst)
+
+            spin_dst_with_explicit_native = QUBOTools.read_samples(
+                spin_samples_path;
+                metadata_path = spin_metadata_path,
+                bit_order = :native,
+            )
+
+            @test _compare_solutions(spin_sol, spin_dst_with_explicit_native)
+
+            model = QUBOTools.Model(
+                Dict(:x1 => 1.0, :x2 => 0.0, :x3 => -1.0),
+                Dict{Tuple{Symbol,Symbol},Float64}();
+                scale = 2.0,
+                offset = -1.0,
+            )
+
+            QUBOTools.attach!(model, sol)
+
+            model_samples_path = joinpath(dir, "model-samples.csv")
+            model_metadata_path = joinpath(dir, "model-samples.json")
+
+            QUBOTools.write_samples(
+                model_samples_path,
+                model;
+                metadata_path = model_metadata_path,
+            )
+
+            model_metadata_text = read(model_metadata_path, String)
+
+            @test occursin("\"scale\": 2.0", model_metadata_text)
+            @test occursin("\"offset\": -1.0", model_metadata_text)
+            @test occursin("\"variables\":", model_metadata_text)
+            @test occursin("\"x1\"", model_metadata_text)
+            @test _compare_solutions(
+                sol,
+                QUBOTools.read_samples(model_samples_path; metadata_path = model_metadata_path),
+            )
 
             duplicate_samples_path = joinpath(dir, "duplicate-samples.csv")
 

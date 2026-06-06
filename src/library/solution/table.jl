@@ -18,6 +18,7 @@ function sampleset_table(
     include_probability::Bool = true,
 )
     bit_order = _samples_bit_order(bit_order)
+    sample_domain = domain(sol)
 
     total_reads = reads(sol)
 
@@ -25,7 +26,7 @@ function sampleset_table(
         return [
             (
                 rank = i,
-                state = _samples_state_string(sample; bit_order),
+                state = _samples_state_string(sample, sample_domain; bit_order),
                 reads = reads(sample),
                 value = value(sample),
                 probability = _samples_probability(reads(sample), total_reads),
@@ -35,7 +36,7 @@ function sampleset_table(
         return [
             (
                 rank = i,
-                state = _samples_state_string(sample; bit_order),
+                state = _samples_state_string(sample, sample_domain; bit_order),
                 reads = reads(sample),
                 value = value(sample),
             ) for (i, sample) in enumerate(sol)
@@ -52,7 +53,9 @@ Write a `SampleSet`-like solution as a stable tabular distribution file.
 Only `format = :csv` is currently supported. By default, JSON metadata is embedded
 in a leading CSV comment so `read_samples` can recover the solution frame and
 metadata. If `metadata_path` is provided, the JSON metadata is written to that
-sidecar path instead.
+sidecar path instead and must be passed to `read_samples` to recover the recorded
+frame and metadata. When `model` context is provided, model scale, offset, and
+variable names are recorded in the JSON metadata.
 """
 function write_samples(
     path::AbstractString,
@@ -135,7 +138,14 @@ end
 Read a CSV distribution written by [`write_samples`](@ref) and return a
 `SampleSet`. Duplicate states with matching values are merged by the `SampleSet`
 constructor. The `probability` column, when present, is treated as derived data;
-`reads` remains authoritative.
+`reads` remains authoritative. Imported values use `Float64` and reads use `Int`.
+
+When embedded or sidecar metadata records `bit_order`, that recorded order is
+used to recover the native state order; the `bit_order` keyword is used only for
+metadata-less input. Sidecar metadata written by `write_samples` must be supplied
+with `metadata_path` to recover the recorded frame and solution metadata.
+`read_samples` returns a `SampleSet` and does not reconstruct model context from
+the optional metadata `model` block.
 """
 function read_samples(
     path::AbstractString;
@@ -228,14 +238,18 @@ function _samples_probability(sample_reads::Integer, total_reads::Integer)
     end
 end
 
-function _samples_state_string(sample::AbstractSample; bit_order::Symbol)
+function _samples_state_string(
+    sample::AbstractSample,
+    sample_domain::Domain;
+    bit_order::Symbol,
+)
     ψ = collect(state(sample))
 
     if bit_order === :reverse
         reverse!(ψ)
     end
 
-    if all(x -> x == 0 || x == 1, ψ)
+    if sample_domain === 𝔹
         return join(string.(ψ), "")
     else
         return join(string.(ψ), " ")
