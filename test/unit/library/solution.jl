@@ -272,11 +272,172 @@ function test_solution_sampleset()
     end
 end
 
+function test_solution_sampleset_io()
+    @testset "⋅ SampleSet Tables & I/O" begin
+        metadata = Dict{String,Any}(
+            "origin" => "test-solver",
+            "time" => Dict{String,Any}("total" => 1.25),
+            "model" => Dict{String,Any}(
+                "scale" => 2.0,
+                "offset" => -1.0,
+                "variables" => ["x1", "x2", "x3"],
+            ),
+        )
+
+        sol = SampleSet{Float64,Int}(
+            Sample{Float64,Int}[
+                Sample([0, 1, 1], 1.5, 2),
+                Sample([1, 0, 0], -2.0, 3),
+                Sample([0, 1, 1], 1.5, 4),
+            ];
+            metadata,
+            sense = :min,
+            domain = :bool,
+        )
+
+        rows = QUBOTools.sampleset_table(sol)
+
+        @test propertynames(first(rows)) == (:rank, :state, :reads, :value, :probability)
+        @test rows[1] == (rank = 1, state = "100", reads = 3, value = -2.0, probability = 1 / 3)
+        @test rows[2] == (rank = 2, state = "011", reads = 6, value = 1.5, probability = 2 / 3)
+
+        rows_without_probability = QUBOTools.sampleset_table(sol; include_probability = false)
+
+        @test propertynames(first(rows_without_probability)) == (:rank, :state, :reads, :value)
+
+        zero_read_sol = SampleSet{Float64,Int}(
+            Sample{Float64,Int}[
+                Sample([0, 0], 0.0, 0),
+                Sample([1, 1], 1.0, 0),
+            ];
+            sense = :min,
+            domain = :bool,
+        )
+
+        @test all(row -> row.probability == 0.0, QUBOTools.sampleset_table(zero_read_sol))
+
+        mktempdir() do dir
+            samples_path = joinpath(dir, "samples.csv")
+
+            QUBOTools.write_samples(samples_path, sol)
+
+            samples_text = read(samples_path, String)
+
+            @test occursin("# QUBOTools.samples.metadata=", samples_text)
+            @test occursin("rank,state,reads,value,probability", samples_text)
+
+            dst = QUBOTools.read_samples(samples_path)
+
+            @test _compare_solutions(sol, dst)
+
+            samples_without_probability_path = joinpath(dir, "samples-without-probability.csv")
+
+            QUBOTools.write_samples(
+                samples_without_probability_path,
+                sol;
+                include_probability = false,
+            )
+
+            @test occursin("rank,state,reads,value\n", read(samples_without_probability_path, String))
+
+            spin_sol = SampleSet{Float64,Int}(
+                Sample{Float64,Int}[
+                    Sample([↑, ↑, ↑], -4.0, 2),
+                    Sample([↓, ↑, ↓], -3.0, 5),
+                    Sample([↑, ↓, ↑], -1.0, 7),
+                ];
+                metadata = Dict{String,Any}("origin" => "spin-solver"),
+                sense = :max,
+                domain = :spin,
+            )
+
+            spin_samples_path = joinpath(dir, "spin-samples.csv")
+            spin_metadata_path = joinpath(dir, "spin-samples.json")
+
+            QUBOTools.write_samples(
+                spin_samples_path,
+                spin_sol;
+                metadata_path = spin_metadata_path,
+                bit_order = :reverse,
+            )
+
+            spin_samples_text = read(spin_samples_path, String)
+            spin_metadata_text = read(spin_metadata_path, String)
+
+            @test !startswith(spin_samples_text, "#")
+            @test occursin("1 1 1", spin_samples_text)
+            @test occursin("\"domain\": \"spin\"", spin_metadata_text)
+
+            spin_dst = QUBOTools.read_samples(
+                spin_samples_path;
+                metadata_path = spin_metadata_path,
+            )
+
+            @test _compare_solutions(spin_sol, spin_dst)
+
+            spin_dst_with_explicit_native = QUBOTools.read_samples(
+                spin_samples_path;
+                metadata_path = spin_metadata_path,
+                bit_order = :native,
+            )
+
+            @test _compare_solutions(spin_sol, spin_dst_with_explicit_native)
+
+            model = QUBOTools.Model(
+                Dict(:x1 => 1.0, :x2 => 0.0, :x3 => -1.0),
+                Dict{Tuple{Symbol,Symbol},Float64}();
+                scale = 2.0,
+                offset = -1.0,
+            )
+
+            QUBOTools.attach!(model, sol)
+
+            model_samples_path = joinpath(dir, "model-samples.csv")
+            model_metadata_path = joinpath(dir, "model-samples.json")
+
+            QUBOTools.write_samples(
+                model_samples_path,
+                model;
+                metadata_path = model_metadata_path,
+            )
+
+            model_metadata_text = read(model_metadata_path, String)
+
+            @test occursin("\"scale\": 2.0", model_metadata_text)
+            @test occursin("\"offset\": -1.0", model_metadata_text)
+            @test occursin("\"variables\":", model_metadata_text)
+            @test occursin("\"x1\"", model_metadata_text)
+            @test _compare_solutions(
+                sol,
+                QUBOTools.read_samples(model_samples_path; metadata_path = model_metadata_path),
+            )
+
+            duplicate_samples_path = joinpath(dir, "duplicate-samples.csv")
+
+            open(duplicate_samples_path, "w") do io
+                println(io, "rank,state,reads,value,probability")
+                println(io, "1,01,2,1.0,0.4")
+                println(io, "2,01,3,1.0,0.6")
+            end
+
+            duplicate_dst = QUBOTools.read_samples(duplicate_samples_path)
+
+            @test length(duplicate_dst) == 1
+            @test QUBOTools.state(duplicate_dst, 1) == [0, 1]
+            @test QUBOTools.value(duplicate_dst, 1) == 1.0
+            @test QUBOTools.reads(duplicate_dst, 1) == 5
+        end
+    end
+
+    return nothing
+end
+
 function test_solution()
     @testset "→ Solution" verbose = true begin
         test_solution_states()
         test_solution_samples()
         test_solution_sampleset()
+        test_solution_sampleset_io()
     end
 
     return nothing

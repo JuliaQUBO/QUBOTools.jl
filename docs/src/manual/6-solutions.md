@@ -12,6 +12,41 @@ Samples should be sorted by increasing values of ``\lambda``, then by decreasing
 
 Optimization results and metadata are stored in a specialized data structre, the [`QUBOTools.SampleSet`](@ref).
 
+## Tabular distribution caches
+
+Solver-independent sample distributions can be exported as CSV files with [`QUBOTools.write_samples`](@ref) and loaded again with [`QUBOTools.read_samples`](@ref). The CSV schema is stable and includes the sample rank, state, reads, value, and probability by default. Solution metadata, frame information, bit order, and package versions are stored as embedded JSON metadata, or in a JSON sidecar when `metadata_path` is provided.
+
+```julia
+solution = QUBOTools.solution(model)
+
+QUBOTools.write_samples("distribution.csv", solution)
+
+cached_solution = QUBOTools.read_samples("distribution.csv")
+rows = QUBOTools.sampleset_table(cached_solution)
+
+states = getproperty.(rows, :state)
+probabilities = getproperty.(rows, :probability)
+```
+
+When model context is available, passing the model records model scale, offset, and variable names in the metadata sidecar or embedded metadata:
+
+```julia
+QUBOTools.write_samples(
+    "distribution.csv",
+    model;
+    metadata_path = "distribution.metadata.json",
+)
+
+cached_solution = QUBOTools.read_samples(
+    "distribution.csv";
+    metadata_path = "distribution.metadata.json",
+)
+```
+
+For files written with `metadata_path`, pass the same `metadata_path` to [`QUBOTools.read_samples`](@ref) so the recorded frame and bit order are restored. If embedded or sidecar metadata records a bit order, that recorded value is used for import; the `bit_order` keyword is only used for metadata-less CSV input.
+
+[`QUBOTools.read_samples`](@ref) returns a [`QUBOTools.SampleSet`](@ref) with `Float64` values and `Int` reads. Model scale, offset, and variable names are kept in the JSON metadata for external inspection, but `read_samples` does not reconstruct a model from that metadata block.
+
 ## Metadata
 
 The solution metadata should be stored in a JSON-compatible associative map with string keys, such as `Dict{String,Any}`.

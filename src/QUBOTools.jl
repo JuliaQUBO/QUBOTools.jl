@@ -57,6 +57,7 @@ export ↓, ↑, 𝔹, 𝕊
 
 # Exports: Solution Interface
 export Sample, SampleSet
+export read_samples, sampleset_table, write_samples
 
 # Interface definitions
 include("interface/form.jl")
@@ -90,6 +91,7 @@ include("library/solution/abstract.jl")
 include("library/solution/state.jl")
 include("library/solution/sample.jl")
 include("library/solution/sampleset.jl")
+include("library/solution/table.jl")
 
 include("library/model/abstract.jl")
 include("library/model/variable_map.jl")
