@@ -162,12 +162,3 @@ function Base.iterate(Φ::F, state::Integer = 1) where {T,F<:AbstractForm{T}}
         return nothing
     end
 end
-
-function fix_variables(fix::Vector{<:Integer}, Φ::F) where {T,F<:AbstractForm{T}}
-    n = dimension(Φ)
-    L = linear_form(Φ)
-
-    for i in fix
-
-    end
-end

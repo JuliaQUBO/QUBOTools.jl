@@ -72,6 +72,28 @@ Returns the quadratic part of the QUBO form.
 """
 function quadratic_form end
 
+@doc raw"""
+    fix_variables(Φ::AbstractForm, fix::AbstractDict{<:Integer})
+
+Fixes variables in `Φ` to the values supplied by `fix`.
+
+For boolean forms, fixed values must belong to ``\mathbb{B} = \{0, 1\}``.
+For spin forms, fixed values must belong to ``\mathbb{S} = \{-1, 1\}``.
+
+Returns `(Φ_reduced, offset_delta, index_map)`, where `offset_delta` is the
+unscaled amount added to `offset(Φ)` and `index_map` maps each surviving
+original variable index to its dense index in `Φ_reduced`.
+"""
+function fix_variables end
+
+@doc raw"""
+    lift_state(state_reduced, fix, index_map, n)
+
+Reconstructs a full length-`n` state from a reduced state, fixed variable
+values, and the `index_map` returned by [`QUBOTools.fix_variables`](@ref).
+"""
+function lift_state end
+
 
 @doc raw"""
     qubo(args; kws...)

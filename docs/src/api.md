@@ -76,6 +76,11 @@ QUBOTools.qubo
 QUBOTools.ising
 ```
 
+```@docs
+QUBOTools.fix_variables
+QUBOTools.lift_state
+```
+
 ### Underlying Data Structures
 
 ```@docs
