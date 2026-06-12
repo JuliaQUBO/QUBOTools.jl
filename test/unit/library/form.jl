@@ -95,6 +95,106 @@ function test_form_topology(Φ̄::F, Φ::F, Ψ̄::F, Ψ::F) where {T,F<:QUBOTool
     return nothing
 end
 
+function _fix_variables_form(form_kind::Symbol, domain::QUBOTools.Domain)
+    seed =
+        (form_kind === :dict ? 11 : form_kind === :sparse ? 23 : 37) +
+        (domain === QUBOTools.BoolDomain ? 0 : 100)
+    rng = Random.MersenneTwister(seed)
+    n = 6
+    L = Float64.(rand(rng, -5:5, n))
+    Q = zeros(Float64, n, n)
+
+    for i in 1:n, j in i:n
+        Q[i, j] = rand(rng, -3:3)
+    end
+
+    if form_kind === :dict
+        return QUBOTools.DictForm{Float64}(
+            n,
+            Dict{Int,Float64}(i => L[i] for i in 1:n),
+            Dict{Tuple{Int,Int},Float64}((i, j) => Q[i, j] for i in 1:n for j in i:n),
+            1.5,
+            -2.0;
+            sense = :min,
+            domain,
+        )
+    elseif form_kind === :sparse
+        return QUBOTools.SparseForm{Float64}(n, sparse(L), sparse(Q), 1.5, -2.0; sense = :min, domain)
+    else
+        return QUBOTools.DenseForm{Float64}(n, L, Q, 1.5, -2.0; sense = :min, domain)
+    end
+end
+
+function _fix_variables_values(domain::QUBOTools.Domain)
+    return domain === QUBOTools.BoolDomain ? [0, 1] : [-1, 1]
+end
+
+function _fix_variables_states(values::Vector{Int}, n::Integer)
+    n == 0 && return [Int[]]
+
+    return [
+        [values[1 + ((mask >> (i - 1)) & 1)] for i in 1:n] for
+        mask in 0:(2^n - 1)
+    ]
+end
+
+function test_form_fix_variables()
+    @testset "Variable Fixing" begin
+        for form_kind in (:dict, :sparse, :dense),
+            domain in (QUBOTools.BoolDomain, QUBOTools.SpinDomain)
+
+            @testset "$(form_kind) $(Symbol(domain))" begin
+                Φ = _fix_variables_form(form_kind, domain)
+                n = QUBOTools.dimension(Φ)
+                values = _fix_variables_values(domain)
+                fix = Dict(2 => values[2], 5 => values[1])
+
+                Φ′, offset_delta, index_map = QUBOTools.fix_variables(Φ, fix)
+
+                @test QUBOTools.dimension(Φ′) == n - length(fix)
+                @test QUBOTools.scale(Φ′) == QUBOTools.scale(Φ)
+                @test QUBOTools.offset(Φ′) ≈ QUBOTools.offset(Φ) + offset_delta
+                @test QUBOTools.sense(Φ′) === QUBOTools.sense(Φ)
+                @test QUBOTools.domain(Φ′) === QUBOTools.domain(Φ)
+                @test index_map == Dict(1 => 1, 3 => 2, 4 => 3, 6 => 4)
+
+                for reduced_state in _fix_variables_states(values, QUBOTools.dimension(Φ′))
+                    full_state = QUBOTools.lift_state(reduced_state, fix, index_map, n)
+
+                    @test QUBOTools.value(full_state, Φ) ≈ QUBOTools.value(reduced_state, Φ′)
+                    @test full_state[2] == fix[2]
+                    @test full_state[5] == fix[5]
+                end
+
+                Φ_identity, identity_delta, identity_map =
+                    QUBOTools.fix_variables(Φ, Dict{Int,Int}())
+
+                @test _compare_forms(Φ_identity, Φ)
+                @test iszero(identity_delta)
+                @test identity_map == Dict(i => i for i in 1:n)
+
+                fix_all = Dict(i => values[1 + (i % 2)] for i in 1:n)
+                Φ_empty, _, empty_map = QUBOTools.fix_variables(Φ, fix_all)
+                full_state = [fix_all[i] for i in 1:n]
+
+                @test QUBOTools.dimension(Φ_empty) == 0
+                @test isempty(empty_map)
+                @test QUBOTools.value(Int[], Φ_empty) ≈ QUBOTools.value(full_state, Φ)
+
+                invalid_value = domain === QUBOTools.BoolDomain ? -1 : 0
+
+                @test_throws ArgumentError QUBOTools.fix_variables(Φ, Dict(0 => values[1]))
+                @test_throws ArgumentError QUBOTools.fix_variables(Φ, Dict(n + 1 => values[1]))
+                @test_throws ArgumentError QUBOTools.fix_variables(Φ, Dict(1 => invalid_value))
+                @test_throws ArgumentError QUBOTools.fix_variables([1], Φ)
+                @test_throws ArgumentError QUBOTools.lift_state([values[1]], fix, index_map, n)
+            end
+        end
+    end
+
+    return nothing
+end
+
 function test_form_dict()
     @testset "⋅ Dict" begin
         L̄ = Dict{Int,Float64}(1 => 10.0, 2 => 11.0, 3 => 12.0)
@@ -465,6 +565,7 @@ function test_form()
         test_form_dict()
         test_form_sparse()
         test_form_dense()
+        test_form_fix_variables()
     end
 
     return nothing

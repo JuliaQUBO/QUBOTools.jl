@@ -1,5 +1,15 @@
 # QUBOTools.jl Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+- Replace the unusable `fix_variables(fix, form)` stub with `fix_variables(form, fix::AbstractDict)`, requiring fixed variable values and returning the reduced form, raw offset delta, and old-to-new index map.
+
+### Features
+
+- Add `lift_state` for reconstructing full states from variable-fixing reductions.
+
 ## v0.12.1 (2026-05-28)
 
 ### Compatibility

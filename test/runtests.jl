@@ -2,6 +2,7 @@ using Test
 using Printf
 using Pkg
 using Pkg.Types: PkgError
+using Random
 using SparseArrays
 using Statistics
 using RecipesBase
