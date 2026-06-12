@@ -4,6 +4,18 @@
 
 When extending `QUBOTools`, one might want to implement a method for [`QUBOTools.backend`](@ref).
 
+For MathOptInterface/JuMP integrations, including ToQUBO workflows that expose
+an `MOI.ModelLike` object, the supported public materialization path is:
+
+```julia
+qt_model = QUBOTools.Model(moi_model)
+```
+
+Use `backend` for wrapper types that already own or can return a
+`QUBOTools.AbstractModel`; use `QUBOTools.Model(moi_model)` when the source is an
+MOI model that needs to be converted into QUBOTools' sparse in-memory
+representation.
+
 ```@docs
 QUBOTools.backend
 ```

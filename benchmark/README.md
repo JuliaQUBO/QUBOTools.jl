@@ -24,6 +24,17 @@ boolean `MOI.ModelLike` parsing through `QUBOTools.Model(moi_model)` so that
 performance work such as issue `#56` is exercised by the benchmark harness on
 the reported QUBO conversion path.
 
+It also includes a dense TSP-style constructor fixture (`tsp/cities=36`) that
+exercises the same public MOI extraction path used by ToQUBO integrations:
+
+```julia
+QUBOTools.Model(moi_model)
+```
+
+The default fixture is sized for pull-request benchmark runtime. To add the
+10,000-variable TSP extraction case (`tsp/cities=100`) to the constructor suite,
+set `QUBOTOOLS_SCALE_BENCHMARKS=true` when running the benchmark commands.
+
 To smoke-test the benchmark harness itself without running the full benchmark,
 use:
 

@@ -82,7 +82,8 @@ function _parse_moi_model(::Type{T}, model::MOI.ModelLike) where {T}
         qubo_parsing_error("The provided model is not unconstrained.\n")
     end
 
-    V = Set{VI}(MOI.get(model, MOI.ListOfVariableIndices()))
+    variables = MOI.get(model, MOI.ListOfVariableIndices())
+    V = Set{VI}(variables)
     𝔹 = Set{VI}()
     𝕊 = Set{VI}()
 
@@ -131,59 +132,186 @@ function _parse_moi_model(::Type{T}, model::MOI.ModelLike) where {T}
         if 𝔹 != V
             qubo_parsing_error("Not all variables in the given model are boolean.\n")
         else
-            return _extract_bool_model(T, model, V, fixed)
+            return _extract_bool_model(T, model, variables, fixed)
         end
     else # isempty(𝔹) # Ising model?
         if 𝕊 != V
             qubo_parsing_error("Not all variables in the given model are spin.\n")
         else
-            return _extract_spin_model(T, model, V, fixed)
+            return _extract_spin_model(T, model, variables, fixed)
         end
     end
 end
 
-function _extract_bool_model(::Type{T}, model::MOI.ModelLike, V::Set{VI}, fixed::Dict{VI,T}) where {T}
-    L = Dict{VI,T}(xi => zero(T) for xi ∈ V if !haskey(fixed, xi))
-    Q = Dict{Tuple{VI,VI},T}()
+function _remaining_variable_map(variables::AbstractVector{VI}, fixed::Dict{VI,T}) where {T}
+    if isempty(fixed)
+        return QUBOTools.VariableMap{VI}(variables)
+    else
+        return QUBOTools.VariableMap{VI}(VI[xi for xi in variables if !haskey(fixed, xi)])
+    end
+end
 
-    β = zero(T)
+function _append_linear_term!(
+    linear_indices::Vector{Int},
+    linear_values::Vector{T},
+    variable_index::Dict{VI,Int},
+    xi::VI,
+    ci,
+) where {T}
+    push!(linear_indices, variable_index[xi])
+    push!(linear_values, ci)
+
+    return nothing
+end
+
+function _append_quadratic_term!(
+    quadratic_rows::Vector{Int},
+    quadratic_cols::Vector{Int},
+    quadratic_values::Vector{T},
+    variable_index::Dict{VI,Int},
+    xi::VI,
+    xj::VI,
+    cij,
+) where {T}
+    i = variable_index[xi]
+    j = variable_index[xj]
+
+    if i < j
+        push!(quadratic_rows, i)
+        push!(quadratic_cols, j)
+    else
+        push!(quadratic_rows, j)
+        push!(quadratic_cols, i)
+    end
+
+    push!(quadratic_values, cij)
+
+    return nothing
+end
+
+function _add_linear_or_offset!(
+    linear_indices::Vector{Int},
+    linear_values::Vector{T},
+    variable_index::Dict{VI,Int},
+    fixed::Dict{VI,T},
+    β::T,
+    xi::VI,
+    ci,
+) where {T}
+    if haskey(fixed, xi)
+        return β + fixed[xi] * ci
+    else
+        _append_linear_term!(linear_indices, linear_values, variable_index, xi, ci)
+
+        return β
+    end
+end
+
+function _finalize_moi_model(
+    ::Type{T},
+    variable_map::QUBOTools.VariableMap{VI},
+    linear_indices::Vector{Int},
+    linear_values::Vector{T},
+    quadratic_rows::Vector{Int},
+    quadratic_cols::Vector{Int},
+    quadratic_values::Vector{T},
+    β::T;
+    sense::QUBOTools.Sense,
+    domain::Symbol,
+) where {T}
+    n = length(variable_map)
+
+    L = sparsevec(linear_indices, linear_values, n)
+    Q = sparse(quadratic_rows, quadratic_cols, quadratic_values, n, n)
+
+    dropzeros!(L)
+    dropzeros!(Q)
+
+    form = QUBOTools.Form{T}(
+        n,
+        QUBOTools.SparseLinearForm{T}(L),
+        QUBOTools.SparseQuadraticForm{T}(Q),
+        one(T),
+        β;
+        sense,
+        domain,
+    )
+
+    return QUBOTools.Model{VI,T,Int}(variable_map, form)
+end
+
+function _extract_bool_model(
+    ::Type{T},
+    model::MOI.ModelLike,
+    variables::AbstractVector{VI},
+    fixed::Dict{VI,T},
+) where {T}
+    variable_map = _remaining_variable_map(variables, fixed)
+    variable_index = variable_map.map
 
     F = MOI.get(model, MOI.ObjectiveFunctionType())
     f = MOI.get(model, MOI.ObjectiveFunction{F}())
 
+    affine_count = F <: SQF ? length(f.affine_terms) : F <: SAF ? length(f.terms) : 1
+    quadratic_count = F <: SQF ? length(f.quadratic_terms) : 0
+
+    linear_indices = Int[]
+    linear_values = T[]
+    sizehint!(linear_indices, affine_count + quadratic_count)
+    sizehint!(linear_values, affine_count + quadratic_count)
+
+    quadratic_rows = Int[]
+    quadratic_cols = Int[]
+    quadratic_values = T[]
+    sizehint!(quadratic_rows, quadratic_count)
+    sizehint!(quadratic_cols, quadratic_count)
+    sizehint!(quadratic_values, quadratic_count)
+
+    β = zero(T)
+
     if F <: VI
+        ci = one(T)
+
         if haskey(fixed, f)
-            β += fixed[f]
+            β += fixed[f] * ci
         else
-            L[f] += one(T)
+            _append_linear_term!(linear_indices, linear_values, variable_index, f, ci)
         end
     elseif F <: SAF
         for a in f.terms
-            ci = a.coefficient
+            ci = convert(T, a.coefficient)
             xi = a.variable
 
-            if haskey(fixed, xi)
-                β += fixed[xi] * ci
-            else
-                L[xi] += ci
-            end
+            β = _add_linear_or_offset!(
+                linear_indices,
+                linear_values,
+                variable_index,
+                fixed,
+                β,
+                xi,
+                ci,
+            )
         end
 
-        β += f.constant
+        β += convert(T, f.constant)
     elseif F <: SQF
         for a in f.affine_terms
-            ci = a.coefficient
+            ci = convert(T, a.coefficient)
             xi = a.variable
 
-            if haskey(fixed, xi)
-                β += fixed[xi] * ci
-            else
-                L[xi] += ci
-            end
+            β = _add_linear_or_offset!(
+                linear_indices,
+                linear_values,
+                variable_index,
+                fixed,
+                β,
+                xi,
+                ci,
+            )
         end
 
         for a in f.quadratic_terms
-            cij = a.coefficient
+            cij = convert(T, a.coefficient)
             xi = a.variable_1
             xj = a.variable_2
 
@@ -195,73 +323,134 @@ function _extract_bool_model(::Type{T}, model::MOI.ModelLike, V::Set{VI}, fixed:
                 if haskey(fixed, xi)
                     β += fixed[xi] * cij / 2
                 else
-                    L[xi] += cij / 2
+                    _append_linear_term!(
+                        linear_indices,
+                        linear_values,
+                        variable_index,
+                        xi,
+                        cij / 2,
+                    )
                 end
             elseif haskey(fixed, xi) && haskey(fixed, xj)
                 β += fixed[xi] * fixed[xj] * cij
             elseif haskey(fixed, xi)
-                L[xj] += fixed[xi] * cij
+                _append_linear_term!(
+                    linear_indices,
+                    linear_values,
+                    variable_index,
+                    xj,
+                    fixed[xi] * cij,
+                )
             elseif haskey(fixed, xj)
-                L[xi] += fixed[xj] * cij
+                _append_linear_term!(
+                    linear_indices,
+                    linear_values,
+                    variable_index,
+                    xi,
+                    fixed[xj] * cij,
+                )
             else
-                Q[(xi, xj)] = get(Q, (xi, xj), zero(T)) + cij
+                _append_quadratic_term!(
+                    quadratic_rows,
+                    quadratic_cols,
+                    quadratic_values,
+                    variable_index,
+                    xi,
+                    xj,
+                    cij,
+                )
             end
         end
 
-        β += f.constant
+        β += convert(T, f.constant)
     end
 
-    return QUBOTools.Model{VI,T,Int}(
-        L,
-        Q;
-        offset = β,
-        sense  = QUBOTools.sense(MOI.get(model, MOI.ObjectiveSense())),
+    return _finalize_moi_model(
+        T,
+        variable_map,
+        linear_indices,
+        linear_values,
+        quadratic_rows,
+        quadratic_cols,
+        quadratic_values,
+        β;
+        sense = QUBOTools.sense(MOI.get(model, MOI.ObjectiveSense())),
         domain = :bool,
     )
 end
 
-function _extract_spin_model(::Type{T}, model::MOI.ModelLike, V::Set{VI}, fixed::Dict{VI,T}) where {T}
-    L = Dict{VI,T}(xi => zero(T) for xi ∈ V if !haskey(fixed, xi))
-    Q = Dict{Tuple{VI,VI},T}()
-
-    β = zero(T)
+function _extract_spin_model(
+    ::Type{T},
+    model::MOI.ModelLike,
+    variables::AbstractVector{VI},
+    fixed::Dict{VI,T},
+) where {T}
+    variable_map = _remaining_variable_map(variables, fixed)
+    variable_index = variable_map.map
 
     F = MOI.get(model, MOI.ObjectiveFunctionType())
     f = MOI.get(model, MOI.ObjectiveFunction{F}())
 
+    affine_count = F <: SQF ? length(f.affine_terms) : F <: SAF ? length(f.terms) : 1
+    quadratic_count = F <: SQF ? length(f.quadratic_terms) : 0
+
+    linear_indices = Int[]
+    linear_values = T[]
+    sizehint!(linear_indices, affine_count + quadratic_count)
+    sizehint!(linear_values, affine_count + quadratic_count)
+
+    quadratic_rows = Int[]
+    quadratic_cols = Int[]
+    quadratic_values = T[]
+    sizehint!(quadratic_rows, quadratic_count)
+    sizehint!(quadratic_cols, quadratic_count)
+    sizehint!(quadratic_values, quadratic_count)
+
+    β = zero(T)
+
     if F <: VI
+        ci = one(T)
+
         if haskey(fixed, f)
-            β += fixed[f]
+            β += fixed[f] * ci
         else
-            L[f] += one(T)
+            _append_linear_term!(linear_indices, linear_values, variable_index, f, ci)
         end
     elseif F <: SAF
         for a in f.terms
-            ci = a.coefficient
+            ci = convert(T, a.coefficient)
             xi = a.variable
 
-            if haskey(fixed, xi)
-                β += fixed[xi] * ci
-            else
-                L[xi] += ci
-            end
+            β = _add_linear_or_offset!(
+                linear_indices,
+                linear_values,
+                variable_index,
+                fixed,
+                β,
+                xi,
+                ci,
+            )
         end
 
-        β += f.constant
+        β += convert(T, f.constant)
     elseif F <: SQF
         for a in f.affine_terms
-            ci = a.coefficient
+            ci = convert(T, a.coefficient)
             xi = a.variable
 
-            if haskey(fixed, xi)
-                β += fixed[xi] * ci
-            else
-                L[xi] += ci
-            end
+            β = _add_linear_or_offset!(
+                linear_indices,
+                linear_values,
+                variable_index,
+                fixed,
+                β,
+                xi,
+                ci,
+            )
         end
 
         for a in f.quadratic_terms
-            cij = a.coefficient
+            cij = convert(T, a.coefficient)
             xi = a.variable_1
             xj = a.variable_2
 
@@ -274,22 +463,47 @@ function _extract_spin_model(::Type{T}, model::MOI.ModelLike, V::Set{VI}, fixed:
             elseif haskey(fixed, xi) && haskey(fixed, xj)
                 β += fixed[xi] * fixed[xj] * cij
             elseif haskey(fixed, xi)
-                L[xj] += fixed[xi] * cij
+                _append_linear_term!(
+                    linear_indices,
+                    linear_values,
+                    variable_index,
+                    xj,
+                    fixed[xi] * cij,
+                )
             elseif haskey(fixed, xj)
-                L[xi] += fixed[xj] * cij
+                _append_linear_term!(
+                    linear_indices,
+                    linear_values,
+                    variable_index,
+                    xi,
+                    fixed[xj] * cij,
+                )
             else
-                Q[(xi, xj)] = get(Q, (xi, xj), zero(T)) + cij
+                _append_quadratic_term!(
+                    quadratic_rows,
+                    quadratic_cols,
+                    quadratic_values,
+                    variable_index,
+                    xi,
+                    xj,
+                    cij,
+                )
             end
         end
 
-        β += f.constant
+        β += convert(T, f.constant)
     end
 
-    return QUBOTools.Model{VI,T,Int}(
-        L,
-        Q;
-        offset = β,
-        sense  = QUBOTools.sense(MOI.get(model, MOI.ObjectiveSense())),
+    return _finalize_moi_model(
+        T,
+        variable_map,
+        linear_indices,
+        linear_values,
+        quadratic_rows,
+        quadratic_cols,
+        quadratic_values,
+        β;
+        sense = QUBOTools.sense(MOI.get(model, MOI.ObjectiveSense())),
         domain = :spin,
     )
 end

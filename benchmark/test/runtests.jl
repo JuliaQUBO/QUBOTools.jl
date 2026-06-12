@@ -15,6 +15,8 @@ include("../suites/constructors.jl")
 include("../suites/conversions.jl")
 include("../suites/evaluation.jl")
 
+const TSP_EXTRACTION_ALLOCATION_BUDGET = 32 * 1024 * 1024
+
 @testset "Benchmark Fixtures" begin
     @test benchmark_seed("n=128", 128; quadratic_density = 0.08) == 0xe5c9c566
 
@@ -41,6 +43,17 @@ include("../suites/evaluation.jl")
     @test QUBOTools.sense(parsed_model) === QUBOTools.Min
     @test QUBOTools.domain(parsed_model) === QUBOTools.BoolDomain
     @test QUBOTools.value(parsed_model, psi) ≈ QUBOTools.value(dict_model, psi)
+
+    tsp_fixture = benchmark_dense_tsp_constructor_fixture("tsp/cities=12", 12)
+    tsp_model = QUBOTools.Model(tsp_fixture.bool_moi_model)
+    tsp_allocated = @allocated QUBOTools.Model(tsp_fixture.bool_moi_model)
+
+    @test length(tsp_fixture.linear) == tsp_fixture.cities^2
+    @test length(tsp_fixture.quadratic) == 2 * tsp_fixture.cities^2 * (tsp_fixture.cities - 1)
+    @test QUBOTools.dimension(tsp_model) == tsp_fixture.cities^2
+    @test QUBOTools.linear_size(tsp_model) == tsp_fixture.cities^2
+    @test QUBOTools.quadratic_size(tsp_model) == length(tsp_fixture.quadratic)
+    @test tsp_allocated <= TSP_EXTRACTION_ALLOCATION_BUDGET
 end
 
 @testset "Benchmark Suites" begin
@@ -58,6 +71,8 @@ end
 
     @test haskey(suite["constructors"], "n=2048")
     @test haskey(suite["constructors"]["n=2048"], "Model/MOI/bool")
+    @test haskey(suite["constructors"], "tsp/cities=36")
+    @test haskey(suite["constructors"]["tsp/cities=36"], "Model/MOI/bool")
 
     for fixture in fixtures
         conversion_group = suite["conversions"][fixture.label]
