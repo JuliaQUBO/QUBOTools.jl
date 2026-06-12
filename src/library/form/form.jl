@@ -229,6 +229,9 @@ function _lift_state_validate(
         1 <= i <= n || throw(ArgumentError("fixed variable index $i is out of range 1:$n"))
     end
 
+    length(index_map) == m ||
+        throw(ArgumentError("reduced state length $m does not match index map length $(length(index_map))"))
+
     for (i, j) in index_map
         1 <= i <= n || throw(ArgumentError("index_map key $i is out of range 1:$n"))
         !haskey(fixed, i) || throw(ArgumentError("index_map contains fixed variable $i"))

@@ -188,6 +188,12 @@ function test_form_fix_variables()
                 @test_throws ArgumentError QUBOTools.fix_variables(Φ, Dict(1 => invalid_value))
                 @test_throws ArgumentError QUBOTools.fix_variables([1], Φ)
                 @test_throws ArgumentError QUBOTools.lift_state([values[1]], fix, index_map, n)
+                @test_throws ArgumentError QUBOTools.lift_state(
+                    fill(values[1], QUBOTools.dimension(Φ′) + 1),
+                    fix,
+                    index_map,
+                    n,
+                )
             end
         end
     end
