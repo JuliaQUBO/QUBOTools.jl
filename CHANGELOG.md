@@ -1,6 +1,6 @@
 # QUBOTools.jl Changelog
 
-## Unreleased
+## v0.13.1 (2026-06-13)
 
 ### Breaking Changes
 
@@ -9,6 +9,23 @@
 ### Features
 
 - Add `lift_state` for reconstructing full states from variable-fixing reductions.
+
+### Performance
+
+- Speed up MOI backend extraction by building sparse forms directly from MOI objective terms instead of first materializing large intermediate dictionaries.
+
+### Documentation
+
+- Document `QUBOTools.Model(moi_model)` as the supported public MOI/ToQUBO materialization path.
+
+### Testing
+
+- Add dense TSP-style backend extraction benchmark coverage, including an opt-in 10,000-variable scale case.
+- Add regression coverage for variable-fixing reductions and lifted states.
+
+### CI
+
+- Cache documentation build dependencies in the benchmark docs workflow.
 
 ## v0.12.1 (2026-05-28)
 
