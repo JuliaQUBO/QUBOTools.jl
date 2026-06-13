@@ -38,6 +38,76 @@ function benchmark_qubo_data(label::String, n::Int; quadratic_density::Float64)
     return (; rng, variables, linear, quadratic)
 end
 
+function _tsp_variable(variables::Vector{Symbol}, cities::Int, city::Int, step::Int)
+    return variables[(city - 1) * cities + step]
+end
+
+function _add_tsp_quadratic!(
+    quadratic::Dict{Tuple{Symbol,Symbol},Float64},
+    order::Dict{Symbol,Int},
+    u::Symbol,
+    v::Symbol,
+    value::Float64,
+)
+    key = order[u] < order[v] ? (u, v) : (v, u)
+
+    quadratic[key] = get(quadratic, key, 0.0) + value
+
+    return nothing
+end
+
+function benchmark_dense_tsp_qubo_data(label::String, cities::Int; penalty::Float64 = 10.0)
+    cities >= 2 || throw(ArgumentError("cities must be at least 2"))
+
+    rng = MersenneTwister(benchmark_seed(label, cities; quadratic_density = 1.0))
+    variables = [
+        Symbol("x", city, "_", step) for city in 1:cities for step in 1:cities
+    ]
+    order = Dict{Symbol,Int}(variable => i for (i, variable) in enumerate(variables))
+    linear = Dict{Symbol,Float64}(variable => -2.0 * penalty for variable in variables)
+    quadratic = Dict{Tuple{Symbol,Symbol},Float64}()
+
+    sizehint!(quadratic, 2 * cities * cities * (cities - 1))
+
+    for city in 1:cities, step_a in 1:(cities - 1), step_b in (step_a + 1):cities
+        _add_tsp_quadratic!(
+            quadratic,
+            order,
+            _tsp_variable(variables, cities, city, step_a),
+            _tsp_variable(variables, cities, city, step_b),
+            2.0 * penalty,
+        )
+    end
+
+    for step in 1:cities, city_a in 1:(cities - 1), city_b in (city_a + 1):cities
+        _add_tsp_quadratic!(
+            quadratic,
+            order,
+            _tsp_variable(variables, cities, city_a, step),
+            _tsp_variable(variables, cities, city_b, step),
+            2.0 * penalty,
+        )
+    end
+
+    for step in 1:cities
+        next_step = step == cities ? 1 : step + 1
+
+        for city_a in 1:cities, city_b in 1:cities
+            city_a == city_b && continue
+
+            _add_tsp_quadratic!(
+                quadratic,
+                order,
+                _tsp_variable(variables, cities, city_a, step),
+                _tsp_variable(variables, cities, city_b, next_step),
+                1.0 + rand(rng),
+            )
+        end
+    end
+
+    return (; rng, variables, linear, quadratic)
+end
+
 function benchmark_fixture(label::String, n::Int; quadratic_density::Float64)
     data = benchmark_qubo_data(label, n; quadratic_density)
 
@@ -114,6 +184,19 @@ function benchmark_constructor_fixture(label::String, n::Int; quadratic_density:
     )
 end
 
+function benchmark_dense_tsp_constructor_fixture(label::String, cities::Int)
+    data = benchmark_dense_tsp_qubo_data(label, cities)
+    bool_moi_model = benchmark_bool_moi_model(data.variables, data.linear, data.quadratic)
+
+    return (
+        label = label,
+        cities = cities,
+        linear = data.linear,
+        quadratic = data.quadratic,
+        bool_moi_model = bool_moi_model,
+    )
+end
+
 function repeat_last(f::F, repeats::Int) where {F}
     result = f()
 
@@ -134,6 +217,14 @@ function repeat_sum(f::F, repeats::Int) where {F}
     return total
 end
 
+function benchmark_scale_constructor_fixtures()
+    if get(ENV, "QUBOTOOLS_SCALE_BENCHMARKS", "false") == "true"
+        return (benchmark_dense_tsp_constructor_fixture("tsp/cities=100", 100),)
+    else
+        return ()
+    end
+end
+
 function benchmark_fixtures()
     return (
         benchmark_fixture("n=128", 128; quadratic_density = 0.08),
@@ -146,5 +237,7 @@ function benchmark_constructor_fixtures()
         benchmark_constructor_fixture("n=128", 128; quadratic_density = 0.08),
         benchmark_constructor_fixture("n=384", 384; quadratic_density = 0.03),
         benchmark_constructor_fixture("n=2048", 2048; quadratic_density = 0.01),
+        benchmark_dense_tsp_constructor_fixture("tsp/cities=36", 36),
+        benchmark_scale_constructor_fixtures()...,
     )
 end

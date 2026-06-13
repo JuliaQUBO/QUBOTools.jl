@@ -3,6 +3,8 @@ module QUBOTools_MOI
 import QUBOTools
 import MathOptInterface as MOI
 
+using SparseArrays: dropzeros!, sparse, sparsevec
+
 const MOIU    = MOI.Utilities
 const VI      = MOI.VariableIndex
 const CI{F,S} = MOI.ConstraintIndex{F,S}
