@@ -1,0 +1,29 @@
+name: Scale Tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 8 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  scale:
+    name: Julia 1 - ubuntu-latest - x64 - scale
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      QUBOTOOLS_SCALE_TESTS: true
+      QUBOTOOLS_SCALE_MAX_N: 100000
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: "1"
+          arch: x64
+      - uses: julia-actions/cache@v3
+      - uses: julia-actions/julia-buildpkg@v1
+      - name: Run scale tests
+        run: julia --project=. -e 'using Pkg; Pkg.test(; test_args = ["scale-only"])'

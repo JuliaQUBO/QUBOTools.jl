@@ -22,6 +22,9 @@ function test_format_hints()
         @test QUBOTools.infer_format([:qubo]) isa QUBOTools.Format{:qubo}
         @test QUBOTools.infer_format(; path = "file.qubo") isa QUBOTools.Format{:qubo}
 
+        @test QUBOTools.infer_format([:rudy]) isa QUBOTools.Format{:rudy}
+        @test QUBOTools.infer_format(; path = "file.rudy") isa QUBOTools.Format{:rudy}
+
         @test QUBOTools.infer_format([:mzn]) isa QUBOTools.Format{:minizinc}
         @test QUBOTools.infer_format(; path = "file.mzn") isa QUBOTools.Format{:minizinc}
 
@@ -83,6 +86,28 @@ function test_bqpjson_format()
 
                     @test _compare_models(src_model, dst_model)
                 end
+            end
+        end
+
+        @testset "scientific notation" begin
+            model = QUBOTools.Model{Int,Float64,Int}(
+                Set{Int}(1:3),
+                Dict{Int,Float64}(1 => 1.0e-3, 2 => -2.5e10),
+                Dict{Tuple{Int,Int},Float64}((1, 2) => -3.195264750619755e-5);
+                offset = 4.25e8,
+                sense = :min,
+                domain = :bool,
+                metadata = Dict{String,Any}("source" => "scientific-notation-test"),
+            )
+
+            _with_temp_path("bool.qubo") do temp_path
+                QUBOTools.write_model(temp_path, model)
+
+                dst_model = QUBOTools.read_model(temp_path)
+
+                @test _compare_models(model, dst_model)
+                @test QUBOTools.value(model, [1, 1, 0]) ==
+                      QUBOTools.value(dst_model, [1, 1, 0])
             end
         end
     end
@@ -311,7 +336,37 @@ end
 
 function test_rudy_format()
     @testset "⋅ Rudy" begin
-        
+        @testset "read" begin
+            file_path = _test_data_path(5, "spin.rudy")
+            model = QUBOTools.read_model(file_path)
+
+            @test model isa QUBOTools.Model
+            @test QUBOTools.dimension(model) == 10
+            @test QUBOTools.linear_size(model) == 10
+            @test QUBOTools.quadratic_size(model) == 5
+            @test QUBOTools.offset(model) == 66363.47
+            @test haskey(QUBOTools.metadata(model), "timestamp")
+        end
+
+        @testset "write/read round-trip" begin
+            model = QUBOTools.Model{Int,Float64,Int}(
+                Set{Int}(1:4),
+                Dict{Int,Float64}(1 => -1.5, 3 => 2.25),
+                Dict{Tuple{Int,Int},Float64}((1, 2) => 4.0, (2, 4) => -7.5);
+                offset = 3.5,
+                sense = :min,
+                domain = :spin,
+            )
+            fmt = QUBOTools.Format{:rudy}(; domain = :spin)
+
+            _with_temp_path("spin.rudy") do temp_path
+                QUBOTools.write_model(temp_path, model, fmt)
+
+                dst_model = QUBOTools.read_model(temp_path, fmt)
+
+                @test _compare_models(model, dst_model)
+            end
+        end
     end
 
     return nothing

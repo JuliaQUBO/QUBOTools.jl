@@ -6,11 +6,18 @@ struct SparseLinearForm{T} <: AbstractLinearForm{T}
 end
 
 function SparseLinearForm{T}(n::Integer, lf::LF) where {T,S,LF<:AbstractLinearForm{S}}
-    data = spzeros(T, n)
+    indices = Int[]
+    values = T[]
+    sizehint!(indices, linear_size(lf))
+    sizehint!(values, linear_size(lf))
 
     for (i, v) in linear_terms(lf)
-        data[i] = convert(T, v)
+        push!(indices, i)
+        push!(values, convert(T, v))
     end
+
+    data = sparsevec(indices, values, n)
+    dropzeros!(data)
 
     return SparseLinearForm{T}(data)
 end
@@ -55,11 +62,21 @@ struct SparseQuadraticForm{T} <: AbstractQuadraticForm{T}
 end
 
 function SparseQuadraticForm{T}(n::Integer, qf::QF) where {T,S,QF<:AbstractQuadraticForm{S}}
-    data = zeros(T, n, n)
+    rows = Int[]
+    cols = Int[]
+    values = T[]
+    sizehint!(rows, quadratic_size(qf))
+    sizehint!(cols, quadratic_size(qf))
+    sizehint!(values, quadratic_size(qf))
 
     for ((i, j), v) in quadratic_terms(qf)
-        data[i, j] = convert(T, v)
+        push!(rows, i)
+        push!(cols, j)
+        push!(values, convert(T, v))
     end
+
+    data = sparse(rows, cols, values, n, n)
+    dropzeros!(data)
 
     return SparseQuadraticForm{T}(data)
 end

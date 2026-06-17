@@ -72,6 +72,26 @@ function parse_line!(data::RUDY_DATA{T}, line::AbstractString, fmt::Format{:rudy
     end
 end
 
+function QUBOTools.write_model(io::IO, model::QUBOTools.AbstractModel, fmt::QUBOTools.Format{:rudy})
+    Φ = QUBOTools.form(model, :sparse; domain = fmt[:domain])
+    α = QUBOTools.scale(Φ)
+
+    println(io, "# Constant term of objective = $(α * QUBOTools.offset(Φ))")
+    println(io, "# Diagonal terms")
+
+    for (i, h) in QUBOTools.linear_terms(Φ)
+        println(io, "$(i - 1) $(i - 1) $(α * h)")
+    end
+
+    println(io, "# Off-Diagonal terms")
+
+    for ((i, j), J) in QUBOTools.quadratic_terms(Φ)
+        println(io, "$(i - 1) $(j - 1) $(α * J)")
+    end
+
+    return nothing
+end
+
 function QUBOTools.read_model(io::IO, fmt::QUBOTools.Format{:rudy})
     data = RUDY_DATA{Float64}(; domain = QUBOTools.domain(fmt[:domain]))
 

@@ -49,7 +49,10 @@ function _parse_entry!(
     L = data[:linear_terms]
     Q = data[:quadratic_terms]
 
-    m = match(r"^([0-9]+)\s+([0-9]+)\s+([+-]?([0-9]*[.])?[0-9]+)$", line)
+    m = match(
+        r"^([0-9]+)\s+([0-9]+)\s+([+-]?(([0-9]+([.][0-9]*)?)|([.][0-9]+))([eE][+-]?[0-9]+)?)$",
+        line,
+    )
 
     if isnothing(m)
         return false
@@ -72,7 +75,10 @@ function _parse_entry!(data::Dict{Symbol,Any}, line::AbstractString, ::Format{:q
     L = data[:linear_terms]
     Q = data[:quadratic_terms]
 
-    m = match(r"^([0-9]+)\s+([0-9]+)\s+([+-]?([0-9]*[.])?[0-9]+)$", line)
+    m = match(
+        r"^([0-9]+)\s+([0-9]+)\s+([+-]?(([0-9]+([.][0-9]*)?)|([.][0-9]+))([eE][+-]?[0-9]+)?)$",
+        line,
+    )
 
     if isnothing(m)
         return false
