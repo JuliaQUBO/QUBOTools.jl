@@ -12,7 +12,9 @@ function test_wishart()
         let n = 100
             m = 10
 
-            model = QUBOTools.generate(QUBOTools.Wishart(n, m))
+            model = @test_logs (:warn, r"Deprecation Warning:.*QUBOLib") QUBOTools.generate(
+                QUBOTools.Wishart(n, m),
+            )
 
             @test QUBOTools.dimension(model) == n
             @test QUBOTools.density(model) ≈ 1.0 atol = 1E-8
@@ -32,7 +34,9 @@ function test_sherrington_kirkpatrick()
             μ = 5.0
             σ = 1E-3
         
-            model = QUBOTools.generate(QUBOTools.SK(n, μ, σ))
+            model = @test_logs (:warn, r"Deprecation Warning:.*QUBOLib") QUBOTools.generate(
+                QUBOTools.SK(n, μ, σ),
+            )
             
             @test QUBOTools.dimension(model) == n
             @test QUBOTools.density(model) ≈ 1.0 atol = 1E-8

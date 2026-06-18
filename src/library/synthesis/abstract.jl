@@ -3,5 +3,5 @@ function generate(problem::AbstractProblem)
 end
 
 macro _deprecate_generate()
-    return quote @warn("Depraction Warning: To use `generate`, please refer to `QUBOLib.jl`") end
+    return quote @warn("Deprecation Warning: To use `generate`, please refer to `QUBOLib.jl`") end
 end
