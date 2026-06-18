@@ -1,5 +1,11 @@
 # QUBOTools.jl Changelog
 
+## v0.14.2 (2026-06-18)
+
+### CI
+
+- Report foreign package tests as known incompatible when a downstream package explicitly excludes the current QUBOTools minor series.
+
 ## v0.14.1 (2026-06-18)
 
 ### CI

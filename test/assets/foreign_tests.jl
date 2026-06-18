@@ -33,6 +33,25 @@ function run_foreign_tests()::Bool
     end
 end
 
+function foreign_pkg_label(pkg_spec::Pkg.PackageSpec)::String
+    if !isnothing(pkg_spec.name)
+        return pkg_spec.name
+    elseif !isnothing(pkg_spec.url)
+        return pkg_spec.url
+    else
+        return string(pkg_spec)
+    end
+end
+
+function foreign_pkg_declines_current_qubotools(e, pkg_name::AbstractString)::Bool
+    message = sprint(showerror, e)
+
+    return occursin("Unsatisfiable requirements detected for package", message) &&
+           occursin("QUBOTools", message) &&
+           occursin(pkg_name, message) &&
+           occursin("restricted to versions", message)
+end
+
 # Test foreign packages
 function test_foreign_pkg(
     pkg_name::AbstractString,
@@ -49,13 +68,29 @@ function test_foreign_pkg(
     dev_path::AbstractString = QUBOTools.__project__();
     test_kws...,
 )
-    @info "Activating Test Environment for '$(pkg_spec.name)'"
+    pkg_name = foreign_pkg_label(pkg_spec)
+
+    @info "Activating Test Environment for '$(pkg_name)'"
 
     Pkg.activate(; temp = true)
 
     Pkg.develop(; path = dev_path)
 
-    Pkg.add(pkg_spec)
+    try
+        Pkg.add(pkg_spec)
+    catch e
+        if foreign_pkg_declines_current_qubotools(e, pkg_name)
+            @warn "Skipping Foreign Test because package does not declare compatibility with this QUBOTools version" pkg = pkg_name qubotools = string(QUBOTools.__version__())
+
+            @testset "⋆ $(pkg_name) compatibility" begin
+                @test_broken false
+            end
+
+            return nothing
+        end
+
+        rethrow(e)
+    end
 
     Pkg.status()
 
