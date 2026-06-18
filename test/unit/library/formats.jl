@@ -367,6 +367,28 @@ function test_rudy_format()
                 @test _compare_models(model, dst_model)
             end
         end
+
+        @testset "scientific notation write/read round-trip" begin
+            model = QUBOTools.Model{Int,Float64,Int}(
+                Set{Int}(1:3),
+                Dict{Int,Float64}(1 => 1.0e-5, 2 => -2.5e10),
+                Dict{Tuple{Int,Int},Float64}((1, 3) => 3.195264750619755e-5);
+                offset = 4.25e8,
+                sense = :min,
+                domain = :spin,
+            )
+            fmt = QUBOTools.Format{:rudy}(; domain = :spin)
+
+            _with_temp_path("spin.rudy") do temp_path
+                QUBOTools.write_model(temp_path, model, fmt)
+
+                dst_model = QUBOTools.read_model(temp_path, fmt)
+
+                @test _compare_models(model, dst_model)
+                @test QUBOTools.value(model, [1, -1, 1]) ==
+                      QUBOTools.value(dst_model, [1, -1, 1])
+            end
+        end
     end
 
     return nothing

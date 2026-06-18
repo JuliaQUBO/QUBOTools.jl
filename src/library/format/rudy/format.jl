@@ -38,7 +38,7 @@ function parse_comment!(data, line::AbstractString, ::Format{:rudy})
     end
 
     # Constant term of objective = 66363.47
-    let m = match(r"^# Constant term of objective = ([+-]?([0-9]+([.][0-9]*)?|[.][0-9]+))$", line)
+    let m = match(r"^# Constant term of objective = ([+-]?(([0-9]+([.][0-9]*)?)|([.][0-9]+))([eE][+-]?[0-9]+)?)$", line)
         if !isnothing(m)
             data.offset = parse(Float64, m[1])
 
@@ -52,7 +52,7 @@ end
 function parse_line!(data::RUDY_DATA{T}, line::AbstractString, fmt::Format{:rudy}) where {T}
     startswith(line, "#") && return parse_comment!(data, line, fmt)
     
-    let m = match(r"^(\d+)\s+(\d+)\s+([+-]?([0-9]+([.][0-9]*)?|[.][0-9]+))$", line)
+    let m = match(r"^(\d+)\s+(\d+)\s+([+-]?(([0-9]+([.][0-9]*)?)|([.][0-9]+))([eE][+-]?[0-9]+)?)$", line)
         if !isnothing(m)
             # Note: rudy is 0-indexed!
             i = parse(Int, m[1]) + 1
