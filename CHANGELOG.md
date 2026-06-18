@@ -1,5 +1,11 @@
 # QUBOTools.jl Changelog
 
+## v0.14.1 (2026-06-18)
+
+### CI
+
+- Allow the documentation and benchmark environments to develop QUBOTools 0.14.x.
+
 ## v0.14.0 (2026-06-18)
 
 ### Features

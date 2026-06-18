@@ -6,4 +6,4 @@ QUBOTools = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"
 [compat]
 Documenter = "1"
 Plots = "~1.38, 1.41"
-QUBOTools = "0.12.1, 0.13"
+QUBOTools = "0.12.1, 0.13, 0.14"
