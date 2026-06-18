@@ -1,5 +1,29 @@
 # QUBOTools.jl Changelog
 
+## v0.14.0 (2026-06-18)
+
+### Features
+
+- Add Rudy format inference and write/read round-trip support.
+
+### Performance
+
+- Build sparse linear and quadratic forms directly with sparse storage instead of dense intermediates.
+
+### Bug Fixes
+
+- Parse scientific-notation coefficients in QUBO and Rudy files.
+- Fix the generator deprecation warning spelling.
+
+### Documentation
+
+- Add a scalability manual page documenting the opt-in scale-test tier and practical sparse/dense size envelope.
+
+### Testing
+
+- Add an opt-in scale-test tier, with scheduled CI coverage for generated sparse cases up to 100000 variables.
+- Add regression coverage for QUBO and Rudy scientific-notation round trips and the generator deprecation warning.
+
 ## v0.13.1 (2026-06-13)
 
 ### Breaking Changes
