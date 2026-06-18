@@ -30,6 +30,7 @@ const DOCS_PAGES = [
         "File Formats"             => "manual/5-formats.md",
         "Solutions"                => "manual/6-solutions.md",
         "Analysis"                 => "manual/7-analysis.md",
+        "Scalability"              => "manual/8-scalability.md",
     ],
     "Formats" => [
         "BQPJSON"  => "formats/bqpjson.md",

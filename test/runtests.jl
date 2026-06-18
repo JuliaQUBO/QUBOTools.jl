@@ -28,14 +28,19 @@ const QUBOModel     = QUBOTools_MOI.QUBOModel
 const NumberOfReads = QUBOTools_MOI.NumberOfReads
 
 const __TEST_PATH__ = @__DIR__
+const __SCALE_ONLY__ = "scale-only" in ARGS
 
 # Include assets
 include("assets/comparison.jl")
 include("assets/foreign_tests.jl")
 
 # Include test functions
-include("unit/unit.jl")
-include("integration/integration.jl")
+include("scale/scale.jl")
+
+if !__SCALE_ONLY__
+    include("unit/unit.jl")
+    include("integration/integration.jl")
+end
 
 function test_main()
     @testset "◈ ◈ ◈ QUBOTools.jl Test Suite ◈ ◈ ◈" verbose = true begin
@@ -46,4 +51,12 @@ function test_main()
     return nothing
 end
 
-test_main() # Here we go!
+if __SCALE_ONLY__
+    test_scale()
+else
+    test_main() # Here we go!
+
+    if _scale_tests_enabled()
+        test_scale()
+    end
+end

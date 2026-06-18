@@ -38,7 +38,7 @@ function parse_comment!(data, line::AbstractString, ::Format{:rudy})
     end
 
     # Constant term of objective = 66363.47
-    let m = match(r"^# Constant term of objective = ([+-]?([0-9]+([.][0-9]*)?|[.][0-9]+))$", line)
+    let m = match(r"^# Constant term of objective = ([+-]?(([0-9]+([.][0-9]*)?)|([.][0-9]+))([eE][+-]?[0-9]+)?)$", line)
         if !isnothing(m)
             data.offset = parse(Float64, m[1])
 
@@ -52,7 +52,7 @@ end
 function parse_line!(data::RUDY_DATA{T}, line::AbstractString, fmt::Format{:rudy}) where {T}
     startswith(line, "#") && return parse_comment!(data, line, fmt)
     
-    let m = match(r"^(\d+)\s+(\d+)\s+([+-]?([0-9]+([.][0-9]*)?|[.][0-9]+))$", line)
+    let m = match(r"^(\d+)\s+(\d+)\s+([+-]?(([0-9]+([.][0-9]*)?)|([.][0-9]+))([eE][+-]?[0-9]+)?)$", line)
         if !isnothing(m)
             # Note: rudy is 0-indexed!
             i = parse(Int, m[1]) + 1
@@ -70,6 +70,26 @@ function parse_line!(data::RUDY_DATA{T}, line::AbstractString, fmt::Format{:rudy
             QUBOTools.syntax_error("Invalid input: '$line'")
         end
     end
+end
+
+function QUBOTools.write_model(io::IO, model::QUBOTools.AbstractModel, fmt::QUBOTools.Format{:rudy})
+    Φ = QUBOTools.form(model, :sparse; domain = fmt[:domain])
+    α = QUBOTools.scale(Φ)
+
+    println(io, "# Constant term of objective = $(α * QUBOTools.offset(Φ))")
+    println(io, "# Diagonal terms")
+
+    for (i, h) in QUBOTools.linear_terms(Φ)
+        println(io, "$(i - 1) $(i - 1) $(α * h)")
+    end
+
+    println(io, "# Off-Diagonal terms")
+
+    for ((i, j), J) in QUBOTools.quadratic_terms(Φ)
+        println(io, "$(i - 1) $(j - 1) $(α * J)")
+    end
+
+    return nothing
 end
 
 function QUBOTools.read_model(io::IO, fmt::QUBOTools.Format{:rudy})
