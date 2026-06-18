@@ -105,6 +105,7 @@ function _scale_timed(f::Function, label::AbstractString, seconds::Real, mib::Re
     result = @timed f()
 
     @info label time = result.time mib = result.bytes / 2.0^20
+    # Time ceilings are coarse regression guards; allocation ceilings are the primary signal.
     @test result.time <= seconds
     @test result.bytes <= mib * 2.0^20
 
@@ -235,7 +236,7 @@ function _scale_test_synthesis_generators()
 
         for (label, problem, seconds, mib) in generators
             model = _scale_timed(label, seconds, mib) do
-                @test_logs (:warn, r"Depraction Warning") QUBOTools.generate(
+                @test_logs (:warn, r"please refer to .QUBOLib") QUBOTools.generate(
                     Random.MersenneTwister(3000),
                     problem,
                 )

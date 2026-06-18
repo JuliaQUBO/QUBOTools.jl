@@ -30,19 +30,12 @@ const NumberOfReads = QUBOTools_MOI.NumberOfReads
 const __TEST_PATH__ = @__DIR__
 const __SCALE_ONLY__ = "scale-only" in ARGS
 
-function _scale_tests_requested()
-    return lowercase(get(ENV, "QUBOTOOLS_SCALE_TESTS", "false")) in
-           Set(["1", "true", "yes", "on"])
-end
-
 # Include assets
 include("assets/comparison.jl")
 include("assets/foreign_tests.jl")
 
 # Include test functions
-if __SCALE_ONLY__ || _scale_tests_requested()
-    include("scale/scale.jl")
-end
+include("scale/scale.jl")
 
 if !__SCALE_ONLY__
     include("unit/unit.jl")
@@ -63,7 +56,7 @@ if __SCALE_ONLY__
 else
     test_main() # Here we go!
 
-    if _scale_tests_requested()
+    if _scale_tests_enabled()
         test_scale()
     end
 end
