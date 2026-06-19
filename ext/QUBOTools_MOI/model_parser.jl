@@ -187,14 +187,14 @@ end
 @inline function _variable_index(variable_index::Vector{Int}, xi::VI)
     value = xi.value
 
-    @boundscheck begin
-        1 <= value <= length(variable_index) || throw(KeyError(xi))
+    if !(1 <= value <= length(variable_index))
+        throw(KeyError(xi))
     end
 
     i = @inbounds variable_index[value]
 
-    @boundscheck begin
-        !iszero(i) || throw(KeyError(xi))
+    if iszero(i)
+        throw(KeyError(xi))
     end
 
     return i
