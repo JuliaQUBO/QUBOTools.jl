@@ -151,14 +151,63 @@ function _remaining_variable_map(variables::AbstractVector{VI}, fixed::Dict{VI,T
     end
 end
 
+# Avoid huge lookup vectors for MOI backends with sparse variable ids.
+const _DENSE_VARIABLE_LOOKUP_MAX_FACTOR = 4
+
+function _variable_index_lookup(variable_map::QUBOTools.VariableMap{VI})
+    n = length(variable_map)
+
+    iszero(n) && return Int[]
+
+    max_value = 0
+
+    for vi in variable_map.inv
+        value = vi.value
+
+        value > 0 || return variable_map.map
+
+        max_value = max(max_value, value)
+    end
+
+    max_value <= _DENSE_VARIABLE_LOOKUP_MAX_FACTOR * n || return variable_map.map
+
+    lookup = zeros(Int, max_value)
+
+    for (i, vi) in enumerate(variable_map.inv)
+        @inbounds lookup[vi.value] = i
+    end
+
+    return lookup
+end
+
+@inline function _variable_index(variable_index::Dict{VI,Int}, xi::VI)
+    return variable_index[xi]
+end
+
+@inline function _variable_index(variable_index::Vector{Int}, xi::VI)
+    value = xi.value
+
+    @boundscheck begin
+        1 <= value <= length(variable_index) || throw(KeyError(xi))
+    end
+
+    i = @inbounds variable_index[value]
+
+    @boundscheck begin
+        !iszero(i) || throw(KeyError(xi))
+    end
+
+    return i
+end
+
 function _append_linear_term!(
     linear_indices::Vector{Int},
     linear_values::Vector{T},
-    variable_index::Dict{VI,Int},
+    variable_index,
     xi::VI,
     ci,
 ) where {T}
-    push!(linear_indices, variable_index[xi])
+    push!(linear_indices, _variable_index(variable_index, xi))
     push!(linear_values, ci)
 
     return nothing
@@ -168,13 +217,13 @@ function _append_quadratic_term!(
     quadratic_rows::Vector{Int},
     quadratic_cols::Vector{Int},
     quadratic_values::Vector{T},
-    variable_index::Dict{VI,Int},
+    variable_index,
     xi::VI,
     xj::VI,
     cij,
 ) where {T}
-    i = variable_index[xi]
-    j = variable_index[xj]
+    i = _variable_index(variable_index, xi)
+    j = _variable_index(variable_index, xj)
 
     if i < j
         push!(quadratic_rows, i)
@@ -192,7 +241,7 @@ end
 function _add_linear_or_offset!(
     linear_indices::Vector{Int},
     linear_values::Vector{T},
-    variable_index::Dict{VI,Int},
+    variable_index,
     fixed::Dict{VI,T},
     β::T,
     xi::VI,
@@ -247,7 +296,7 @@ function _extract_bool_model(
     fixed::Dict{VI,T},
 ) where {T}
     variable_map = _remaining_variable_map(variables, fixed)
-    variable_index = variable_map.map
+    variable_index = _variable_index_lookup(variable_map)
 
     F = MOI.get(model, MOI.ObjectiveFunctionType())
     f = MOI.get(model, MOI.ObjectiveFunction{F}())
@@ -386,7 +435,7 @@ function _extract_spin_model(
     fixed::Dict{VI,T},
 ) where {T}
     variable_map = _remaining_variable_map(variables, fixed)
-    variable_index = variable_map.map
+    variable_index = _variable_index_lookup(variable_map)
 
     F = MOI.get(model, MOI.ObjectiveFunctionType())
     f = MOI.get(model, MOI.ObjectiveFunction{F}())
