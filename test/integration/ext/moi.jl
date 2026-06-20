@@ -25,6 +25,29 @@ function test_moi_variables()
             @test QUBOTools.varshow(VI(103)) == "x₁₀₃"
             @test QUBOTools.varshow(VI(-13)) == "x₋₁₃"
         end
+
+        @testset "→ variable index lookup" begin
+            compact_map = QUBOTools.VariableMap{VI}([VI(1), VI(2), VI(3)])
+            compact_lookup = QUBOTools_MOI._variable_index_lookup(compact_map)
+
+            @test compact_lookup isa Vector{Int}
+            @test QUBOTools_MOI._variable_index(compact_lookup, VI(2)) == 2
+
+            sparse_map = QUBOTools.VariableMap{VI}([VI(1), VI(10)])
+            sparse_lookup = QUBOTools_MOI._variable_index_lookup(sparse_map)
+
+            @test sparse_lookup isa Dict{VI,Int}
+            @test QUBOTools_MOI._variable_index(sparse_lookup, VI(10)) == 2
+
+            non_positive_map = QUBOTools.VariableMap{VI}([VI(1), VI(-1)])
+            non_positive_lookup = QUBOTools_MOI._variable_index_lookup(non_positive_map)
+
+            @test non_positive_lookup isa Dict{VI,Int}
+            @test QUBOTools_MOI._variable_index(non_positive_lookup, VI(-1)) == 2
+
+            @test_throws KeyError QUBOTools_MOI._variable_index(compact_lookup, VI(4))
+            @test_throws KeyError QUBOTools_MOI._variable_index([1, 0, 2], VI(2))
+        end
     end
 
     return nothing
@@ -152,6 +175,40 @@ function test_moi_bool_model_parser()
                     @test α ≈ 1.0
                     @test β ≈ 12.9
                 end
+            end
+        end
+
+        @testset "⋅ Sparse Remaining Variable IDs" begin
+            moi_model = MOI.Utilities.Model{Float64}()
+
+            v = MOI.add_variables(moi_model, 10)
+
+            MOI.set(
+                moi_model,
+                MOI.ObjectiveFunction{SQF{Float64}}(),
+                SQF{Float64}(
+                    SQT{Float64}[SQT{Float64}(12.0, v[1], v[10])],
+                    SAT{Float64}[SAT{Float64}(2.0, v[1]), SAT{Float64}(4.0, v[10])],
+                    1.5,
+                ),
+            )
+
+            MOI.set(moi_model, MOI.ObjectiveSense(), MOI.MIN_SENSE)
+            MOI.add_constraints(moi_model, v, fill(MOI.ZeroOne(), 10))
+            MOI.add_constraints(moi_model, v[2:9], MOI.EqualTo{Float64}.(zeros(8)))
+
+            let qt_model = QUBOTools.Model{Float64}(moi_model)
+                n, L, Q, α, β, s, X = QUBOTools.qubo(qt_model, :dense)
+
+                @test n == 2
+                @test s == QUBOTools.sense(:min)
+                @test X == QUBOTools.domain(:bool)
+                @test L == [2.0, 4.0]
+                @test Q == [0.0 12.0; 0.0 0.0]
+                @test α ≈ 1.0
+                @test β ≈ 1.5
+                @test QUBOTools.variable(qt_model, 1) == v[1]
+                @test QUBOTools.variable(qt_model, 2) == v[10]
             end
         end
     end
