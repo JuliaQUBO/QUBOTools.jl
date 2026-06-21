@@ -1,5 +1,23 @@
 # QUBOTools.jl Changelog
 
+## v0.14.3 (2026-06-21)
+
+### Performance
+
+- Speed up MOI backend extraction for compact variable indices while preserving sparse or non-positive variable-index fallbacks.
+
+### Documentation
+
+- Document direct reproduction of the larger MOI backend extraction benchmark shape.
+
+### Testing
+
+- Add regression coverage for MOI variable-index lookup fallbacks and sparse remaining variable IDs.
+
+### CI
+
+- Allow TagBot to comment on registration issues by granting write access to issues.
+
 ## v0.14.2 (2026-06-18)
 
 ### CI
