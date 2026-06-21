@@ -43,8 +43,12 @@ function foreign_pkg_label(pkg_spec::Pkg.PackageSpec)::String
     end
 end
 
+function strip_ansi(text::AbstractString)::String
+    return replace(String(text), r"\x1b\[[0-9;]*m" => "")
+end
+
 function foreign_pkg_declines_current_qubotools(e, pkg_name::AbstractString)::Bool
-    message = sprint(showerror, e)
+    message = strip_ansi(sprint(showerror, e))
 
     return occursin("Unsatisfiable requirements detected for package", message) &&
            occursin("QUBOTools", message) &&
@@ -88,6 +92,11 @@ function test_foreign_pkg_compatibility_detection()
     QUBOTools [60eb5b62] is fixed to version 0.14.3
     """)
 
+    ansi_test_error = PkgError(
+        "Unsatisfiable requirements detected for package \x1b[38;5;6mQUBODrivers [a3f166f7]\x1b[39m:\n" *
+        "QUBODrivers [a3f166f7] is restricted by compatibility requirements with \x1b[38;5;1mQUBOTools [60eb5b62]\x1b[39m to versions: uninstalled — no versions left\n"
+    )
+
     reverse_error = PkgError("""
     Unsatisfiable requirements detected for package QUBOTools [60eb5b62]:
     QUBOTools [60eb5b62] is fixed to version 0.14.3
@@ -102,6 +111,7 @@ function test_foreign_pkg_compatibility_detection()
     @test foreign_pkg_declines_current_qubotools(add_error, "QUBODrivers")
     @test foreign_pkg_declines_current_qubotools(test_error, "ToQUBO")
     @test foreign_pkg_declines_current_qubotools(nested_test_error, "ToQUBO")
+    @test foreign_pkg_declines_current_qubotools(ansi_test_error, "ToQUBO")
     @test foreign_pkg_declines_current_qubotools(reverse_error, "QUBO")
     @test !foreign_pkg_declines_current_qubotools(unrelated_error, "ToQUBO")
 
