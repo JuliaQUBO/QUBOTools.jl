@@ -2,6 +2,10 @@ include("ext/ext.jl")
 include("docs.jl")
 
 function test_foreign()
+    @testset "▶ Foreign Package Test Helpers" verbose = true begin
+        test_foreign_pkg_compatibility_detection()
+    end
+
     if run_foreign_tests()
         @testset "▶ Foreign Package Tests" verbose = true begin
             test_foreign_pkg(Pkg.PackageSpec(name="ToQUBO", rev="main"))

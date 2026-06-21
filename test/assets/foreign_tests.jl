@@ -48,8 +48,64 @@ function foreign_pkg_declines_current_qubotools(e, pkg_name::AbstractString)::Bo
 
     return occursin("Unsatisfiable requirements detected for package", message) &&
            occursin("QUBOTools", message) &&
-           occursin(pkg_name, message) &&
-           occursin("restricted to versions", message)
+           (
+               occursin("no versions left", message) ||
+               occursin("no compatible versions left", message)
+           ) &&
+           (
+               occursin(pkg_name, message) ||
+               occursin("package project", message) ||
+               occursin("restricted by compatibility requirements with QUBOTools", message) ||
+               occursin("found to have no compatible versions left with", message)
+           )
+end
+
+function record_foreign_pkg_compatibility_skip(pkg_name::AbstractString)
+    @warn "Skipping Foreign Test because package does not declare compatibility with this QUBOTools version" pkg = pkg_name qubotools = string(QUBOTools.__version__())
+
+    @testset "⋆ $(pkg_name) compatibility" begin
+        @test_broken false
+    end
+
+    return nothing
+end
+
+function test_foreign_pkg_compatibility_detection()
+    add_error = PkgError("""
+    Unsatisfiable requirements detected for package QUBODrivers [a9c8d775]:
+    QUBODrivers [a9c8d775] is restricted by compatibility requirements with QUBOTools [60eb5b62] to versions: uninstalled — no versions left
+    """)
+
+    test_error = PkgError("""
+    Unsatisfiable requirements detected for package project [d893b29c]:
+    project [d893b29c] is restricted by compatibility requirements with QUBOTools [60eb5b62] to versions: uninstalled — no versions left
+    QUBOTools [60eb5b62] is fixed to version 0.14.3
+    """)
+
+    nested_test_error = PkgError("""
+    Unsatisfiable requirements detected for package QUBODrivers [a3f166f7]:
+    QUBODrivers [a3f166f7] is restricted by compatibility requirements with QUBOTools [60eb5b62] to versions: uninstalled — no versions left
+    QUBOTools [60eb5b62] is fixed to version 0.14.3
+    """)
+
+    reverse_error = PkgError("""
+    Unsatisfiable requirements detected for package QUBOTools [60eb5b62]:
+    QUBOTools [60eb5b62] is fixed to version 0.14.3
+    QUBOTools [60eb5b62] found to have no compatible versions left with QUBO [ce8c2e91]
+    """)
+
+    unrelated_error = PkgError("""
+    Unsatisfiable requirements detected for package JSON [682c06a0]:
+    JSON [682c06a0] is restricted to versions: uninstalled — no versions left
+    """)
+
+    @test foreign_pkg_declines_current_qubotools(add_error, "QUBODrivers")
+    @test foreign_pkg_declines_current_qubotools(test_error, "ToQUBO")
+    @test foreign_pkg_declines_current_qubotools(nested_test_error, "ToQUBO")
+    @test foreign_pkg_declines_current_qubotools(reverse_error, "QUBO")
+    @test !foreign_pkg_declines_current_qubotools(unrelated_error, "ToQUBO")
+
+    return nothing
 end
 
 # Test foreign packages
@@ -80,11 +136,7 @@ function test_foreign_pkg(
         Pkg.add(pkg_spec)
     catch e
         if foreign_pkg_declines_current_qubotools(e, pkg_name)
-            @warn "Skipping Foreign Test because package does not declare compatibility with this QUBOTools version" pkg = pkg_name qubotools = string(QUBOTools.__version__())
-
-            @testset "⋆ $(pkg_name) compatibility" begin
-                @test_broken false
-            end
+            record_foreign_pkg_compatibility_skip(pkg_name)
 
             return nothing
         end
@@ -102,16 +154,20 @@ function test_foreign_pkg(
     end
 
     @testset "⋆ $(pkg_info.name)@$(pkg_info.version)" begin
-        @test try
+        try
             Pkg.test(pkg_info.name; test_kws...)
 
-            true
+            @test true
         catch e
-            if !(e isa PkgError)
+            if foreign_pkg_declines_current_qubotools(e, pkg_info.name)
+                @warn "Skipping Foreign Test because package does not declare compatibility with this QUBOTools version" pkg = pkg_info.name qubotools = string(QUBOTools.__version__())
+
+                @test_broken false
+            elseif e isa PkgError
+                @test false
+            else
                 rethrow(e)
             end
-
-            false
         end
     end
 
