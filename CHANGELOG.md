@@ -1,5 +1,11 @@
 # QUBOTools.jl Changelog
 
+## v0.14.4 (2026-06-21)
+
+### CI
+
+- Treat downstream QUBOTools compatibility resolver failures in foreign package tests as expected broken tests, including ANSI-colored resolver messages from CI logs.
+
 ## v0.14.3 (2026-06-21)
 
 ### Performance
