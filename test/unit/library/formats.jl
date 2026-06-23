@@ -136,6 +136,33 @@ function test_bqpjson_format()
             end
         end
 
+        @testset "Generic synthesis metadata" begin
+            n = 6
+            μ = 5.0
+            σ = 1E-3
+
+            src_model = @test_logs (:warn, r"Deprecation Warning:.*QUBOLib") QUBOTools.generate(
+                Random.MersenneTwister(111),
+                QUBOTools.SK(n, μ, σ),
+            )
+            synthesis = QUBOTools.metadata(src_model)["synthesis"]
+
+            @test synthesis["model"] == "Sherrington-Kirkpatrick"
+            @test synthesis["parameters"] == Dict{String,Any}(
+                "n"     => n,
+                "mu"    => μ,
+                "sigma" => σ,
+            )
+
+            _with_temp_path("sk.bool.json") do temp_path
+                QUBOTools.write_model(temp_path, src_model)
+
+                dst_model = QUBOTools.read_model(temp_path)
+
+                @test QUBOTools.metadata(dst_model)["synthesis"] == synthesis
+            end
+        end
+
         @testset "Wishart synthesis schema validation" begin
             _with_temp_path("invalid-wishart.bool.json") do temp_path
                 write(temp_path, """
@@ -160,7 +187,13 @@ function test_bqpjson_format()
                     }
                     """)
 
-                @test_throws QUBOTools.FormatError QUBOTools.read_model(temp_path)
+                try
+                    QUBOTools.read_model(temp_path)
+                    @test false
+                catch err
+                    @test err isa QUBOTools.FormatError
+                    @test occursin("[metadata][synthesis]", sprint(showerror, err))
+                end
             end
         end
     end
