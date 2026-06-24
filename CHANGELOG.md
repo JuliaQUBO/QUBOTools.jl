@@ -1,5 +1,11 @@
 # QUBOTools.jl Changelog
 
+## v0.15.1 (2026-06-24)
+
+### Compatibility
+
+- Allow PseudoBooleanOptimization 0.3 releases.
+
 ## v0.15.0 (2026-06-24)
 
 ### Breaking Changes
