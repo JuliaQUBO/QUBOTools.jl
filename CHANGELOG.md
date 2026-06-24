@@ -1,6 +1,6 @@
 # QUBOTools.jl Changelog
 
-## Unreleased
+## v0.15.0 (2026-06-24)
 
 ### Breaking Changes
 

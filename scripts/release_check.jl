@@ -51,46 +51,76 @@ function release_section(changelog::String, version::VersionNumber)
     return join(lines[start:stop], "\n")
 end
 
+function check_self_compat!(
+    failures::Vector{String},
+    project::Dict{String,Any},
+    env_project::Dict{String,Any},
+    env_name::AbstractString,
+    expected_self_compat::AbstractString,
+    version::VersionNumber,
+)
+    env_deps = env_project["deps"]
+    env_compat = env_project["compat"]
+    env_self_compat = get(env_compat, "QUBOTools", nothing)
+
+    check!(
+        failures,
+        get(env_deps, "QUBOTools", nothing) == project["uuid"],
+        "$env_name/Project.toml must depend on this package UUID for QUBOTools.",
+    )
+    check!(
+        failures,
+        env_self_compat !== nothing,
+        "$env_name/Project.toml must declare QUBOTools compat.",
+    )
+
+    if env_self_compat !== nothing
+        check!(
+            failures,
+            expected_self_compat in compat_entries(env_self_compat),
+            "$env_name/Project.toml compat for QUBOTools must include \"$expected_self_compat\" for version $version.",
+        )
+        check!(
+            failures,
+            compat_allows(env_self_compat, version),
+            "$env_name/Project.toml compat for QUBOTools must allow version $version.",
+        )
+    end
+
+    return nothing
+end
+
 function main()
     failures = String[]
     warnings = String[]
 
     project = read_toml("Project.toml")
     docs_project = read_toml("docs", "Project.toml")
+    benchmark_project = read_toml("benchmark", "Project.toml")
 
     version = VersionNumber(project["version"])
     expected_self_compat = release_line_compat(version)
 
     check!(failures, project["name"] == "QUBOTools", "Project.toml name is not QUBOTools.")
 
-    docs_deps = docs_project["deps"]
-    docs_compat = docs_project["compat"]
     project_compat = project["compat"]
-    docs_self_compat = get(docs_compat, "QUBOTools", nothing)
 
-    check!(
+    check_self_compat!(
         failures,
-        get(docs_deps, "QUBOTools", nothing) == project["uuid"],
-        "docs/Project.toml must depend on this package UUID for QUBOTools.",
+        project,
+        docs_project,
+        "docs",
+        expected_self_compat,
+        version,
     )
-    check!(
+    check_self_compat!(
         failures,
-        docs_self_compat !== nothing,
-        "docs/Project.toml must declare QUBOTools compat.",
+        project,
+        benchmark_project,
+        "benchmark",
+        expected_self_compat,
+        version,
     )
-
-    if docs_self_compat !== nothing
-        check!(
-            failures,
-            expected_self_compat in compat_entries(docs_self_compat),
-            "docs/Project.toml compat for QUBOTools must include \"$expected_self_compat\" for version $version.",
-        )
-        check!(
-            failures,
-            compat_allows(docs_self_compat, version),
-            "docs/Project.toml compat for QUBOTools must allow version $version.",
-        )
-    end
 
     check!(
         failures,
