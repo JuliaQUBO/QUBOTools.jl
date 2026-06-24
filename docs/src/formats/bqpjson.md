@@ -67,6 +67,30 @@ QUBOTools.write_model("output.bool.json", model)
 
 ```
 
+## Synthesis Metadata
+
+Generated models can record provenance under `metadata.synthesis`. The generic
+schema requires a `model` string and a `parameters` object. For non-Wishart
+generators, `model` can be any string other than `"Wishart"` and `parameters`
+can contain generator-specific fields.
+
+Wishart-generated models use `model = "Wishart"` and integer `n` and `m`
+parameters:
+
+```json
+{
+  "metadata": {
+    "synthesis": {
+      "model": "Wishart",
+      "parameters": {
+        "n": 100,
+        "m": 10
+      }
+    }
+  }
+}
+```
+
 ## References
 
 - [BQPJSON Documentation](https://bqpjson.readthedocs.io)

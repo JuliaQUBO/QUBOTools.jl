@@ -49,6 +49,16 @@
                 },
                 "dwig_generator": {
                     "type": "string"
+                },
+                "synthesis": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/wishart_synthesis_metadata"
+                        },
+                        {
+                            "$ref": "#/definitions/generic_synthesis_metadata"
+                        }
+                    ]
                 }
             }
         },
@@ -154,6 +164,60 @@
                                     "type": "integer"
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "generic_synthesis_metadata": {
+            "type": "object",
+            "required": [
+                "model",
+                "parameters"
+            ],
+            "properties": {
+                "model": {
+                    "type": "string",
+                    "not": {
+                        "enum": [
+                            "Wishart"
+                        ]
+                    }
+                },
+                "parameters": {
+                    "type": "object"
+                }
+            }
+        },
+        "wishart_synthesis_metadata": {
+            "type": "object",
+            "required": [
+                "model",
+                "parameters"
+            ],
+            "properties": {
+                "model": {
+                    "type": "string",
+                    "enum": [
+                        "Wishart"
+                    ]
+                },
+                "parameters": {
+                    "type": "object",
+                    "required": [
+                        "n",
+                        "m"
+                    ],
+                    "properties": {
+                        "n": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "m": {
+                            "type": "integer",
+                            "minimum": 0
                         }
                     }
                 }

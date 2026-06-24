@@ -1,5 +1,13 @@
 # QUBOTools.jl Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+- Tighten BQPJSON validation for `metadata.synthesis`: files with this key must
+  now use a synthesis object with a `model` string and `parameters` object, with
+  Wishart metadata requiring integer `n` and `m` parameters.
+
 ## v0.14.4 (2026-06-21)
 
 ### CI

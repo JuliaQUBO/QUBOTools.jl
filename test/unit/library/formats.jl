@@ -110,6 +110,92 @@ function test_bqpjson_format()
                       QUBOTools.value(dst_model, [1, 1, 0])
             end
         end
+
+        @testset "Wishart synthesis metadata" begin
+            n = 6
+            m = 3
+
+            src_model = @test_logs (:warn, r"Deprecation Warning:.*QUBOLib") QUBOTools.generate(
+                Random.MersenneTwister(110),
+                QUBOTools.Wishart(n, m),
+            )
+            synthesis = QUBOTools.metadata(src_model)["synthesis"]
+
+            @test synthesis["model"] == "Wishart"
+            @test synthesis["parameters"] == Dict{String,Any}(
+                "n" => n,
+                "m" => m,
+            )
+
+            _with_temp_path("wishart.bool.json") do temp_path
+                QUBOTools.write_model(temp_path, src_model)
+
+                dst_model = QUBOTools.read_model(temp_path)
+
+                @test QUBOTools.metadata(dst_model)["synthesis"] == synthesis
+            end
+        end
+
+        @testset "Generic synthesis metadata" begin
+            n = 6
+            μ = 5.0
+            σ = 1E-3
+
+            src_model = @test_logs (:warn, r"Deprecation Warning:.*QUBOLib") QUBOTools.generate(
+                Random.MersenneTwister(111),
+                QUBOTools.SK(n, μ, σ),
+            )
+            synthesis = QUBOTools.metadata(src_model)["synthesis"]
+
+            @test synthesis["model"] == "Sherrington-Kirkpatrick"
+            @test synthesis["parameters"] == Dict{String,Any}(
+                "n"     => n,
+                "mu"    => μ,
+                "sigma" => σ,
+            )
+
+            _with_temp_path("sk.bool.json") do temp_path
+                QUBOTools.write_model(temp_path, src_model)
+
+                dst_model = QUBOTools.read_model(temp_path)
+
+                @test QUBOTools.metadata(dst_model)["synthesis"] == synthesis
+            end
+        end
+
+        @testset "Wishart synthesis schema validation" begin
+            _with_temp_path("invalid-wishart.bool.json") do temp_path
+                write(temp_path, """
+                    {
+                      "version": "1.0.0",
+                      "id": 0,
+                      "variable_ids": [1],
+                      "variable_domain": "boolean",
+                      "scale": 1.0,
+                      "offset": 0.0,
+                      "linear_terms": [],
+                      "quadratic_terms": [],
+                      "metadata": {
+                        "synthesis": {
+                          "model": "Wishart",
+                          "parameters": {
+                            "n": "6",
+                            "m": 3
+                          }
+                        }
+                      }
+                    }
+                    """)
+
+                try
+                    QUBOTools.read_model(temp_path)
+                    @test false
+                catch err
+                    @test err isa QUBOTools.FormatError
+                    @test occursin("[metadata][synthesis]", sprint(showerror, err))
+                end
+            end
+        end
     end
 
     return nothing
