@@ -6,7 +6,7 @@ Release changes live in this repository first. The release preflight checks the 
 
 1. Update `Project.toml` to the target version.
 2. Add a `CHANGELOG.md` section for `vX.Y.Z`.
-3. Update `docs/Project.toml` self-compat for `QUBOTools` so it includes the target release line.
+3. Update `docs/Project.toml` and `benchmark/Project.toml` self-compat for `QUBOTools` so each includes the target release line.
    - For `0.Y.Z`, include `0.Y`.
    - For `0.0.Z`, include `0.0.Z`.
    - For `X.Y.Z` with `X > 0`, include `X`.
