@@ -194,7 +194,7 @@ function hasvariable end
 @doc raw"""
     variables(model)
 
-Returns a sorted vector containing the model's variables.
+Returns a vector containing the model's variables in index order.
 """
 function variables end
 

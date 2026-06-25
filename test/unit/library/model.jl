@@ -53,6 +53,87 @@ function test_model(V = Symbol, T = Float64, U = Int)
             let empty_model = QUBOTools.Model{V,T,U}()
                 @test isempty(empty_model)
             end
+
+            @testset "Sparse constructors" begin
+                variables = V[:b, :a, :c]
+
+                linear_indices = [1, 2, 2, 3]
+                linear_values = T[2.0, 2.0, -2.0, 0.0]
+
+                quadratic_rows = [1, 2, 1, 3, 3, 2]
+                quadratic_cols = [2, 1, 1, 2, 2, 3]
+                quadratic_values = T[3.0, 4.0, -1.0, 5.0, -5.0, 0.0]
+
+                coo_model = QUBOTools.Model{V,T,U}(
+                    variables,
+                    linear_indices,
+                    linear_values,
+                    quadratic_rows,
+                    quadratic_cols,
+                    quadratic_values;
+                    scale  = T(2.5),
+                    offset = T(-0.75),
+                    sense  = :max,
+                    domain = :bool,
+                )
+
+                @test coo_model isa QUBOTools.Model{V,T,U,QUBOTools.SparseForm{T}}
+                @test QUBOTools.variables(coo_model) == variables
+                @test QUBOTools.index(coo_model, :b) == 1
+                @test QUBOTools.index(coo_model, :a) == 2
+                @test QUBOTools.index(coo_model, :c) == 3
+                @test Dict(QUBOTools.linear_terms(coo_model)) == Dict{Int,T}(1 => 1.0)
+                @test Dict(QUBOTools.quadratic_terms(coo_model)) ==
+                    Dict{Tuple{Int,Int},T}((1, 2) => 7.0)
+                @test QUBOTools.scale(coo_model) == T(2.5)
+                @test QUBOTools.offset(coo_model) == T(-0.75)
+                @test QUBOTools.sense(coo_model) === QUBOTools.Max
+                @test QUBOTools.domain(coo_model) === QUBOTools.BoolDomain
+
+                sparse_model = QUBOTools.Model{V,T,U}(
+                    variables,
+                    sparsevec(linear_indices, linear_values, 3),
+                    sparse(quadratic_rows, quadratic_cols, quadratic_values, 3, 3);
+                    scale  = T(2.5),
+                    offset = T(-0.75),
+                    sense  = :max,
+                    domain = :bool,
+                )
+
+                @test _compare_models(coo_model, sparse_model)
+                @test QUBOTools.Model(
+                    variables,
+                    sparsevec(linear_indices, linear_values, 3),
+                    sparse(quadratic_rows, quadratic_cols, quadratic_values, 3, 3),
+                ) isa QUBOTools.Model{V,T,Int}
+
+                @test_throws ArgumentError QUBOTools.Model{V,T,U}(
+                    V[:a, :a],
+                    sparsevec(linear_indices, linear_values, 3),
+                    sparse(quadratic_rows, quadratic_cols, quadratic_values, 3, 3),
+                )
+                @test_throws DimensionMismatch QUBOTools.Model{V,T,U}(
+                    variables,
+                    spzeros(T, 2),
+                    sparse(quadratic_rows, quadratic_cols, quadratic_values, 3, 3),
+                )
+                @test_throws DimensionMismatch QUBOTools.Model{V,T,U}(
+                    variables,
+                    [1],
+                    T[],
+                    Int[],
+                    Int[],
+                    T[],
+                )
+                @test_throws ArgumentError QUBOTools.Model{V,T,U}(
+                    variables,
+                    [4],
+                    T[1.0],
+                    Int[],
+                    Int[],
+                    T[],
+                )
+            end
         end
 
         @testset "⋅ Queries" begin

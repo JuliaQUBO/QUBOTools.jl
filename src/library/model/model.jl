@@ -4,6 +4,35 @@
 Reference [`AbstractModel`](@ref) implementation.
 It is intended to be the stardard in-memory representation for QUBO models.
 
+## Sparse Constructors
+
+```julia
+Model{V,T,U}(variables, L::SparseVector, Q::SparseMatrixCSC; kws...)
+Model{V,T,U}(
+    variables,
+    linear_indices,
+    linear_values,
+    quadratic_rows,
+    quadratic_cols,
+    quadratic_values;
+    kws...,
+)
+```
+
+These constructors build the model's sparse normal form directly. The vector
+`variables` defines the public variable-index mapping: `variables[i]` maps to
+index `i`, and all variables must be unique. COO indices are 1-based positions
+in that vector.
+
+Quadratic inputs are normalized to strict upper-triangular storage. Entries with
+`i > j` are stored as `(j, i)`, diagonal entries are accumulated into the linear
+form, duplicate coordinates are summed by Julia's sparse constructors, and
+resulting explicit zeros are removed with `dropzeros!`.
+
+`scale` and `offset` are stored as the model's normal-form scale and offset; the
+coefficient inputs are not pre-scaled. Objective evaluation uses
+`scale * (linear + quadratic + offset)`.
+
 ## [MathOptInterface](https://github.com/jump-dev/MathOptInterface.jl)/[JuMP](https://jump.dev) Integration
 
 Both `V` and `T` parameters exist to support MathOptInterface/JuMP integration.
@@ -86,6 +115,122 @@ function _build_sparse_forms(
     return L, Q
 end
 
+function _variable_map_from_indices(variables::AbstractVector{V}) where {V}
+    inv = collect(variables)
+    map = sizehint!(Dict{V,Int}(), length(inv))
+
+    for (i, v) in enumerate(inv)
+        if haskey(map, v)
+            throw(ArgumentError("variables must be unique; duplicate variable '$v'"))
+        end
+
+        map[v] = i
+    end
+
+    return VariableMap{V}(map, inv)
+end
+
+function _check_sparse_index(i::Integer, n::Integer, name::String)
+    if !(1 <= i <= n)
+        throw(ArgumentError("$name index $i is out of range 1:$n"))
+    end
+
+    return Int(i)
+end
+
+function _build_sparse_forms(
+    ::Type{T},
+    n::Integer,
+    linear_indices::AbstractVector{<:Integer},
+    linear_values::AbstractVector,
+    quadratic_rows::AbstractVector{<:Integer},
+    quadratic_cols::AbstractVector{<:Integer},
+    quadratic_values::AbstractVector,
+) where {T}
+    length(linear_indices) == length(linear_values) ||
+        throw(DimensionMismatch("linear_indices and linear_values must have the same length"))
+    length(quadratic_rows) == length(quadratic_cols) == length(quadratic_values) || throw(
+        DimensionMismatch(
+            "quadratic_rows, quadratic_cols, and quadratic_values must have the same length",
+        ),
+    )
+
+    n = Int(n)
+
+    linear_i = Int[]
+    linear_v = T[]
+    sizehint!(linear_i, length(linear_values) + length(quadratic_values))
+    sizehint!(linear_v, length(linear_values) + length(quadratic_values))
+
+    for (i, v) in zip(linear_indices, linear_values)
+        push!(linear_i, _check_sparse_index(i, n, "linear"))
+        push!(linear_v, convert(T, v))
+    end
+
+    quadratic_i = Int[]
+    quadratic_j = Int[]
+    quadratic_v = T[]
+    sizehint!(quadratic_i, length(quadratic_values))
+    sizehint!(quadratic_j, length(quadratic_values))
+    sizehint!(quadratic_v, length(quadratic_values))
+
+    for (row, col, val) in zip(quadratic_rows, quadratic_cols, quadratic_values)
+        i = _check_sparse_index(row, n, "quadratic row")
+        j = _check_sparse_index(col, n, "quadratic column")
+        v = convert(T, val)
+
+        if i < j
+            push!(quadratic_i, i)
+            push!(quadratic_j, j)
+            push!(quadratic_v, v)
+        elseif j < i
+            push!(quadratic_i, j)
+            push!(quadratic_j, i)
+            push!(quadratic_v, v)
+        else # i == j
+            push!(linear_i, i)
+            push!(linear_v, v)
+        end
+    end
+
+    L = sparsevec(linear_i, linear_v, n)
+    Q = sparse(quadratic_i, quadratic_j, quadratic_v, n, n)
+
+    dropzeros!(L)
+    dropzeros!(Q)
+
+    return L, Q
+end
+
+function _build_sparse_forms(
+    ::Type{T},
+    n::Integer,
+    L::SparseVector,
+    Q::SparseMatrixCSC,
+) where {T}
+    n = Int(n)
+
+    length(L) == n || throw(
+        DimensionMismatch("linear sparse vector length $(length(L)) does not match $n variables"),
+    )
+    size(Q) == (n, n) || throw(
+        DimensionMismatch("quadratic sparse matrix size $(size(Q)) does not match ($n, $n)"),
+    )
+
+    linear_indices, linear_values = findnz(L)
+    quadratic_rows, quadratic_cols, quadratic_values = findnz(Q)
+
+    return _build_sparse_forms(
+        T,
+        n,
+        linear_indices,
+        linear_values,
+        quadratic_rows,
+        quadratic_cols,
+        quadratic_values,
+    )
+end
+
 # Canonical Constructor - Normal Form
 function Model{V,T,U}(
     variable_map::VariableMap{V},
@@ -148,6 +293,87 @@ function Model{V,T,U}(;
     )
 
     return Model{V,T,U}(variables_map, form; metadata, solution, start, id, description)
+end
+
+# Sparse Constructors
+function Model(
+    variables::AbstractVector{V},
+    L::SparseVector{LT},
+    Q::SparseMatrixCSC{QT};
+    kws...,
+) where {V,LT,QT}
+    return Model{V,promote_type(LT,QT),Int}(variables, L, Q; kws...)
+end
+
+function Model{V,T,U}(
+    variables::AbstractVector{V},
+    L::SparseVector,
+    Q::SparseMatrixCSC;
+    scale::T                     = one(T),
+    offset::T                    = zero(T),
+    sense::Union{Sense,Symbol}   = :min,
+    domain::Union{Domain,Symbol} = :bool,
+    kws...,
+) where {V,T,U}
+    variable_map = _variable_map_from_indices(variables)
+    n = length(variable_map)
+    L, Q = _build_sparse_forms(T, n, L, Q)
+
+    form =
+        Form{T}(n, SparseLinearForm{T}(L), SparseQuadraticForm{T}(Q), scale, offset; sense, domain)
+
+    return Model{V,T,U}(variable_map, form; kws...)
+end
+
+function Model(
+    variables::AbstractVector{V},
+    linear_indices::AbstractVector{<:Integer},
+    linear_values::AbstractVector{LT},
+    quadratic_rows::AbstractVector{<:Integer},
+    quadratic_cols::AbstractVector{<:Integer},
+    quadratic_values::AbstractVector{QT};
+    kws...,
+) where {V,LT,QT}
+    return Model{V,promote_type(LT,QT),Int}(
+        variables,
+        linear_indices,
+        linear_values,
+        quadratic_rows,
+        quadratic_cols,
+        quadratic_values;
+        kws...,
+    )
+end
+
+function Model{V,T,U}(
+    variables::AbstractVector{V},
+    linear_indices::AbstractVector{<:Integer},
+    linear_values::AbstractVector,
+    quadratic_rows::AbstractVector{<:Integer},
+    quadratic_cols::AbstractVector{<:Integer},
+    quadratic_values::AbstractVector;
+    scale::T                     = one(T),
+    offset::T                    = zero(T),
+    sense::Union{Sense,Symbol}   = :min,
+    domain::Union{Domain,Symbol} = :bool,
+    kws...,
+) where {V,T,U}
+    variable_map = _variable_map_from_indices(variables)
+    n = length(variable_map)
+    L, Q = _build_sparse_forms(
+        T,
+        n,
+        linear_indices,
+        linear_values,
+        quadratic_rows,
+        quadratic_cols,
+        quadratic_values,
+    )
+
+    form =
+        Form{T}(n, SparseLinearForm{T}(L), SparseQuadraticForm{T}(Q), scale, offset; sense, domain)
+
+    return Model{V,T,U}(variable_map, form; kws...)
 end
 
 # Dict Constructors
