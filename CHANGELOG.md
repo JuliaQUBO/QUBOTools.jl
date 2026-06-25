@@ -1,5 +1,14 @@
 # QUBOTools.jl Changelog
 
+## v0.16.0 (2026-06-25)
+
+### Changelog
+
+- Add public sparse `QUBOTools.Model` constructors from indexed variable
+  vectors plus COO triples or prebuilt sparse forms, documenting
+  upper-triangular normalization, duplicate summation, zero dropping,
+  scale/offset semantics, and variable-index mapping.
+
 ## v0.15.1 (2026-06-24)
 
 ### Compatibility
