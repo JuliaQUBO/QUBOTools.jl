@@ -106,6 +106,14 @@ function test_model(V = Symbol, T = Float64, U = Int)
                     sparsevec(linear_indices, linear_values, 3),
                     sparse(quadratic_rows, quadratic_cols, quadratic_values, 3, 3),
                 ) isa QUBOTools.Model{V,T,Int}
+                @test QUBOTools.Model(
+                    variables,
+                    linear_indices,
+                    linear_values,
+                    quadratic_rows,
+                    quadratic_cols,
+                    quadratic_values,
+                ) isa QUBOTools.Model{V,T,Int}
 
                 @test_throws ArgumentError QUBOTools.Model{V,T,U}(
                     V[:a, :a],

@@ -22,12 +22,16 @@ Model{V,T,U}(
 These constructors build the model's sparse normal form directly. The vector
 `variables` defines the public variable-index mapping: `variables[i]` maps to
 index `i`, and all variables must be unique. COO indices are 1-based positions
-in that vector.
+in that vector. Unlike dictionary and set constructors, which sort variables
+with `varlt`, sparse constructors preserve the caller-supplied variable order.
 
 Quadratic inputs are normalized to strict upper-triangular storage. Entries with
 `i > j` are stored as `(j, i)`, diagonal entries are accumulated into the linear
 form, duplicate coordinates are summed by Julia's sparse constructors, and
-resulting explicit zeros are removed with `dropzeros!`.
+resulting explicit zeros are removed with `dropzeros!`. Pass upper-triangular
+quadratic data, or pre-halve mirrored off-diagonal entries; a full symmetric
+matrix contributes both `(i, j)` and `(j, i)` and therefore doubles each
+off-diagonal coefficient in the stored normal form.
 
 `scale` and `offset` are stored as the model's normal-form scale and offset; the
 coefficient inputs are not pre-scaled. Objective evaluation uses
