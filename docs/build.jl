@@ -49,7 +49,9 @@ function build_docs(; deploy::Bool = false)
     # Keep Plots on a non-interactive backend only while Documenter runs.
     withenv("GKSwstype" => "100") do
         makedocs(;
-            modules  = [QUBOTools, QUBOTools.PBO],
+            # Check QUBOTools' public docs surface. QUBOTools.PBO is a dependency
+            # namespace re-export and is documented upstream rather than here.
+            modules  = [QUBOTools],
             doctest  = true,
             clean    = true,
             sitename = "QUBOTools.jl",
@@ -63,7 +65,7 @@ function build_docs(; deploy::Bool = false)
                     docs_repository_ref(DOCS_REPOSITORY_ROOT),
                 ),
             ),
-            warnonly = [:missing_docs, :docs_block],
+            warnonly = [:docs_block],
             pages    = DOCS_PAGES,
             format   = Documenter.HTML(
                 assets           = ["assets/extra_styles.css", "assets/favicon.ico"],

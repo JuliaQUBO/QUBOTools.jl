@@ -36,7 +36,7 @@ QUBOTools.VariableMap
 ```
 
 ```@docs
-QUBOTools.PBO.varlt
+QUBOTools.varlt
 ```
 
 ## Objective & Domain Frames
@@ -191,8 +191,10 @@ QUBOTools.attach!
 
 ```@docs
 QUBOTools.AbstractFormat
+QUBOTools.Format
 QUBOTools.format
 QUBOTools.version
+QUBOTools.infer_format
 ```
 
 ```@docs
@@ -211,6 +213,7 @@ QUBOTools.write_samples
 
 ```@docs
 QUBOTools.FormatError
+QUBOTools.FormatInferenceError
 QUBOTools.SyntaxError
 ```
 

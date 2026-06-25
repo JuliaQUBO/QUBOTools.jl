@@ -1,11 +1,15 @@
 @doc raw"""
     AbstractFormat
 
+Supertype for QUBOTools file-format descriptors used by model and solution I/O.
 """
 abstract type AbstractFormat end
 
 @doc raw"""
     Format{F}
+
+Concrete format descriptor for format `F`, storing validated format-specific
+settings.
 """
 struct Format{F} <: AbstractFormat
     settings::Dict{Symbol,Any}
@@ -34,6 +38,9 @@ function format end
 
 @doc raw"""
     FormatInferenceError
+
+Thrown when QUBOTools cannot infer a supported format from a path or hint
+sequence.
 """
 struct FormatInferenceError{S} <: Exception
     source::S
@@ -55,7 +62,11 @@ function format_inference_error(source)
 end
 
 @doc raw"""
+    infer_format(hints::Vector{Symbol})::Format
     infer_format(; path::AbstractString)
+
+Infer a QUBOTools file format from ordered hint symbols or from the suffixes of
+`path`.
 """
 function infer_format end
 

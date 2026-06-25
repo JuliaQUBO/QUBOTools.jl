@@ -19,6 +19,14 @@ using Random
 import PseudoBooleanOptimization as PBO
 import PseudoBooleanOptimization: varlt, varshow
 
+@doc raw"""
+    varlt(x, y)
+
+Return `true` when variable `x` should sort before variable `y` in QUBOTools'
+canonical variable ordering.
+"""
+varlt
+
 const __PROJECT__ = Ref{Union{String,Nothing}}(nothing)
 
 function __project__()
