@@ -65,7 +65,7 @@ function build_docs(; deploy::Bool = false)
                     docs_repository_ref(DOCS_REPOSITORY_ROOT),
                 ),
             ),
-            warnonly = [:missing_docs, :docs_block],
+            warnonly = [:docs_block],
             pages    = DOCS_PAGES,
             format   = Documenter.HTML(
                 assets           = ["assets/extra_styles.css", "assets/favicon.ico"],
