@@ -1,5 +1,17 @@
 # QUBOTools.jl Changelog
 
+## v0.16.1 (2026-07-21)
+
+### Documentation
+
+- Complete the documented public API surface for format inference and canonical
+  variable ordering, and limit missing-docstring checks to QUBOTools' own
+  public bindings.
+
+### CI
+
+- Update the checkout, Python setup, and Codecov GitHub Actions.
+
 ## v0.16.0 (2026-06-25)
 
 ### Changelog
