@@ -23,7 +23,7 @@ jobs:
             os: windows-latest
             arch: x64
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
