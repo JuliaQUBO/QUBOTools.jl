@@ -18,7 +18,7 @@ jobs:
       QUBOTOOLS_SCALE_MAX_N: 100000
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - uses: julia-actions/setup-julia@v3
         with:
           version: "1"
