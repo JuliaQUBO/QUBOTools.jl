@@ -1,5 +1,26 @@
 # QUBOTools.jl Changelog
 
+## v0.16.2 (2026-10-07)
+
+### Fixed
+
+- Preserve every declared variable in topology graph export, including trailing
+  and internal isolates, diagonal-only models, all-zero models, and empty forms
+  (#136, #137). Graph vertices retain their form indices and the public
+  `Graphs.SimpleGraph{Int}` return type.
+- Retain bulk graph construction while adding isolated vertices, avoiding the
+  per-edge insertion cost for dictionary, sparse, and dense forms.
+
+### Documentation
+
+- Document the topology vertex and index-mapping contract.
+- Link the published QUBO.jl journal article (#125, #126).
+
+### Maintenance
+
+- Refresh GitHub Actions and standard-library compatibility declarations in the
+  package, test, and benchmark environments.
+
 ## v0.16.1 (2026-07-21)
 
 ### Documentation
