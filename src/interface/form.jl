@@ -76,6 +76,7 @@ function quadratic_form end
     fix_variables(Φ::AbstractForm, fix::AbstractDict{<:Integer})
 
 Fixes variables in `Φ` to the values supplied by `fix`.
+Keys are original form indices in `1:dimension(Φ)`, not model variable labels.
 
 For boolean forms, fixed values must belong to ``\mathbb{B} = \{0, 1\}``.
 For spin forms, fixed values must belong to ``\mathbb{S} = \{-1, 1\}``.
@@ -83,6 +84,20 @@ For spin forms, fixed values must belong to ``\mathbb{S} = \{-1, 1\}``.
 Returns `(Φ_reduced, offset_delta, index_map)`, where `offset_delta` is the
 unscaled amount added to `offset(Φ)` and `index_map` maps each surviving
 original variable index to its dense index in `Φ_reduced`.
+Surviving indices retain their original order, including isolated variables.
+The storage types, scale, objective sense and domain are preserved.
+
+For every valid reduced state `y`, with
+`x = lift_state(y, fix, index_map, dimension(Φ))`, the energy identity is
+`value(x, Φ) ≈ value(y, Φ_reduced)` (up to floating-point roundoff).
+The reduced offset is already `offset(Φ) + offset_delta`: do not add the
+delta again to the reduced energy. The corresponding full-energy change in
+the constant term is `scale(Φ) * offset_delta`.
+
+An empty `fix` preserves all variables; fixing every variable returns a
+zero-dimensional form containing the full constant energy. Out-of-range
+indices or values outside the form's domain throw `ArgumentError`.
+See the [conditioning example](@ref variable-conditioning) for label mapping.
 """
 function fix_variables end
 
@@ -91,6 +106,11 @@ function fix_variables end
 
 Reconstructs a full length-`n` state from a reduced state, fixed variable
 values, and the `index_map` returned by [`QUBOTools.fix_variables`](@ref).
+The map direction is original index → reduced index. Fixed indices and map
+keys must partition `1:n`, and map values must be a bijection onto the reduced
+state positions; invalid dimensions or mappings throw `ArgumentError`.
+This function checks reconstruction structure, not domain membership: reuse
+the validated `fix` and a reduced state valid for the reduced form.
 """
 function lift_state end
 
