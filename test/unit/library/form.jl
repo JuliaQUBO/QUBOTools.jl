@@ -174,34 +174,42 @@ function test_form_topology_isolates()
     return nothing
 end
 
-function _fix_variables_form(form_kind::Symbol, domain::QUBOTools.Domain)
+function _fix_variables_form(form_kind::Symbol, domain::QUBOTools.Domain, sense::Symbol)
     seed =
         (form_kind === :dict ? 11 : form_kind === :sparse ? 23 : 37) +
         (domain === QUBOTools.BoolDomain ? 0 : 100)
     rng = Random.MersenneTwister(seed)
-    n = 6
+    n = 7
     L = Float64.(rand(rng, -5:5, n))
+    L[n] = 0.0 # A surviving isolated variable must still have a reduced index.
     Q = zeros(Float64, n, n)
 
-    for i in 1:n, j in i:n
+    for i in 1:(n-1), j in i:(n-1)
         Q[i, j] = rand(rng, -3:3)
     end
 
-    if form_kind === :dict
-        return QUBOTools.DictForm{Float64}(
+    Φ = if form_kind === :dict
+        QUBOTools.DictForm{Float64}(
             n,
             Dict{Int,Float64}(i => L[i] for i in 1:n),
             Dict{Tuple{Int,Int},Float64}((i, j) => Q[i, j] for i in 1:n for j in i:n),
             1.5,
             -2.0;
-            sense = :min,
+            sense,
             domain,
         )
     elseif form_kind === :sparse
-        return QUBOTools.SparseForm{Float64}(n, sparse(L), sparse(Q), 1.5, -2.0; sense = :min, domain)
+        QUBOTools.SparseForm{Float64}(n, sparse(L), sparse(Q), 1.5, -2.0; sense, domain)
     else
-        return QUBOTools.DenseForm{Float64}(n, L, Q, 1.5, -2.0; sense = :min, domain)
+        QUBOTools.DenseForm{Float64}(n, L, Q, 1.5, -2.0; sense, domain)
     end
+
+    # Evaluate the original input polynomial, including diagonal terms, without
+    # calling value, inspecting normalized terms, or reproducing conditioning.
+    energy(x) = 1.5 * (-2.0 + sum(L[i] * x[i] for i in 1:n) +
+                      sum(Q[i, j] * x[i] * x[j] for i in 1:n for j in i:n))
+
+    return Φ, energy
 end
 
 function _fix_variables_values(domain::QUBOTools.Domain)
@@ -220,10 +228,11 @@ end
 function test_form_fix_variables()
     @testset "Variable Fixing" begin
         for form_kind in (:dict, :sparse, :dense),
-            domain in (QUBOTools.BoolDomain, QUBOTools.SpinDomain)
+            domain in (QUBOTools.BoolDomain, QUBOTools.SpinDomain),
+            sense in (:min, :max)
 
-            @testset "$(form_kind) $(Symbol(domain))" begin
-                Φ = _fix_variables_form(form_kind, domain)
+            @testset "$(form_kind) $(Symbol(domain)) $(sense)" begin
+                Φ, energy = _fix_variables_form(form_kind, domain, sense)
                 n = QUBOTools.dimension(Φ)
                 values = _fix_variables_values(domain)
                 fix = Dict(2 => values[2], 5 => values[1])
@@ -235,14 +244,25 @@ function test_form_fix_variables()
                 @test QUBOTools.offset(Φ′) ≈ QUBOTools.offset(Φ) + offset_delta
                 @test QUBOTools.sense(Φ′) === QUBOTools.sense(Φ)
                 @test QUBOTools.domain(Φ′) === QUBOTools.domain(Φ)
-                @test index_map == Dict(1 => 1, 3 => 2, 4 => 3, 6 => 4)
+                @test index_map == Dict(1 => 1, 3 => 2, 4 => 3, 6 => 4, 7 => 5)
 
-                for reduced_state in _fix_variables_states(values, QUBOTools.dimension(Φ′))
-                    full_state = QUBOTools.lift_state(reduced_state, fix, index_map, n)
+                # Enumerate all choices for both fixed variables and all free
+                # states: together these cover every valid original state.
+                for fixed_state in _fix_variables_states(values, 2)
+                    boundary = Dict(2 => fixed_state[1], 5 => fixed_state[2])
+                    conditioned, _, map = QUBOTools.fix_variables(Φ, boundary)
+                    @test map == index_map
+                    @test iszero(QUBOTools.linear_form(conditioned)[map[n]])
+                    @test all(i != map[n] && j != map[n] for ((i, j), _) in QUBOTools.quadratic_terms(conditioned))
 
-                    @test QUBOTools.value(full_state, Φ) ≈ QUBOTools.value(reduced_state, Φ′)
-                    @test full_state[2] == fix[2]
-                    @test full_state[5] == fix[5]
+                    for reduced_state in _fix_variables_states(values, QUBOTools.dimension(conditioned))
+                        full_state = QUBOTools.lift_state(reduced_state, boundary, map, n)
+                        expected_state = [haskey(boundary, i) ? boundary[i] : reduced_state[map[i]] for i in 1:n]
+
+                        @test full_state == expected_state
+                        @test QUBOTools.value(full_state, Φ) ≈ energy(expected_state)
+                        @test QUBOTools.value(reduced_state, conditioned) ≈ energy(expected_state)
+                    end
                 end
 
                 Φ_identity, identity_delta, identity_map =
@@ -251,6 +271,7 @@ function test_form_fix_variables()
                 @test _compare_forms(Φ_identity, Φ)
                 @test iszero(identity_delta)
                 @test identity_map == Dict(i => i for i in 1:n)
+                @test QUBOTools.lift_state(fill(values[1], n), Dict{Int,Int}(), identity_map, n) == fill(values[1], n)
 
                 fix_all = Dict(i => values[1 + (i % 2)] for i in 1:n)
                 Φ_empty, _, empty_map = QUBOTools.fix_variables(Φ, fix_all)
@@ -258,7 +279,21 @@ function test_form_fix_variables()
 
                 @test QUBOTools.dimension(Φ_empty) == 0
                 @test isempty(empty_map)
-                @test QUBOTools.value(Int[], Φ_empty) ≈ QUBOTools.value(full_state, Φ)
+                @test QUBOTools.value(Int[], Φ_empty) ≈ energy(full_state)
+                @test QUBOTools.lift_state(Int[], fix_all, empty_map, n) == full_state
+
+                # Conditioning a form that was empty from the outset.
+                F = QUBOTools.formtype(Val(form_kind), Float64)
+                empty_form = F(QUBOTools.DictForm{Float64}(
+                    0, Dict{Int,Float64}(), Dict{Tuple{Int,Int},Float64}(), 1.5, -2.0;
+                    sense, domain,
+                ))
+                empty_reduced, empty_delta, empty_index_map = QUBOTools.fix_variables(empty_form, Dict{Int,Int}())
+                @test QUBOTools.dimension(empty_reduced) == 0
+                @test iszero(empty_delta)
+                @test isempty(empty_index_map)
+                @test QUBOTools.value(Int[], empty_reduced) == -3.0
+                @test QUBOTools.lift_state(Int[], Dict{Int,Int}(), empty_index_map, 0) == Int[]
 
                 invalid_value = domain === QUBOTools.BoolDomain ? -1 : 0
 
@@ -273,6 +308,53 @@ function test_form_fix_variables()
                     index_map,
                     n,
                 )
+
+                @testset "Worked example and public label mapping" begin
+                    # E(x) = 2*(5 - 3*x1 + 2*x2 - x3 + 4*x1*x2 - 2*x2*x3).
+                    # Index 4 is isolated, and labels deliberately differ from
+                    # indices and their sorted order.
+                    worked_form = F(QUBOTools.DictForm{Float64}(
+                        4, Dict(1 => -3.0, 2 => 2.0, 3 => -1.0),
+                        Dict((1, 2) => 4.0, (2, 3) => -2.0), 2.0, 5.0;
+                        sense, domain,
+                    ))
+                    labels = [40, 10, 90, 20]
+                    variable_map = QUBOTools.VariableMap{Int}(Dict(i => v for (i, v) in enumerate(labels)))
+                    model = QUBOTools.Model{Int,Float64,Int}(variable_map, worked_form)
+                    fixed_value = domain === QUBOTools.BoolDomain ? 1 : -1
+                    fixed_labels = Dict(10 => fixed_value)
+                    fixed_indices = Dict(QUBOTools.index(model, label) => v for (label, v) in fixed_labels)
+                    reduced, delta, map = QUBOTools.fix_variables(QUBOTools.form(model), fixed_indices)
+                    label_map = Dict(QUBOTools.variable(model, i) => j for (i, j) in map)
+
+                    @test [QUBOTools.variable(model, i) for i in 1:4] == labels
+                    @test all(QUBOTools.index(model, label) == i for (i, label) in enumerate(labels))
+                    @test map == Dict(1 => 1, 3 => 2, 4 => 3)
+                    @test label_map == Dict(40 => 1, 90 => 2, 20 => 3)
+                    @test delta == 2.0 * fixed_value
+                    @test QUBOTools.offset(reduced) == 5.0 + delta
+
+                    for state in _fix_variables_states(values, 3)
+                        reduced_labels = Dict(90 => state[2], 20 => state[3], 40 => state[1])
+                        y = Vector{Int}(undef, 3)
+                        for (label, j) in label_map
+                            y[j] = reduced_labels[label]
+                        end
+                        x = QUBOTools.lift_state(y, fixed_indices, map, 4)
+                        full_labels = Dict(QUBOTools.variable(model, i) => x[i] for i in 1:4)
+                        @test full_labels == merge(reduced_labels, fixed_labels)
+                        @test [full_labels[QUBOTools.variable(model, i)] for i in 1:4] == x
+
+                        expected = 2 * (5 - 3*state[1] + 2*fixed_value - state[2] +
+                                        4*state[1]*fixed_value - 2*fixed_value*state[2])
+                        worked_reduced = domain === QUBOTools.BoolDomain ?
+                            2 * (7 + state[1] - 3*state[2]) :
+                            2 * (3 - 7*state[1] + state[2])
+                        @test worked_reduced == expected
+                        @test QUBOTools.value(model, x) == expected
+                        @test QUBOTools.value(y, reduced) == expected
+                    end
+                end
             end
         end
     end
