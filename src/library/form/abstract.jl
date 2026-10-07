@@ -33,7 +33,12 @@ function topology(Φ::F) where {T,F<:AbstractForm{T}}
         push!(E, Graphs.Edge{Int}(i, j))
     end
 
-    return Graphs.Graph(E)
+    graph = Graphs.Graph(E)
+
+    # Include declared variables beyond the largest interaction endpoint.
+    Graphs.add_vertices!(graph, dimension(Φ) - Graphs.nv(graph))
+
+    return graph
 end
 
 

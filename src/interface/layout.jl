@@ -1,8 +1,12 @@
 @doc raw"""
     topology(model)
+    topology(form::AbstractForm)
 
 Returns a [`Graphs.jl`](https://github.com/JuliaGraphs/Graphs.jl)-compatible graph
 representing the quadratic interactions between variables in the model.
+The returned `Graphs.SimpleGraph{Int}` contains every vertex in
+`1:dimension(model)` (or `1:dimension(form)`), including isolated variables.
+Vertex indices match form indices; use [`variable`](@ref) to recover model labels.
 """
 function topology end
 
