@@ -25,13 +25,18 @@ end
 
 
 function topology(Φ::F) where {T,F<:AbstractForm{T}}
-    graph = Graphs.Graph(dimension(Φ))
+    E = Graphs.Edge{Int}[]
 
     for t in quadratic_terms(Φ)
         i, j = first(t)
 
-        Graphs.add_edge!(graph, i, j)
+        push!(E, Graphs.Edge{Int}(i, j))
     end
+
+    graph = Graphs.Graph(E)
+
+    # Include declared variables beyond the largest interaction endpoint.
+    Graphs.add_vertices!(graph, dimension(Φ) - Graphs.nv(graph))
 
     return graph
 end
