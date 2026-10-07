@@ -25,15 +25,15 @@ end
 
 
 function topology(Φ::F) where {T,F<:AbstractForm{T}}
-    E = Graphs.Edge{Int}[]
+    graph = Graphs.Graph(dimension(Φ))
 
     for t in quadratic_terms(Φ)
         i, j = first(t)
 
-        push!(E, Graphs.Edge{Int}(i, j))
+        Graphs.add_edge!(graph, i, j)
     end
 
-    return Graphs.Graph(E)
+    return graph
 end
 
 

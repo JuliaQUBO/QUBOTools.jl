@@ -95,6 +95,85 @@ function test_form_topology(Φ̄::F, Φ::F, Ψ̄::F, Ψ::F) where {T,F<:QUBOTool
     return nothing
 end
 
+function test_form_topology_isolates()
+    @testset "Topology with isolated variables" begin
+        fixtures = (
+            (
+                "Trailing isolates",
+                [1.0, 0.0, 0.0, 2.0, -1.0],
+                sparse([1, 2], [2, 3], [1.0, -1.0], 5, 5),
+                Set([(1, 2), (2, 3)]),
+                Set([(1, 2, 3), (4,), (5,)]),
+            ),
+            (
+                "Internal isolates",
+                [0.0, 2.0, 0.0, 0.0, 0.0],
+                sparse([1, 3], [3, 5], [1.0, -1.0], 5, 5),
+                Set([(1, 3), (3, 5)]),
+                Set([(1, 3, 5), (2,), (4,)]),
+            ),
+            (
+                "Diagonal only",
+                zeros(3),
+                sparse([1, 2, 3], [1, 2, 3], [1.0, -2.0, 3.0], 3, 3),
+                Set{Tuple{Int,Int}}(),
+                Set([(1,), (2,), (3,)]),
+            ),
+            (
+                "All zero",
+                zeros(3),
+                spzeros(3, 3),
+                Set{Tuple{Int,Int}}(),
+                Set([(1,), (2,), (3,)]),
+            ),
+            (
+                "Dimension zero",
+                zeros(0),
+                spzeros(0, 0),
+                Set{Tuple{Int,Int}}(),
+                Set{Tuple}(),
+            ),
+        )
+
+        form_types = (QUBOTools.DictForm{Float64}, QUBOTools.SparseForm{Float64}, QUBOTools.DenseForm{Float64})
+
+        for F in form_types,
+            sense in (:min, :max), domain in (:bool, :spin)
+
+            @testset "$F $sense $domain" begin
+                for (name, L, Q, expected_edges, expected_components) in fixtures
+                    @testset "$name" begin
+                        n = length(L)
+                        Φ = F(QUBOTools.DenseForm{Float64}(n, L, Matrix(Q); sense, domain))
+                        graph = QUBOTools.topology(Φ)
+                        components = Graphs.connected_components(graph)
+
+                        @test graph isa Graphs.SimpleGraph{Int}
+                        @test Graphs.nv(graph) == QUBOTools.dimension(Φ) == n
+                        @test collect(Graphs.vertices(graph)) == collect(1:n)
+                        @test Set(
+                            (Graphs.src(e), Graphs.dst(e)) for e in Graphs.edges(graph)
+                        ) == expected_edges
+                        @test Set(Tuple(sort(c)) for c in components) == expected_components
+                        @test sort(reduce(vcat, components; init = Int[])) == collect(1:n)
+
+                        labels = [:z, :a, :middle, :linear, :unused][1:n]
+                        variable_map = QUBOTools.VariableMap{Symbol}(
+                            Dict(i => v for (i, v) in enumerate(labels)),
+                        )
+                        model = QUBOTools.Model{Symbol,Float64,Int}(variable_map, Φ)
+                        @test QUBOTools.topology(model) == graph
+                        @test Set(QUBOTools.variable(model, i) for c in components for i in c) == Set(labels)
+                        @test all(QUBOTools.index(model, labels[i]) == i for i in Graphs.vertices(graph))
+                    end
+                end
+            end
+        end
+    end
+
+    return nothing
+end
+
 function _fix_variables_form(form_kind::Symbol, domain::QUBOTools.Domain)
     seed =
         (form_kind === :dict ? 11 : form_kind === :sparse ? 23 : 37) +
@@ -571,6 +650,7 @@ function test_form()
         test_form_dict()
         test_form_sparse()
         test_form_dense()
+        test_form_topology_isolates()
         test_form_fix_variables()
     end
 
