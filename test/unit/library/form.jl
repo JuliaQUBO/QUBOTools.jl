@@ -357,6 +357,23 @@ function test_form_fix_variables()
                 end
             end
         end
+
+        @testset "Invalid lifting maps" begin
+            # These structural checks do not depend on form storage or domain.
+            fix = Dict(2 => 1, 5 => 0)
+            index_map = Dict(1 => 1, 3 => 2, 4 => 3, 6 => 4)
+            state = [0, 1, 0, 1]
+
+            @test QUBOTools.lift_state(state, fix, index_map, 6) == [0, 1, 1, 0, 0, 1]
+            @test_throws ArgumentError QUBOTools.lift_state(state, fix, index_map, -1)
+            @test_throws ArgumentError QUBOTools.lift_state(state, Dict(2 => 1, 7 => 0), index_map, 6)
+            @test_throws ArgumentError QUBOTools.lift_state(state, fix, Dict(1 => 1, 3 => 2, 4 => 3, 9 => 4), 6)
+            @test_throws ArgumentError QUBOTools.lift_state(state, fix, Dict(1 => 1, 2 => 2, 4 => 3, 6 => 4), 6)
+            @test_throws ArgumentError QUBOTools.lift_state(state, fix, Dict(1 => 1, 3 => 2, 4 => 3, 6 => 5), 6)
+            @test_throws ArgumentError QUBOTools.lift_state(state, fix, Dict(1 => 1, 3 => 1, 4 => 3, 6 => 4), 6)
+            @test_throws ArgumentError QUBOTools.lift_state(state, Dict(2 => 1), index_map, 6)
+            @test QUBOTools.lift_state(fill(7, 4), fix, index_map, 6) == [7, 1, 7, 7, 0, 7]
+        end
     end
 
     return nothing
