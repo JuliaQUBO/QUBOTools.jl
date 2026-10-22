@@ -149,10 +149,22 @@ run_est = QUBOTools.time_to_target_estimate(read_batch, 1.0; trial_unit = :run)
 | `"version"` | `Int` | `1` |
 | `"package_versions"` | `Object` | `"QUBOTools"` and `"Julia"` version strings |
 | `"model"` | `Object` | `"dimension"`, `"variables"`, `"sense"`, `"domain"`, `"scale"`, `"offset"`, `"linear_size"`, `"quadratic_size"`, `"term_count"`, `"density"` (`"total"`, `"linear"`, `"quadratic"`), `"coefficients"` (`"linear"`, `"quadratic"`, `"all"` with `"count"`, `"min"`, `"max"`, `"min_abs"`, `"max_abs"`, `"mean"`, `"mean_abs"`, `"std"`, `"dynamic_range"`), and `"metadata"` |
-| `"solution"` | `Object` | `"present"`, `"sample_count"`, `"total_reads"`, `"sense"`, `"domain"`, `"metadata"`, `"samples_metadata"` (`QUBOTools.samples` header dict), `"timing"` (`"effective_time"`, `"total_time"`), `"energies"` (`"best"`, `"min"`, `"max"`, `"mean"`), `"best_sample"` (with `"objective_breakdown"`), `"objective_values_verified"`, `"objective_mismatch_count"`, `"metrics"` (`"target_threshold"`, `"target_probability"`, `"trial_unit"`, `"cost_boundary"`, `"success_rate"`, `"ttt"`, `"time_to_target"`, `"status"`), and optional `"samples"` rows (`include_samples = true`) |
+| `"solution"` | `Object` | `"present"`, `"sample_count"`, `"total_reads"`, `"sense"`, `"domain"`, `"metadata"`, `"samples_metadata"` (`QUBOTools.samples` header dict, or `null` when `solution = nothing`), `"timing"` (`"effective_time"`, `"total_time"`), `"energies"` (`"best"`, `"min"`, `"max"`, `"mean"`, or `null` when empty), `"best_sample"` (with `"objective_breakdown"`, or `null` when empty), `"objective_values_verified"`, `"objective_mismatch_count"`, `"metrics"` (see status table below), and `"samples"` (array of row dicts when `include_samples = true`, or `null` when `include_samples = false`) |
 | `"penalties"` | `Object` or `null` | Penalty dictionary passed via `penalties`, extracted from `reformulation["applied_penalties"]`, or found in `metadata(model)["penalties"]` |
 | `"reformulation"` | `Object` or `null` | Reformulation metadata dictionary passed via `reformulation` or found in `metadata(model)["toqubo"]["reformulation"]` |
 | `"feasibility"` | `Object` or `null` | Optional feasibility report dictionary or struct passed via `feasibility` |
+
+#### `solution.metrics` Statuses and Conditional Fields
+
+`solution["metrics"]` always includes `"target_threshold"`, `"target_probability"`, `"trial_unit"`, `"cost_boundary"`, `"success_rate"`, `"ttt"`, `"time_to_target"`, and `"status"`. Depending on available inputs and metadata, `"status"` and additional conditional fields take the following values:
+
+| `"status"` | Condition | Conditional Fields & `ttt` Behavior |
+| :--- | :--- | :--- |
+| `"empty_solution"` | No samples attached (`isempty(sol)` or `solution = nothing`) | `"success_rate"`, `"ttt"`, and `"time_to_target"` are `null` |
+| `"threshold_not_provided"` | Samples present, `λ = nothing` | `"success_rate"`, `"ttt"`, and `"time_to_target"` are `null` |
+| `"trial_unit_required"` | Samples and `λ` present, but neither `trial_unit` nor `metadata["trial_unit"]` is declared | Includes `"read_success_rate"` (when IID-compatible) and `"run_success_rate"`; `"success_rate"`, `"ttt"`, and `"time_to_target"` are `null` |
+| `"missing_timing_metadata"` | Samples, `λ`, and `trial_unit` present, but no timing is available for `cost_boundary = :effective` | Includes `"trials"`, `"successes"`, and `"success_rate"`; `"ttt"` and `"time_to_target"` are `null` |
+| `"empirical_interior_probability"`, `"empirical_all_succeeded"`, `"empirical_zero_successes"` | Samples, `λ`, `trial_unit`, and timing available | Includes `"trials"`, `"successes"`, `"success_rate"`, and `"time_to_target"` ([`TimeToTargetEstimate`](@ref) dict); when zero trials succeeded (`"empirical_zero_successes"`), `"ttt"` and infinite repetition fields serialize as `null` |
 
 ```@example analysis
 QUBOTools.attach!(model, solution)

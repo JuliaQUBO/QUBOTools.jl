@@ -3,8 +3,12 @@ const _REPORT_VERSION = 1
 
 _json_finite(::Nothing) = nothing
 _json_finite(x::Bool) = x
-_json_finite(x::Integer) = Int(x)
-_json_finite(x::Real) = isfinite(x) ? Float64(x) : nothing
+_json_finite(x::Integer) = x
+function _json_finite(x::Real)
+    isfinite(x) || return nothing
+    y = Float64(x)
+    return isfinite(y) ? y : nothing
+end
 
 function _json_sanitize(x::Nothing)
     return nothing
@@ -128,28 +132,36 @@ function _coefficient_stats(values::AbstractVector{<:Real})
         )
     end
 
-    fvals = Float64[Float64(v) for v in values]
-    abs_vals = abs.(fvals)
+    abs_vals = [abs(v) for v in values]
+    min_val = minimum(values)
+    max_val = maximum(values)
     min_abs = minimum(abs_vals)
     max_abs = maximum(abs_vals)
-    dyn_range = min_abs > 0.0 ? _json_finite(max_abs / min_abs) : nothing
+
+    fvals = Float64[Float64(v) for v in values]
+    use_big = any(!isfinite, fvals) || any(x -> abs(x) > 1e150, fvals)
+    stat_vals = use_big ? BigFloat[BigFloat(v) for v in values] : fvals
+    stat_abs = abs.(stat_vals)
+    min_abs_stat = minimum(stat_abs)
+    max_abs_stat = maximum(stat_abs)
+    dyn_range = min_abs_stat > 0 ? _json_finite(max_abs_stat / min_abs_stat) : nothing
 
     return Dict{String,Any}(
-        "count" => length(fvals),
-        "min" => _json_finite(minimum(fvals)),
-        "max" => _json_finite(maximum(fvals)),
+        "count" => length(values),
+        "min" => _json_finite(min_val),
+        "max" => _json_finite(max_val),
         "min_abs" => _json_finite(min_abs),
         "max_abs" => _json_finite(max_abs),
-        "mean" => _json_finite(mean(fvals)),
-        "mean_abs" => _json_finite(mean(abs_vals)),
-        "std" => length(fvals) >= 2 ? _json_finite(std(fvals)) : nothing,
+        "mean" => _json_finite(mean(stat_vals)),
+        "mean_abs" => _json_finite(mean(stat_abs)),
+        "std" => length(stat_vals) >= 2 ? _json_finite(std(stat_vals)) : nothing,
         "dynamic_range" => dyn_range,
     )
 end
 
-function _report_model_section(model::AbstractModel)
-    lin_vals = Float64[Float64(v) for (_, v) in linear_terms(model) if !iszero(v)]
-    quad_vals = Float64[Float64(v) for (_, v) in quadratic_terms(model) if !iszero(v)]
+function _report_model_section(model::AbstractModel{V,T,U}) where {V,T,U}
+    lin_vals = T[v for (_, v) in linear_terms(model) if !iszero(v)]
+    quad_vals = T[v for (_, v) in quadratic_terms(model) if !iszero(v)]
     all_vals = vcat(lin_vals, quad_vals)
 
     ls = linear_size(model)
@@ -199,17 +211,21 @@ function _has_boundary_time(sol::AbstractSolution, boundary::Symbol)
     return haskey(time_data, key) && !isnothing(time_data[key])
 end
 
-function _report_energies(sol::AbstractSolution)
+function _report_energies(sol::AbstractSolution{T,U}) where {T,U}
     isempty(sol) && return nothing
 
-    vals = Float64[Float64(value(s)) for s in sol]
+    vals = T[value(s) for s in sol]
     mults = Int[reads(s) for s in sol]
     tot_reads = sum(mults)
 
+    fvals = Float64[Float64(v) for v in vals]
+    use_big = any(!isfinite, fvals) || any(x -> abs(x) > 1e150, fvals)
+    stat_vals = use_big ? BigFloat[BigFloat(v) for v in vals] : fvals
+
     weighted_mean = if tot_reads > 0
-        sum(v * r for (v, r) in zip(vals, mults)) / tot_reads
+        sum(v * r for (v, r) in zip(stat_vals, mults)) / tot_reads
     else
-        mean(vals)
+        mean(stat_vals)
     end
 
     return Dict{String,Any}(
@@ -254,6 +270,9 @@ function _report_solution_metrics(
     boundary = _normalize_cost_boundary(cost_boundary)
     rep_mode = _normalize_repetition_mode(repetition_mode)
 
+    if !isnothing(λ)
+        isfinite(λ) || throw(ArgumentError("Target threshold `λ` must be finite; got $(λ)"))
+    end
     if !isnothing(trial_unit)
         _normalize_trial_unit(trial_unit)
     end
@@ -266,7 +285,7 @@ function _report_solution_metrics(
 
     if isnothing(λ) || isempty(sol)
         return Dict{String,Any}(
-            "target_threshold" => isnothing(λ) ? nothing : _json_finite(Float64(λ)),
+            "target_threshold" => _json_finite(λ),
             "target_probability" => _json_finite(s_val),
             "trial_unit" => isnothing(trial_unit) ? nothing : String(_normalize_trial_unit(trial_unit)),
             "cost_boundary" => String(boundary),
@@ -277,9 +296,6 @@ function _report_solution_metrics(
         )
     end
 
-    λ_val = Float64(λ)
-    isfinite(λ_val) || throw(ArgumentError("Target threshold `λ` must be finite; got $(λ)"))
-
     data = metadata(sol)
     has_declared_unit =
         !isnothing(trial_unit) ||
@@ -289,7 +305,7 @@ function _report_solution_metrics(
         if !isnothing(trial_time) || !isnothing(batch_time) || boundary !== :effective
             time_to_target_estimate(
                 sol,
-                λ_val,
+                λ,
                 s_val;
                 trial_unit,
                 cost_boundary = boundary,
@@ -299,13 +315,13 @@ function _report_solution_metrics(
             )
         end
 
-        run_sr = success_rate(sol, λ_val; trial_unit = :run)
+        run_sr = success_rate(sol, λ; trial_unit = :run)
         read_sr =
             isnothing(_non_iid_read_regime(sol)) ?
-            success_rate(sol, λ_val; trial_unit = :read) : nothing
+            success_rate(sol, λ; trial_unit = :read) : nothing
 
         return Dict{String,Any}(
-            "target_threshold" => _json_finite(λ_val),
+            "target_threshold" => _json_finite(λ),
             "target_probability" => _json_finite(s_val),
             "trial_unit" => nothing,
             "cost_boundary" => String(boundary),
@@ -319,7 +335,7 @@ function _report_solution_metrics(
     end
 
     unit = _resolve_trial_unit(sol, trial_unit)
-    counts = _empirical_trial_counts(sol, λ_val, unit)
+    counts = _empirical_trial_counts(sol, λ, unit)
     sr = counts.successes / counts.trials
 
     has_timing =
@@ -329,7 +345,7 @@ function _report_solution_metrics(
 
     if !has_timing && boundary === :effective
         return Dict{String,Any}(
-            "target_threshold" => _json_finite(λ_val),
+            "target_threshold" => _json_finite(λ),
             "target_probability" => _json_finite(s_val),
             "trial_unit" => String(unit),
             "cost_boundary" => String(boundary),
@@ -344,7 +360,7 @@ function _report_solution_metrics(
 
     est = time_to_target_estimate(
         sol,
-        λ_val,
+        λ,
         s_val;
         trial_unit = unit,
         cost_boundary = boundary,
@@ -354,7 +370,7 @@ function _report_solution_metrics(
     )
 
     return Dict{String,Any}(
-        "target_threshold" => _json_finite(λ_val),
+        "target_threshold" => _json_finite(λ),
         "target_probability" => _json_finite(s_val),
         "trial_unit" => String(unit),
         "cost_boundary" => String(boundary),
@@ -382,9 +398,12 @@ function _report_solution_section(
     include_probability::Bool,
 )
     if isnothing(sol)
-        _validate_target_probability(s)
+        s_val = _validate_target_probability(s)
         _normalize_cost_boundary(cost_boundary)
         _normalize_repetition_mode(repetition_mode)
+        if !isnothing(λ)
+            isfinite(λ) || throw(ArgumentError("Target threshold `λ` must be finite; got $(λ)"))
+        end
         if !isnothing(trial_unit)
             _normalize_trial_unit(trial_unit)
         end
@@ -412,8 +431,8 @@ function _report_solution_section(
             "objective_values_verified" => true,
             "objective_mismatch_count" => 0,
             "metrics" => Dict{String,Any}(
-                "target_threshold" => isnothing(λ) ? nothing : _json_finite(Float64(λ)),
-                "target_probability" => _json_finite(Float64(s)),
+                "target_threshold" => _json_finite(λ),
+                "target_probability" => _json_finite(s_val),
                 "trial_unit" => isnothing(trial_unit) ? nothing : String(_normalize_trial_unit(trial_unit)),
                 "cost_boundary" => String(_normalize_cost_boundary(cost_boundary)),
                 "success_rate" => nothing,

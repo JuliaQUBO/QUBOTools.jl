@@ -814,6 +814,57 @@ function test_reports()
             @test_throws ArgumentError QUBOTools.report(one_var_model; s = 1.0)
             @test_throws ArgumentError QUBOTools.report(one_var_model; trial_unit = :invalid)
             @test_throws ArgumentError QUBOTools.report(one_var_model; cost_boundary = :invalid)
+            @test_throws ArgumentError QUBOTools.report(one_var_model; λ = Inf)
+
+            # R1 regression: integer threshold above 2^53 preserved without Float64 rounding
+            λ_large_int = 2^53 + 1
+            int_model = QUBOTools.Model{Int,Int,Int}(
+                Dict(1 => λ_large_int),
+                Dict{Tuple{Int,Int},Int}(),
+            )
+            int_sol = QUBOTools.SampleSet{Int,Int}(
+                [QUBOTools.Sample{Int,Int}([1], λ_large_int, 1)];
+                metadata = Dict{String,Any}("time" => Dict{String,Any}("effective" => 1.0)),
+            )
+            direct_est = QUBOTools.time_to_target_estimate(int_sol, λ_large_int; trial_unit = :read)
+            rep_int = QUBOTools.report(int_model; solution = int_sol, λ = λ_large_int, trial_unit = :read)
+            int_metrics = rep_int["solution"]["metrics"]
+            @test int_metrics["target_threshold"] == λ_large_int
+            @test int_metrics["successes"] == direct_est.successes == 1
+            @test int_metrics["success_rate"] == direct_est.success_probability == 1.0
+            @test int_metrics["ttt"] == direct_est.ttt == 1.0
+            @test int_metrics["status"] == String(direct_est.status) == "empirical_all_succeeded"
+
+            buf_int = IOBuffer()
+            QUBOTools.write_report(buf_int, int_model; solution = int_sol, λ = λ_large_int, trial_unit = :read)
+            parsed_int = QUBOTools.JSON.parse(String(take!(buf_int)))
+            @test parsed_int["solution"]["metrics"]["target_threshold"] == λ_large_int
+            @test parsed_int["solution"]["metrics"]["successes"] == 1
+            @test parsed_int["solution"]["metrics"]["ttt"] == 1.0
+
+            # R2 regression: BigInt model fields and Float64-overflowing finite metadata
+            big_val = big(2)^100
+            big_model = QUBOTools.Model{Int,BigInt,Int}(
+                Dict(1 => big_val),
+                Dict{Tuple{Int,Int},BigInt}();
+                offset = big_val,
+            )
+            buf_big = IOBuffer()
+            QUBOTools.write_report(buf_big, big_model)
+            parsed_big = QUBOTools.JSON.parse(String(take!(buf_big)))
+            @test parsed_big["model"]["offset"] == big_val
+            @test parsed_big["model"]["coefficients"]["linear"]["min"] == big_val
+            @test parsed_big["model"]["coefficients"]["linear"]["max"] == big_val
+
+            overflow_meta_model = QUBOTools.Model{Int,Float64,Int}(
+                Dict(1 => 1.0),
+                Dict{Tuple{Int,Int},Float64}();
+                metadata = Dict{String,Any}("large" => big"1e400"),
+            )
+            buf_ovf = IOBuffer()
+            QUBOTools.write_report(buf_ovf, overflow_meta_model)
+            parsed_ovf = QUBOTools.JSON.parse(String(take!(buf_ovf)))
+            @test isnothing(parsed_ovf["model"]["metadata"]["large"])
         end
     end
 
