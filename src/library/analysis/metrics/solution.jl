@@ -394,6 +394,86 @@ function success_rate(
     return total_successes / total_trials
 end
 
+function _log_failure_probability(
+    p::Float64,
+    trials::Union{Int,Nothing},
+    successes::Union{Int,Nothing},
+)
+    if !isnothing(trials) && !isnothing(successes)
+        failures = trials - successes
+        if successes <= failures
+            return log1p(-(successes / trials))
+        else
+            return log(failures / trials)
+        end
+    else
+        return log1p(-p)
+    end
+end
+
+function _exact_trial_attainment(
+    p::Float64,
+    s::Float64,
+    k::Int;
+    trials::Union{Int,Nothing} = nothing,
+    successes::Union{Int,Nothing} = nothing,
+)
+    k <= 0 && return (false, false)
+    if k <= 1024
+        q_rat = if !isnothing(trials) && !isnothing(successes)
+            BigInt(trials - successes) // BigInt(trials)
+        else
+            1 - Rational{BigInt}(p)
+        end
+        s_comp = 1 - Rational{BigInt}(s)
+        lhs = q_rat^k
+        return (lhs <= s_comp, lhs == s_comp)
+    else
+        return setprecision(BigFloat, 512) do
+            log_q = if !isnothing(trials) && !isnothing(successes)
+                log(BigFloat(trials - successes) / BigFloat(trials))
+            else
+                log1p(-BigFloat(p))
+            end
+            lhs = BigFloat(k) * log_q
+            rhs = log1p(-BigFloat(s))
+            return (lhs <= rhs, lhs == rhs)
+        end
+    end
+end
+
+function _interior_repetitions(
+    p::Float64,
+    s::Float64;
+    trials::Union{Int,Nothing} = nothing,
+    successes::Union{Int,Nothing} = nothing,
+)
+    log_q = _log_failure_probability(p, trials, successes)
+    continuous_reps = log1p(-s) / log_q
+    kr = round(continuous_reps)
+
+    if isfinite(continuous_reps) &&
+       kr >= 1.0 &&
+       kr <= Float64(typemax(Int) - 1) &&
+       abs(continuous_reps - kr) <= 64 * eps(continuous_reps)
+        k = Int(kr)
+        attained, is_exact = _exact_trial_attainment(
+            p,
+            s,
+            k;
+            trials = trials,
+            successes = successes,
+        )
+        if is_exact
+            continuous_reps = Float64(k)
+        end
+        operational_reps = attained ? Float64(k) : Float64(k + 1)
+        return (continuous_reps, operational_reps)
+    end
+
+    return (continuous_reps, max(1.0, ceil(continuous_reps)))
+end
+
 function _build_ttt_estimate(
     trial_time::Float64,
     batch_time::Float64,
@@ -406,7 +486,11 @@ function _build_ttt_estimate(
     probability_source::Symbol,
     repetition_mode::Symbol,
 )
-    if iszero(p)
+    has_counts = !isnothing(trials) && !isnothing(successes)
+    is_zero_prob = has_counts ? iszero(successes) : iszero(p)
+    is_unit_prob = has_counts ? (successes == trials) : isone(p)
+
+    if is_zero_prob
         status =
             probability_source === :known ? :known_zero_probability :
             :empirical_zero_successes
@@ -429,7 +513,7 @@ function _build_ttt_estimate(
             repetition_mode,
             status,
         )
-    elseif isone(p)
+    elseif is_unit_prob
         status =
             probability_source === :known ? :known_unit_probability :
             :empirical_all_succeeded
@@ -463,8 +547,8 @@ function _build_ttt_estimate(
         status =
             probability_source === :known ? :known_interior_probability :
             :empirical_interior_probability
-        continuous_reps = log2(1.0 - s) / log2(1.0 - p)
-        operational_reps = max(1.0, ceil(continuous_reps))
+        continuous_reps, operational_reps =
+            _interior_repetitions(p, s; trials = trials, successes = successes)
         continuous_ttt = trial_time * continuous_reps
         operational_ttt = trial_time * operational_reps
 

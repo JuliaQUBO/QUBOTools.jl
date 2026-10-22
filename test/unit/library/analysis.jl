@@ -333,6 +333,57 @@ function test_solution_metrics()
             @test_throws ArgumentError QUBOTools.time_to_target(1.0, 0.5, 0.0)
             @test_throws ArgumentError QUBOTools.time_to_target(1.0, 0.5, 1.0)
             @test_throws ArgumentError QUBOTools.time_to_target(1.0, 0.5, NaN)
+
+            # Numerical stability for small probabilities, exact integer boundaries, and large counts
+            small_p = QUBOTools.time_to_target_estimate(1.0, 1e-17, 0.99)
+            @test isfinite(small_p.continuous_repetitions) && small_p.continuous_repetitions > 0.0
+            @test small_p.continuous_repetitions ≈ log1p(-0.99) / log1p(-1e-17)
+            @test small_p.operational_repetitions ≈ 4.60517018598809e17
+
+            equal_small = QUBOTools.time_to_target_estimate(1.0, 1e-17, 1e-17)
+            @test equal_small.continuous_repetitions == 1.0
+            @test equal_small.operational_repetitions == 1.0
+            @test equal_small.ttt == 1.0
+
+            small_s = QUBOTools.time_to_target_estimate(1.0, 0.5, 1e-17)
+            @test small_s.continuous_repetitions > 0.0
+            @test small_s.continuous_repetitions ≈ log1p(-1e-17) / log1p(-0.5)
+            @test small_s.operational_repetitions == 1.0
+
+            p_128 = 1 / 128
+            s_128 = 0.023254871368408203
+            @test 1 - (1 - Rational{BigInt}(p_128))^3 == Rational{BigInt}(s_128)
+            est_128 = QUBOTools.time_to_target_estimate(1.0, p_128, s_128)
+            @test est_128.continuous_repetitions == 3.0
+            @test est_128.operational_repetitions == 3.0
+            @test QUBOTools.time_to_target_estimate(1.0, p_128, prevfloat(s_128)).operational_repetitions == 3.0
+            @test QUBOTools.time_to_target_estimate(1.0, p_128, nextfloat(s_128)).operational_repetitions == 4.0
+
+            p_32 = 1 / 32
+            s_32 = 0.14678481221199036
+            @test 1 - (1 - Rational{BigInt}(p_32))^5 == Rational{BigInt}(s_32)
+            est_32 = QUBOTools.time_to_target_estimate(1.0, p_32, s_32)
+            @test est_32.continuous_repetitions == 5.0
+            @test est_32.operational_repetitions == 5.0
+            @test QUBOTools.time_to_target_estimate(1.0, p_32, prevfloat(s_32)).operational_repetitions == 5.0
+            @test QUBOTools.time_to_target_estimate(1.0, p_32, nextfloat(s_32)).operational_repetitions == 6.0
+
+            large_n = 2^54
+            est_near_one = QUBOTools.time_to_target_estimate(1.0; successes = large_n - 1, trials = large_n)
+            @test est_near_one.status == :empirical_interior_probability
+            @test est_near_one.successes == large_n - 1
+            @test est_near_one.trials == large_n
+            @test isfinite(est_near_one.continuous_repetitions) && est_near_one.continuous_repetitions > 0.0
+            @test est_near_one.operational_repetitions == 1.0
+
+            est_near_zero = QUBOTools.time_to_target_estimate(1.0; successes = 1, trials = large_n)
+            @test est_near_zero.status == :empirical_interior_probability
+            @test isfinite(est_near_zero.continuous_repetitions) && est_near_zero.continuous_repetitions > 1.0
+
+            est_exact_one = QUBOTools.time_to_target_estimate(1.0; successes = large_n, trials = large_n)
+            @test est_exact_one.status == :empirical_all_succeeded
+            @test est_exact_one.continuous_repetitions == 0.0
+            @test est_exact_one.operational_repetitions == 1.0
         end
 
         @testset "Hamming Distance" begin
