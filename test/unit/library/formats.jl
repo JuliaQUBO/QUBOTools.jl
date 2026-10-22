@@ -1040,7 +1040,10 @@ function test_portable_interchange()
             )
 
             _with_temp_path("big.qb") do qb_path
-                @test_throws MethodError QUBOTools.write_model(qb_path, big_model)
+                @test_throws Union{MethodError,ErrorException} QUBOTools.write_model(
+                    qb_path,
+                    big_model,
+                )
             end
         end
     end

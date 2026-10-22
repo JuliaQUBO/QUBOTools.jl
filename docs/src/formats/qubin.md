@@ -60,4 +60,4 @@ Below, an outline of the HDF5 file layout that QUBin files follow:
 ## Interchange Notes
 
 - **Variable mapping**: `QUBin` stores `variables(model)` directly and reconstructs the `1:n` variable-index bijection in its stored order without re-sorting, preserving non-consecutive and permuted `Int` or `String` variable labels.
-- **Numeric & metadata boundaries**: HDF5 datasets preserve their Julia element types `T` (e.g. `Float64`, `Float32`, `Int64`, `Int32`) and state types `U <: Integer` directly. Non-HDF5-native element types (such as `BigFloat` or `Rational`) are unsupported by HDF5 dataset creation and throw a `MethodError` on write. Model and solution `metadata` are serialized as JSON strings.
+- **Numeric & metadata boundaries**: HDF5 datasets preserve their Julia element types `T` (e.g. `Float64`, `Float32`, `Int64`, `Int32`) and state types `U <: Integer` directly. Non-HDF5-native element types (such as `BigFloat`) are unsupported by HDF5 dataset creation and throw an exception on write. Model and solution `metadata` are serialized as JSON strings.
