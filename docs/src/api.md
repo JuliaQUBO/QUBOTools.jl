@@ -294,6 +294,13 @@ QUBOTools.ttt
 QUBOTools.hamming_distance
 ```
 
+### Run Reports
+
+```@docs
+QUBOTools.report
+QUBOTools.write_report
+```
+
 ## Visualization
 
 ```@docs

@@ -553,9 +553,352 @@ function test_system_layout_plot()
     return nothing
 end
 
+struct _MockFeasibilitySummary
+    result_count::Int
+    feasible_count::Int
+    max_violation::Float64
+    total_violation::Float64
+end
+
+function test_reports()
+    @testset "→ Reports" verbose = true begin
+        @testset "⋅ Model with attached solution and metadata" begin
+            L = Dict{Symbol,Float64}(:x1 => -1.0, :x2 => 2.0, :x3 => -0.5)
+            Q = Dict{Tuple{Symbol,Symbol},Float64}((:x1, :x2) => 4.0, (:x2, :x3) => -2.0)
+            model = QUBOTools.Model{Symbol,Float64,Int}(
+                L,
+                Q;
+                scale = 2.0,
+                offset = 1.5,
+                sense = :min,
+                domain = :bool,
+                metadata = Dict{String,Any}("id" => "test-report-model"),
+            )
+
+            s1 = [1, 0, 1]
+            s2 = [0, 0, 0]
+            s3 = [1, 1, 0]
+            v1 = QUBOTools.value(model, s1) # 2.0 * (-1.0 - 0.5 + 1.5) = 0.0
+            v2 = QUBOTools.value(model, s2) # 2.0 * (0.0 + 1.5) = 3.0
+            v3 = QUBOTools.value(model, s3) # 2.0 * (-1.0 + 2.0 + 4.0 + 1.5) = 13.0
+
+            sol = QUBOTools.SampleSet{Float64,Int}(
+                [
+                    QUBOTools.Sample(s1, v1, 2),
+                    QUBOTools.Sample(s2, v2, 3),
+                    QUBOTools.Sample(s3, v3, 5),
+                ];
+                metadata = Dict{String,Any}(
+                    "solver" => "mock-sampler",
+                    "time" => Dict{String,Any}("effective" => 1.0, "total" => 2.5),
+                ),
+                sense = :min,
+                domain = :bool,
+            )
+            QUBOTools.attach!(model, sol)
+
+            reformulation_meta = Dict{String,Any}(
+                "schema_version" => 1,
+                "package" => Dict{String,Any}("name" => "ToQUBO", "version" => "0.1.0"),
+                "applied_penalties" => Dict{String,Any}(
+                    "constraints" => [Dict{String,Any}("id" => 1, "penalty" => 12.5)],
+                    "variables" => Any[],
+                    "slack_variables" => Any[],
+                ),
+                "penalty_policy" => Dict{String,Any}("strategy" => "exact"),
+            )
+            feas = _MockFeasibilitySummary(3, 2, 0.25, 0.25)
+
+            mktempdir() do dir
+                path = joinpath(dir, "report.json")
+                returned_path = QUBOTools.write_report(
+                    path,
+                    model;
+                    λ = 0.0,
+                    s = 0.99,
+                    trial_unit = :read,
+                    reformulation = reformulation_meta,
+                    feasibility = feas,
+                    include_samples = true,
+                )
+                @test returned_path == path
+                @test isfile(path)
+
+                parsed = QUBOTools.JSON.parsefile(path)
+                @test parsed["format"] == "QUBOTools.report"
+                @test parsed["version"] == 1
+                @test parsed["package_versions"]["QUBOTools"] == string(QUBOTools.__version__())
+                @test parsed["package_versions"]["Julia"] == string(VERSION)
+
+                # Model section
+                m_sec = parsed["model"]
+                @test m_sec["dimension"] == 3
+                @test m_sec["variables"] == ["x1", "x2", "x3"]
+                @test m_sec["sense"] == "min"
+                @test m_sec["domain"] == "bool"
+                @test m_sec["scale"] == 2.0
+                @test m_sec["offset"] == 1.5
+                @test m_sec["linear_size"] == 3
+                @test m_sec["quadratic_size"] == 2
+                @test m_sec["term_count"] == 5
+                @test m_sec["density"]["total"] ≈ (3 + 4) / 9
+                @test m_sec["density"]["linear"] ≈ 1.0
+                @test m_sec["density"]["quadratic"] ≈ 2 / 3
+                @test m_sec["coefficients"]["linear"]["count"] == 3
+                @test m_sec["coefficients"]["linear"]["min"] == -1.0
+                @test m_sec["coefficients"]["linear"]["max"] == 2.0
+                @test m_sec["coefficients"]["linear"]["min_abs"] == 0.5
+                @test m_sec["coefficients"]["linear"]["max_abs"] == 2.0
+                @test m_sec["coefficients"]["linear"]["dynamic_range"] == 4.0
+                @test m_sec["coefficients"]["quadratic"]["count"] == 2
+                @test m_sec["coefficients"]["quadratic"]["min"] == -2.0
+                @test m_sec["coefficients"]["quadratic"]["max"] == 4.0
+                @test m_sec["coefficients"]["all"]["count"] == 5
+                @test m_sec["metadata"]["id"] == "test-report-model"
+
+                # Solution section
+                s_sec = parsed["solution"]
+                @test s_sec["present"] == true
+                @test s_sec["sample_count"] == 3
+                @test s_sec["total_reads"] == 10
+                @test s_sec["sense"] == "min"
+                @test s_sec["domain"] == "bool"
+                @test s_sec["metadata"]["solver"] == "mock-sampler"
+                @test s_sec["samples_metadata"]["format"] == "QUBOTools.samples"
+                @test s_sec["samples_metadata"]["model"]["scale"] == 2.0
+                @test s_sec["samples_metadata"]["model"]["offset"] == 1.5
+                @test s_sec["timing"]["effective_time"] == 1.0
+                @test s_sec["timing"]["total_time"] == 2.5
+                @test s_sec["energies"]["best"] == 0.0
+                @test s_sec["energies"]["min"] == 0.0
+                @test s_sec["energies"]["max"] == 13.0
+                @test s_sec["energies"]["mean"] ≈ (2 * 0.0 + 3 * 3.0 + 5 * 13.0) / 10
+                @test s_sec["objective_values_verified"] == true
+                @test s_sec["objective_mismatch_count"] == 0
+
+                best_s = s_sec["best_sample"]
+                @test best_s["state"] == [1, 0, 1]
+                @test best_s["state_string"] == "101"
+                @test best_s["value"] == 0.0
+                @test best_s["reads"] == 2
+                @test best_s["probability"] ≈ 0.2
+                @test best_s["objective_breakdown"]["raw_value"] == -1.5
+                @test best_s["objective_breakdown"]["scaled_value"] == -3.0
+                @test best_s["objective_breakdown"]["offset_adjusted_value"] == 0.0
+
+                # Metrics section
+                met = s_sec["metrics"]
+                expected_est = QUBOTools.time_to_target_estimate(sol, 0.0, 0.99; trial_unit = :read)
+                @test met["target_threshold"] == 0.0
+                @test met["target_probability"] == 0.99
+                @test met["trial_unit"] == "read"
+                @test met["cost_boundary"] == "effective"
+                @test met["trials"] == 10
+                @test met["successes"] == 2
+                @test met["success_rate"] ≈ 0.2
+                @test met["ttt"] ≈ expected_est.ttt
+                @test met["time_to_target"]["operational_repetitions"] == expected_est.operational_repetitions
+                @test met["time_to_target"]["trial_time"] ≈ 0.1
+                @test met["status"] == "empirical_interior_probability"
+
+                # Samples list
+                @test length(s_sec["samples"]) == 3
+                @test s_sec["samples"][1]["rank"] == 1
+                @test s_sec["samples"][1]["state"] == "101"
+                @test s_sec["samples"][1]["objective_breakdown"]["offset_adjusted_value"] == 0.0
+
+                # Penalties, reformulation, and feasibility
+                @test parsed["reformulation"]["schema_version"] == 1
+                @test parsed["penalties"]["constraints"][1]["penalty"] == 12.5
+                @test parsed["penalties"]["penalty_policy"]["strategy"] == "exact"
+                @test parsed["feasibility"]["result_count"] == 3
+                @test parsed["feasibility"]["feasible_count"] == 2
+                @test parsed["feasibility"]["max_violation"] == 0.25
+            end
+
+            # Threshold without trial_unit reports read/run success rates and status = "trial_unit_required"
+            rep_no_unit = QUBOTools.report(model; λ = 0.0)
+            @test rep_no_unit["solution"]["metrics"]["status"] == "trial_unit_required"
+            @test rep_no_unit["solution"]["metrics"]["read_success_rate"] ≈ 0.2
+            @test rep_no_unit["solution"]["metrics"]["run_success_rate"] == 1.0
+            @test isnothing(rep_no_unit["solution"]["metrics"]["ttt"])
+
+            # Zero-success threshold serializes Inf TTT fields as null for valid RFC 8259 JSON
+            buf = IOBuffer()
+            QUBOTools.write_report(buf, model; λ = -100.0, trial_unit = :read, indent = 0)
+            zero_parsed = QUBOTools.JSON.parse(String(take!(buf)))
+            @test zero_parsed["solution"]["metrics"]["status"] == "empirical_zero_successes"
+            @test zero_parsed["solution"]["metrics"]["success_rate"] == 0.0
+            @test isnothing(zero_parsed["solution"]["metrics"]["ttt"])
+            @test isnothing(zero_parsed["solution"]["metrics"]["time_to_target"]["operational_ttt"])
+        end
+
+        @testset "⋅ Models without solutions, empty models, and auto-discovered metadata" begin
+            # Unattached solution model with embedded ToQUBO reformulation metadata
+            L = Dict{Int,Float64}(1 => 1.0)
+            Q = Dict{Tuple{Int,Int},Float64}()
+            one_var_model = QUBOTools.Model{Int,Float64,Int}(
+                L,
+                Q;
+                metadata = Dict{String,Any}(
+                    "toqubo" => Dict{String,Any}(
+                        "reformulation" => Dict{String,Any}(
+                            "schema_version" => 1,
+                            "applied_penalties" => Dict{String,Any}(
+                                "constraints" => [Dict{String,Any}("id" => 7, "penalty" => 5.0)],
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            buf = IOBuffer()
+            QUBOTools.write_report(buf, one_var_model)
+            parsed = QUBOTools.JSON.parse(String(take!(buf)))
+
+            @test parsed["model"]["dimension"] == 1
+            @test parsed["model"]["density"]["total"] == 1.0
+            @test parsed["model"]["density"]["linear"] == 1.0
+            @test isnothing(parsed["model"]["density"]["quadratic"])
+            @test isnothing(parsed["model"]["coefficients"]["linear"]["std"])
+            @test parsed["model"]["coefficients"]["quadratic"]["count"] == 0
+            @test isnothing(parsed["model"]["coefficients"]["quadratic"]["min"])
+
+            @test parsed["solution"]["present"] == false
+            @test parsed["solution"]["sample_count"] == 0
+            @test parsed["solution"]["total_reads"] == 0
+            @test isnothing(parsed["solution"]["best_sample"])
+            @test isnothing(parsed["solution"]["energies"])
+            @test parsed["solution"]["metrics"]["status"] == "empty_solution"
+            @test parsed["reformulation"]["schema_version"] == 1
+            @test parsed["penalties"]["constraints"][1]["penalty"] == 5.0
+            @test isnothing(parsed["feasibility"])
+
+            # Empty 0-variable model and solution = nothing override
+            empty_model = QUBOTools.Model{Int,Float64,Int}(
+                Dict{Int,Float64}(),
+                Dict{Tuple{Int,Int},Float64}();
+                metadata = Dict{String,Any}("penalties" => Dict{String,Any}("lambda" => 3.5)),
+            )
+            buf_empty = IOBuffer()
+            QUBOTools.write_report(buf_empty, empty_model; solution = nothing, include_samples = true)
+            parsed_empty = QUBOTools.JSON.parse(String(take!(buf_empty)))
+            @test parsed_empty["model"]["dimension"] == 0
+            @test isnothing(parsed_empty["model"]["density"]["total"])
+            @test parsed_empty["solution"]["present"] == false
+            @test isempty(parsed_empty["solution"]["samples"])
+            @test parsed_empty["penalties"]["lambda"] == 3.5
+
+            # Solution without timing metadata and with objective mismatch
+            untimed_sol = QUBOTools.SampleSet{Float64,Int}(
+                [QUBOTools.Sample([1], 99.0, 4)];
+                sense = :min,
+                domain = :bool,
+            )
+            rep_untimed = QUBOTools.report(
+                one_var_model;
+                solution = untimed_sol,
+                λ = 100.0,
+                trial_unit = :read,
+                penalties = Dict("override" => 42.0),
+            )
+            @test rep_untimed["solution"]["present"] == true
+            @test rep_untimed["solution"]["objective_values_verified"] == false
+            @test rep_untimed["solution"]["objective_mismatch_count"] == 1
+            @test rep_untimed["solution"]["metrics"]["status"] == "missing_timing_metadata"
+            @test rep_untimed["solution"]["metrics"]["success_rate"] == 1.0
+            @test isnothing(rep_untimed["solution"]["metrics"]["ttt"])
+            @test rep_untimed["penalties"]["override"] == 42.0
+
+            @test_throws ArgumentError QUBOTools.write_report(IOBuffer(), one_var_model; indent = -1)
+            @test_throws ArgumentError QUBOTools.report(one_var_model; s = 1.0)
+            @test_throws ArgumentError QUBOTools.report(one_var_model; trial_unit = :invalid)
+            @test_throws ArgumentError QUBOTools.report(one_var_model; cost_boundary = :invalid)
+            @test_throws ArgumentError QUBOTools.report(one_var_model; λ = Inf)
+
+            # R1 regression: integer threshold above 2^53 preserved without Float64 rounding
+            λ_large_int = 2^53 + 1
+            int_model = QUBOTools.Model{Int,Int,Int}(
+                Dict(1 => λ_large_int),
+                Dict{Tuple{Int,Int},Int}(),
+            )
+            int_sol = QUBOTools.SampleSet{Int,Int}(
+                [QUBOTools.Sample{Int,Int}([1], λ_large_int, 1)];
+                metadata = Dict{String,Any}("time" => Dict{String,Any}("effective" => 1.0)),
+            )
+            direct_est = QUBOTools.time_to_target_estimate(int_sol, λ_large_int; trial_unit = :read)
+            rep_int = QUBOTools.report(int_model; solution = int_sol, λ = λ_large_int, trial_unit = :read)
+            int_metrics = rep_int["solution"]["metrics"]
+            @test int_metrics["target_threshold"] == λ_large_int
+            @test int_metrics["successes"] == direct_est.successes == 1
+            @test int_metrics["success_rate"] == direct_est.success_probability == 1.0
+            @test int_metrics["ttt"] == direct_est.ttt == 1.0
+            @test int_metrics["status"] == String(direct_est.status) == "empirical_all_succeeded"
+
+            buf_int = IOBuffer()
+            QUBOTools.write_report(buf_int, int_model; solution = int_sol, λ = λ_large_int, trial_unit = :read)
+            parsed_int = QUBOTools.JSON.parse(String(take!(buf_int)))
+            @test parsed_int["solution"]["metrics"]["target_threshold"] == λ_large_int
+            @test parsed_int["solution"]["metrics"]["successes"] == 1
+            @test parsed_int["solution"]["metrics"]["ttt"] == 1.0
+
+            # R2 regression: BigInt model fields and Float64-overflowing finite metadata
+            big_val = big(2)^100
+            big_model = QUBOTools.Model{Int,BigInt,Int}(
+                Dict(1 => big_val),
+                Dict{Tuple{Int,Int},BigInt}();
+                offset = big_val,
+            )
+            buf_big = IOBuffer()
+            QUBOTools.write_report(buf_big, big_model)
+            parsed_big = QUBOTools.JSON.parse(String(take!(buf_big)))
+            @test parsed_big["model"]["offset"] == big_val
+            @test parsed_big["model"]["coefficients"]["linear"]["min"] == big_val
+            @test parsed_big["model"]["coefficients"]["linear"]["max"] == big_val
+
+            overflow_meta_model = QUBOTools.Model{Int,Float64,Int}(
+                Dict(1 => 1.0),
+                Dict{Tuple{Int,Int},Float64}();
+                metadata = Dict{String,Any}("large" => big"1e400"),
+            )
+            buf_ovf = IOBuffer()
+            QUBOTools.write_report(buf_ovf, overflow_meta_model)
+            parsed_ovf = QUBOTools.JSON.parse(String(take!(buf_ovf)))
+            @test isnothing(parsed_ovf["model"]["metadata"]["large"])
+
+            # Signed typemin magnitude regression (Int8(-128) and typemin(Int64))
+            m_int8 = QUBOTools.Model{Int,Int8,Int}(
+                Dict(1 => typemin(Int8)),
+                Dict{Tuple{Int,Int},Int8}(),
+            )
+            buf_i8 = IOBuffer()
+            QUBOTools.write_report(buf_i8, m_int8; solution = nothing)
+            stats_i8 = QUBOTools.JSON.parse(String(take!(buf_i8)))["model"]["coefficients"]["linear"]
+            @test stats_i8["min"] == -128
+            @test stats_i8["max"] == -128
+            @test stats_i8["min_abs"] == 128
+            @test stats_i8["max_abs"] == 128
+
+            m_int64 = QUBOTools.Model{Int,Int64,Int}(
+                Dict(1 => typemin(Int64)),
+                Dict{Tuple{Int,Int},Int64}(),
+            )
+            buf_i64 = IOBuffer()
+            QUBOTools.write_report(buf_i64, m_int64; solution = nothing)
+            stats_i64 = QUBOTools.JSON.parse(String(take!(buf_i64)))["model"]["coefficients"]["linear"]
+            @test stats_i64["min"] == typemin(Int64)
+            @test stats_i64["min_abs"] == -widen(typemin(Int64))
+            @test stats_i64["max_abs"] == -widen(typemin(Int64))
+        end
+    end
+
+    return nothing
+end
+
 function test_analysis()
     test_metrics()
     test_plots()
+    test_reports()
 
     return nothing
 end

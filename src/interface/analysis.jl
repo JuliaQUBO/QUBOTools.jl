@@ -215,6 +215,36 @@ function effective_time end
 function hamming_distance end
 
 @doc raw"""
+    report(model::AbstractModel; solution = QUBOTools.solution(model), λ = nothing,
+        s::Real = 0.99, trial_unit = nothing, cost_boundary = :effective,
+        trial_time = nothing, batch_time = nothing, repetition_mode = :integer,
+        penalties = nothing, reformulation = nothing, feasibility = nothing,
+        include_samples::Bool = false, bit_order = :native,
+        include_probability::Bool = true)::Dict{String,Any}
+
+Build a consolidated, JSON-serializable run-report dictionary (`format = "QUBOTools.report"`,
+`version = 1`) aggregating:
+
+- `"model"`: dimension, variable labels, sense, domain, scale, offset, linear/quadratic term counts, [`density`](@ref), [`linear_density`](@ref), [`quadratic_density`](@ref), per-degree and combined coefficient statistics (`count`, `min`, `max`, `min_abs`, `max_abs`, `mean`, `mean_abs`, `std`, `dynamic_range`), and model metadata;
+- `"solution"`: presence flag, sample count, total reads, frame, solution metadata, `QUBOTools.samples` table metadata, timing (`effective_time`, `total_time`), energy summary, best sample with [`objective_breakdown`](@ref), objective verification status (`objective_values_verified`, `objective_mismatch_count`), threshold metrics ([`success_rate`](@ref) and [`time_to_target_estimate`](@ref) when `λ` and `trial_unit` are supplied), and optional sample table rows (`include_samples = true`);
+- `"penalties"`: optional penalty dictionary, automatically extracted from `reformulation["applied_penalties"]` or `metadata(model)["penalties"]` when not passed explicitly;
+- `"reformulation"`: optional schema-v1 reformulation metadata dictionary (or `metadata(model)["toqubo"]["reformulation"]` when present);
+- `"feasibility"`: optional constraint-feasibility summary dictionary or struct.
+
+Works for models both with and without attached solutions, replacing non-finite floating-point values (`NaN`, `±Inf`) with `nothing` (`null` in JSON) so the output is always valid RFC 8259 JSON.
+"""
+function report end
+
+@doc raw"""
+    write_report(path::AbstractString, model::AbstractModel; indent::Integer = 2, kws...)
+    write_report(io::IO, model::AbstractModel; indent::Integer = 2, kws...)
+
+Write the consolidated run report produced by [`report`](@ref) as a JSON document to
+`path` or `io`. All keyword arguments accepted by [`report`](@ref) are forwarded.
+"""
+function write_report end
+
+@doc raw"""
     AbstractVisualization
 
 Represents a conceptual visualization built from a set of data structures.
