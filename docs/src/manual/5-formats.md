@@ -4,10 +4,32 @@
 | :--------------------------------: | :---: | :---: | :---: | :-------: | :---: | :------: |
 | [BQPJSON](../formats/bqpjson.md)   |   ✅   |   ✅   |   ✅   |     ✅     |   ❌   |    ✅     |
 | [MiniZinc](../formats/minizinc.md) |   ❌   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
-|   [QUBin](../formats/qubin.md)     |   ✅   |   ✅   |   ✅   |     ✅     |   ✅   |    ✅     |
+|   [QUBin](../formats/qubin.md)     |   ✅   |   ✅   |   ✅   |     ✅     |   ❌   |    ✅     |
 |  [Qubist](../formats/qubist.md)    |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ❌     |
 |    [QUBO](../formats/qubo.md)      |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
 |    [Rudy](../formats/rudy.md)      |   ✅   |   ✅   |   ✅   |     ❌     |   ❌   |    ✅     |
+
+## Portable Model and Sample Interchange
+
+Downstream decomposition and hybrid workflows should select an interchange carrier based on which model and sample attributes must survive serialization:
+
+| Carrier | Variable Mapping | Domains | Senses | Scale & Offset | Solutions & `reads` | Metadata |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **[QUBin](../formats/qubin.md)** (`.qb` / HDF5) | Exact `1:n` `Int` or `String` order preserved | `:bool`, `:spin` | `:min`, `:max` | Exact `scale` and `offset` | Full `SampleSet` (`state`, `value`, `reads`) | Model + solution JSON metadata |
+| **[BQPJSON](../formats/bqpjson.md)** (`.json` v1.0.0) | Exported as `1:n` `variable_ids`; restore labels with `QUBOTools.map_variables` | `:bool`, `:spin` | Wire format is `:min`; `:max` models are negated on write and restored with [`QUBOTools.cast`](@ref) | `scale` preserved; `offset` negated when canonicalizing `:max` to `:min` | `state`, `value`, and `reads` preserved (expanded on write, merged on read) | Model metadata only (schema-validated `synthesis`) |
+| **Sample Tables** ([`QUBOTools.write_samples`](@ref) / [`QUBOTools.read_samples`](@ref)) | Recorded in file-level `model.variables` metadata when exported from a `Model` | `:bool`, `:spin` | `:min`, `:max` | Recorded in file-level `model` metadata when exported from a `Model` | Full `SampleSet` (`state`, `value`, `reads`) | Solution metadata (embedded header or sidecar JSON) |
+| **[QUBO](../formats/qubo.md)** (`.qubo`) | Exported as `0:n-1` (`:dwave`) or `1:n` (`:mqlib`); restore with `map_variables` | `:bool` only | `:min` only | Preserved in header comments | ❌ | Comment metadata |
+| **[Qubist](../formats/qubist.md)** (`.qh`) | Exported as `1:n`; restore with `map_variables` | `:spin` only | `:min` only | ❌ (`scale = 1.0`, `offset = 0.0`) | ❌ | ❌ |
+| **[Rudy](../formats/rudy.md)** (`.rudy`) | Exported as `0:n-1`; restore with `map_variables` | Configurable (`:spin` default) | `:min` only | Folded into coefficients and constant term (`scale = 1.0` on read) | ❌ | `timestamp` comment only |
+| **[MiniZinc](../formats/minizinc.md)** (`.mzn`) | Write-only (`x1..xn`) | `:bool`, `:spin` | `:min`, `:max` | Written as `scale` and `offset` parameters | ❌ | Comment metadata (write-only) |
+
+### Recommended Carrier Contracts
+
+1. **`QUBin` (`.qb` / HDF5)** — Use [`QUBOTools.write_model`](@ref) / [`QUBOTools.read_model`](@ref) (or [`QUBOTools.write_solution`](@ref) / [`QUBOTools.read_solution`](@ref) for standalone solutions) when full model and `SampleSet` round-trip fidelity is required. `QUBin` preserves non-consecutive and permuted `Int` or `String` variable orderings directly without external variable remapping.
+2. **`BQPJSON` (`.json`)** — Use when JSON portability is required across tools:
+   - Keep `vars = QUBOTools.variables(src_model)` (or serialize the ordered variable list alongside the workflow) and apply `dst_model = QUBOTools.map_variables(vars, QUBOTools.read_model(path))` on import so permuted or string variable labels match their original `1:n` positions.
+   - If `QUBOTools.sense(src_model) === QUBOTools.Max`, `write_model` canonicalizes coefficients, `offset`, and sample `evaluation`s to `:min`; restore the original maximization sense after `read_model` via `QUBOTools.cast((QUBOTools.Min => QUBOTools.Max), dst_model)`.
+3. **`write_samples` / `read_samples` (`.csv`)** — Use when only the sample distribution (`SampleSet`) is exchanged between subproblem solvers and aggregators. Sample multiplicities (`reads`), float energies (`value`), `sense`, `domain`, `bit_order`, and solution `metadata` round-trip losslessly.
 
 ## Defining a Custom File Format
 

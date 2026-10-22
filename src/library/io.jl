@@ -22,10 +22,26 @@ end
 
 function write_solution(
     path::AbstractString,
-    model::AbstractModel,
+    sol::AbstractSolution,
     fmt::AbstractFormat = infer_format(; path),
 )
     return open(path, "w") do fp
-        return write_solution(fp, model, fmt)
+        return write_solution(fp, sol, fmt)
     end
+end
+
+function write_solution(
+    path::AbstractString,
+    model::AbstractModel,
+    fmt::AbstractFormat = infer_format(; path),
+)
+    return write_solution(path, solution(model), fmt)
+end
+
+function write_solution(
+    io::IO,
+    model::AbstractModel,
+    fmt::AbstractFormat,
+)
+    return write_solution(io, solution(model), fmt)
 end

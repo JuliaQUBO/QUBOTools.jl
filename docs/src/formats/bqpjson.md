@@ -91,6 +91,12 @@ parameters:
 }
 ```
 
+## Interchange Notes
+
+- **Variable mapping**: `write_model` exports 1-based integer `variable_ids` (`indices(model) = 1:n`). To restore non-consecutive, permuted, or non-integer variable labels after `read_model`, apply `QUBOTools.map_variables(variables(src_model), dst_model)`.
+- **Sense canonicalization**: BQPJSON v1.0.0 represents minimization problems (`sense = :min`). When exporting a `:max` model, `write_model` negates linear and quadratic coefficients, `offset`, and sample `evaluation`s so optimal assignments and rankings are preserved; restore `:max` sense on import with `QUBOTools.cast((QUBOTools.Min => QUBOTools.Max), dst_model)`.
+- **Sample multiplicities**: `SampleSet` entries with `reads > 1` are expanded into repeated `solutions` entries with distinct `id`s on write and merged back into aggregated `reads` counts on read. Solution-level `metadata` is not part of the BQPJSON v1.0.0 schema.
+
 ## References
 
 - [BQPJSON Documentation](https://bqpjson.readthedocs.io)

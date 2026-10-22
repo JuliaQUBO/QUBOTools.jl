@@ -29,6 +29,10 @@ function _parse_model(
     metadata::Dict{String,Any},
     solution::SampleSet{T,U},
 ) where {V,T,U}
+    dimension(form) == length(variable_map) || format_error(
+        "Model dimension ($(dimension(form))) does not match variable count ($(length(variable_map)))",
+    )
+
     return Model{V,T,U}(variable_map, form; metadata, solution)
 end
 
@@ -74,7 +78,7 @@ function _parse_model_variables(fp::P, ::Format{:qubin}) where {P<:Union{HDF5.Fi
 end
 
 function _parse_model_variables(variables::Vector{V}) where {V}
-    return VariableMap{V}(variables)
+    return _variable_map_from_indices(variables)
 end
 
 function _parse_model_metadata(fp::P, ::Format{:qubin}) where {P<:Union{HDF5.File,HDF5.Group}}
@@ -109,7 +113,11 @@ function _parse_solution_data(fp::P, ::Format{:qubin}) where {P<:Union{HDF5.File
 end
 
 function _parse_solution_data(ψ::Matrix{U}, λ::Vector{T}, r::Vector{Int}) where {T,U}
-    return Sample{T,U}[Sample{T,U}(ψ[i, :], λ[i], r[i]) for i in eachindex(λ)]
+    (size(ψ, 2) == length(λ) == length(r)) || format_error(
+        "Inconsistent solution dataset dimensions: state is $(size(ψ)), value has length $(length(λ)), reads has length $(length(r))",
+    )
+
+    return Sample{T,U}[Sample{T,U}(ψ[:, i], λ[i], r[i]) for i in eachindex(λ)]
 end
 
 function _parse_solution_metadata(fp::P, ::Format{:qubin}) where {P<:Union{HDF5.File,HDF5.Group}}

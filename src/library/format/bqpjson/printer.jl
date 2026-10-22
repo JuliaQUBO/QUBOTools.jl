@@ -9,6 +9,8 @@ function write_model(io::IO, model::AbstractModel{V}, fmt::Format{:bqpjson}) whe
 end
 
 function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::Format{:bqpjson}) where {V}
+    is_max = sense(model) === Max
+
     json_data = Dict{String,Any}(
         "id"              => 0,
         "variable_domain" => _BQPJSON_VARIABLE_DOMAIN(domain(model)),
@@ -16,7 +18,7 @@ function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::Forma
         "quadratic_terms" => Dict{String,Any}[],
         "variable_ids"    => indices(model),
         "scale"           => scale(model),
-        "offset"          => offset(model),
+        "offset"          => is_max ? -offset(model) : offset(model),
         "metadata"        => Dict{String,Any}(),
         "version"         => string(fmt[:version]),
     )
@@ -24,7 +26,7 @@ function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::Forma
     for (i, l) in linear_terms(model)
         push!(
             json_data["linear_terms"],
-            Dict{String,Any}("id" => i, "coeff" => l),
+            Dict{String,Any}("id" => i, "coeff" => is_max ? -l : l),
         )
     end
 
@@ -34,7 +36,7 @@ function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::Forma
             Dict{String,Any}(
                 "id_head" => i,
                 "id_tail" => j,
-                "coeff"   => q,
+                "coeff"   => is_max ? -q : q,
             ),
         )
     end
@@ -65,7 +67,7 @@ function _print_bqpjson_model_v1_0_0(io::IO, model::AbstractModel{V}, fmt::Forma
                 for i in indices(model)
             ]
 
-            evaluation = value(s)
+            evaluation = is_max ? -value(s) : value(s)
 
             for _ = 1:reads(s)
                 push!(
