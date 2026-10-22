@@ -1,5 +1,6 @@
 include("ext/ext.jl")
 include("docs.jl")
+include("citation.jl")
 
 function test_foreign()
     @testset "▶ Foreign Package Test Helpers" verbose = true begin
@@ -21,6 +22,7 @@ function test_integration()
     @testset "⊚ ⊚ Integration Tests" verbose = true begin
         test_extensions()
         test_docs()
+        test_citation()
         test_foreign()
     end
 

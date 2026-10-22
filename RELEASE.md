@@ -1,22 +1,31 @@
 # Release Process
 
-Release changes live in this repository first. The release preflight checks the package-specific metadata that can drift while preparing QUBOTools releases.
+Release changes live in this repository first. The release preflight checks the package-specific and citation metadata that can drift while preparing QUBOTools releases.
 
 ## Prepare the Release PR
 
 1. Update `Project.toml` to the target version.
-2. Add a `CHANGELOG.md` section for `vX.Y.Z`.
+2. Add a `CHANGELOG.md` section for `vX.Y.Z (YYYY-MM-DD)`.
 3. Update `docs/Project.toml` and `benchmark/Project.toml` self-compat for `QUBOTools` so each includes the target release line.
    - For `0.Y.Z`, include `0.Y`.
    - For `0.0.Z`, include `0.0.Z`.
    - For `X.Y.Z` with `X > 0`, include `X`.
-4. Run the static release preflight:
+4. Update `CITATION.cff` with the release `version` and `date-released` matching `Project.toml` and `CHANGELOG.md`. Keep the evergreen concept DOI `10.5281/zenodo.7076341` and `MPL-2.0` license unchanged.
+   - If direct Zenodo deposit-management access is available to create a **new version** under concept DOI `10.5281/zenodo.7076341` before tagging, reserve the new version DOI (leaving the draft unpublished until the matching GitHub release exists) and update the exact-version DOI in `CITATION.cff` (`identifiers`), `CITATION.bib`, and the marked citation section shared by `README.md` and `docs/src/index.md`.
+   - While releases are archived post-tag through the GitHub-to-Zenodo release integration, keep the latest verified version DOI in `CITATION.cff` (`identifiers`), `CITATION.bib`, `README.md`, and `docs/src/index.md` during the release PR and update those exact-version entries in a reviewed follow-up PR once the new Zenodo record is published and verified.
+5. Validate the Citation File Format schema (CI runs this same check on every pull request):
+
+```sh
+cffconvert --validate --infile CITATION.cff
+```
+
+6. Run the static release preflight:
 
 ```sh
 julia --project=. scripts/release_check.jl
 ```
 
-5. Run the package and documentation checks:
+7. Run the package and documentation checks:
 
 ```sh
 julia --project=. -e 'import Pkg; Pkg.test()'
@@ -24,7 +33,7 @@ julia --project=docs -e 'using Pkg; Pkg.develop(path=pwd()); Pkg.instantiate()'
 julia --project=docs docs/make.jl --skip-deploy
 ```
 
-6. Open and merge the release PR after CI is green.
+8. Open and merge the release PR after CI is green.
 
 ## Register
 
@@ -54,6 +63,32 @@ gh run list --workflow TagBot.yml --limit 10
 git ls-remote --tags origin vX.Y.Z
 gh release view vX.Y.Z
 ```
+
+## Verify and Record Zenodo Archive
+
+The Zenodo concept DOI `10.5281/zenodo.7076341` (concept record `7076341`) is the permanent `QUBOTools.jl` software identifier; never create a new top-level concept record for a routine release.
+
+Follow the [accepted stewardship decision](https://github.com/JuliaQUBO/QUBOTools.jl/issues/127#issuecomment-5153545828): David Bernal (`@bernalde`) is the sole designated Zenodo owner for now. A second manager is not a current release gate; revisit adding a backup manager annually or whenever maintainership changes. Use personal Zenodo accounts and scoped API tokens—never share an account password or commit a token. Direct **Can manage** access recovery or transfer for the existing deposit `7076341` remains tracked in `JuliaQUBO/QUBOTools.jl#127` and `JuliaQUBO/QUBO.jl#66`.
+
+Use the tagged `LICENSE` (`MPL-2.0`) and `CITATION.cff` as the source-license authority. Note that the automatic GitHub-Zenodo deposit for `v0.16.2` (`10.5281/zenodo.23218355`, record `23218355`) recorded `cc-by-4.0` metadata because the repository did not yet contain a `CITATION.cff` when `v0.16.2` was tagged; its archived source `LICENSE` is `MPL-2.0`.
+
+After the GitHub release is published (or after publishing a pre-reserved Zenodo draft):
+
+1. Confirm the **Zenodo release verification** workflow (`.github/workflows/zenodo.yml`) passes, or run the verifier locally:
+
+```sh
+julia --project=. scripts/verify_zenodo_release.jl vX.Y.Z
+```
+
+2. Confirm both DOI links resolve:
+
+```sh
+curl --fail --location --output /dev/null https://doi.org/<version-doi>
+curl --fail --location --output /dev/null https://doi.org/10.5281/zenodo.7076341
+```
+
+3. Download the Zenodo archive, verify its checksum and `Project.toml` (`name = "QUBOTools"`, `uuid = "60eb5b62-0a39-4ddc-84c5-97d2adff9319"`, and `version = "X.Y.Z"`), and confirm the record metadata (`MPL-2.0` license, creators, and `https://github.com/JuliaQUBO/QUBOTools.jl` repository link).
+4. Record the new version DOI in the GitHub release notes and, if not already reserved before tagging, update `CITATION.cff` (`identifiers`), `CITATION.bib`, `README.md`, and `docs/src/index.md` to cite the verified `vX.Y.Z` version DOI.
 
 ## Verify Pkg.add
 

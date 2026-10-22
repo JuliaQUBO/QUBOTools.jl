@@ -1,0 +1,32 @@
+name: Zenodo release verification
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "GitHub release tag expected in the latest Zenodo record"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify Zenodo archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EXPECTED_RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+      ZENODO_VERIFY_ATTEMPTS: "12"
+      ZENODO_VERIFY_DELAY_SECONDS: "30"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: "1.10"
+      - name: Compare the release with Zenodo
+        run: julia --project=. scripts/verify_zenodo_release.jl "${EXPECTED_RELEASE_TAG}"
