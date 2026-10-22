@@ -1,0 +1,66 @@
+cff-version: 1.2.0
+message: "If you use QUBOTools.jl, cite the preferred article; cite the software concept DOI or exact version DOI when reproducibility requires it."
+title: "QUBOTools.jl"
+type: software
+authors:
+  - family-names: "Maciel Xavier"
+    given-names: "Pedro"
+    affiliation: "Purdue University"
+    orcid: "https://orcid.org/0000-0002-4678-4942"
+  - family-names: "Ripper"
+    given-names: "Pedro"
+    orcid: "https://orcid.org/0000-0002-2227-3689"
+  - family-names: "Andrade"
+    given-names: "Tiago"
+  - family-names: "Dias Garcia"
+    given-names: "Joaquim"
+    orcid: "https://orcid.org/0000-0002-7721-8564"
+  - family-names: "Bernal Neira"
+    given-names: "David E."
+    affiliation: "Purdue University"
+    orcid: "https://orcid.org/0000-0002-8308-5016"
+abstract: >-
+  Tools and codecs for Quadratic Unconstrained Binary Optimization and Ising
+  models in Julia.
+repository-code: "https://github.com/JuliaQUBO/QUBOTools.jl"
+url: "https://juliaqubo.github.io/QUBOTools.jl/"
+license: MPL-2.0
+version: "0.16.2"
+date-released: 2026-10-07
+doi: "10.5281/zenodo.7076341"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.23218355"
+    description: "Zenodo DOI for version 0.16.2"
+keywords:
+  - Julia
+  - mathematical optimization
+  - quadratic unconstrained binary optimization
+  - Ising model
+  - QUBO
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Maciel Xavier"
+      given-names: "Pedro"
+      orcid: "https://orcid.org/0000-0002-4678-4942"
+    - family-names: "Ripper"
+      given-names: "Pedro"
+      orcid: "https://orcid.org/0000-0002-2227-3689"
+    - family-names: "Andrade"
+      given-names: "Tiago"
+    - family-names: "Dias Garcia"
+      given-names: "Joaquim"
+      orcid: "https://orcid.org/0000-0002-7721-8564"
+    - family-names: "Maculan"
+      given-names: "Nelson"
+      orcid: "https://orcid.org/0000-0002-3897-3356"
+    - family-names: "Bernal Neira"
+      given-names: "David E."
+      orcid: "https://orcid.org/0000-0002-8308-5016"
+  title: "QUBO.jl: a Julia ecosystem for quadratic unconstrained binary optimization"
+  journal: "Optimization Methods and Software"
+  year: 2026
+  start: 1
+  end: 24
+  doi: "10.1080/10556788.2026.2702926"
