@@ -791,12 +791,12 @@ function test_portable_interchange()
                 src_model = QUBOTools.Model(
                     vars,
                     [1, 2, 3],
-                    [1.25, -2.5, 0.75],
+                    [0.1, -2.3, 1.0 / 7.0],
                     [1, 1, 2],
                     [2, 3, 3],
-                    [-3.125, 1.5, 2.25];
+                    [-3.125, 0.7, 2.2 / 3.0];
                     scale = 2.75,
-                    offset = -1.375,
+                    offset = -0.15,
                     sense = sense_sym,
                     domain = domain_sym,
                     metadata = Dict{String,Any}(
@@ -927,6 +927,121 @@ function test_portable_interchange()
         @testset "map_variables uniqueness validation" begin
             model = QUBOTools.Model(Dict(1 => 1.0, 2 => 2.0), Dict{Tuple{Int,Int},Float64}())
             @test_throws ArgumentError QUBOTools.map_variables(["dup", "dup"], model)
+        end
+
+        @testset "numeric precision and conversion boundaries" begin
+            # 1. Exact 64-bit integer beyond Float64 precision (2^53 + 1):
+            #    preserved exactly in QUBin, rounded to Float64 in BQPJSON
+            c_int = (Int64(1) << 53) + Int64(1)
+            int_model = QUBOTools.Model{Int,Int64,Int}(
+                [10, 2],
+                [1, 2],
+                Int64[c_int, -3],
+                [1],
+                [2],
+                Int64[5];
+                scale = Int64(1),
+                offset = Int64(0),
+                sense = :min,
+                domain = :bool,
+                solution = QUBOTools.SampleSet{Int64,Int}(
+                    [QUBOTools.Sample{Int64,Int}([1, 0], c_int, 2)];
+                    sense = :min,
+                    domain = :bool,
+                ),
+            )
+
+            _with_temp_path("int64.qb") do qb_path
+                QUBOTools.write_model(qb_path, int_model)
+                qb_dst = QUBOTools.read_model(qb_path)
+
+                @test qb_dst isa QUBOTools.Model{Int,Int64,Int}
+                @test QUBOTools.variables(qb_dst) == [10, 2]
+                @test QUBOTools.value(qb_dst, [1, 0]) === c_int
+                @test QUBOTools.value(qb_dst, 1) === c_int
+                @test QUBOTools.reads(qb_dst, 1) == 2
+            end
+
+            _with_temp_path("int64.json") do json_path
+                QUBOTools.write_model(json_path, int_model)
+                json_dst = QUBOTools.read_model(json_path)
+
+                @test json_dst isa QUBOTools.Model{Int,Float64,Int}
+                @test QUBOTools.value(json_dst, [1, 0]) === Float64(c_int)
+                @test QUBOTools.value(json_dst, 1) === Float64(c_int)
+                @test Int64(QUBOTools.value(json_dst, 1)) == c_int - 1
+            end
+
+            # 2. Float32 model and sample values:
+            #    preserved as Float32 in QUBin, converted to Float64 in CSV and BQPJSON
+            f32_val = Float32(0.1)
+            f32_model = QUBOTools.Model{String,Float32,Int}(
+                ["x_2", "x_1"],
+                [1],
+                Float32[f32_val],
+                Int[],
+                Int[],
+                Float32[];
+                scale = Float32(1),
+                offset = Float32(0),
+                sense = :min,
+                domain = :bool,
+                solution = QUBOTools.SampleSet{Float32,Int}(
+                    [QUBOTools.Sample{Float32,Int}([1, 0], f32_val, 3)];
+                    sense = :min,
+                    domain = :bool,
+                ),
+            )
+
+            _with_temp_path("f32.qb") do qb_path
+                QUBOTools.write_model(qb_path, f32_model)
+                qb_dst = QUBOTools.read_model(qb_path)
+
+                @test qb_dst isa QUBOTools.Model{String,Float32,Int}
+                @test QUBOTools.value(qb_dst, 1) === f32_val
+            end
+
+            _with_temp_path("f32.csv") do csv_path
+                QUBOTools.write_samples(csv_path, QUBOTools.solution(f32_model))
+                csv_dst = QUBOTools.read_samples(csv_path)
+
+                @test csv_dst isa QUBOTools.SampleSet{Float64,Int}
+                @test QUBOTools.value(csv_dst, 1) === parse(Float64, string(f32_val))
+                @test QUBOTools.reads(csv_dst, 1) == 3
+            end
+
+            # 3. BigFloat sample and model boundaries:
+            #    converted to Float64 in CSV, rejected by HDF5 dataset creation in QUBin
+            big_val = big"1.000000000000000000000000000001"
+            big_sol = QUBOTools.SampleSet{BigFloat,Int}(
+                [QUBOTools.Sample{BigFloat,Int}([1, 0], big_val, 2)];
+                sense = :min,
+                domain = :bool,
+            )
+
+            _with_temp_path("big.csv") do csv_path
+                QUBOTools.write_samples(csv_path, big_sol)
+                csv_dst = QUBOTools.read_samples(csv_path)
+
+                @test csv_dst isa QUBOTools.SampleSet{Float64,Int}
+                @test QUBOTools.value(csv_dst, 1) === 1.0
+                @test QUBOTools.reads(csv_dst, 1) == 2
+            end
+
+            big_model = QUBOTools.Model{Int,BigFloat,Int}(
+                [1, 2],
+                [1],
+                BigFloat[big_val],
+                Int[],
+                Int[],
+                BigFloat[];
+                scale = BigFloat(1),
+                offset = BigFloat(0),
+            )
+
+            _with_temp_path("big.qb") do qb_path
+                @test_throws MethodError QUBOTools.write_model(qb_path, big_model)
+            end
         end
     end
 

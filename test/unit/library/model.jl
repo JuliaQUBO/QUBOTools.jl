@@ -333,6 +333,83 @@ function test_model(V = Symbol, T = Float64, U = Int)
             @test _compare_models(model, model_copy; compare_solutions = true)
         end
 
+        @testset "⋅ Cast" begin
+            for vars in ([10, 2, 1], ["x_10", "x_2", "x_1"])
+                bool_model = QUBOTools.Model(
+                    vars,
+                    [1, 2, 3],
+                    [1.25, -2.5, 0.75],
+                    [1, 1, 2],
+                    [2, 3, 3],
+                    [-3.0, 1.5, 2.0];
+                    scale = 2.0,
+                    offset = -0.5,
+                    sense = :min,
+                    domain = :bool,
+                    metadata = Dict{String,Any}("tag" => "cast-test"),
+                    start = Dict(vars[1] => 1, vars[2] => 0, vars[3] => 1),
+                    solution = QUBOTools.SampleSet{Float64,Int}(
+                        [
+                            QUBOTools.Sample{Float64,Int}([1, 0, 1], 4.5, 3),
+                            QUBOTools.Sample{Float64,Int}([0, 1, 0], -6.0, 2),
+                        ];
+                        sense = :min,
+                        domain = :bool,
+                    ),
+                )
+
+                spin_model = QUBOTools.cast(
+                    (QUBOTools.BoolDomain => QUBOTools.SpinDomain),
+                    bool_model,
+                )
+                roundtrip_bool = QUBOTools.cast(
+                    (QUBOTools.SpinDomain => QUBOTools.BoolDomain),
+                    spin_model,
+                )
+
+                @test QUBOTools.domain(spin_model) === QUBOTools.SpinDomain
+                @test QUBOTools.sense(spin_model) === QUBOTools.Min
+                @test QUBOTools.variables(spin_model) == vars
+                @test QUBOTools.start(spin_model) == Dict(1 => 1, 2 => -1, 3 => 1)
+                @test QUBOTools.state(spin_model, 1) == [-1, 1, -1]
+                @test QUBOTools.state(spin_model, 2) == [1, -1, 1]
+                @test QUBOTools.reads(spin_model, 1) == 2
+                @test QUBOTools.reads(spin_model, 2) == 3
+
+                for x1 in (0, 1), x2 in (0, 1), x3 in (0, 1)
+                    ψ_bool = [x1, x2, x3]
+                    ψ_spin = [2x1 - 1, 2x2 - 1, 2x3 - 1]
+                    poly = 2.0 * (
+                        1.25 * x1 - 2.5 * x2 + 0.75 * x3 -
+                        3.0 * x1 * x2 + 1.5 * x1 * x3 + 2.0 * x2 * x3 - 0.5
+                    )
+                    @test QUBOTools.value(bool_model, ψ_bool) ≈ poly atol = 1e-12
+                    @test QUBOTools.value(spin_model, ψ_spin) ≈ poly atol = 1e-12
+                end
+
+                @test _compare_models(bool_model, roundtrip_bool; compare_solutions = true)
+                @test QUBOTools.start(roundtrip_bool) == QUBOTools.start(bool_model)
+
+                max_spin_model = QUBOTools.cast(
+                    (QUBOTools.Frame(:min, :bool) => QUBOTools.Frame(:max, :spin)),
+                    bool_model,
+                )
+                @test QUBOTools.sense(max_spin_model) === QUBOTools.Max
+                @test QUBOTools.domain(max_spin_model) === QUBOTools.SpinDomain
+                @test QUBOTools.variables(max_spin_model) == vars
+                @test QUBOTools.start(max_spin_model) == Dict(1 => 1, 2 => -1, 3 => 1)
+                @test QUBOTools.value(max_spin_model, [-1, 1, -1]) ≈ 6.0 atol = 1e-12
+                @test _compare_models(
+                    bool_model,
+                    QUBOTools.cast(
+                        (QUBOTools.Frame(:max, :spin) => QUBOTools.Frame(:min, :bool)),
+                        max_spin_model,
+                    );
+                    compare_solutions = true,
+                )
+            end
+        end
+
         @testset "⋅ Print" begin
             let io = IOBuffer()
                 print(io, model)
