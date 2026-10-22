@@ -384,6 +384,15 @@ function test_solution_metrics()
             @test est_exact_one.status == :empirical_all_succeeded
             @test est_exact_one.continuous_repetitions == 0.0
             @test est_exact_one.operational_repetitions == 1.0
+
+            # Large-count integer rounding and >2^63 safe conversion
+            @test QUBOTools.time_to_target_estimate(1.0, 2.0^-52, 0.45).operational_repetitions == 2692418493831307.0
+            @test QUBOTools.time_to_target_estimate(1.0, 1.7687970377159239e-16, 0.7048511250042409).operational_repetitions == 6898900003326794.0
+            for mode in (:integer, :continuous, :continuous_floor_one)
+                est_2p63 = QUBOTools.time_to_target_estimate(1.0, 4.992935520313763e-19, 0.99; repetition_mode = mode)
+                @test isfinite(est_2p63.ttt) && est_2p63.ttt > 0.0
+                @test isfinite(est_2p63.operational_repetitions) && isfinite(est_2p63.continuous_repetitions)
+            end
         end
 
         @testset "Hamming Distance" begin
