@@ -865,6 +865,30 @@ function test_reports()
             QUBOTools.write_report(buf_ovf, overflow_meta_model)
             parsed_ovf = QUBOTools.JSON.parse(String(take!(buf_ovf)))
             @test isnothing(parsed_ovf["model"]["metadata"]["large"])
+
+            # Signed typemin magnitude regression (Int8(-128) and typemin(Int64))
+            m_int8 = QUBOTools.Model{Int,Int8,Int}(
+                Dict(1 => typemin(Int8)),
+                Dict{Tuple{Int,Int},Int8}(),
+            )
+            buf_i8 = IOBuffer()
+            QUBOTools.write_report(buf_i8, m_int8; solution = nothing)
+            stats_i8 = QUBOTools.JSON.parse(String(take!(buf_i8)))["model"]["coefficients"]["linear"]
+            @test stats_i8["min"] == -128
+            @test stats_i8["max"] == -128
+            @test stats_i8["min_abs"] == 128
+            @test stats_i8["max_abs"] == 128
+
+            m_int64 = QUBOTools.Model{Int,Int64,Int}(
+                Dict(1 => typemin(Int64)),
+                Dict{Tuple{Int,Int},Int64}(),
+            )
+            buf_i64 = IOBuffer()
+            QUBOTools.write_report(buf_i64, m_int64; solution = nothing)
+            stats_i64 = QUBOTools.JSON.parse(String(take!(buf_i64)))["model"]["coefficients"]["linear"]
+            @test stats_i64["min"] == typemin(Int64)
+            @test stats_i64["min_abs"] == -widen(typemin(Int64))
+            @test stats_i64["max_abs"] == -widen(typemin(Int64))
         end
     end
 

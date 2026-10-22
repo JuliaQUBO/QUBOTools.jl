@@ -117,6 +117,10 @@ function _serialize_ttt_estimate(est::TimeToTargetEstimate)
     )
 end
 
+_safe_abs(v::BigInt) = abs(v)
+_safe_abs(v::Integer) = v < 0 ? -widen(v) : v
+_safe_abs(v::Real) = abs(v)
+
 function _coefficient_stats(values::AbstractVector{<:Real})
     if isempty(values)
         return Dict{String,Any}(
@@ -132,7 +136,7 @@ function _coefficient_stats(values::AbstractVector{<:Real})
         )
     end
 
-    abs_vals = [abs(v) for v in values]
+    abs_vals = [_safe_abs(v) for v in values]
     min_val = minimum(values)
     max_val = maximum(values)
     min_abs = minimum(abs_vals)
