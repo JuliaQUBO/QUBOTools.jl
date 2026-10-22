@@ -136,3 +136,39 @@ run_est = QUBOTools.time_to_target_estimate(read_batch, 1.0; trial_unit = :run)
   - For a known trial probability $p = 1$ and $0 < s < 1$, one trial is still required (`operational_ttt == trial_time`, `status == :known_unit_probability`); known $p = 0$ is unattainable (`Inf`, `status == :known_zero_probability`).
   - Empirical all-success (`N/N`) and all-failure (`0/N`) batches retain their finite `trials = N` and `successes` counts with `status == :empirical_all_succeeded` or `:empirical_zero_successes` rather than claiming certified certainty or impossibility.
 - **Non-IID sample regimes and migration**: Solutions tagged with `"sampling_regime"` (or `"trial_semantics"` / `"sample_selection"`) in `("correlated", "selected", "repaired", "best_only", "postselected", "top_k")` reject `trial_unit = :read`. Legacy calls `time_to_target(sol, λ, s)` without `trial_unit` emit a deprecation warning; migrate by passing `trial_unit = :read` or `trial_unit = :run` (or calling [`QUBOTools.time_to_target_estimate`](@ref)).
+
+## Consolidated JSON Run Reports
+
+[`QUBOTools.report`](@ref) and [`QUBOTools.write_report`](@ref) aggregate model statistics, solution metrics, objective breakdowns, sample table metadata, and optional reformulation/penalty/feasibility metadata into a single RFC 8259 JSON document (`format = "QUBOTools.report"`, `version = 1`).
+
+### Output Schema (`QUBOTools.report` v1)
+
+| Top-level key | Type | Contents |
+| :--- | :--- | :--- |
+| `"format"` | `String` | `"QUBOTools.report"` |
+| `"version"` | `Int` | `1` |
+| `"package_versions"` | `Object` | `"QUBOTools"` and `"Julia"` version strings |
+| `"model"` | `Object` | `"dimension"`, `"variables"`, `"sense"`, `"domain"`, `"scale"`, `"offset"`, `"linear_size"`, `"quadratic_size"`, `"term_count"`, `"density"` (`"total"`, `"linear"`, `"quadratic"`), `"coefficients"` (`"linear"`, `"quadratic"`, `"all"` with `"count"`, `"min"`, `"max"`, `"min_abs"`, `"max_abs"`, `"mean"`, `"mean_abs"`, `"std"`, `"dynamic_range"`), and `"metadata"` |
+| `"solution"` | `Object` | `"present"`, `"sample_count"`, `"total_reads"`, `"sense"`, `"domain"`, `"metadata"`, `"samples_metadata"` (`QUBOTools.samples` header dict), `"timing"` (`"effective_time"`, `"total_time"`), `"energies"` (`"best"`, `"min"`, `"max"`, `"mean"`), `"best_sample"` (with `"objective_breakdown"`), `"objective_values_verified"`, `"objective_mismatch_count"`, `"metrics"` (`"target_threshold"`, `"target_probability"`, `"trial_unit"`, `"cost_boundary"`, `"success_rate"`, `"ttt"`, `"time_to_target"`, `"status"`), and optional `"samples"` rows (`include_samples = true`) |
+| `"penalties"` | `Object` or `null` | Penalty dictionary passed via `penalties`, extracted from `reformulation["applied_penalties"]`, or found in `metadata(model)["penalties"]` |
+| `"reformulation"` | `Object` or `null` | Reformulation metadata dictionary passed via `reformulation` or found in `metadata(model)["toqubo"]["reformulation"]` |
+| `"feasibility"` | `Object` or `null` | Optional feasibility report dictionary or struct passed via `feasibility` |
+
+```@example analysis
+QUBOTools.attach!(model, solution)
+
+rep = QUBOTools.report(
+    model;
+    λ = λ,
+    trial_unit = :read,
+    penalties = Dict("constraint_1" => 10.0),
+)
+(
+    format = rep["format"],
+    dimension = rep["model"]["dimension"],
+    sample_count = rep["solution"]["sample_count"],
+    verified = rep["solution"]["objective_values_verified"],
+    success_rate = rep["solution"]["metrics"]["success_rate"],
+    penalties = rep["penalties"],
+)
+```

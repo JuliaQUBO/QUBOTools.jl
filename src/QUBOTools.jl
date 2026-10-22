@@ -70,6 +70,7 @@ export ObjectiveBreakdown, ObjectiveMismatch
 export annotate_objectives!, objective_breakdown
 export objective_value_mismatches, verify_objective_values
 export TimeToTargetEstimate, time_to_target_estimate
+export report, write_report
 
 # Interface definitions
 include("interface/form.jl")
@@ -123,6 +124,7 @@ include("library/format/rudy/format.jl")
 
 include("library/analysis/metrics/solution.jl")
 include("library/analysis/metrics/model.jl")
+include("library/analysis/report.jl")
 
 include("library/architecture/abstract.jl")
 include("library/architecture/generic.jl")
