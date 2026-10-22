@@ -5,7 +5,7 @@ const __CITATION_ROOT__ = normpath(joinpath(@__DIR__, "..", ".."))
 include(joinpath(__CITATION_ROOT__, "scripts", "release_check.jl"))
 include(joinpath(__CITATION_ROOT__, "scripts", "verify_zenodo_release.jl"))
 
-function _copy_citation_fixture(fn::Function)
+function _copy_citation_fixture(fn::Function; canonical::Bool = true)
     mktempdir() do dir
         for rel in (
             ("Project.toml",),
@@ -25,16 +25,102 @@ function _copy_citation_fixture(fn::Function)
             mkpath(dirname(dst))
             cp(src, dst)
         end
+        if canonical
+            _normalize_canonical_fixture!(dir)
+        end
         fn(dir)
     end
 end
 
-function _mutate_file!(dir::AbstractString, rel::Tuple, target::AbstractString, replacement::AbstractString)
+function _normalize_canonical_fixture!(dir::AbstractString)
+    canonical_version = "0.16.2"
+    canonical_date = "2026-10-07"
+    canonical_doi = "10.5281/zenodo.23218355"
+
+    project_path = joinpath(dir, "Project.toml")
+    project_text = replace(read(project_path, String), "\r\n" => "\n")
+    write(
+        project_path,
+        replace(project_text, r"(?m)^version\s*=\s*\"[^\"]+\"$" => "version = \"$canonical_version\""),
+    )
+
+    cff_path = joinpath(dir, "CITATION.cff")
+    cff_text = replace(read(cff_path, String), "\r\n" => "\n")
+    live_id = ReleaseCheck.cff_version_identifier(cff_text)
+    cff_text = replace(cff_text, r"(?m)^version:\s*\"[^\"]+\"$" => "version: \"$canonical_version\"")
+    cff_text = replace(cff_text, r"(?m)^date-released:\s*.*$" => "date-released: $canonical_date")
+    if live_id.doi !== nothing
+        cff_text = replace(cff_text, live_id.doi => canonical_doi)
+    end
+    if live_id.version !== nothing
+        cff_text = replace(
+            cff_text,
+            "Zenodo DOI for version $(live_id.version)" => "Zenodo DOI for version $canonical_version",
+        )
+    end
+    write(cff_path, cff_text)
+
+    for rel in (("CITATION.bib",), ("README.md",), ("docs", "src", "index.md"))
+        path = joinpath(dir, rel...)
+        text = replace(read(path, String), "\r\n" => "\n")
+        if live_id.doi !== nothing
+            text = replace(text, live_id.doi => canonical_doi)
+        end
+        if live_id.version !== nothing
+            text = replace(text, "v$(live_id.version)" => "v$canonical_version")
+        end
+        write(path, text)
+    end
+
+    return nothing
+end
+
+function _mutate_file!(
+    dir::AbstractString,
+    rel::Tuple,
+    target::AbstractString,
+    replacement::AbstractString,
+)
     path = joinpath(dir, rel...)
-    content = read(path, String)
+    content = replace(read(path, String), "\r\n" => "\n")
     occursin(target, content) || error("Target string not found in $(joinpath(rel...)): $target")
     write(path, replace(content, target => replacement; count = 1))
     return nothing
+end
+
+function _assert_repository_citation_consistent(root::AbstractString)
+    result = ReleaseCheck.check_repository(root)
+    @test isempty(result.failures)
+
+    cff_text = ReleaseCheck.read_text(root, "CITATION.cff")
+    live_id = ReleaseCheck.cff_version_identifier(cff_text)
+    @test live_id.version !== nothing
+    @test live_id.doi !== nothing
+    @test result.concept_doi == ReleaseCheck.CONCEPT_DOI
+    @test result.version_doi == live_id.doi
+
+    archived_version = VersionNumber(live_id.version)
+    @test archived_version <= result.version
+    if archived_version == result.version
+        @test isempty(result.warnings)
+    else
+        @test !isempty(result.warnings)
+        @test all(
+            w -> occursin("Exact-version citation metadata currently references v$(live_id.version)", w),
+            result.warnings,
+        )
+    end
+
+    workflow = ReleaseCheck.read_text(root, ".github", "workflows", "zenodo.yml")
+    @test occursin(r"(?m)^\s*release:\s*$", workflow)
+    @test occursin(r"(?m)^\s*-\s*published\s*$", workflow)
+    @test occursin(r"(?m)^\s*workflow_run:\s*$", workflow)
+    @test occursin(r"(?m)^\s*-\s*TagBot\s*$", workflow)
+    @test occursin(r"(?m)^\s*-\s*completed\s*$", workflow)
+    @test occursin(r"(?m)^\s*workflow_dispatch:\s*$", workflow)
+    @test occursin("scripts/verify_zenodo_release.jl", workflow)
+
+    return result
 end
 
 function _zenodo_record(; concept = "7076341", version = "v0.16.2", doi = "10.5281/zenodo.23218355")
@@ -48,19 +134,7 @@ end
 function test_citation()
     @testset "▶ Citation & Release Verification Tests" verbose = true begin
         @testset "Repository citation metadata is consistent" begin
-            result = ReleaseCheck.check_repository(__CITATION_ROOT__)
-            @test isempty(result.failures)
-            @test isempty(result.warnings)
-            @test result.concept_doi == "10.5281/zenodo.7076341"
-            @test result.version_doi == "10.5281/zenodo.23218355"
-
-            workflow = replace(
-                read(joinpath(__CITATION_ROOT__, ".github", "workflows", "zenodo.yml"), String),
-                "\r\n" => "\n",
-            )
-            @test occursin(r"(?m)^\s*release:\s*$", workflow)
-            @test occursin(r"(?m)^\s*-\s*published\s*$", workflow)
-            @test occursin("scripts/verify_zenodo_release.jl", workflow)
+            _assert_repository_citation_consistent(__CITATION_ROOT__)
         end
 
         @testset "Release preflight rejects citation drift mutations" begin
@@ -154,7 +228,7 @@ function test_citation()
                 end
             end
 
-            # 10. Pre-tag release preparation warning when Project.toml/CITATION.cff advance to v0.16.3
+            # 10. Pre-tag release preparation state passes both ReleaseCheck and live consistency checks
             _copy_citation_fixture() do dir
                 _mutate_file!(dir, ("Project.toml",), "version = \"0.16.2\"", "version = \"0.16.3\"")
                 _mutate_file!(
@@ -165,8 +239,7 @@ function test_citation()
                 )
                 _mutate_file!(dir, ("CITATION.cff",), "version: \"0.16.2\"", "version: \"0.16.3\"")
                 _mutate_file!(dir, ("CITATION.cff",), "date-released: 2026-10-07", "date-released: 2026-10-22")
-                res = ReleaseCheck.check_repository(dir)
-                @test isempty(res.failures)
+                res = _assert_repository_citation_consistent(dir)
                 @test any(w -> occursin("Exact-version citation metadata currently references v0.16.2", w), res.warnings)
             end
         end

@@ -74,7 +74,7 @@ Use the tagged `LICENSE` (`MPL-2.0`) and `CITATION.cff` as the source-license au
 
 After the GitHub release is published (or after publishing a pre-reserved Zenodo draft):
 
-1. Confirm the **Zenodo release verification** workflow (`.github/workflows/zenodo.yml`) passes, or run the verifier locally:
+1. Confirm the **Zenodo release verification** workflow (`.github/workflows/zenodo.yml`, triggered automatically when `TagBot` completes or on `release: published`, and available via `workflow_dispatch`) passes, or run the verifier locally:
 
 ```sh
 julia --project=. scripts/verify_zenodo_release.jl vX.Y.Z
