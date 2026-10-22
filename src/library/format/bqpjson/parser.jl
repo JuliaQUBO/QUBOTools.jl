@@ -9,8 +9,8 @@ function read_model(io::IO, fmt::Format{:bqpjson})
 
     model_data = Dict{Symbol,Any}(
         :id              => json_data["id"],
-        :scale           => json_data["scale"],
-        :offset          => json_data["offset"],
+        :scale           => Float64(json_data["scale"]),
+        :offset          => Float64(json_data["offset"]),
         :variable_set    => Set{Int}(json_data["variable_ids"]),
         :linear_terms    => Dict{Int,Float64}(),
         :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
@@ -42,10 +42,10 @@ function _parse_version!(::Dict{Symbol,Any}, json_data::Dict{String,Any}, fmt::F
     bqpjson_version = VersionNumber(json_data["version"])
 
     if bqpjson_version !== fmt[:version]
-        codec_error("""
-                    Invalid BQPJSON version '$(bqpjson_version)'.
-                    The specified codec version is '$(fmt[:version])'
-                    """)
+        format_error("""
+                     Invalid BQPJSON version '$(bqpjson_version)'.
+                     The specified codec version is '$(fmt[:version])'
+                     """)
     end
 
     return nothing
@@ -59,7 +59,7 @@ function _parse_domain!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::F
     elseif bqpjson_domain == "spin"
         data[:domain] = :spin
     else
-        codec_error("Inconsistent variable domain '$variable_domain'")
+        format_error("Inconsistent variable domain '$bqpjson_domain'")
     end
 
     return nothing
@@ -108,28 +108,29 @@ function _parse_terms!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::Fo
 end
 
 function _parse_solutions!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, ::Format{:bqpjson})
-    solutions = get(data, "solutions", nothing)
+    solutions = get(json_data, "solutions", nothing)
 
     if isnothing(solutions)
-        data[:solution] = nothing
+        data[:solution] = SampleSet{Float64,Int}(; sense = :min, domain = data[:domain])
 
         return nothing
     end
 
     samples           = Sample{Float64,Int}[]
-    sultion_ids       = Set{Int}()
+    solution_ids      = Set{Int}()
     solution_metadata = Dict{String,Any}()
+    variable_order    = sort!(collect(data[:variable_set]); lt = varlt)
 
-    for solution in json_data["solutions"]
+    for solution in solutions
         i = solution["id"]
 
-        if i ∈ sultion_ids
+        if i ∈ solution_ids
             format_error("Invalid data: Duplicate solution id '$i'")
         else
-            push!(sultion_ids, i)
+            push!(solution_ids, i)
         end
 
-        var_ids = Set{Int}()
+        assignment = Dict{Int,Int}()
 
         for assign in solution["assignment"]
             j = assign["id"]
@@ -137,21 +138,37 @@ function _parse_solutions!(data::Dict{Symbol,Any}, json_data::Dict{String,Any}, 
 
             if j ∉ data[:variable_set]
                 format_error("Unknown variable id '$j' in assignment")
-            elseif j ∈ var_ids
+            elseif haskey(assignment, j)
                 format_error("Duplicate variable id '$j' in assignment")
             elseif !_BQPJSON_VALIDATE_DOMAIN(v, data[:domain])
                 format_error("Variable assignment '$v' out of domain")
             end
 
-            push!(var_ids, j)
+            assignment[j] = Int(v)
         end
 
-        if length(var_ids) != length(data[:variable_set])
+        if length(assignment) != length(data[:variable_set])
             format_error("Length mismatch between variable set and solution assignment")
         end
+
+        state_vec = Int[assignment[v] for v in variable_order]
+        evaluation = if haskey(solution, "evaluation") && !isnothing(solution["evaluation"])
+            Float64(solution["evaluation"])
+        else
+            raw = sum((c * assignment[v] for (v, c) in data[:linear_terms]); init = 0.0) +
+                  sum((c * assignment[u] * assignment[v] for ((u, v), c) in data[:quadratic_terms]); init = 0.0)
+            Float64(data[:scale] * (raw + data[:offset]))
+        end
+
+        push!(samples, Sample{Float64,Int}(state_vec, evaluation))
     end
 
-    data[:solution] = SampleSet{Float64,Int}(samples, solution_metadata)
+    data[:solution] = SampleSet{Float64,Int}(
+        samples,
+        solution_metadata;
+        sense  = :min,
+        domain = data[:domain],
+    )
 
     return nothing
 end
