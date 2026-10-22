@@ -282,6 +282,8 @@ QUBOTools.success_rate
 ### Time-to-Target (TTT)
 
 ```@docs
+QUBOTools.TimeToTargetEstimate
+QUBOTools.time_to_target_estimate
 QUBOTools.time_to_target
 QUBOTools.ttt
 ```
