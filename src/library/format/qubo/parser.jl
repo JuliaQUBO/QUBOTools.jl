@@ -135,6 +135,16 @@ function _parse_comment!(::Dict{Symbol,Any}, ::AbstractString, ::Format{:qubo}, 
     return false
 end
 
+function _parse_comment_metadata_value(val::AbstractString)
+    stripped = String(strip(val))
+
+    try
+        return _json_data(JSON.parse(stripped))
+    catch
+        return stripped
+    end
+end
+
 function _parse_comment_metadata!(
     data::Dict{Symbol,Any},
     content::AbstractString,
@@ -151,11 +161,19 @@ function _parse_comment_metadata!(
     val = string(m[2])
 
     if key == "scale"
-        data[:scale] = tryparse(Float64, val)
+        scale = tryparse(Float64, val)
+
+        if !isnothing(scale) && isfinite(scale)
+            data[:scale] = scale
+        end
     elseif key == "offset"
-        data[:offset] = tryparse(Float64, val)
+        offset = tryparse(Float64, val)
+
+        if !isnothing(offset) && isfinite(offset)
+            data[:offset] = offset
+        end
     else
-        data[:metadata][key] = _json_data(JSON.parse(val))
+        data[:metadata][key] = _parse_comment_metadata_value(val)
     end
 
     return nothing

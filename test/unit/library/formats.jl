@@ -55,6 +55,16 @@ function test_bqpjson_format()
 
                     @test src_model isa QUBOTools.Model
 
+                    if i == 2
+                        @test length(QUBOTools.solution(src_model)) == 2
+                        @test QUBOTools.state(src_model, 1) == [0, 1, 0]
+                        @test QUBOTools.value(src_model, 1) ≈ 6.291
+                        @test QUBOTools.state(src_model, 2) == [1, 0, 1]
+                        @test QUBOTools.value(src_model, 2) ≈ 9.531
+                    else
+                        @test isempty(QUBOTools.solution(src_model))
+                    end
+
                     QUBOTools.write_model(temp_path, src_model)
 
                     dst_model =
@@ -62,7 +72,7 @@ function test_bqpjson_format()
 
                     @test dst_model isa QUBOTools.Model
 
-                    @test _compare_models(src_model, dst_model)
+                    @test _compare_models(src_model, dst_model; compare_solutions = true)
                 end
             end
         end
@@ -77,6 +87,16 @@ function test_bqpjson_format()
 
                     @test src_model isa QUBOTools.Model
 
+                    if i == 2
+                        @test length(QUBOTools.solution(src_model)) == 2
+                        @test QUBOTools.state(src_model, 1) == [-1, 1, -1]
+                        @test QUBOTools.value(src_model, 1) ≈ 6.291
+                        @test QUBOTools.state(src_model, 2) == [1, -1, 1]
+                        @test QUBOTools.value(src_model, 2) ≈ 9.531
+                    else
+                        @test isempty(QUBOTools.solution(src_model))
+                    end
+
                     QUBOTools.write_model(temp_path, src_model)
 
                     dst_model =
@@ -84,9 +104,170 @@ function test_bqpjson_format()
 
                     @test dst_model isa QUBOTools.Model
 
-                    @test _compare_models(src_model, dst_model)
+                    @test _compare_models(src_model, dst_model; compare_solutions = true)
                 end
             end
+        end
+
+        @testset "solution parsing and domain validation" begin
+            # Unordered variable assignments and optional omitted evaluation
+            bqpjson_payload = """
+            {
+              "version": "1.0.0",
+              "id": 10,
+              "variable_ids": [5, 1, 3],
+              "variable_domain": "boolean",
+              "scale": 2,
+              "offset": 1,
+              "linear_terms": [
+                {"id": 1, "coeff": 1.5},
+                {"id": 5, "coeff": -0.5}
+              ],
+              "quadratic_terms": [
+                {"id_head": 3, "id_tail": 5, "coeff": 2.0}
+              ],
+              "metadata": {},
+              "solutions": [
+                {
+                  "id": 0,
+                  "assignment": [
+                    {"id": 5, "value": 1},
+                    {"id": 1, "value": 0},
+                    {"id": 3, "value": 1}
+                  ]
+                }
+              ]
+            }
+            """
+            parsed_model = QUBOTools.read_model(IOBuffer(bqpjson_payload), QUBOTools.Format{:bqpjson}())
+            @test QUBOTools.variables(parsed_model) == [1, 3, 5]
+            @test length(QUBOTools.solution(parsed_model)) == 1
+            @test QUBOTools.state(parsed_model, 1) == [0, 1, 1]
+            @test QUBOTools.value(parsed_model, 1) ≈ QUBOTools.value(parsed_model, [0, 1, 1])
+
+            # Invalid domain error branch in _parse_domain!
+            err = try
+                QUBOTools._parse_domain!(
+                    Dict{Symbol,Any}(),
+                    Dict{String,Any}("variable_domain" => "ternary"),
+                    QUBOTools.Format{:bqpjson}(),
+                )
+                nothing
+            catch e
+                e
+            end
+            @test err isa QUBOTools.FormatError
+            @test occursin("Inconsistent variable domain 'ternary'", sprint(showerror, err))
+
+            # Version mismatch error branch in _parse_version!
+            ver_err = try
+                QUBOTools._parse_version!(
+                    Dict{Symbol,Any}(),
+                    Dict{String,Any}("version" => "0.1.0"),
+                    QUBOTools.Format{:bqpjson}(),
+                )
+                nothing
+            catch e
+                e
+            end
+            @test ver_err isa QUBOTools.FormatError
+            @test occursin("Invalid BQPJSON version '0.1.0'", sprint(showerror, ver_err))
+
+            # Solution validation errors in _parse_solutions!
+            base_data() = Dict{Symbol,Any}(
+                :variable_set    => Set{Int}([1, 2]),
+                :domain          => :bool,
+                :linear_terms    => Dict{Int,Float64}(),
+                :quadratic_terms => Dict{Tuple{Int,Int},Float64}(),
+                :scale           => 1.0,
+                :offset          => 0.0,
+            )
+
+            @test_throws QUBOTools.FormatError QUBOTools._parse_solutions!(
+                base_data(),
+                Dict{String,Any}(
+                    "solutions" => [
+                        Dict{String,Any}(
+                            "id" => 0,
+                            "assignment" => [
+                                Dict{String,Any}("id" => 1, "value" => 0),
+                                Dict{String,Any}("id" => 2, "value" => 1),
+                            ],
+                        ),
+                        Dict{String,Any}(
+                            "id" => 0,
+                            "assignment" => [
+                                Dict{String,Any}("id" => 1, "value" => 1),
+                                Dict{String,Any}("id" => 2, "value" => 0),
+                            ],
+                        ),
+                    ],
+                ),
+                QUBOTools.Format{:bqpjson}(),
+            )
+
+            @test_throws QUBOTools.FormatError QUBOTools._parse_solutions!(
+                base_data(),
+                Dict{String,Any}(
+                    "solutions" => [
+                        Dict{String,Any}(
+                            "id" => 0,
+                            "assignment" => [
+                                Dict{String,Any}("id" => 1, "value" => 0),
+                                Dict{String,Any}("id" => 99, "value" => 1),
+                            ],
+                        ),
+                    ],
+                ),
+                QUBOTools.Format{:bqpjson}(),
+            )
+
+            @test_throws QUBOTools.FormatError QUBOTools._parse_solutions!(
+                base_data(),
+                Dict{String,Any}(
+                    "solutions" => [
+                        Dict{String,Any}(
+                            "id" => 0,
+                            "assignment" => [
+                                Dict{String,Any}("id" => 1, "value" => 0),
+                                Dict{String,Any}("id" => 1, "value" => 1),
+                            ],
+                        ),
+                    ],
+                ),
+                QUBOTools.Format{:bqpjson}(),
+            )
+
+            @test_throws QUBOTools.FormatError QUBOTools._parse_solutions!(
+                base_data(),
+                Dict{String,Any}(
+                    "solutions" => [
+                        Dict{String,Any}(
+                            "id" => 0,
+                            "assignment" => [
+                                Dict{String,Any}("id" => 1, "value" => 2),
+                                Dict{String,Any}("id" => 2, "value" => 1),
+                            ],
+                        ),
+                    ],
+                ),
+                QUBOTools.Format{:bqpjson}(),
+            )
+
+            @test_throws QUBOTools.FormatError QUBOTools._parse_solutions!(
+                base_data(),
+                Dict{String,Any}(
+                    "solutions" => [
+                        Dict{String,Any}(
+                            "id" => 0,
+                            "assignment" => [
+                                Dict{String,Any}("id" => 1, "value" => 0),
+                            ],
+                        ),
+                    ],
+                ),
+                QUBOTools.Format{:bqpjson}(),
+            )
         end
 
         @testset "scientific notation" begin
@@ -229,6 +410,56 @@ function test_qubo_format()
                     @test _compare_models(src_model, dst_model)
                 end
             end
+        end
+
+        @testset "unquoted and non-numeric comment metadata" begin
+            dwave_qubo = """
+            c name: demo_instance
+            c note: generated by qbsolv
+            c variables: x_0 x_1
+            c tags: ["demo", "qubo"]
+            c scale: 1.5
+            c offset: -0.25
+            c scale: non_numeric
+            c offset: non_numeric
+            c scale: Inf
+            c offset: NaN
+            p qubo 0 2 2 1
+            0 0 -1.0
+            1 1 -1.0
+            0 1 2.0
+            """
+            dwave_model = QUBOTools.read_model(
+                IOBuffer(dwave_qubo),
+                QUBOTools.Format{:qubo}(; style = :dwave),
+            )
+            @test dwave_model isa QUBOTools.Model
+            @test QUBOTools.dimension(dwave_model) == 2
+            @test QUBOTools.scale(dwave_model) == 1.5
+            @test QUBOTools.offset(dwave_model) == -0.25
+            @test QUBOTools.metadata(dwave_model)["name"] == "demo_instance"
+            @test QUBOTools.metadata(dwave_model)["note"] == "generated by qbsolv"
+            @test QUBOTools.metadata(dwave_model)["variables"] == "x_0 x_1"
+            @test QUBOTools.metadata(dwave_model)["tags"] == ["demo", "qubo"]
+
+            mqlib_qubo = """
+            # problem: maxcut
+            # scale: non_numeric
+            # offset: non_numeric
+            2 3
+            1 1 -1.0
+            2 2 -1.0
+            1 2 1.0
+            """
+            mqlib_model = QUBOTools.read_model(
+                IOBuffer(mqlib_qubo),
+                QUBOTools.Format{:qubo}(; style = :mqlib),
+            )
+            @test mqlib_model isa QUBOTools.Model
+            @test QUBOTools.dimension(mqlib_model) == 2
+            @test QUBOTools.scale(mqlib_model) == 1.0
+            @test QUBOTools.offset(mqlib_model) == 0.0
+            @test QUBOTools.metadata(mqlib_model)["problem"] == "maxcut"
         end
     end
 

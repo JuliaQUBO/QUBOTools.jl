@@ -3,7 +3,9 @@ const _BQPJSON_SCHEMA         = JSONSchema.Schema(JSON.parsefile(_BQPJSON_SCHEMA
 const _BQPJSON_VERSION_LIST   = VersionNumber[v"1.0.0"]
 const _BQPJSON_VERSION_LATEST = _BQPJSON_VERSION_LIST[end]
 
-function _BQPJSON_VARIABLE_DOMAIN(X::Domain)
+function _BQPJSON_VARIABLE_DOMAIN(X::Union{Domain,Symbol})
+    X = QUBOTools.domain(X)
+
     if X === QUBOTools.BoolDomain
         return "boolean"
     elseif X === QUBOTools.SpinDomain
@@ -13,7 +15,9 @@ function _BQPJSON_VARIABLE_DOMAIN(X::Domain)
     end
 end
 
-function _BQPJSON_VALIDATE_DOMAIN(x::Integer, X::Domain)
+function _BQPJSON_VALIDATE_DOMAIN(x::Integer, X::Union{Domain,Symbol})
+    X = QUBOTools.domain(X)
+
     if X === QUBOTools.BoolDomain
         return (x == 0) || (x == 1)
     elseif X === QUBOTools.SpinDomain
