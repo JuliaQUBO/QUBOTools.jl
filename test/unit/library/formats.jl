@@ -506,12 +506,12 @@ function test_qubin_format()
 
                     QUBOTools.write_model(temp_path, src_model)
 
-                    dst_model =
-                        QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
+                    dst_model = QUBOTools.read_model(temp_path)
 
                     @test dst_model isa QUBOTools.Model
+                    @test QUBOTools.variables(dst_model) == variables
 
-                    @test _compare_models(src_model, dst_model)
+                    @test _compare_models(src_model, dst_model; compare_solutions = true)
                 end
             end
         end
@@ -528,14 +528,56 @@ function test_qubin_format()
 
                     QUBOTools.write_model(temp_path, src_model)
 
-                    dst_model =
-                        QUBOTools.map_variables(variables, QUBOTools.read_model(temp_path))
+                    dst_model = QUBOTools.read_model(temp_path)
 
                     @test dst_model isa QUBOTools.Model
+                    @test QUBOTools.variables(dst_model) == variables
 
-                    @test _compare_models(src_model, dst_model)
+                    @test _compare_models(src_model, dst_model; compare_solutions = true)
                 end
             end
+        end
+
+        @testset "standalone solution I/O and validation" begin
+            sol = SampleSet{Float64,Int}(
+                Sample{Float64,Int}[
+                    Sample([0, 1, 0], -1.25, 4),
+                    Sample([1, 0, 1], 0.5, 2),
+                    Sample([1, 1, 0], 2.0, 1),
+                    Sample([0, 0, 1], 3.75, 5),
+                ];
+                metadata = Dict{String,Any}("solver" => "qubin-test"),
+                sense = :min,
+                domain = :bool,
+            )
+
+            _with_temp_path("sol.qb") do temp_path
+                QUBOTools.write_solution(temp_path, sol)
+
+                dst_sol = QUBOTools.read_solution(temp_path)
+
+                @test _compare_solutions(sol, dst_sol)
+            end
+
+            @test_throws QUBOTools.FormatError QUBOTools._parse_solution_data(
+                zeros(Int, 3, 2),
+                [1.0],
+                [1],
+            )
+            @test_throws QUBOTools.FormatError QUBOTools._parse_model(
+                QUBOTools.Form{Float64}(
+                    2,
+                    QUBOTools.SparseLinearForm{Float64}(spzeros(Float64, 2)),
+                    QUBOTools.SparseQuadraticForm{Float64}(spzeros(Float64, 2, 2)),
+                    1.0,
+                    0.0;
+                    sense = :min,
+                    domain = :bool,
+                ),
+                QUBOTools._variable_map_from_indices([1, 2, 3]);
+                metadata = Dict{String,Any}(),
+                solution = SampleSet{Float64,Int}(),
+            )
         end
 
         # Test sparse array dimensions are preserved when some variables have no terms.
@@ -711,6 +753,304 @@ function test_rudy_format()
     return nothing
 end
 
+function test_portable_interchange()
+    @testset "⋅ Portable Interchange" begin
+        variable_cases = (
+            ("permuted Int", [10, 2, 1]),
+            ("permuted String", ["x_10", "x_2", "x_1"]),
+        )
+        all_bool_states = [
+            [0, 0, 0],
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [1, 1, 0],
+            [1, 0, 1],
+            [0, 1, 1],
+            [1, 1, 1],
+        ]
+        all_spin_states = [
+            [-1, -1, -1],
+            [1, -1, -1],
+            [-1, 1, -1],
+            [-1, -1, 1],
+            [1, 1, -1],
+            [1, -1, 1],
+            [-1, 1, 1],
+            [1, 1, 1],
+        ]
+        read_counts = [3, 1, 5, 2]
+
+        for (label_desc, vars) in variable_cases,
+            domain_sym in (:bool, :spin),
+            sense_sym in (:min, :max)
+
+            @testset "$(label_desc) ⋄ $(domain_sym) ⋄ $(sense_sym)" begin
+                states = domain_sym === :bool ? all_bool_states : all_spin_states
+
+                src_model = QUBOTools.Model(
+                    vars,
+                    [1, 2, 3],
+                    [0.1, -2.3, 1.0 / 7.0],
+                    [1, 1, 2],
+                    [2, 3, 3],
+                    [-3.125, 0.7, 2.2 / 3.0];
+                    scale = 2.75,
+                    offset = -0.15,
+                    sense = sense_sym,
+                    domain = domain_sym,
+                    metadata = Dict{String,Any}(
+                        "id" => 42,
+                        "description" => "portable-interchange",
+                        "subproblem" => label_desc,
+                    ),
+                )
+
+                # Attach 4 distinct samples (m = 4 > n = 3) with reads > 1
+                sample_states = states[1:4]
+                samples = QUBOTools.Sample{Float64,Int}[
+                    QUBOTools.Sample{Float64,Int}(
+                        ψ,
+                        QUBOTools.value(src_model, ψ),
+                        r,
+                    ) for (ψ, r) in zip(sample_states, read_counts)
+                ]
+                sol = QUBOTools.SampleSet{Float64,Int}(
+                    samples;
+                    metadata = Dict{String,Any}(
+                        "origin" => "decomposition-worker",
+                        "reads_total" => sum(read_counts),
+                    ),
+                    sense = sense_sym,
+                    domain = domain_sym,
+                )
+                QUBOTools.attach!(src_model, sol)
+
+                @test QUBOTools.variables(src_model) == vars
+                @test QUBOTools.reads(QUBOTools.solution(src_model)) == sum(read_counts)
+                @test QUBOTools.verify_objective_values(
+                    src_model,
+                    QUBOTools.solution(src_model);
+                    atol = 1e-12,
+                )
+
+                # 1. QUBin (.qb): full lossless model + SampleSet round-trip
+                _with_temp_path("$(domain_sym).qb") do qb_path
+                    QUBOTools.write_model(qb_path, src_model)
+                    qb_model = QUBOTools.read_model(qb_path)
+
+                    @test QUBOTools.variables(qb_model) == vars
+                    @test _compare_models(
+                        src_model,
+                        qb_model;
+                        compare_solutions = true,
+                        compare_solution_metadata = true,
+                        atol = 1e-12,
+                    )
+                    @test QUBOTools.reads(QUBOTools.solution(qb_model)) == sum(read_counts)
+                    @test QUBOTools.verify_objective_values(
+                        qb_model,
+                        QUBOTools.solution(qb_model);
+                        atol = 1e-12,
+                    )
+
+                    for ψ in states
+                        assignment_dict = Dict(vars[k] => ψ[k] for k in eachindex(vars))
+                        @test QUBOTools.value(qb_model, ψ) == QUBOTools.value(src_model, ψ)
+                        @test QUBOTools.objective_breakdown(qb_model, assignment_dict).offset_adjusted_value ==
+                              QUBOTools.objective_breakdown(src_model, assignment_dict).offset_adjusted_value
+                    end
+                end
+
+                # 2. BQPJSON (.json): JSON carrier + explicit map_variables (and sense cast for :max)
+                _with_temp_path("$(domain_sym).json") do json_path
+                    QUBOTools.write_model(json_path, src_model)
+                    raw_json_model = QUBOTools.read_model(json_path)
+
+                    @test QUBOTools.sense(raw_json_model) === QUBOTools.Min
+                    @test QUBOTools.domain(raw_json_model) === QUBOTools.domain(domain_sym)
+                    @test QUBOTools.reads(QUBOTools.solution(raw_json_model)) == sum(read_counts)
+                    @test QUBOTools.verify_objective_values(
+                        raw_json_model,
+                        QUBOTools.solution(raw_json_model);
+                        atol = 1e-12,
+                    )
+
+                    mapped_json_model = QUBOTools.map_variables(vars, raw_json_model)
+                    json_model = if sense_sym === :max
+                        QUBOTools.cast((QUBOTools.Min => QUBOTools.Max), mapped_json_model)
+                    else
+                        mapped_json_model
+                    end
+
+                    @test QUBOTools.variables(json_model) == vars
+                    @test _compare_models(
+                        src_model,
+                        json_model;
+                        compare_solutions = true,
+                        compare_solution_metadata = false,
+                        atol = 1e-12,
+                    )
+                    @test QUBOTools.reads(QUBOTools.solution(json_model)) == sum(read_counts)
+                    @test QUBOTools.verify_objective_values(
+                        json_model,
+                        QUBOTools.solution(json_model);
+                        atol = 1e-12,
+                    )
+
+                    for ψ in states
+                        assignment_dict = Dict(vars[k] => ψ[k] for k in eachindex(vars))
+                        @test QUBOTools.value(json_model, ψ) ≈ QUBOTools.value(src_model, ψ) atol = 1e-12
+                        @test QUBOTools.objective_breakdown(json_model, assignment_dict).offset_adjusted_value ≈
+                              QUBOTools.objective_breakdown(src_model, assignment_dict).offset_adjusted_value atol = 1e-12
+                    end
+                end
+
+                # 3. Sample table (.csv): standalone SampleSet distribution carrier
+                _with_temp_path("samples.csv") do csv_path
+                    QUBOTools.write_samples(csv_path, src_model)
+                    csv_sol = QUBOTools.read_samples(csv_path)
+
+                    @test _compare_solutions(
+                        QUBOTools.solution(src_model),
+                        csv_sol;
+                        compare_metadata = true,
+                        atol = 1e-12,
+                    )
+                    @test QUBOTools.reads(csv_sol) == sum(read_counts)
+                    @test QUBOTools.metadata(csv_sol)["origin"] == "decomposition-worker"
+                    @test QUBOTools.verify_objective_values(src_model, csv_sol; atol = 1e-12)
+                end
+            end
+        end
+
+        @testset "map_variables uniqueness validation" begin
+            model = QUBOTools.Model(Dict(1 => 1.0, 2 => 2.0), Dict{Tuple{Int,Int},Float64}())
+            @test_throws ArgumentError QUBOTools.map_variables(["dup", "dup"], model)
+        end
+
+        @testset "numeric precision and conversion boundaries" begin
+            # 1. Exact 64-bit integer beyond Float64 precision (2^53 + 1):
+            #    preserved exactly in QUBin, rounded to Float64 in BQPJSON
+            c_int = (Int64(1) << 53) + Int64(1)
+            int_model = QUBOTools.Model{Int,Int64,Int}(
+                [10, 2],
+                [1, 2],
+                Int64[c_int, -3],
+                [1],
+                [2],
+                Int64[5];
+                scale = Int64(1),
+                offset = Int64(0),
+                sense = :min,
+                domain = :bool,
+                solution = QUBOTools.SampleSet{Int64,Int}(
+                    [QUBOTools.Sample{Int64,Int}([1, 0], c_int, 2)];
+                    sense = :min,
+                    domain = :bool,
+                ),
+            )
+
+            _with_temp_path("int64.qb") do qb_path
+                QUBOTools.write_model(qb_path, int_model)
+                qb_dst = QUBOTools.read_model(qb_path)
+
+                @test qb_dst isa QUBOTools.Model{Int,Int64,Int}
+                @test QUBOTools.variables(qb_dst) == [10, 2]
+                @test QUBOTools.value(qb_dst, [1, 0]) === c_int
+                @test QUBOTools.value(qb_dst, 1) === c_int
+                @test QUBOTools.reads(qb_dst, 1) == 2
+            end
+
+            _with_temp_path("int64.json") do json_path
+                QUBOTools.write_model(json_path, int_model)
+                json_dst = QUBOTools.read_model(json_path)
+
+                @test json_dst isa QUBOTools.Model{Int,Float64,Int}
+                @test QUBOTools.value(json_dst, [1, 0]) === Float64(c_int)
+                @test QUBOTools.value(json_dst, 1) === Float64(c_int)
+                @test Int64(QUBOTools.value(json_dst, 1)) == c_int - 1
+            end
+
+            # 2. Float32 model and sample values:
+            #    preserved as Float32 in QUBin, converted to Float64 in CSV and BQPJSON
+            f32_val = Float32(0.1)
+            f32_model = QUBOTools.Model{String,Float32,Int}(
+                ["x_2", "x_1"],
+                [1],
+                Float32[f32_val],
+                Int[],
+                Int[],
+                Float32[];
+                scale = Float32(1),
+                offset = Float32(0),
+                sense = :min,
+                domain = :bool,
+                solution = QUBOTools.SampleSet{Float32,Int}(
+                    [QUBOTools.Sample{Float32,Int}([1, 0], f32_val, 3)];
+                    sense = :min,
+                    domain = :bool,
+                ),
+            )
+
+            _with_temp_path("f32.qb") do qb_path
+                QUBOTools.write_model(qb_path, f32_model)
+                qb_dst = QUBOTools.read_model(qb_path)
+
+                @test qb_dst isa QUBOTools.Model{String,Float32,Int}
+                @test QUBOTools.value(qb_dst, 1) === f32_val
+            end
+
+            _with_temp_path("f32.csv") do csv_path
+                QUBOTools.write_samples(csv_path, QUBOTools.solution(f32_model))
+                csv_dst = QUBOTools.read_samples(csv_path)
+
+                @test csv_dst isa QUBOTools.SampleSet{Float64,Int}
+                @test QUBOTools.value(csv_dst, 1) === parse(Float64, string(f32_val))
+                @test QUBOTools.reads(csv_dst, 1) == 3
+            end
+
+            # 3. BigFloat sample and model boundaries:
+            #    converted to Float64 in CSV, rejected by HDF5 dataset creation in QUBin
+            big_val = big"1.000000000000000000000000000001"
+            big_sol = QUBOTools.SampleSet{BigFloat,Int}(
+                [QUBOTools.Sample{BigFloat,Int}([1, 0], big_val, 2)];
+                sense = :min,
+                domain = :bool,
+            )
+
+            _with_temp_path("big.csv") do csv_path
+                QUBOTools.write_samples(csv_path, big_sol)
+                csv_dst = QUBOTools.read_samples(csv_path)
+
+                @test csv_dst isa QUBOTools.SampleSet{Float64,Int}
+                @test QUBOTools.value(csv_dst, 1) === 1.0
+                @test QUBOTools.reads(csv_dst, 1) == 2
+            end
+
+            big_model = QUBOTools.Model{Int,BigFloat,Int}(
+                [1, 2],
+                [1],
+                BigFloat[big_val],
+                Int[],
+                Int[],
+                BigFloat[];
+                scale = BigFloat(1),
+                offset = BigFloat(0),
+            )
+
+            _with_temp_path("big.qb") do qb_path
+                @test_throws Union{MethodError,ErrorException} QUBOTools.write_model(
+                    qb_path,
+                    big_model,
+                )
+            end
+        end
+    end
+
+    return nothing
+end
+
 function test_formats()
     @testset "→ Formats" verbose = true begin
         test_format_hints()
@@ -720,6 +1060,7 @@ function test_formats()
         test_qubist_format()
         test_minizinc_format()
         test_rudy_format()
+        test_portable_interchange()
     end
 
     return nothing

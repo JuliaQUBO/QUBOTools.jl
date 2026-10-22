@@ -33,8 +33,22 @@ function write_solution(
     return nothing
 end
 
-function write_solution(fp::HDF5.File, sol::S, fmt::Format{:qubin}) where {S<:AbstractSolution}
+function write_solution(
+    fp::P,
+    sol::S,
+    fmt::Format{:qubin},
+) where {P<:Union{HDF5.File,HDF5.Group},S<:AbstractSolution}
     _write_solution(fp, sol, fmt)
+
+    return nothing
+end
+
+function write_solution(
+    fp::P,
+    model::M,
+    fmt::Format{:qubin},
+) where {P<:Union{HDF5.File,HDF5.Group},M<:AbstractModel}
+    _write_solution(fp, model, fmt)
 
     return nothing
 end
@@ -114,9 +128,15 @@ function _write_solution(
     model::M,
     fmt::Format{:qubin},
 ) where {P<:Union{HDF5.File,HDF5.Group},V,T,U,M<:AbstractModel{V,T,U}}
-    HDF5.create_group(fp, "solution")
+    return _write_solution(fp, QUBOTools.solution(model), fmt)
+end
 
-    sol = QUBOTools.solution(model)
+function _write_solution(
+    fp::P,
+    sol::S,
+    fmt::Format{:qubin},
+) where {P<:Union{HDF5.File,HDF5.Group},T,U,S<:AbstractSolution{T,U}}
+    HDF5.create_group(fp, "solution")
 
     _write_solution_data(fp, sol, fmt)
 

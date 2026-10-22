@@ -518,22 +518,26 @@ function Base.copy!(target::Model{V}, source::AbstractModel{V}) where {V}
 end
 
 function cast(route::Route{D}, model::Model{V,T,U}) where {D<:Domain,V,T,U}
-    return Model{V,T,U}(
-        cast(route, form(model)),
-        model.variable_map;
-        metadata = deepcopy(metadata(model)),
-        solution = cast(route, solution(model)),
-        start    = start(model; domain = last(route)),
+    new_form = cast(route, form(model))
+
+    return Model{V,T,U,typeof(new_form)}(
+        copy(model.variable_map),
+        new_form,
+        deepcopy(metadata(model)),
+        cast(route, solution(model)),
+        start(model; domain = last(route)),
     )
 end
 
 function cast(route::Route{S}, model::Model{V,T,U}) where {S<:Sense,V,T,U}
-    return Model{V,T,U}(
-        cast(route, form(model)),
-        model.variable_map;
-        metadata = deepcopy(metadata(model)),
-        solution = cast(route, solution(model)),
-        start    = deepcopy(start(model)),
+    new_form = cast(route, form(model))
+
+    return Model{V,T,U,typeof(new_form)}(
+        copy(model.variable_map),
+        new_form,
+        deepcopy(metadata(model)),
+        cast(route, solution(model)),
+        deepcopy(start(model)),
     )
 end
 
@@ -606,10 +610,15 @@ function Model{V,T,U}(f::F; kws...) where {V,T,U,F<:PBO.AbstractFunction{V,T}}
 end
 
 function map_variables(::Type{V}, vm::Function, model::Model{_,T,U,F}) where {_,V,T,U,F}
-    new_model = copy(model)::Model{V,T,U,F}
-    new_model.variable_map = VariableMap{V}(Dict{Int,V}(i => vm(i)::V for i in indices(model)))
+    variable_map = VariableMap{V}(Dict{Int,V}(i => vm(i)::V for i in indices(model)))
 
-    return new_model
+    return Model{V,T,U,F}(
+        variable_map,
+        copy(model.form),
+        deepcopy(model.metadata),
+        copy(model.solution),
+        copy(model.start),
+    )
 end
 
 map_variables(vm::Dict{Int,V}, model::AbstractModel) where {V}       = map_variables(V, i -> vm[i], model)

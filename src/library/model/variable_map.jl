@@ -26,6 +26,10 @@ function VariableMap{V}(vm::Dict{Int,V}) where {V}
             error("Invalid variable mapping: Mappings should contain values for all indices")
         else
             let v = vm[i]
+                if haskey(map, v)
+                    throw(ArgumentError("variables must be unique; duplicate variable '$v'"))
+                end
+
                 map[v] = i
                 inv[i] = v
             end
