@@ -69,6 +69,7 @@ export read_samples, sampleset_table, write_samples
 export ObjectiveBreakdown, ObjectiveMismatch
 export annotate_objectives!, objective_breakdown
 export objective_value_mismatches, verify_objective_values
+export TimeToTargetEstimate, time_to_target_estimate
 
 # Interface definitions
 include("interface/form.jl")
