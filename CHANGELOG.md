@@ -1,5 +1,32 @@
 # QUBOTools.jl Changelog
 
+## v0.16.3 (2026-10-22)
+
+### Added
+
+- Add trial-unit and endpoint-aware time-to-target estimation via
+  `time_to_target_estimate` and `TimeToTargetEstimate`, and extend
+  `time_to_target` with the `trial_unit` keyword (#144, #149).
+- Add consolidated JSON run-report exporters `report` and `write_report`
+  combining model statistics, solution/energy summaries, time-to-target
+  metrics, and optional reformulation penalty/feasibility metadata (#128, #150).
+
+### Fixed
+
+- Accept schema-valid unsolved BQPJSON v1.0.0 files that omit `solutions`, and
+  filter non-numeric metadata keys from `metadata.description` during BQPJSON
+  export (#142, #143, #146).
+- Reject BQPJSON `solutions` entries whose assignments violate the declared
+  variable domain or whose variable IDs do not match `variable_ids` (#145, #147).
+
+### Documentation & Testing
+
+- Add portable BQPJSON and QUBin model/sample interchange regression tests and
+  document format persistence guarantees for decomposition consumers (#135, #148).
+- Standardize Zenodo citation metadata (`CITATION.cff`, `CITATION.bib`,
+  `README.md`, `docs/src/index.md`) under concept DOI `10.5281/zenodo.7076341`
+  and add CI/release verification (#127, #151).
+
 ## v0.16.2 (2026-10-07)
 
 ### Fixed
