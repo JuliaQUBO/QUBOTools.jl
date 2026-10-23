@@ -25,8 +25,8 @@ abstract: >-
 repository-code: "https://github.com/JuliaQUBO/QUBOTools.jl"
 url: "https://juliaqubo.github.io/QUBOTools.jl/"
 license: MPL-2.0
-version: "0.16.2"
-date-released: 2026-10-07
+version: "0.16.3"
+date-released: 2026-10-22
 doi: "10.5281/zenodo.7076341"
 identifiers:
   - type: doi
