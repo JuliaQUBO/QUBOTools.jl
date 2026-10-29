@@ -163,6 +163,19 @@ function test_foreign_pkg(
         deps[proj.dependencies[pkg_spec.name]]
     end
 
+    if !isnothing(pkg_info.source) && isdir(pkg_info.source)
+        for (root, dirs, files) in walkdir(pkg_info.source)
+            for d in dirs
+                p = joinpath(root, d)
+                islink(p) || chmod(p, filemode(p) | 0o200)
+            end
+            for f in files
+                p = joinpath(root, f)
+                islink(p) || chmod(p, filemode(p) | 0o200)
+            end
+        end
+    end
+
     @testset "⋆ $(pkg_info.name)@$(pkg_info.version)" begin
         try
             Pkg.test(pkg_info.name; test_kws...)
