@@ -841,3 +841,314 @@ function gauge_invariant_qubo(
         deepcopy(model.start),
     )
 end
+
+function is_integer_scaled(Φ::AbstractForm{T})::Bool where {T}
+    (isfinite(offset(Φ)) && isinteger(offset(Φ))) || return false
+    if Φ isa Form
+        lf = linear_form(Φ)
+        if lf isa DenseLinearForm
+            for v in data(lf)
+                (isfinite(v) && isinteger(v)) || return false
+            end
+        else
+            for (_, v) in linear_terms(Φ)
+                (isfinite(v) && isinteger(v)) || return false
+            end
+        end
+        qf = quadratic_form(Φ)
+        if qf isa DenseQuadraticForm
+            u = data(qf)
+            n = size(u, 1)
+            for j = 1:n, i = 1:(j-1)
+                v = u[i, j]
+                (isfinite(v) && isinteger(v)) || return false
+            end
+        else
+            for (_, v) in quadratic_terms(Φ)
+                (isfinite(v) && isinteger(v)) || return false
+            end
+        end
+        return true
+    else
+        for (_, v) in linear_terms(Φ)
+            (isfinite(v) && isinteger(v)) || return false
+        end
+        for (_, v) in quadratic_terms(Φ)
+            (isfinite(v) && isinteger(v)) || return false
+        end
+        return true
+    end
+end
+
+is_integer_scaled(model::AbstractModel)::Bool = is_integer_scaled(form(model))
+
+function _scale_linear_form(
+    n::Int,
+    lf::DenseLinearForm{T},
+    fn::F,
+) where {T,F<:Function}
+    v_orig = data(lf)
+    v_new = Vector{T}(undef, length(v_orig))
+    for i in eachindex(v_orig)
+        val = fn(v_orig[i])::T
+        v_new[i] = iszero(val) ? zero(T) : val
+    end
+    return DenseLinearForm{T}(v_new)
+end
+
+function _scale_linear_form(
+    n::Int,
+    lf::SparseLinearForm{T},
+    fn::F,
+) where {T,F<:Function}
+    s_orig = data(lf)
+    nzind = copy(s_orig.nzind)
+    nzval = T[let val = fn(v)::T; iszero(val) ? zero(T) : val; end for v in s_orig.nzval]
+    s_new = SparseVector(n, nzind, nzval)
+    dropzeros!(s_new)
+    return SparseLinearForm{T}(s_new)
+end
+
+function _scale_linear_form(
+    ::Int,
+    lf::DictLinearForm{T},
+    fn::F,
+) where {T,F<:Function}
+    d_orig = data(lf)
+    d_new = sizehint!(Dict{Int,T}(), length(d_orig))
+    for (i, v) in d_orig
+        val = fn(v)::T
+        !iszero(val) && (d_new[i] = val)
+    end
+    return DictLinearForm{T}(d_new)
+end
+
+function _scale_linear_form(
+    n::Int,
+    lf::LF,
+    fn::F,
+) where {T,LF<:AbstractLinearForm{T},F<:Function}
+    l_new = LF(n, linear_size(lf))
+    for (i, v) in linear_terms(lf)
+        val = fn(v)::T
+        !iszero(val) && (l_new[i] = val)
+    end
+    return l_new
+end
+
+function _scale_quadratic_form(
+    n::Int,
+    qf::DenseQuadraticForm{T},
+    fn::F,
+) where {T,F<:Function}
+    u_orig = data(qf)
+    m_new = zeros(T, n, n)
+    for j = 1:n, i = 1:(j-1)
+        v = u_orig[i, j]
+        if !iszero(v)
+            val = fn(v)::T
+            m_new[i, j] = iszero(val) ? zero(T) : val
+        end
+    end
+    return DenseQuadraticForm{T}(UpperTriangular{T,Matrix{T}}(m_new))
+end
+
+function _scale_quadratic_form(
+    n::Int,
+    qf::SparseQuadraticForm{T},
+    fn::F,
+) where {T,F<:Function}
+    s_orig = data(qf)
+    colptr = copy(s_orig.colptr)
+    rowval = copy(s_orig.rowval)
+    nzval = T[let val = fn(v)::T; iszero(val) ? zero(T) : val; end for v in s_orig.nzval]
+    s_new = SparseMatrixCSC(n, n, colptr, rowval, nzval)
+    dropzeros!(s_new)
+    return SparseQuadraticForm{T}(s_new)
+end
+
+function _scale_quadratic_form(
+    ::Int,
+    qf::DictQuadraticForm{T},
+    fn::F,
+) where {T,F<:Function}
+    d_orig = data(qf)
+    d_new = sizehint!(Dict{Tuple{Int,Int},T}(), length(d_orig))
+    for (ij, v) in d_orig
+        val = fn(v)::T
+        !iszero(val) && (d_new[ij] = val)
+    end
+    return DictQuadraticForm{T}(d_new)
+end
+
+function _scale_quadratic_form(
+    n::Int,
+    qf::QF,
+    fn::F,
+) where {T,QF<:AbstractQuadraticForm{T},F<:Function}
+    q_new = QF(n, quadratic_size(qf))
+    for ((i, j), v) in quadratic_terms(qf)
+        val = fn(v)::T
+        !iszero(val) && (q_new[i, j] = val)
+    end
+    return q_new
+end
+
+function _check_integerize_kwargs(max_decimals::Integer, atol::Real)
+    (!(max_decimals isa Bool) && max_decimals >= 0) ||
+        throw(ArgumentError("max_decimals must be a nonnegative integer; got $max_decimals"))
+    (!(atol isa Bool) && isfinite(atol) && atol >= 0) ||
+        throw(ArgumentError("atol must be a finite nonnegative real; got $atol"))
+    return nothing
+end
+
+function integerize_scale(
+    Φ::Form{T,LF,QF};
+    max_decimals::Integer = 9,
+    atol::Real = 1e-12,
+) where {T,LF<:AbstractLinearForm{T},QF<:AbstractQuadraticForm{T}}
+    _check_integerize_kwargs(max_decimals, atol)
+    n = dimension(Φ)
+    α = scale(Φ)
+    β = offset(Φ)
+
+    if T <: Integer || is_integer_scaled(Φ) || !isfinite(α) || iszero(α) || !isfinite(β)
+        return copy(Φ)
+    end
+
+    if T <: Rational
+        den_lcm = BigInt(denominator(β))
+        for (_, v) in linear_terms(Φ)
+            isfinite(v) || return copy(Φ)
+            den_lcm = lcm(den_lcm, BigInt(denominator(v)))
+        end
+        for (_, v) in quadratic_terms(Φ)
+            isfinite(v) || return copy(Φ)
+            den_lcm = lcm(den_lcm, BigInt(denominator(v)))
+        end
+        den_lcm <= 1 && return copy(Φ)
+        try
+            m_rat = convert(T, den_lcm)
+            α_new = α / m_rat
+            β_new = β * m_rat
+            l_new = _scale_linear_form(n, linear_form(Φ), v -> v * m_rat)
+            q_new = _scale_quadratic_form(n, quadratic_form(Φ), v -> v * m_rat)
+            return Form{T,LF,QF}(n, l_new, q_new, α_new, β_new; sense = sense(Φ), domain = domain(Φ))
+        catch err
+            err isa Union{InexactError,OverflowError} && return copy(Φ)
+            rethrow()
+        end
+    elseif T <: AbstractFloat
+        vals = T[]
+        !iszero(β) && push!(vals, β)
+        for (_, v) in linear_terms(Φ)
+            isfinite(v) || return copy(Φ)
+            !iszero(v) && push!(vals, v)
+        end
+        for (_, v) in quadratic_terms(Φ)
+            isfinite(v) || return copy(Φ)
+            !iszero(v) && push!(vals, v)
+        end
+        isempty(vals) && return copy(Φ)
+
+        max_d = min(Int(max_decimals), 300)
+        work_prec = precision(BigFloat)
+        if T === BigFloat
+            work_prec = max(work_prec, precision(α), precision(β))
+            for v in vals
+                work_prec = max(work_prec, precision(v))
+            end
+        end
+
+        return setprecision(BigFloat, work_prec) do
+            W = T === BigFloat ? BigFloat : Float64
+            max_int = T === BigFloat ? ldexp(BigFloat(1), work_prec) : Float64(maxintfloat(T))
+            atol_w = convert(W, atol)
+            half_w = convert(W, 0.5)
+
+            candidates = Tuple{W,Int,Int}[]
+            for a = 0:max_d, b = 0:max_d
+                (a == 0 && b == 0) && continue
+                m = (W(2)^a) * (W(5)^b)
+                (isfinite(m) && m <= max_int) && push!(candidates, (m, a, b))
+            end
+            sort!(candidates; by = x -> (x[1], x[3], x[2]))
+
+            for (m, a, b) in candidates
+                m_t = convert(T, m)
+                (!isfinite(m_t) || iszero(m_t)) && continue
+                α_new = α / m_t
+                (!isfinite(α_new) || iszero(α_new) || (α_new isa Base.IEEEFloat && issubnormal(α_new))) && continue
+
+                ok = true
+                has_odd = false
+                has_non5 = false
+                for v in vals
+                    y = convert(W, v) * m
+                    if !isfinite(y)
+                        ok = false
+                        break
+                    end
+                    r = round(y)
+                    if iszero(r) || abs(r) > max_int
+                        ok = false
+                        break
+                    end
+                    if b == 0
+                        if r != y
+                            ok = false
+                            break
+                        end
+                    else
+                        err = abs(y - r)
+                        if !(err < half_w && err <= atol_w * abs(r))
+                            ok = false
+                            break
+                        end
+                    end
+                    has_odd |= !iszero(rem(r, 2))
+                    has_non5 |= !iszero(rem(r, 5))
+                end
+
+                if ok && (a == 0 || has_odd) && (b == 0 || has_non5)
+                    scale_fn = v -> begin
+                        iszero(v) && return zero(T)
+                        r = round(convert(W, v) * m)
+                        iszero(r) ? zero(T) : convert(T, r)
+                    end
+                    l_new = _scale_linear_form(n, linear_form(Φ), scale_fn)
+                    q_new = _scale_quadratic_form(n, quadratic_form(Φ), scale_fn)
+                    β_new = scale_fn(β)
+                    return Form{T,LF,QF}(n, l_new, q_new, α_new, β_new; sense = sense(Φ), domain = domain(Φ))
+                end
+            end
+
+            return copy(Φ)
+        end
+    else
+        return copy(Φ)
+    end
+end
+
+function integerize_scale(
+    Φ::AbstractForm{T};
+    max_decimals::Integer = 9,
+    atol::Real = 1e-12,
+) where {T}
+    return integerize_scale(SparseForm{T}(Φ); max_decimals, atol)
+end
+
+function integerize_scale(
+    model::Model{V,T,U};
+    max_decimals::Integer = 9,
+    atol::Real = 1e-12,
+) where {V,T,U}
+    new_form = integerize_scale(form(model); max_decimals, atol)
+    return Model{V,T,U,typeof(new_form)}(
+        copy(model.variable_map),
+        new_form,
+        deepcopy(metadata(model)),
+        deepcopy(solution(model)),
+        deepcopy(model.start),
+    )
+end

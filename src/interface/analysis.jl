@@ -124,6 +124,37 @@ because the objective function is modified when non-zero local fields are remove
 function gauge_invariant_qubo end
 
 @doc raw"""
+    is_integer_scaled(model_or_form)::Bool
+
+Return `true` when all stored linear coefficients, quadratic coefficients, and
+`offset(model_or_form)` are finite integers (`isfinite(v) && isinteger(v)`).
+"""
+function is_integer_scaled end
+
+@doc raw"""
+    integerize_scale(model_or_form; max_decimals::Integer = 9, atol::Real = 1e-12)
+
+Return an owned copy of `model_or_form` in which the minimal irreducible
+multiplier ``m = 2^a 5^b`` (``0 \le a, b \le \mathrm{max\_decimals}`` for
+floating-point coefficients, or the least common denominator for `Rational`
+coefficients) is factored into `scale(model_or_form) / m` so that all stored
+linear coefficients, quadratic coefficients, and `offset` become exact integers.
+
+For floating-point forms:
+- Pure dyadic multipliers (``b = 0, m = 2^a``) require exact binary integer
+  products (`v * m == round(v * m)`), preserving sub-ulp near-tie perturbations.
+- Decimal multipliers (``b \ge 1``) accept non-zero products within relative tolerance
+  `atol * abs(round(v * m))` (and `< 0.5`) provided at least one rounded integer numerator
+  is not divisible by ``5`` (and at least one is odd when ``a \ge 1``), eliminating
+  IEEE-754 decimal representation noise (such as `0.1 + 0.2 != 0.3` or
+  `-1.7999999999999998`) while preserving exact ``\mathbb{Z}_2`` gauge invariance.
+- If `model_or_form` is already integer-scaled, has zero/non-finite `scale`, or
+  no multiplier within `max_decimals` produces representable exact integers,
+  returns an owned copy with unchanged coefficients and `scale`.
+"""
+function integerize_scale end
+
+@doc raw"""
     field_alignment(model_or_form, state_or_sample_or_solution; atol::Real = 0.0, variables = nothing)::Float64
     field_alignment(model::AbstractModel, i::Integer; atol::Real = 0.0, variables = nothing)::Float64
     field_alignment(model::AbstractModel; atol::Real = 0.0)::Float64
