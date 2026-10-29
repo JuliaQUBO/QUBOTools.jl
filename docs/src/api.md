@@ -229,6 +229,16 @@ QUBOTools.quadratic_density
 ```
 
 ```@docs
+QUBOTools.coercive_fields
+QUBOTools.coercive_field_ratios
+QUBOTools.coercive_field_ratio
+QUBOTools.zero_field_fraction
+QUBOTools.trivial_dominance_fraction
+QUBOTools.is_gauge_invariant
+QUBOTools.gauge_invariant_qubo
+```
+
+```@docs
 QUBOTools.topology
 QUBOTools.adjacency
 QUBOTools.geometry
@@ -292,6 +302,7 @@ QUBOTools.ttt
 
 ```@docs
 QUBOTools.hamming_distance
+QUBOTools.field_alignment
 ```
 
 ### Run Reports

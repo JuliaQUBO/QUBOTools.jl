@@ -330,9 +330,11 @@ function test_bqpjson_format()
 
             @test synthesis["model"] == "Sherrington-Kirkpatrick"
             @test synthesis["parameters"] == Dict{String,Any}(
-                "n"     => n,
-                "mu"    => μ,
-                "sigma" => σ,
+                "n"               => n,
+                "mu"              => μ,
+                "sigma"           => σ,
+                "normalize"       => false,
+                "gauge_invariant" => true,
             )
 
             _with_temp_path("sk.bool.json") do temp_path

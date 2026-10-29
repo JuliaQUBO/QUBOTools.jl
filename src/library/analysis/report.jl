@@ -163,6 +163,20 @@ function _coefficient_stats(values::AbstractVector{<:Real})
     )
 end
 
+function _report_coercive_fields_section(model::AbstractModel)
+    cf_vals = coercive_fields(model)
+    cf_stats = _coefficient_stats(cf_vals)
+    sec = copy(cf_stats)
+    sec["statistics"] = copy(cf_stats)
+    sec["nonzero_count"] = count(!iszero, cf_vals)
+    sec["is_gauge_invariant"] = is_gauge_invariant(model)
+    sec["zero_field_fraction"] = _json_finite(zero_field_fraction(model))
+    sec["trivial_dominance_fraction"] = _json_finite(trivial_dominance_fraction(model))
+    sec["mean_l1_ratio"] = _json_finite(coercive_field_ratio(model; norm = 1))
+    sec["mean_l2_ratio"] = _json_finite(coercive_field_ratio(model; norm = 2))
+    return sec
+end
+
 function _report_model_section(model::AbstractModel{V,T,U}) where {V,T,U}
     lin_vals = T[v for (_, v) in linear_terms(model) if !iszero(v)]
     quad_vals = T[v for (_, v) in quadratic_terms(model) if !iszero(v)]
@@ -191,6 +205,7 @@ function _report_model_section(model::AbstractModel{V,T,U}) where {V,T,U}
             "quadratic" => _coefficient_stats(quad_vals),
             "all" => _coefficient_stats(all_vals),
         ),
+        "coercive_fields" => _report_coercive_fields_section(model),
         "metadata" => _json_sanitize(metadata(model)),
     )
 end
@@ -249,6 +264,7 @@ function _report_best_sample(
 
     best = first(sol)
     bd = _objective_breakdown(model, sol, best)
+    fa = field_alignment(model, best; domain = domain(sol))
 
     return Dict{String,Any}(
         "state" => collect(Int, state(best)),
@@ -256,6 +272,7 @@ function _report_best_sample(
         "value" => _json_finite(value(best)),
         "reads" => reads(best),
         "probability" => _json_finite(_samples_probability(reads(best), reads(sol))),
+        "field_alignment" => _json_finite(fa),
         "objective_breakdown" => _serialize_objective_breakdown(bd),
     )
 end
