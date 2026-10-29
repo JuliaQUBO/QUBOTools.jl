@@ -236,6 +236,8 @@ QUBOTools.zero_field_fraction
 QUBOTools.trivial_dominance_fraction
 QUBOTools.is_gauge_invariant
 QUBOTools.gauge_invariant_qubo
+QUBOTools.is_integer_scaled
+QUBOTools.integerize_scale
 ```
 
 ```@docs

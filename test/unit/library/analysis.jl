@@ -820,6 +820,160 @@ function test_model_metrics()
             @test_throws ArgumentError QUBOTools.zero_field_fraction(m_bool; atol = -1.0)
             @test_throws ArgumentError QUBOTools.trivial_dominance_fraction(m_bool; atol = -1.0)
         end
+
+        @testset "Integerize Scale" begin
+            # 1. Already integer-scaled Model & Forms are returned as owned copies with unchanged scale
+            m_int_f64 = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:3),
+                Dict(1 => 2.0, 2 => -3.0),
+                Dict((1, 2) => 4.0, (2, 3) => -1.0);
+                scale = 2.5,
+                offset = -5.0,
+            )
+            @test QUBOTools.is_integer_scaled(m_int_f64)
+            m_int_copy = QUBOTools.integerize_scale(m_int_f64)
+            @test QUBOTools.is_integer_scaled(m_int_copy)
+            @test QUBOTools.scale(m_int_copy) == 2.5
+            @test QUBOTools.offset(m_int_copy) == -5.0
+            @test Dict(QUBOTools.linear_terms(m_int_copy)) == Dict(QUBOTools.linear_terms(m_int_f64))
+            @test Dict(QUBOTools.quadratic_terms(m_int_copy)) == Dict(QUBOTools.quadratic_terms(m_int_f64))
+
+            # 2. Dyadic scaling (m = 4) across SparseForm, DenseForm, DictForm, and Model
+            m_dyadic = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:3),
+                Dict(1 => 0.25, 2 => -0.5, 3 => 1.0),
+                Dict((1, 2) => -0.75, (2, 3) => 0.5);
+                scale = 2.0,
+                offset = 0.25,
+            )
+            @test !QUBOTools.is_integer_scaled(m_dyadic)
+            for spec in (:sparse, :dense, :dict)
+                f = QUBOTools.form(m_dyadic, spec)
+                @test !QUBOTools.is_integer_scaled(f)
+                f_int = QUBOTools.integerize_scale(f)
+                @test typeof(f_int) === typeof(f)
+                @test QUBOTools.is_integer_scaled(f_int)
+                @test QUBOTools.scale(f_int) == 0.5
+                @test QUBOTools.offset(f_int) == 1.0
+                for mask = 0:7
+                    x = [((mask >> (k - 1)) & 1) for k = 1:3]
+                    @test QUBOTools.value(x, f_int) == QUBOTools.value(x, f)
+                end
+            end
+            m_dyadic_int = QUBOTools.integerize_scale(m_dyadic)
+            @test QUBOTools.is_integer_scaled(m_dyadic_int)
+            @test QUBOTools.scale(m_dyadic_int) == 0.5
+            @test QUBOTools.offset(m_dyadic_int) == 1.0
+
+            # 3. Decimal Float64 noise (e.g. chimera_k64_01 style -1.7999999999999998 = -0.9 - 0.9)
+            # restores exact integer coefficients and exact Z2 gauge invariance!
+            m_dec = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:3),
+                Dict(1 => 0.9, 2 => -1.7999999999999998, 3 => 0.9),
+                Dict((1, 2) => 1.8, (2, 3) => 1.8);
+                scale = 1.0,
+                offset = -0.9,
+            )
+            # Note: in BoolDomain, h_2 = c_2/2 + (q_{12} + q_{23})/4:
+            # With c_1 = -0.9, c_2 = -1.7999999999999998, c_3 = -0.9 and q_{12} = 1.8, q_{23} = 1.8:
+            m_chimera = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:3),
+                Dict(1 => -0.9, 2 => -1.7999999999999998, 3 => -0.9),
+                Dict((1, 2) => 1.8, (2, 3) => 1.8);
+                scale = 1.0,
+                offset = 0.0,
+            )
+            @test !QUBOTools.is_integer_scaled(m_chimera)
+            @test !QUBOTools.is_gauge_invariant(m_chimera)
+            m_chimera_int = QUBOTools.integerize_scale(m_chimera)
+            @test QUBOTools.is_integer_scaled(m_chimera_int)
+            @test QUBOTools.scale(m_chimera_int) == 0.1
+            @test Dict(QUBOTools.linear_terms(m_chimera_int)) == Dict(1 => -9.0, 2 => -18.0, 3 => -9.0)
+            @test Dict(QUBOTools.quadratic_terms(m_chimera_int)) == Dict((1, 2) => 18.0, (2, 3) => 18.0)
+            @test QUBOTools.is_gauge_invariant(m_chimera_int)
+            @test QUBOTools.zero_field_fraction(m_chimera_int) == 1.0
+
+            # 4. Sub-ulp near-tie perturbations on dyadic values must NOT be rounded away
+            m_near_tie = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:3),
+                Dict(1 => -0.75 + 2.0^-53, 2 => -prevfloat(0.5)),
+                Dict((1, 2) => 1.0, (1, 3) => 0.5),
+            )
+            @test !QUBOTools.is_integer_scaled(m_near_tie)
+            m_near_tie_out = QUBOTools.integerize_scale(m_near_tie)
+            @test !QUBOTools.is_integer_scaled(m_near_tie_out)
+            @test QUBOTools.scale(m_near_tie_out) == 1.0
+            @test Dict(QUBOTools.linear_terms(m_near_tie_out)) == Dict(QUBOTools.linear_terms(m_near_tie))
+
+            # 5. Non-decimal / non-dyadic values (e.g. 1/3) and large atol do not corrupt or annihilate coefficients
+            m_third = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:2),
+                Dict(1 => 1.0 / 3.0, 2 => 1.0),
+                Dict((1, 2) => -2.0 / 3.0),
+            )
+            @test !QUBOTools.is_integer_scaled(QUBOTools.integerize_scale(m_third))
+            @test QUBOTools.scale(QUBOTools.integerize_scale(m_third)) == 1.0
+
+            m_tiny = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:2),
+                Dict(1 => 1e-4, 2 => 0.1),
+                Dict((1, 2) => 0.2),
+            )
+            # Even with loose atol = 0.05, m = 10 must not annihilate 1e-4 to 0; true multiplier is m = 10000
+            m_tiny_int = QUBOTools.integerize_scale(m_tiny; atol = 0.05)
+            @test QUBOTools.is_integer_scaled(m_tiny_int)
+            @test QUBOTools.scale(m_tiny_int) == 1e-4
+            @test Dict(QUBOTools.linear_terms(m_tiny_int)) == Dict(1 => 1.0, 2 => 1000.0)
+
+            # 6. Rational{Int} exact LCM denominator scaling
+            m_rat = QUBOTools.Model{Int,Rational{Int},Int}(
+                Set(1:3),
+                Dict(1 => 1 // 6, 2 => -3 // 4),
+                Dict((1, 2) => 5 // 12, (2, 3) => -1 // 3);
+                scale = 2 // 1,
+                offset = 1 // 2,
+            )
+            @test !QUBOTools.is_integer_scaled(m_rat)
+            m_rat_int = QUBOTools.integerize_scale(m_rat)
+            @test QUBOTools.is_integer_scaled(m_rat_int)
+            @test QUBOTools.scale(m_rat_int) == 1 // 6
+            @test QUBOTools.offset(m_rat_int) == 6 // 1
+            @test Dict(QUBOTools.linear_terms(m_rat_int)) == Dict(1 => 2 // 1, 2 => -9 // 1)
+            @test Dict(QUBOTools.quadratic_terms(m_rat_int)) == Dict((1, 2) => 5 // 1, (2, 3) => -4 // 1)
+
+            # 7. High-precision BigFloat inside lower ambient precision preserves precision
+            v_hi = setprecision(BigFloat, 512) do
+                BigFloat(1) / BigFloat(8) + ldexp(BigFloat(1), -200)
+            end
+            m_bf_hi = QUBOTools.Model{Int,BigFloat,Int}(
+                Set(1:2),
+                Dict(1 => v_hi),
+                Dict((1, 2) => BigFloat(1) / BigFloat(4)),
+            )
+            setprecision(BigFloat, 64) do
+                m_bf_out = QUBOTools.integerize_scale(m_bf_hi)
+                # v_hi has a 2^-200 perturbation so m <= 10^9 cannot integerize it
+                @test !QUBOTools.is_integer_scaled(m_bf_out)
+                @test QUBOTools.scale(m_bf_out) == BigFloat(1)
+            end
+
+            # 8. Zero or non-finite scale / invalid kwargs
+            m_zero_sc = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:2),
+                Dict(1 => 0.5),
+                Dict((1, 2) => 0.25);
+                scale = 0.0,
+            )
+            @test QUBOTools.scale(QUBOTools.integerize_scale(m_zero_sc)) == 0.0
+            @test !QUBOTools.is_integer_scaled(QUBOTools.integerize_scale(m_zero_sc))
+
+            @test_throws ArgumentError QUBOTools.integerize_scale(m_dyadic; max_decimals = -1)
+            @test_throws ArgumentError QUBOTools.integerize_scale(m_dyadic; max_decimals = true)
+            @test_throws ArgumentError QUBOTools.integerize_scale(m_dyadic; atol = -1e-12)
+            @test_throws ArgumentError QUBOTools.integerize_scale(m_dyadic; atol = NaN)
+            @test_throws ArgumentError QUBOTools.integerize_scale(m_dyadic; atol = Inf)
+            @test_throws ArgumentError QUBOTools.integerize_scale(m_dyadic; atol = true)
+        end
     end
 
     return nothing
