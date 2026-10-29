@@ -164,11 +164,7 @@ function test_foreign_pkg(
     end
 
     if !isnothing(pkg_info.source) && isdir(pkg_info.source)
-        for (root, dirs, files) in walkdir(pkg_info.source)
-            for d in dirs
-                p = joinpath(root, d)
-                islink(p) || chmod(p, filemode(p) | 0o200)
-            end
+        for (root, _, files) in walkdir(pkg_info.source)
             for f in files
                 p = joinpath(root, f)
                 islink(p) || chmod(p, filemode(p) | 0o200)
