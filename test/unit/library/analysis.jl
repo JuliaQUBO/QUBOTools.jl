@@ -734,6 +734,73 @@ function test_model_metrics()
                 @test !QUBOTools.is_gauge_invariant(m_hi)
             end
 
+            # Regression test for bigfloat-abs-neg-precision-truncation:
+            # 512-bit BigFloat coefficients evaluated inside a 64-bit ambient setprecision block
+            # must preserve full 512-bit precision across abs(...) and negation in
+            # trivial_dominance_fraction, coercive_field_ratios, and gauge_invariant_qubo.
+            let q12_hi = setprecision(BigFloat, 512) do
+                    -(BigFloat(4) + ldexp(BigFloat(1), -200))
+                end,
+                c1_eq = setprecision(BigFloat, 512) do
+                    BigFloat(4) + ldexp(BigFloat(1), -200)
+                end,
+                c1_strict = setprecision(BigFloat, 512) do
+                    BigFloat(4) + ldexp(BigFloat(1), -199)
+                end,
+                j12_spin_hi = setprecision(BigFloat, 512) do
+                    -(BigFloat(1) + ldexp(BigFloat(1), -200))
+                end,
+                h1_spin_hi = setprecision(BigFloat, 512) do
+                    (BigFloat(1) + ldexp(BigFloat(1), -53)) * (BigFloat(1) + ldexp(BigFloat(1), -200))
+                end
+
+                m_eq = QUBOTools.Model{Int,BigFloat,Int}(
+                    Set(1:2),
+                    Dict(1 => c1_eq, 2 => BigFloat(0)),
+                    Dict((1, 2) => q12_hi),
+                )
+                m_strict = QUBOTools.Model{Int,BigFloat,Int}(
+                    Set(1:2),
+                    Dict(1 => c1_strict, 2 => BigFloat(0)),
+                    Dict((1, 2) => q12_hi),
+                )
+                m_ratio_hi = QUBOTools.Model{Int,BigFloat,Int}(
+                    Set(1:2),
+                    Dict(1 => h1_spin_hi, 2 => BigFloat(0)),
+                    Dict((1, 2) => j12_spin_hi);
+                    domain = :spin,
+                )
+                setprecision(BigFloat, 64) do
+                    # For m_eq: h_1 = (2 + 2^-201) - (1 + 2^-202) = 1 + 2^-202 == |J_12| => strict dominance is false (0.0)
+                    # (Without exact 512-bit abs, |J_12| would truncate to 1 and falsely report 0.5.)
+                    @test QUBOTools.trivial_dominance_fraction(m_eq) == 0.0
+                    # For m_strict: h_1 = (2 + 2^-200) - (1 + 2^-202) = 1 + 3*2^-202 > |J_12| = 1 + 2^-202 => node 1 strictly dominated (0.5)
+                    @test QUBOTools.trivial_dominance_fraction(m_strict) == 0.5
+                    # Exact ratio abs_h / |J_12| == 1 + 2^-53 (tie-to-even -> 1.0 in Float64; 64-bit truncated |J_12| -> nextfloat(1.0))
+                    @test QUBOTools.coercive_field_ratios(m_ratio_hi; norm = 1)[1] == 1.0
+
+                    m_gi_hi = QUBOTools.gauge_invariant_qubo(m_strict)
+                    @test QUBOTools.is_gauge_invariant(m_gi_hi)
+                    @test QUBOTools.zero_field_fraction(m_gi_hi) == 1.0
+                end
+            end
+
+            # Subnormal Float64 coupling nextfloat(0.0) in :bool domain:
+            # coercive_fields underflows to 0.0 in Float64, but exact accumulator knows both fields are nonzero
+            let m_sub = QUBOTools.Model{Int,Float64,Int}(
+                    Set(1:2),
+                    Dict{Int,Float64}(),
+                    Dict((1, 2) => nextfloat(0.0)),
+                )
+                @test QUBOTools.coercive_fields(m_sub) == [0.0, 0.0]
+                @test !QUBOTools.is_gauge_invariant(m_sub)
+                @test QUBOTools.zero_field_fraction(m_sub) == 0.0
+                rep_sub = QUBOTools.report(m_sub)
+                @test rep_sub["model"]["coercive_fields"]["nonzero_count"] == 2
+                @test rep_sub["model"]["coercive_fields"]["zero_field_fraction"] == 0.0
+                @test rep_sub["model"]["coercive_fields"]["is_gauge_invariant"] == false
+            end
+
             # Extreme Float64 couplings in coercive_field_ratios (1e300 and 1e-300) do not overflow/underflow L2 norm
             for scale_exp in (1.0e300, 1.0e-300)
                 m_ext = QUBOTools.Model{Int,Float64,Int}(

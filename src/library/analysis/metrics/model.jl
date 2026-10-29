@@ -48,7 +48,12 @@ function _canonical_dyadic(m::BigInt, e::Int)
     return _DyadicTerm(m >> tz, e + tz)
 end
 
-function _dyadic_from_float(x::AbstractFloat, shift::Int = 0)
+function _dyadic_from_float(
+    x::AbstractFloat,
+    shift::Int = 0;
+    sign_mult::Int = 1,
+    take_abs::Bool = false,
+)
     iszero(x) && return nothing
     p = precision(x)
     ex = exponent(x)
@@ -57,7 +62,8 @@ function _dyadic_from_float(x::AbstractFloat, shift::Int = 0)
     else
         BigInt(ldexp(x, p - 1 - ex))
     end
-    return _canonical_dyadic(m_raw, ex - (p - 1) + shift)
+    m_adj = take_abs ? abs(m_raw) : (sign_mult * m_raw)
+    return _canonical_dyadic(m_adj, ex - (p - 1) + shift)
 end
 
 _dyadic_lsb(t::_DyadicTerm) = t.e
@@ -80,20 +86,27 @@ end
 
 _FloatTermAccum() = _FloatTermAccum(_DyadicTerm[], false, false, false)
 
-function _push_scaled_float!(acc::_FloatTermAccum, c::AbstractFloat, shift::Int)
+function _push_scaled_float!(
+    acc::_FloatTermAccum,
+    c::AbstractFloat,
+    shift::Int;
+    sign_mult::Int = 1,
+    take_abs::Bool = false,
+)
     if isnan(c)
         return _FloatTermAccum(acc.terms, true, acc.pos_inf, acc.neg_inf)
     elseif isinf(c)
+        is_pos = take_abs ? true : ((sign_mult * sign(c)) > 0)
         return _FloatTermAccum(
             acc.terms,
             acc.has_nan,
-            acc.pos_inf || (c > 0),
-            acc.neg_inf || (c < 0),
+            acc.pos_inf || is_pos,
+            acc.neg_inf || !is_pos,
         )
     elseif iszero(c)
         return acc
     else
-        dt = _dyadic_from_float(c, shift)
+        dt = _dyadic_from_float(c, shift; sign_mult, take_abs)
         dt !== nothing && push!(acc.terms, dt)
         return acc
     end
@@ -155,7 +168,12 @@ function _exact_float_clusters(
     end
 end
 
-function _eval_float_accum(::Type{H}, acc::_FloatTermAccum, ambient_bf_prec::Int) where {H}
+function _eval_float_accum(
+    ::Type{H},
+    acc::_FloatTermAccum,
+    ambient_bf_prec::Int;
+    preserve_exact_bits::Bool = false,
+) where {H}
     target_prec = H === BigFloat ? ambient_bf_prec : max(256, precision(H) + 64)
     min_gap = max(_COERCIVE_CLUSTER_SPAN_LIMIT, 2 * target_prec + 256)
     status, clusters = _exact_float_clusters(acc, min_gap)
@@ -180,7 +198,8 @@ function _eval_float_accum(::Type{H}, acc::_FloatTermAccum, ambient_bf_prec::Int
             end
         end
         if H === BigFloat
-            return setprecision(() -> BigFloat(adjusted), BigFloat, ambient_bf_prec)
+            out_prec = preserve_exact_bits ? max(ambient_bf_prec, c1_bits) : ambient_bf_prec
+            return setprecision(() -> BigFloat(adjusted), BigFloat, out_prec)
         else
             return convert(H, adjusted)
         end
@@ -317,9 +336,8 @@ function _form_float_field_accums(Φ::AbstractForm{T}) where {T<:AbstractFloat}
             field_acc[i] = _push_scaled_float!(field_acc[i], v, quad_shift)
             field_acc[j] = _push_scaled_float!(field_acc[j], v, quad_shift)
         end
-        abs_v = abs(v)
-        l1_acc[i] = _push_scaled_float!(l1_acc[i], abs_v, quad_shift)
-        l1_acc[j] = _push_scaled_float!(l1_acc[j], abs_v, quad_shift)
+        l1_acc[i] = _push_scaled_float!(l1_acc[i], v, quad_shift; take_abs = true)
+        l1_acc[j] = _push_scaled_float!(l1_acc[j], v, quad_shift; take_abs = true)
     end
 
     return field_acc, l1_acc
@@ -501,18 +519,30 @@ function _coercive_ratios_and_active_mask(Φ::AbstractForm{T}; norm::Real = 2) w
     n == 0 && return ratios, active
 
     ambient_prec = precision(BigFloat)
-    work_prec = max(256, ambient_prec + 64)
+    max_coeff_prec = ambient_prec
+    if T <: AbstractFloat
+        for (_, v) in linear_terms(Φ)
+            v isa BigFloat && (max_coeff_prec = max(max_coeff_prec, precision(v)))
+        end
+        for (_, v) in quadratic_terms(Φ)
+            v isa BigFloat && (max_coeff_prec = max(max_coeff_prec, precision(v)))
+        end
+    end
+    work_prec = max(256, max_coeff_prec + 64)
     is_bool = domain(Φ) === BoolDomain
 
     setprecision(BigFloat, work_prec) do
         row_couplings = [BigFloat[] for _ = 1:n]
         for ((i, j), v) in quadratic_terms(Φ)
-            v_bf = if v isa AbstractFloat && !(v isa BigFloat) && !isnan(v) && !isinf(v) && !iszero(v)
-                dt = _dyadic_from_float(abs(v), is_bool ? -2 : 0)
+            v_bf = if v isa AbstractFloat && !isnan(v) && !isinf(v) && !iszero(v)
+                dt = _dyadic_from_float(v, is_bool ? -2 : 0; take_abs = true)
                 dt === nothing ? zero(BigFloat) : ldexp(BigFloat(dt.m), dt.e)
-            elseif v isa BigFloat && !isnan(v) && !isinf(v) && !iszero(v)
-                dt = _dyadic_from_float(abs(v), is_bool ? -2 : 0)
-                dt === nothing ? zero(BigFloat) : ldexp(BigFloat(dt.m), dt.e)
+            elseif v isa AbstractFloat && isnan(v)
+                BigFloat(NaN)
+            elseif v isa AbstractFloat && isinf(v)
+                BigFloat(Inf)
+            elseif v isa AbstractFloat && iszero(v)
+                zero(BigFloat)
             else
                 c_bf = abs(BigFloat(v))
                 is_bool ? ldexp(c_bf, -2) : c_bf
@@ -610,6 +640,28 @@ end
 is_gauge_invariant(model::AbstractModel; atol::Real = 0.0)::Bool =
     is_gauge_invariant(form(model); atol)
 
+function _nonzero_coercive_field_count(Φ::AbstractForm{T}; atol::Real = 0.0)::Int where {T}
+    n = dimension(Φ)
+    n == 0 && return 0
+    nz = 0
+    if T <: AbstractFloat
+        field_acc, _ = _form_float_field_accums(Φ)
+        for i = 1:n
+            _float_accum_abs_le_atol(field_acc[i], atol) || (nz += 1)
+        end
+    else
+        H = typeof(zero(T) / 4)
+        field4, _ = _form_exact_quad_field_sums(Φ)
+        for i = 1:n
+            _quarter_abs_le_atol(H, field4[i], atol) || (nz += 1)
+        end
+    end
+    return nz
+end
+
+_nonzero_coercive_field_count(model::AbstractModel; atol::Real = 0.0)::Int =
+    _nonzero_coercive_field_count(form(model); atol)
+
 function zero_field_fraction(Φ::AbstractForm{T}; atol::Real = 0.0)::Float64 where {T}
     (atol >= 0 && !isnan(atol)) ||
         throw(ArgumentError("atol must be nonnegative; got $atol"))
@@ -693,13 +745,19 @@ function gauge_invariant_qubo(
         l_new = LF(n, n)
         if T <: AbstractFloat
             ambient_prec = precision(BigFloat)
+            row_max_prec = fill(ambient_prec, n)
             neg_half_acc = [_FloatTermAccum() for _ = 1:n]
             for ((i, j), v) in quadratic_terms(Φ)
-                neg_half_acc[i] = _push_scaled_float!(neg_half_acc[i], -v, -1)
-                neg_half_acc[j] = _push_scaled_float!(neg_half_acc[j], -v, -1)
+                if v isa BigFloat
+                    vp = precision(v)
+                    row_max_prec[i] = max(row_max_prec[i], vp)
+                    row_max_prec[j] = max(row_max_prec[j], vp)
+                end
+                neg_half_acc[i] = _push_scaled_float!(neg_half_acc[i], v, -1; sign_mult = -1)
+                neg_half_acc[j] = _push_scaled_float!(neg_half_acc[j], v, -1; sign_mult = -1)
             end
             for i = 1:n
-                c_i = _eval_float_accum(T, neg_half_acc[i], ambient_prec)
+                c_i = _eval_float_accum(T, neg_half_acc[i], row_max_prec[i]; preserve_exact_bits = true)
                 if !iszero(c_i)
                     l_new[i] = c_i
                 end
@@ -738,12 +796,13 @@ function gauge_invariant_qubo(
         β_new = if keep_offset
             offset(Φ)
         elseif T <: AbstractFloat
-            ambient_prec = precision(BigFloat)
+            max_prec = precision(BigFloat)
             neg_quad_sum = _FloatTermAccum()
             for (_, v) in quadratic_terms(Φ)
-                neg_quad_sum = _push_scaled_float!(neg_quad_sum, -v, 0)
+                v isa BigFloat && (max_prec = max(max_prec, precision(v)))
+                neg_quad_sum = _push_scaled_float!(neg_quad_sum, v, 0; sign_mult = -1)
             end
-            _eval_float_accum(T, neg_quad_sum, ambient_prec)
+            _eval_float_accum(T, neg_quad_sum, max_prec; preserve_exact_bits = true)
         else
             A = _coercive_accum_type(T)
             q_total = zero(A)
