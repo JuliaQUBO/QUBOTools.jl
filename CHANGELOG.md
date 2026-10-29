@@ -1,5 +1,18 @@
 # QUBOTools.jl Changelog
 
+## v0.16.4 (2026-10-29)
+
+### Added
+
+- Add exact Ising coercive local-field and $\mathbb{Z}_2$ gauge-invariance
+  diagnostics (`coercive_fields`, `coupling_norms`, `coercive_field_ratios`,
+  `coercive_field_ratio`, `zero_field_fraction`, `trivial_dominance_fraction`,
+  `is_gauge_invariant`, `field_alignment`, `coercive_field_state`) and
+  `gauge_invariant_qubo` for `QUBOTools` models and forms (#154, #155).
+- Add `is_integer_scaled` and `integerize_scale` to factor bounded rational
+  common denominators and clean decimal export noise into `scale(model)` while
+  preserving point-for-point objective values (#156, #157).
+
 ## v0.16.3 (2026-10-22)
 
 ### Added
