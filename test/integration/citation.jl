@@ -24,6 +24,7 @@ function _copy_citation_fixture(fn::Function; canonical::Bool = true)
             dst = joinpath(dir, rel...)
             mkpath(dirname(dst))
             cp(src, dst)
+            chmod(dst, filemode(dst) | 0o200)
         end
         if canonical
             _normalize_canonical_fixture!(dir)

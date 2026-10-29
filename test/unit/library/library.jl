@@ -4,6 +4,7 @@ include("form.jl")
 include("model.jl")
 include("analysis.jl")
 include("formats.jl")
+include("synthesis.jl")
 
 function test_library()
     @testset "□ Library" verbose = true begin
@@ -13,6 +14,7 @@ function test_library()
         test_model()
         test_analysis()
         test_formats()
+        test_synthesis()
     end
 
     return nothing

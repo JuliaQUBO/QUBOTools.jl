@@ -837,3 +837,214 @@ function hamming_distance(ψ::State{U}, φ::State{U}) where {U}
 
     return d
 end
+
+function _active_preferred_spins(Φ::AbstractForm{T}, atol::Real) where {T}
+    (atol >= 0 && !isnan(atol)) ||
+        throw(ArgumentError("atol must be nonnegative; got $atol"))
+    n = dimension(Φ)
+    pref = zeros(Int, n)
+    n == 0 && return (false, pref)
+
+    α = scale(Φ)
+    isnan(α) && return (true, pref)
+    iszero(α) && return (false, pref)
+
+    sense_sign = sense(Φ) === Min ? -1 : 1
+    scale_sign = α > 0 ? 1 : -1
+    mult = sense_sign * scale_sign
+
+    if T <: AbstractFloat
+        field_acc, _ = _form_float_field_accums(Φ)
+        for i = 1:n
+            s_i = _float_accum_sign_above_atol(field_acc[i], atol)
+            s_i === nothing && return (true, pref)
+            pref[i] = mult * s_i
+        end
+    else
+        H = typeof(zero(T) / 4)
+        field4, _ = _form_exact_quad_field_sums(Φ)
+        for i = 1:n
+            s_i = _quarter_sign_above_atol(H, field4[i], atol)
+            s_i === nothing && return (true, pref)
+            pref[i] = mult * s_i
+        end
+    end
+
+    return (false, pref)
+end
+
+function _state_aligned_counts(
+    Φ::AbstractForm,
+    psi::AbstractVector{<:Integer},
+    pref::Vector{Int};
+    state_domain::Domain = domain(Φ),
+)
+    _objective_validate_state_length(Φ, psi)
+    _objective_validate_state_domain(psi, state_domain)
+
+    active_count = 0
+    aligned_count = 0
+    is_bool = state_domain === BoolDomain
+
+    for i in eachindex(pref)
+        p_i = pref[i]
+        iszero(p_i) && continue
+        active_count += 1
+        s_i = is_bool ? (2 * Int(psi[i]) - 1) : Int(psi[i])
+        if s_i == p_i
+            aligned_count += 1
+        end
+    end
+
+    return (aligned_count, active_count)
+end
+
+function field_alignment(
+    Φ::AbstractForm,
+    state::AbstractVector{<:Integer};
+    atol::Real = 0.0,
+    variables = nothing,
+)::Float64
+    if !isnothing(variables)
+        solution_error("State projection by variables requires model variable metadata")
+    end
+
+    has_nan, pref = _active_preferred_spins(Φ, atol)
+    aligned_count, active_count = _state_aligned_counts(Φ, state, pref)
+    (has_nan || active_count == 0) && return NaN
+    return aligned_count / active_count
+end
+
+function field_alignment(
+    model::AbstractModel,
+    state::Union{AbstractVector{<:Integer},AbstractDict};
+    atol::Real = 0.0,
+    variables = nothing,
+)::Float64
+    (atol >= 0 && !isnan(atol)) ||
+        throw(ArgumentError("atol must be nonnegative; got $atol"))
+    psi = _objective_state(model, state; variables)
+    return field_alignment(form(model), psi; atol)
+end
+
+function field_alignment(
+    Φ::AbstractForm,
+    sample::AbstractSample;
+    atol::Real = 0.0,
+    domain::Union{Domain,Symbol} = QUBOTools.domain(Φ),
+    variables = nothing,
+)::Float64
+    if !isnothing(variables)
+        solution_error("State projection by variables requires model variable metadata")
+    end
+
+    sample_dom = QUBOTools.domain(domain)
+    has_nan, pref = _active_preferred_spins(Φ, atol)
+    aligned_count, active_count =
+        _state_aligned_counts(Φ, state(sample), pref; state_domain = sample_dom)
+    (has_nan || active_count == 0) && return NaN
+    return aligned_count / active_count
+end
+
+function field_alignment(
+    model::AbstractModel,
+    sample::AbstractSample;
+    atol::Real = 0.0,
+    domain::Union{Domain,Symbol} = QUBOTools.domain(model),
+    variables = nothing,
+)::Float64
+    (atol >= 0 && !isnan(atol)) ||
+        throw(ArgumentError("atol must be nonnegative; got $atol"))
+    sample_dom = QUBOTools.domain(domain)
+    psi = _objective_state(model, state(sample); variables)
+    Φ = form(model)
+    has_nan, pref = _active_preferred_spins(Φ, atol)
+    aligned_count, active_count =
+        _state_aligned_counts(Φ, psi, pref; state_domain = sample_dom)
+    (has_nan || active_count == 0) && return NaN
+    return aligned_count / active_count
+end
+
+function field_alignment(
+    Φ::AbstractForm,
+    sol::AbstractSolution;
+    atol::Real = 0.0,
+    variables = nothing,
+)::Float64
+    if !isnothing(variables)
+        solution_error("State projection by variables requires model variable metadata")
+    end
+
+    has_nan, pref = _active_preferred_spins(Φ, atol)
+    isempty(sol) && return NaN
+
+    sol_dom = domain(sol)
+    total_reads = zero(BigInt)
+    aligned_reads = zero(BigInt)
+    active_count = count(!iszero, pref)
+
+    for s in sol
+        k = reads(s)
+        k >= 0 || throw(ArgumentError("Sample read count must be non-negative; got $(k)"))
+        aligned_k, _ = _state_aligned_counts(Φ, state(s), pref; state_domain = sol_dom)
+        k_big = BigInt(k)
+        total_reads += k_big
+        aligned_reads += k_big * aligned_k
+    end
+
+    (has_nan || active_count == 0 || iszero(total_reads)) && return NaN
+    return Float64(aligned_reads // (total_reads * active_count))
+end
+
+function field_alignment(
+    model::AbstractModel,
+    sol::AbstractSolution;
+    atol::Real = 0.0,
+    variables = nothing,
+)::Float64
+    Φ = form(model)
+    has_nan, pref = _active_preferred_spins(Φ, atol)
+    isempty(sol) && return NaN
+
+    sol_dom = domain(sol)
+    total_reads = zero(BigInt)
+    aligned_reads = zero(BigInt)
+    active_count = count(!iszero, pref)
+
+    for s in sol
+        k = reads(s)
+        k >= 0 || throw(ArgumentError("Sample read count must be non-negative; got $(k)"))
+        psi = _objective_state(model, state(s); variables)
+        aligned_k, _ = _state_aligned_counts(Φ, psi, pref; state_domain = sol_dom)
+        k_big = BigInt(k)
+        total_reads += k_big
+        aligned_reads += k_big * aligned_k
+    end
+
+    (has_nan || active_count == 0 || iszero(total_reads)) && return NaN
+    return Float64(aligned_reads // (total_reads * active_count))
+end
+
+function field_alignment(
+    model::AbstractModel,
+    i::Integer;
+    atol::Real = 0.0,
+    variables = nothing,
+)::Float64
+    sol = solution(model)
+    return field_alignment(
+        model,
+        sample(sol, i);
+        atol,
+        domain = domain(sol),
+        variables,
+    )
+end
+
+function field_alignment(
+    model::AbstractModel;
+    atol::Real = 0.0,
+    variables = nothing,
+)::Float64
+    return field_alignment(model, solution(model); atol, variables)
+end

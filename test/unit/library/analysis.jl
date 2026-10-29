@@ -401,6 +401,100 @@ function test_solution_metrics()
             @test QUBOTools.hamming_distance([0, 0, 1], [0, 1, 0]) == 2
             @test QUBOTools.hamming_distance([1, 0, 1], [0, 1, 0]) == 3
         end
+
+        @testset "Field Alignment" begin
+            # Bool Min model:
+            # h_1 = 2.0/2 + 4.0/4 = +2.0 (prefers s_1 = -1 => x_1 = 0)
+            # h_2 = -6.0/2 + 4.0/4 = -2.0 (prefers s_2 = +1 => x_2 = 1)
+            # h_3 = 0.0 (inactive at atol = 0)
+            m = QUBOTools.Model{Symbol,Float64,Int}(
+                Set([:x1, :x2, :x3]),
+                Dict(:x1 => 2.0, :x2 => -6.0),
+                Dict((:x1, :x2) => 4.0);
+                sense = :min,
+                domain = :bool,
+            )
+
+            @test QUBOTools.field_alignment(m, [0, 1, 0]) == 1.0
+            @test QUBOTools.field_alignment(m, [0, 1, 1]) == 1.0
+            @test QUBOTools.field_alignment(m, [0, 0, 0]) == 0.5
+            @test QUBOTools.field_alignment(m, [1, 0, 1]) == 0.0
+            @test QUBOTools.field_alignment(m, Dict(:x1 => 0, :x2 => 1, :x3 => 0)) == 1.0
+            @test QUBOTools.field_alignment(
+                m,
+                [1, 0, 1, 0];
+                variables = [:aux, :x1, :x2, :x3],
+            ) == 1.0
+
+            # Invariance under domain and sense casts
+            m_spin = QUBOTools.cast((QUBOTools.BoolDomain => QUBOTools.SpinDomain), m)
+            m_max = QUBOTools.cast((QUBOTools.Min => QUBOTools.Max), m)
+            m_max_spin = QUBOTools.cast((QUBOTools.BoolDomain => QUBOTools.SpinDomain), m_max)
+            @test QUBOTools.field_alignment(m_spin, [↓, ↑, ↓]) == 1.0
+            @test QUBOTools.field_alignment(m_spin, [↓, ↓, ↓]) == 0.5
+            @test QUBOTools.field_alignment(m_max, [0, 1, 0]) == 1.0
+            @test QUBOTools.field_alignment(m_max_spin, [↓, ↑, ↓]) == 1.0
+
+            # Negative scale flips preferred spin direction; zero scale yields NaN
+            m_neg_scale = QUBOTools.Model{Symbol,Float64,Int}(
+                Set([:x1, :x2, :x3]),
+                Dict(:x1 => 2.0, :x2 => -6.0),
+                Dict((:x1, :x2) => 4.0);
+                scale = -2.0,
+                sense = :min,
+                domain = :bool,
+            )
+            @test QUBOTools.field_alignment(m_neg_scale, [1, 0, 0]) == 1.0
+            @test QUBOTools.field_alignment(m_neg_scale, [0, 1, 0]) == 0.0
+
+            m_zero_scale = QUBOTools.Model{Symbol,Float64,Int}(
+                Set([:x1, :x2]),
+                Dict(:x1 => 2.0, :x2 => -6.0),
+                Dict{Tuple{Symbol,Symbol},Float64}();
+                scale = 0.0,
+            )
+            @test isnan(QUBOTools.field_alignment(m_zero_scale, [0, 1]))
+
+            # Sample and SampleSet read-weighted alignment
+            sol = QUBOTools.SampleSet{Float64,Int}(
+                [
+                    QUBOTools.Sample([0, 1, 0], -4.0, 3), # alignment 1.0
+                    QUBOTools.Sample([0, 0, 0], 0.0, 2),  # alignment 0.5
+                    QUBOTools.Sample([1, 0, 0], 2.0, 1),  # alignment 0.0
+                ];
+                sense = :min,
+                domain = :bool,
+            )
+            QUBOTools.attach!(m, sol)
+            @test QUBOTools.field_alignment(m, sol[1]) == 1.0
+            @test QUBOTools.field_alignment(m, 1) == 1.0
+            @test QUBOTools.field_alignment(m, 2) == 0.5
+            @test QUBOTools.field_alignment(m, 3) == 0.0
+            @test QUBOTools.field_alignment(m, sol) == (3 * 2 + 2 * 1 + 1 * 0) / (6 * 2)
+            @test QUBOTools.field_alignment(m) == 4 / 6
+
+            # Cross-domain solution on Bool model
+            sol_spin = QUBOTools.cast((QUBOTools.BoolDomain => QUBOTools.SpinDomain), sol)
+            @test QUBOTools.field_alignment(m, sol_spin) == 4 / 6
+            @test QUBOTools.field_alignment(QUBOTools.form(m), sol_spin) == 4 / 6
+
+            # Gauge-invariant model has no active fields => NaN
+            m_gi = QUBOTools.gauge_invariant_qubo(m)
+            @test isnan(QUBOTools.field_alignment(m_gi, [0, 1, 0]))
+            @test isnan(QUBOTools.field_alignment(m_gi, sol))
+            @test isnan(QUBOTools.field_alignment(m, [0, 1, 0]; atol = 2.0))
+
+            # Validation errors
+            @test_throws ArgumentError QUBOTools.field_alignment(m, [0, 1, 0]; atol = -1e-3)
+            @test_throws ArgumentError QUBOTools.field_alignment(m, [0, 1, 0]; atol = NaN)
+            @test_throws QUBOTools.SolutionError QUBOTools.field_alignment(m, [0, 1])
+            @test_throws QUBOTools.SolutionError QUBOTools.field_alignment(m, [0, 1, 2])
+            @test_throws QUBOTools.SolutionError QUBOTools.field_alignment(
+                QUBOTools.form(m),
+                [0, 1, 0];
+                variables = [:x1, :x2, :x3],
+            )
+        end
     end
 
     return nothing
@@ -453,6 +547,278 @@ function test_model_metrics()
             @test QUBOTools.linear_density(m) ≈ 1.0 atol = 1e-8
             @test QUBOTools.quadratic_density(m) ≈ 1.0 atol = 1e-8
             @test QUBOTools.density(m) ≈ 1.0 atol = 1e-8
+        end
+
+        @testset "Coercive Fields & Gauge Invariance" begin
+            # 1. Naive vs gauge-invariant QUBO on all form types and Model
+            L = Dict{Int,Float64}(1 => 2.0, 2 => -4.0, 3 => 0.0, 4 => 6.0)
+            Q = Dict{Tuple{Int,Int},Float64}((1, 2) => 8.0, (2, 3) => -4.0)
+            m_bool = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:4),
+                L,
+                Q;
+                scale = 3.0,
+                offset = 1.25,
+                sense = :min,
+                domain = :bool,
+            )
+            # h_1 = 2/2 + 8/4 = 3.0; ||J_1||_1 = 2.0, ||J_1||_2 = 2.0
+            # h_2 = -4/2 + (8 - 4)/4 = -1.0; ||J_2||_1 = 2 + 1 = 3.0, ||J_2||_2 = sqrt(5)
+            # h_3 = 0/2 - 4/4 = -1.0; ||J_3||_1 = 1.0, ||J_3||_2 = 1.0
+            # h_4 = 6/2 + 0 = 3.0 (isolated); ||J_4|| = 0 => ratio = Inf
+            expected_h = [3.0, -1.0, -1.0, 3.0]
+            @test QUBOTools.coercive_fields(m_bool) == expected_h
+
+            for spec in (:sparse, :dense, :dict)
+                f_bool = QUBOTools.form(m_bool, spec)
+                f_spin = QUBOTools.cast((QUBOTools.BoolDomain => QUBOTools.SpinDomain), f_bool)
+                @test QUBOTools.coercive_fields(f_bool) == expected_h
+                @test QUBOTools.coercive_fields(f_spin) == expected_h
+                @test !QUBOTools.is_gauge_invariant(f_bool)
+                @test !QUBOTools.is_gauge_invariant(f_spin)
+                @test QUBOTools.zero_field_fraction(f_bool) == 0.0
+                @test QUBOTools.zero_field_fraction(f_bool; atol = 1.0) == 0.5
+                # Dominance: |h_1|=3 > 2, |h_2|=1 <= 3, |h_3|=1 <= 1, |h_4|=3 > 0 => 2/4 = 0.5
+                @test QUBOTools.trivial_dominance_fraction(f_bool) == 0.5
+                @test QUBOTools.trivial_dominance_fraction(f_spin) == 0.5
+
+                r_l1 = QUBOTools.coercive_field_ratios(f_bool; norm = 1)
+                @test r_l1[1:3] ≈ [1.5, 1 / 3, 1.0]
+                @test isinf(r_l1[4])
+                @test QUBOTools.coercive_field_ratio(f_bool; norm = 1) ≈ (1.5 + 1 / 3 + 1.0) / 3
+                @test QUBOTools.coercive_field_ratio(f_spin; norm = 1) ≈ (1.5 + 1 / 3 + 1.0) / 3
+
+                r_l2 = QUBOTools.coercive_field_ratios(f_bool; norm = 2)
+                @test r_l2[1:3] ≈ [1.5, 1 / sqrt(5.0), 1.0]
+                @test isinf(r_l2[4])
+                @test QUBOTools.coercive_field_ratio(f_bool; norm = 2) ≈ (1.5 + 1 / sqrt(5.0) + 1.0) / 3
+
+                r_inf = QUBOTools.coercive_field_ratios(f_bool; norm = Inf)
+                @test r_inf[1:3] ≈ [1.5, 0.5, 1.0]
+
+                # Gauge-invariant projection on both :bool and :spin forms
+                gi_bool = QUBOTools.gauge_invariant_qubo(f_bool)
+                gi_spin = QUBOTools.gauge_invariant_qubo(f_spin)
+                @test QUBOTools.is_gauge_invariant(gi_bool)
+                @test QUBOTools.is_gauge_invariant(gi_spin)
+                @test QUBOTools.coercive_fields(gi_bool) == zeros(4)
+                @test QUBOTools.coercive_fields(gi_spin) == zeros(4)
+                @test QUBOTools.zero_field_fraction(gi_bool) == 1.0
+                @test QUBOTools.trivial_dominance_fraction(gi_bool) == 0.0
+                @test QUBOTools.coercive_field_ratio(gi_bool) == 0.0
+                @test QUBOTools.offset(gi_bool) == 1.25
+
+                gi_bool_zero = QUBOTools.gauge_invariant_qubo(f_bool; keep_offset = false)
+                gi_spin_zero = QUBOTools.gauge_invariant_qubo(f_spin; keep_offset = false)
+                @test QUBOTools.offset(gi_bool_zero) == 0.0
+                @test QUBOTools.value(zeros(Int, 4), gi_bool_zero) == 0.0
+                @test QUBOTools.value(ones(Int, 4), gi_bool_zero) == 0.0
+                @test QUBOTools.value(fill(↓, 4), gi_spin_zero) == 0.0
+                @test QUBOTools.value(fill(↑, 4), gi_spin_zero) == 0.0
+                # Check Z2 symmetry E(x) == E(1 - x) for all 16 states
+                for mask = 0:15
+                    x = [((mask >> (k - 1)) & 1) for k = 1:4]
+                    x_bar = 1 .- x
+                    @test QUBOTools.value(x, gi_bool) == QUBOTools.value(x_bar, gi_bool)
+                end
+            end
+
+            # Model-level gauge_invariant_qubo resets stale solution
+            QUBOTools.attach!(
+                m_bool,
+                QUBOTools.SampleSet{Float64,Int}([QUBOTools.Sample([0, 1, 1, 0], -5.0, 2)]),
+            )
+            m_gi = QUBOTools.gauge_invariant_qubo(m_bool; keep_offset = false)
+            @test QUBOTools.is_gauge_invariant(m_gi)
+            @test isempty(QUBOTools.solution(m_gi))
+            @test QUBOTools.value(m_gi, [0, 0, 0, 0]) == 0.0
+            @test QUBOTools.value(m_gi, [1, 1, 1, 1]) == 0.0
+
+            # 2. Empty and uncoupled models
+            m_empty = QUBOTools.Model{Int,Float64,Int}()
+            @test isempty(QUBOTools.coercive_fields(m_empty))
+            @test isempty(QUBOTools.coercive_field_ratios(m_empty))
+            @test isnan(QUBOTools.coercive_field_ratio(m_empty))
+            @test isnan(QUBOTools.zero_field_fraction(m_empty))
+            @test isnan(QUBOTools.trivial_dominance_fraction(m_empty))
+            @test QUBOTools.is_gauge_invariant(m_empty)
+
+            m_lin_only = QUBOTools.Model{Int,Float64,Int}(
+                Set([1, 2]),
+                Dict(1 => 2.0, 2 => 0.0),
+                Dict{Tuple{Int,Int},Float64}(),
+            )
+            @test QUBOTools.coercive_field_ratios(m_lin_only) == [Inf, 0.0]
+            @test isnan(QUBOTools.coercive_field_ratio(m_lin_only))
+
+            # 3. Overflow & exactness regressions (Int64 typemax/typemin, catastrophic cancellation, wide BigFloat, Rational atol, extreme L2 norms)
+            M64 = typemax(Int64)
+            m_int_ovf = QUBOTools.Model{Int,Int64,Int}(
+                Set(1:3),
+                Dict(1 => -M64, 2 => -M64),
+                Dict((1, 2) => M64, (1, 3) => M64, (2, 3) => M64),
+            )
+            @test !QUBOTools.is_gauge_invariant(m_int_ovf)
+            @test QUBOTools.coercive_fields(m_int_ovf)[1:2] == [0.0, 0.0]
+            @test QUBOTools.zero_field_fraction(m_int_ovf) == 2 / 3
+            # Intermediate row sum 2 * M64 exceeds typemax(Int64), but -row_sum ÷ 2 == -M64 fits in Int64!
+            m_int_gi = QUBOTools.gauge_invariant_qubo(m_int_ovf)
+            @test QUBOTools.is_gauge_invariant(m_int_gi)
+
+            m_int_true_ovf = QUBOTools.Model{Int,Int64,Int}(
+                Set(1:4),
+                Dict{Int,Int64}(),
+                Dict((1, 2) => M64 - 1, (1, 3) => M64 - 1, (1, 4) => M64 - 1),
+            )
+            @test_throws ArgumentError QUBOTools.gauge_invariant_qubo(m_int_true_ovf)
+
+            m_int_ovf_all = QUBOTools.Model{Int,Int64,Int}(
+                Set(1:3),
+                Dict(1 => -M64, 2 => -M64, 3 => -M64),
+                Dict((1, 2) => M64, (1, 3) => M64, (2, 3) => M64),
+            )
+            @test QUBOTools.is_gauge_invariant(m_int_ovf_all)
+            @test QUBOTools.coercive_fields(m_int_ovf_all) == [0.0, 0.0, 0.0]
+            @test QUBOTools.zero_field_fraction(m_int_ovf_all) == 1.0
+
+            m_int_odd = QUBOTools.Model{Int,Int64,Int}(
+                Set(1:2),
+                Dict{Int,Int64}(),
+                Dict((1, 2) => 3),
+            )
+            @test_throws ArgumentError QUBOTools.gauge_invariant_qubo(m_int_odd)
+
+            # Float64 catastrophic cancellation & cluster-boundary cancellation
+            m_cancel = QUBOTools.Model{Int,Float64,Int}(
+                Set(1:4),
+                Dict(1 => 1.0e100),
+                Dict((1, 2) => -1.0e100, (1, 3) => -1.0e100, (1, 4) => 4.0),
+            )
+            @test QUBOTools.coercive_fields(m_cancel)[1] == 1.0
+            @test !QUBOTools.is_gauge_invariant(m_cancel; atol = 0.5)
+            @test QUBOTools.is_gauge_invariant(
+                QUBOTools.Model{Int,Float64,Int}(
+                    Set(1:3),
+                    Dict(1 => 2.0, 2 => 2.0, 3 => 0.0),
+                    Dict((1, 2) => -4.0, (1, 3) => 4.0 * 2.0^(-60)),
+                );
+                atol = (BigInt(1) // (BigInt(2)^60)) + (BigInt(1) // (BigInt(2)^200)),
+            )
+            @test !QUBOTools.is_gauge_invariant(
+                QUBOTools.Model{Int,Float64,Int}(
+                    Set(1:3),
+                    Dict(1 => 2.0, 2 => 2.0, 3 => 0.0),
+                    Dict((1, 2) => -4.0, (1, 3) => 4.0 * 2.0^(-60)),
+                );
+                atol = (BigInt(1) // (BigInt(2)^60)) - (BigInt(1) // (BigInt(2)^200)),
+            )
+
+            # Wide-exponent BigFloat and high-precision BigFloat stored in lower ambient precision
+            m_bf_wide = QUBOTools.Model{Int,BigFloat,Int}(
+                Set(1:3),
+                Dict(1 => -ldexp(BigFloat(1), 2200)),
+                Dict((1, 2) => ldexp(BigFloat(2), 2200), (1, 3) => BigFloat(4)),
+            )
+            @test QUBOTools.coercive_fields(m_bf_wide)[1] == BigFloat(1)
+            @test !QUBOTools.is_gauge_invariant(m_bf_wide; atol = 0.5)
+
+            two_c_hi = setprecision(BigFloat, 512) do
+                BigFloat(2) + ldexp(BigFloat(1), -299)
+            end
+            setprecision(BigFloat, 64) do
+                m_hi = QUBOTools.Model{Int,BigFloat,Int}(
+                    Set(1:2),
+                    Dict(1 => two_c_hi, 2 => BigFloat(2)),
+                    Dict((1, 2) => BigFloat(-4)),
+                )
+                @test !QUBOTools.is_gauge_invariant(m_hi)
+            end
+
+            # Regression test for bigfloat-abs-neg-precision-truncation:
+            # 512-bit BigFloat coefficients evaluated inside a 64-bit ambient setprecision block
+            # must preserve full 512-bit precision across abs(...) and negation in
+            # trivial_dominance_fraction, coercive_field_ratios, and gauge_invariant_qubo.
+            let q12_hi = setprecision(BigFloat, 512) do
+                    -(BigFloat(4) + ldexp(BigFloat(1), -200))
+                end,
+                c1_eq = setprecision(BigFloat, 512) do
+                    BigFloat(4) + ldexp(BigFloat(1), -200)
+                end,
+                c1_strict = setprecision(BigFloat, 512) do
+                    BigFloat(4) + ldexp(BigFloat(1), -199)
+                end,
+                j12_spin_hi = setprecision(BigFloat, 512) do
+                    -(BigFloat(1) + ldexp(BigFloat(1), -200))
+                end,
+                h1_spin_hi = setprecision(BigFloat, 512) do
+                    (BigFloat(1) + ldexp(BigFloat(1), -53)) * (BigFloat(1) + ldexp(BigFloat(1), -200))
+                end
+
+                m_eq = QUBOTools.Model{Int,BigFloat,Int}(
+                    Set(1:2),
+                    Dict(1 => c1_eq, 2 => BigFloat(0)),
+                    Dict((1, 2) => q12_hi),
+                )
+                m_strict = QUBOTools.Model{Int,BigFloat,Int}(
+                    Set(1:2),
+                    Dict(1 => c1_strict, 2 => BigFloat(0)),
+                    Dict((1, 2) => q12_hi),
+                )
+                m_ratio_hi = QUBOTools.Model{Int,BigFloat,Int}(
+                    Set(1:2),
+                    Dict(1 => h1_spin_hi, 2 => BigFloat(0)),
+                    Dict((1, 2) => j12_spin_hi);
+                    domain = :spin,
+                )
+                setprecision(BigFloat, 64) do
+                    # For m_eq: h_1 = (2 + 2^-201) - (1 + 2^-202) = 1 + 2^-202 == |J_12| => strict dominance is false (0.0)
+                    # (Without exact 512-bit abs, |J_12| would truncate to 1 and falsely report 0.5.)
+                    @test QUBOTools.trivial_dominance_fraction(m_eq) == 0.0
+                    # For m_strict: h_1 = (2 + 2^-200) - (1 + 2^-202) = 1 + 3*2^-202 > |J_12| = 1 + 2^-202 => node 1 strictly dominated (0.5)
+                    @test QUBOTools.trivial_dominance_fraction(m_strict) == 0.5
+                    # Exact ratio abs_h / |J_12| == 1 + 2^-53 (tie-to-even -> 1.0 in Float64; 64-bit truncated |J_12| -> nextfloat(1.0))
+                    @test QUBOTools.coercive_field_ratios(m_ratio_hi; norm = 1)[1] == 1.0
+
+                    m_gi_hi = QUBOTools.gauge_invariant_qubo(m_strict)
+                    @test QUBOTools.is_gauge_invariant(m_gi_hi)
+                    @test QUBOTools.zero_field_fraction(m_gi_hi) == 1.0
+                end
+            end
+
+            # Subnormal Float64 coupling nextfloat(0.0) in :bool domain:
+            # coercive_fields underflows to 0.0 in Float64, but exact accumulator knows both fields are nonzero
+            let m_sub = QUBOTools.Model{Int,Float64,Int}(
+                    Set(1:2),
+                    Dict{Int,Float64}(),
+                    Dict((1, 2) => nextfloat(0.0)),
+                )
+                @test QUBOTools.coercive_fields(m_sub) == [0.0, 0.0]
+                @test !QUBOTools.is_gauge_invariant(m_sub)
+                @test QUBOTools.zero_field_fraction(m_sub) == 0.0
+                rep_sub = QUBOTools.report(m_sub)
+                @test rep_sub["model"]["coercive_fields"]["nonzero_count"] == 2
+                @test rep_sub["model"]["coercive_fields"]["zero_field_fraction"] == 0.0
+                @test rep_sub["model"]["coercive_fields"]["is_gauge_invariant"] == false
+            end
+
+            # Extreme Float64 couplings in coercive_field_ratios (1e300 and 1e-300) do not overflow/underflow L2 norm
+            for scale_exp in (1.0e300, 1.0e-300)
+                m_ext = QUBOTools.Model{Int,Float64,Int}(
+                    Set(1:3),
+                    Dict(1 => 2.0 * scale_exp),
+                    Dict((1, 2) => 12.0 * scale_exp, (1, 3) => 16.0 * scale_exp),
+                )
+                # h_1 = (1 + 3 + 4) * scale_exp = 8 * scale_exp
+                # J_{1,2} = 3 * scale_exp, J_{1,3} = 4 * scale_exp => ||J_1||_2 = 5 * scale_exp
+                @test QUBOTools.coercive_field_ratios(m_ext; norm = 2)[1] ≈ 8 / 5
+            end
+
+            @test_throws ArgumentError QUBOTools.coercive_field_ratios(m_bool; norm = 0)
+            @test_throws ArgumentError QUBOTools.coercive_field_ratios(m_bool; norm = -1)
+            @test_throws ArgumentError QUBOTools.coercive_field_ratios(m_bool; norm = NaN)
+            @test_throws ArgumentError QUBOTools.is_gauge_invariant(m_bool; atol = -1.0)
+            @test_throws ArgumentError QUBOTools.zero_field_fraction(m_bool; atol = -1.0)
+            @test_throws ArgumentError QUBOTools.trivial_dominance_fraction(m_bool; atol = -1.0)
         end
     end
 
@@ -654,6 +1020,11 @@ function test_reports()
                 @test m_sec["coefficients"]["quadratic"]["min"] == -2.0
                 @test m_sec["coefficients"]["quadratic"]["max"] == 4.0
                 @test m_sec["coefficients"]["all"]["count"] == 5
+                @test m_sec["coercive_fields"]["count"] == 3
+                @test m_sec["coercive_fields"]["is_gauge_invariant"] == false
+                @test m_sec["coercive_fields"]["zero_field_fraction"] == 0.0
+                @test m_sec["coercive_fields"]["trivial_dominance_fraction"] ≈ 1 / 3
+                @test m_sec["coercive_fields"]["mean_l1_ratio"] ≈ (0.5 + 1.0 + 1.5) / 3
                 @test m_sec["metadata"]["id"] == "test-report-model"
 
                 # Solution section
@@ -682,6 +1053,7 @@ function test_reports()
                 @test best_s["value"] == 0.0
                 @test best_s["reads"] == 2
                 @test best_s["probability"] ≈ 0.2
+                @test best_s["field_alignment"] ≈ 2 / 3
                 @test best_s["objective_breakdown"]["raw_value"] == -1.5
                 @test best_s["objective_breakdown"]["scaled_value"] == -3.0
                 @test best_s["objective_breakdown"]["offset_adjusted_value"] == 0.0

@@ -37,6 +37,112 @@ where ``n_{q}`` is the number of non-zero quadratic terms and ``n`` the number o
 function quadratic_density end
 
 @doc raw"""
+    coercive_fields(model_or_form)
+
+Return the vector of unscaled Ising coercive local fields ``h_i`` in variable
+index order ``1:\mathrm{dimension}(x)`` under ``s_i = 2 x_i - 1 \in \{-1, +1\}``:
+
+- for `domain(x) === BoolDomain` (`:bool`),
+  ```math
+  h_i = \frac{1}{2} L_i + \frac{1}{4} \sum_{j \neq i} Q_{i, j};
+  ```
+- for `domain(x) === SpinDomain` (`:spin`), ``h_i = L_i``.
+
+This quantity is invariant under `cast(BoolDomain => SpinDomain, x)`.
+"""
+function coercive_fields end
+
+@doc raw"""
+    coercive_field_ratios(model_or_form; norm::Real = 2)::Vector{Float64}
+
+Return the per-variable ratios ``|h_i| / \|J_{i, \cdot}\|_p`` in variable index
+order ``1:\mathrm{dimension}(x)``, where ``h_i`` is the Ising local field
+([`coercive_fields`](@ref)), ``J_{i, j}`` are the unscaled spin couplings
+(``\frac{1}{4} Q_{i, j}`` on `:bool`, ``Q_{i, j}`` on `:spin`), and ``p = \mathrm{norm} > 0``.
+
+For an isolated variable with ``\|J_{i, \cdot}\|_p = 0``, returns `0.0` when
+``h_i = 0`` and `Inf` when ``|h_i| > 0``.
+"""
+function coercive_field_ratios end
+
+@doc raw"""
+    coercive_field_ratio(model_or_form; norm::Real = 2)::Float64
+
+Return the mean ratio ``|h_i| / \|J_{i, \cdot}\|_p`` across all variables with
+non-zero incident spin couplings (``\|J_{i, \cdot}\|_p > 0``), or `NaN` when no
+variable has non-zero incident quadratic couplings.
+"""
+function coercive_field_ratio end
+
+@doc raw"""
+    zero_field_fraction(model_or_form; atol::Real = 0.0)::Float64
+
+Return the fraction of variables in `model_or_form` satisfying ``|h_i| \le \mathrm{atol}``,
+or `NaN` when `dimension(model_or_form) == 0`.
+"""
+function zero_field_fraction end
+
+@doc raw"""
+    trivial_dominance_fraction(model_or_form; atol::Real = 0.0)::Float64
+
+Return the fraction of variables in `model_or_form` whose Ising local field
+strictly dominates all incident spin couplings,
+```math
+|h_i| > \sum_{j \neq i} |J_{i, j}| + \mathrm{atol},
+```
+so that variable ``i`` is trivially fixed in any ground state regardless of the
+orientation of its neighbors. Returns `NaN` when `dimension(model_or_form) == 0`.
+"""
+function trivial_dominance_fraction end
+
+@doc raw"""
+    is_gauge_invariant(model_or_form; atol::Real = 0.0)::Bool
+
+Return `true` when all Ising coercive local fields satisfy ``|h_i| \le \mathrm{atol}``
+for ``i \in 1:\mathrm{dimension}(x)``, i.e. when the objective is invariant under
+global ``\mathbb{Z}_2`` spin inversion ``\mathbf{s} \mapsto -\mathbf{s}``
+(``\mathbf{x} \mapsto \mathbf{1} - \mathbf{x}``).
+"""
+function is_gauge_invariant end
+
+@doc raw"""
+    gauge_invariant_qubo(model_or_form; keep_offset::Bool = true)
+
+Return a copy of `model_or_form` projected onto its zero-field ``\mathbb{Z}_2``
+gauge-invariant subspace (``h_i = 0`` for all ``i``):
+
+- in `BoolDomain` (`:bool`), replaces linear coefficients with
+  ``L_i \leftarrow -\frac{1}{2} \sum_{j \neq i} Q_{i, j}`` (and sets
+  ``\beta \leftarrow 0`` when `keep_offset = false`);
+- in `SpinDomain` (`:spin`), zeroes all linear coefficients ``L_i \leftarrow 0``
+  (and sets ``\beta \leftarrow -\sum_{i < j} J_{i, j}`` when `keep_offset = false`,
+  so ``E(-\mathbf{1}) = E(+\mathbf{1}) = 0``, commuting with `cast(BoolDomain => SpinDomain, x)`).
+
+When projecting a [`Model`](@ref), returns a new model with an empty solution set
+because the objective function is modified when non-zero local fields are removed.
+"""
+function gauge_invariant_qubo end
+
+@doc raw"""
+    field_alignment(model_or_form, state_or_sample_or_solution; atol::Real = 0.0, variables = nothing)::Float64
+    field_alignment(model::AbstractModel, i::Integer; atol::Real = 0.0, variables = nothing)::Float64
+    field_alignment(model::AbstractModel; atol::Real = 0.0)::Float64
+
+Return the fraction of active-field variables (``|h_i| > \mathrm{atol}``) whose
+spin ``s_i \in \{-1, +1\}`` aligns with the single-variable optimum of the local
+field objective ``\alpha h_i s_i`` (where ``\alpha = \mathrm{scale}(x)``):
+
+- for `sense(x) === Min`, spin ``s_i`` is aligned when ``\alpha h_i s_i < 0``;
+- for `sense(x) === Max`, spin ``s_i`` is aligned when ``\alpha h_i s_i > 0``.
+
+For an [`AbstractSolution`](@ref), returns the read-weighted average alignment
+across all samples. Returns `NaN` when there are no active-field variables
+(e.g., gauge-invariant or empty models), when `scale(x) == 0`, or when the
+solution is empty or has zero total reads.
+"""
+function field_alignment end
+
+@doc raw"""
     TimeToTargetEstimate
 
 Structured time-to-target (TTT) estimate preserving trial units, cost boundary,
@@ -225,8 +331,8 @@ function hamming_distance end
 Build a consolidated, JSON-serializable run-report dictionary (`format = "QUBOTools.report"`,
 `version = 1`) aggregating:
 
-- `"model"`: dimension, variable labels, sense, domain, scale, offset, linear/quadratic term counts, [`density`](@ref), [`linear_density`](@ref), [`quadratic_density`](@ref), per-degree and combined coefficient statistics (`count`, `min`, `max`, `min_abs`, `max_abs`, `mean`, `mean_abs`, `std`, `dynamic_range`), and model metadata;
-- `"solution"`: presence flag, sample count, total reads, frame, solution metadata, `QUBOTools.samples` table metadata, timing (`effective_time`, `total_time`), energy summary, best sample with [`objective_breakdown`](@ref), objective verification status (`objective_values_verified`, `objective_mismatch_count`), threshold metrics ([`success_rate`](@ref) and [`time_to_target_estimate`](@ref) when `λ` and `trial_unit` are supplied), and optional sample table rows (`include_samples = true`);
+- `"model"`: dimension, variable labels, sense, domain, scale, offset, linear/quadratic term counts, [`density`](@ref), [`linear_density`](@ref), [`quadratic_density`](@ref), per-degree and combined coefficient statistics (`count`, `min`, `max`, `min_abs`, `max_abs`, `mean`, `mean_abs`, `std`, `dynamic_range`), Ising coercive-field diagnostics (`"coercive_fields"`), and model metadata;
+- `"solution"`: presence flag, sample count, total reads, frame, solution metadata, `QUBOTools.samples` table metadata, timing (`effective_time`, `total_time`), energy summary, best sample with [`objective_breakdown`](@ref) and [`field_alignment`](@ref), objective verification status (`objective_values_verified`, `objective_mismatch_count`), threshold metrics ([`success_rate`](@ref) and [`time_to_target_estimate`](@ref) when `λ` and `trial_unit` are supplied), and optional sample table rows (`include_samples = true`);
 - `"penalties"`: optional penalty dictionary, automatically extracted from `reformulation["applied_penalties"]` or `metadata(model)["penalties"]` when not passed explicitly;
 - `"reformulation"`: optional schema-v1 reformulation metadata dictionary (or `metadata(model)["toqubo"]["reformulation"]` when present);
 - `"feasibility"`: optional constraint-feasibility summary dictionary or struct.

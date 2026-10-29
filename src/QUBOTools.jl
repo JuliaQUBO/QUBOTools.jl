@@ -70,6 +70,9 @@ export ObjectiveBreakdown, ObjectiveMismatch
 export annotate_objectives!, objective_breakdown
 export objective_value_mismatches, verify_objective_values
 export TimeToTargetEstimate, time_to_target_estimate
+export coercive_fields, coercive_field_ratios, coercive_field_ratio
+export zero_field_fraction, trivial_dominance_fraction
+export is_gauge_invariant, gauge_invariant_qubo, field_alignment
 export report, write_report
 
 # Interface definitions
